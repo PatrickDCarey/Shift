@@ -1,63 +1,74 @@
-# Feature: Movement and gears
+# Feature: Movement and gears (hold-to-move)
 
-_Owner: design-lead. Milestone: M1. GDD: §3, §4.1–4.5, §4.10, §4.13._
+_Owner: design-lead. Milestone: M1. GDD: §3, §4.1–4.6, §4.11, §4.14._
 
 ## Rule
 
-The player auto-runs: Right/Left Shift choose a target gear 0–4 (only on the ground), the direction keys choose a heading, and actual speed moves toward `heading × gearSpeeds[gear]` at a rate that makes each gear segment take a fixed ground distance (1.25 tiles up, 1.25 tiles down). The player's color band comes from actual speed, never from the selected gear.
+Hold Left or Right to move; your speed heads toward the selected gear's speed in that direction, and letting go brakes you to a stop. The Shift keys (and Q/E, Z/X) pick the gear 1–4 on the ground, and it stays selected when you let go. Speeds up to walking pace (3 tiles/s) change instantly; above that, each gear segment takes 1.25 tiles of ground to speed up through and 1.25 to slow down through. Your color band comes from actual speed, never from the selected gear.
 
 ## Details
 
-- Segment accelerations: `accel[n] = (v[n+1]² − v[n]²) / (2 × tilesPerGearChange)`, `brake[n]` the same with `brakeTilesPerGearChange`. Accelerating uses the largest n with `v[n] ≤ speed`; braking uses the largest n with `v[n] < speed`. Chosen from the speed at the start of the step; clamp at the target, never overshoot.
-- Position advances by `(oldSpeed + newSpeed) / 2 × dt`.
-- Band: `band = count of colorBandEdges ≤ |vx|`. No hysteresis. Exactly on an edge = higher band.
-- Reversal: if velocity opposes heading, brake toward 0. If the band is ≤ `pivotMaxBand` at the start of a grounded step, flip the velocity sign instantly (same magnitude) and continue normally.
-- Wall stop: blocked horizontally by any solid tile → stop at contact, `vx = 0`, `gear = 0`.
+- **Direction d:** one of `L`/`R` held → that way; neither → 0; both → the more recently pressed; both pressed on the same step → 0 until one is released. Facing becomes d whenever d ≠ 0.
+- **Target velocity** on the ground: `d × gearSpeeds[gear]`.
+- **Walking range is instant:** within 0 to `gearSpeeds[instantMaxGear]` (3), start, stop and turn take no distance. A turn at or below 3 goes straight to `min(|T|, 3)` the other way on the same step.
+- **Running range:** segments 1–3 use `accel[n] = (v[n+1]² − v[n]²) / (2 × tilesPerGearChange)` and `brake[n]` likewise with `brakeTilesPerGearChange` (10.8, 18.0, 25.2). Accelerating uses the largest n with `v[n] ≤ speed`; braking uses the largest n with `v[n] < speed`. Chosen from the speed at the start of the step; clamp at the target, never overshoot.
+- **Letting go, shifting down and skidding** all use the same braking rule.
+- Position advances by `(vx_old + vx_new) / 2 × dt`.
+- **Band** = count of `colorBandEdges` ≤ `|vx|`. No hysteresis; exactly on an edge = higher band.
+- **Gears** 1–4 (`minGear` 1), start in `startGear` (1). Shift presses only apply on the ground.
+- **Bindings:** Right Shift, E, X → shift up (`+`); Left Shift, Q, Z → shift down (`-`). All active at once.
+- **Wall stop:** blocked horizontally by a solid tile → stop at contact, `vx = 0`. Gear unchanged.
 
 ## Edge cases
 
-- **Shift presses in the air** go to the shift buffer (see `air-drag.md`); they are never applied mid-air.
-- **Gear clamps** at 0 and 4. Extra presses do nothing and are not stored.
-- **Shifting several times quickly:** each press changes the target immediately. The ramp rate depends only on current speed, so spreading presses over a few steps gives the same result as pressing them all at once until speed reaches the intermediate target.
-- **Shift down mid-ramp** (speed below the old target, above the new one): starts braking at once.
-- **Both direction keys on the same step:** heading unchanged.
-- **Direction press at gear 0, standing still:** turns only. No movement.
-- **Reversing at speed:** skid with normal braking, passing down through every lower band (which will drop you off a colored floor after grace). The gear is unchanged. Once the band is blue or white, pivot instantly. Heading back the original way mid-skid: accelerate again.
-- **Left vs right:** perfectly mirrored. No rule depends on the sign.
-- **Pressed against a wall in the heading direction with gear > 0:** the ramp produces a tiny speed, the wall stop zeroes it and sets gear 0 on the same step. Net effect: you can't shift up into a wall.
-- **Wall stop in the air:** same rule; the player then falls straight down.
-- **Step-up of any height** is a wall. There are no slopes.
+- **Shift presses in the air** go to the shift buffer (see `air-drag.md`).
+- **Gear clamps** at 1 and 4. Extra presses do nothing and are not stored.
+- **Shifting while standing still** changes the gear only; nothing moves until you hold a direction.
+- **Shifting several times quickly:** each press changes the target immediately. The ramp rate depends only on current speed, so spreading presses over a few steps gives the same result as pressing them together, unless speed reaches an intermediate target first.
+- **Downshift while holding** brakes to the new cruise speed and holds it. **Letting go** brakes all the way to 0 (the last 3 tiles/s instantly).
+- **Letting go at running speed then holding again** before stopping: accelerates again from the current speed, no instant step.
+- **Reversing at running speed** is a skid through every lower band, then an instant turn at walking pace, then acceleration the other way. Gear unchanged. Letting go mid-skid keeps braking to a stop.
+- **Left vs right:** perfectly mirrored.
+- **Holding into a wall:** each step the instant start produces 3 tiles/s and the wall stop zeroes it. The player stays at the wall, band white, gear unchanged.
+- **Wall stop in the air:** same rule; the player falls straight down; the air rule lowers the gear to 1 (band white).
+- **Steps up of any height** are walls. No slopes.
+- **Feathering** (tapping the arrow to hover near a band edge) is allowed; flicker that results is the player's own doing.
 
 ## Tuning
 
-`stepHz`, `gearSpeeds`, `tilesPerGearChange`, `brakeTilesPerGearChange`, `pivotMaxBand`, `colorBandEdges`, `playerWidthTiles`, `playerHeightTiles`.
+`stepHz`, `gearSpeeds`, `minGear`, `startGear`, `instantMaxGear`, `tilesPerGearChange`, `brakeTilesPerGearChange`, `colorBandEdges`, `playerWidthTiles`, `playerHeightTiles`.
 
 ## Acceptance
 
 ### Test conventions (apply to all M1 feature specs)
 
 - Use the shipped `src/data/tuning.json`.
-- **Flat floor:** a long row of grey tiles; the player spawns standing on it, gear 0, heading right, unless stated.
-- **"Press K on step n"** means K goes down on step n and up on step n+1. Step 1 is the first simulated step after spawn.
-- **Cruising at gear g** means the player has been on flat ground at `|vx| = gearSpeeds[g]` for at least 10 steps.
-- **Distance** is the change in the player's center x. **Height** is the player's feet above the takeoff floor.
-- Tolerances unless stated: step numbers ±2, distances ±0.15 tiles. Speeds set by snapping (gear speeds, drag drops, pivots, wall stops) must be exact.
+- **Flat floor:** a long row of safe tiles (`#`); the player spawns standing on it, gear 1, facing right, unless stated.
+- **Input** is given as held buttons per step, as in solution files (`L R J + -`). "Press `+` on step n" means `+` is held on step n only (an edge). "Hold R" means R is held every step until stated otherwise.
+- **Run steps** count from 1 at spawn. **Action steps** count from 1 on the step an action (a press, a release, a direction change) first appears in the input.
+- **Cruising at gear g** means holding a direction on flat ground at `|vx| = gearSpeeds[g]` for at least 10 steps.
+- **Distance** is the change in the player's center x since the step before action step 1 (or since spawn). **Height** is the player's feet above the takeoff floor.
+- Tolerances unless stated: step numbers ±2, distances ±0.15 tiles. Speeds set by snapping (instant walking-range changes, gear speeds, drag drops, wall stops) must be exact.
 
 ### Checks
 
-1. **Runway from rest.** On a flat floor press Right Shift on steps 1, 3, 5, 7. The band becomes 1 on step 25, 2 on step 59, 3 on step 72, 4 on step 81 (distance 4.45). `|vx|` equals 12 exactly from step 84 (distance 5.02) and stays 12. The band is never 4 while the distance is below 4.0 tiles.
+1. **Runway from standing.** Hold R from run step 1 and press `+` on run steps 1, 3, 5. `vx` = 3 exactly at the end of step 1 (band 1). Band 2 on step 10, band 3 on step 23, band 4 on step 32 (distance 3.23). `vx` = 12 exactly from step 36 (distance 4.00) and stays 12. The band is never 4 while the distance is below 3.0.
 2. **No overshoot.** In check 1, `|vx|` never exceeds `gearSpeeds[gear]` on any step.
-3. **One gear up.** Cruising at gear 3, press Right Shift on step s. Band 4 on step s+4 (0.66 tiles later). `|vx|` = 12 on step s+8 (1.42 tiles).
-4. **Braking.** Cruising at gear 4, press Left Shift on steps s, s+2, s+4, s+6. Band 3 on s+4, band 2 on s+12, band 1 on s+26, band 0 on s+58. `vx` = 0 exactly from step s+83, 4.87 tiles after s.
-5. **Clamping.** From rest, press Right Shift 6 times (odd steps 1–11): gear is 4. Then press Left Shift 6 times: gear is 0. At rest in gear 0, Left Shift leaves gear 0.
-6. **Mirror.** Repeat check 1 with heading left (press Left on step 1, then the shifts on 3, 5, 7, 9): every band change happens the same number of steps after the first Right Shift press as in check 1, and distances are exact mirrors (identical magnitudes, opposite sign).
-7. **Reversal from sprint.** Cruising at gear 4 heading right, press Left on step s. `vx` stays positive and decreases until the pivot step s+26 (3.24 tiles past s). On the pivot step `vx` becomes negative with `|vx|` in [3, 4.5). `vx` = −12 exactly by step s+53. The gear stays 4 throughout. The band goes 4, 3, 2, 1, then back up to 4.
-8. **Walking pivot.** Cruising at gear 1 heading right, press Left on step s: `vx` = −3 exactly at the end of step s.
-9. **Turn in place.** At rest in gear 0, press Left: heading becomes −1, `vx` stays 0, x unchanged for 60 steps.
-10. **Wall stop.** Cruising at gear 4 toward a grey wall: on the contact step `vx` = 0, gear = 0, band = 0, and the player's box edge is within 0.01 tiles of the wall face without overlapping it.
-11. **Can't shift into a wall.** Standing in contact with a wall, heading into it, press Right Shift: at the end of that step gear = 0 and `vx` = 0.
-12. **Band function (unit).** With the shipped edges: band(0) = 0, band(1.49) = 0, band(1.5) = 1, band(4.5) = 2, band(7.49) = 2, band(7.5) = 3, band(10.5) = 4, band(12) = 4.
-13. **Segment accelerations (unit).** Derived `accel` = `brake` = [3.6, 10.8, 18.0, 25.2] (±1e-9).
+3. **Walking is instant.** Standing in gear 1: hold R → `vx` = 3 at the end of action step 1. Then release → `vx` = 0 at the end of that action step 1. Then hold L → `vx` = −3 at the end of that action step 1. While walking right at 3, switch to holding L → `vx` = −3 at the end of action step 1.
+4. **One gear up.** Cruising at gear 3, press `+`: band 4 on action step 4 (0.66 tiles); `vx` = 12 on action step 8 (1.42 tiles).
+5. **Let go from sprint.** Cruising at gear 4, release R (action step 1): band 3 on step 4 (0.74), band 2 on step 12 (1.91), band 1 on step 26 (3.24), `vx` = 0 exactly on step 35 (3.74). Gear stays 4.
+6. **Let go from jog.** Cruising at gear 2, release: band 1 on action step 9 (0.78), `vx` = 0 on step 18 (1.29).
+7. **Downshift while holding.** Cruising at gear 4, keep holding R, press `-` on action steps 1, 3, 5: band 1 on step 26 (3.24); `vx` = 3 exactly from step 34 (3.72) and stays 3. Gear 1.
+8. **Gear persists through release.** Cruising at gear 3, release for 60 steps (player stops), then hold R again: gear is 3 throughout; `vx` reaches 9 on action step 28 of the new hold, 2.57 tiles later.
+9. **Reversal from sprint.** Cruising at gear 4 holding R; on action step 1 switch to holding only L. `vx` stays positive and decreasing until action step 35, the turn step (3.72 tiles skidded), on which `vx` = −3 exactly. `vx` = −12 exactly from step 70. Net displacement at step 70: −0.25. Gear 4 throughout. Band goes 4, 3, 2, 1, then 2, 3, 4.
+10. **Both directions.** Cruising at gear 1 holding R, also press L (R still held): `vx` = −3 on that step. Release L with R still held: `vx` = +3 on that step. From standing, R and L go down on the same step and stay held: `vx` stays 0.
+11. **Clamping.** At spawn press `-`: gear stays 1. Press `+` five times (odd steps): gear 4.
+12. **Shift while standing.** At spawn press `+` twice, hold nothing for 60 steps: gear 3, `vx` = 0, x unchanged.
+13. **Mirror.** Check 1 with L instead of R: every band change on the same step, distances exact mirrors.
+14. **Wall stop keeps gear.** Cruising at gear 4 into a safe wall: on the contact step `vx` = 0, gear 4, band 0, and the box edge is within 0.01 tiles of the wall face without overlapping it. Keep holding R for 30 steps: `vx` = 0 at the end of every step, no overlap. Then hold L: `vx` = −3 on action step 1, −12 by action step 36.
+15. **Band function (unit).** band(0) = 0, band(1.49) = 0, band(1.5) = 1, band(4.5) = 2, band(7.49) = 2, band(7.5) = 3, band(10.5) = 4, band(12) = 4.
+16. **Derived rates (unit).** `accel` = `brake` = 10.8, 18.0, 25.2 for segments 1–3 (±1e-9).
+17. **Alternate bindings (e2e, input module).** In the running game, E and X each produce one `+` press, Q and Z each one `-` press, same as Right/Left Shift.
 
 ## Priority
 
