@@ -6,4 +6,7 @@
  * tests/arch/lane-contracts.test.ts checks it. Files in this folder may import ../types only.
  * See docs/tech/architecture.md section 3.5.
  */
-export {};
+export { bandForSpeed } from './bands';
+export { airDrag } from './drag';
+export { groundSpeed } from './ground';
+export { segmentRates } from './rates';
