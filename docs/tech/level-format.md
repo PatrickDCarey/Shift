@@ -164,4 +164,4 @@ _The step count is illustrative (16.1 tiles at 3 tiles/s until the box overlaps 
 
 1. Play the level in the dev build (`npm run dev`) and finish it.
 2. The recorder outputs the solution text (dev-only key or console helper; gameplay-engineer provides it in M2).
-3. Save it as `levels/<id>.solution.txt` and run `npm test`.
+3. Save it as `levels/<id>.solution.txt` and run `npx vitest run tests/levels` (the solvability test, also part of `npm test`). Each level is its own test case; failures name the level and what went wrong.

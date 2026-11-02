@@ -1,8 +1,8 @@
 /**
  * Each src/core lane publishes only its contract (src/core/contracts/lanes.ts):
  * no unlisted exports, and every listed export has the contract's signature.
- * Lanes may still be incomplete (M1 in progress); at the M1 gate tech-lead
- * flips REQUIRE_COMPLETE so a missing export fails too. Owner: tech-lead.
+ * All three lanes are implemented (b97708e, b190192), so REQUIRE_COMPLETE is
+ * on: a missing export fails too. Owner: tech-lead.
  */
 import { describe, expect, it } from 'vitest';
 import * as level from '../../src/core/level';
@@ -10,8 +10,8 @@ import * as motion from '../../src/core/motion';
 import * as sim from '../../src/core/sim';
 import { LANE_EXPORTS, type LevelLaneApi, type MotionApi, type SimLaneApi } from '../../src/core/types';
 
-/** Set to true once all lanes are implemented (M1 gate). */
-const REQUIRE_COMPLETE = false;
+/** On since every lane is implemented (tech-lead review 2026-11-02). */
+const REQUIRE_COMPLETE = true;
 
 // --- Compile time: every export that exists matches the contract signature ---
 type Conforms<M, Api> = { [K in keyof M]: K extends keyof Api ? (M[K] extends Api[K] ? true : false) : false };

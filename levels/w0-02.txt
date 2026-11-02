@@ -1,0 +1,32 @@
+# Grey-box room for the M1 playtest (board M1-20/M1-21). Internal test room, not shipped.
+# Exercises every M1 mechanic once, left to right, with a safe (#) stop between sections:
+#   A cols 0-12  : hold to walk across a blue bridge (low ceiling, no jumping); let go on it and you drop.
+#   B cols 7-17  : walk off the bridge into the runway room. From where you land (at the very edge of the
+#                  red bridge) you cannot reach red: walk back to the wall, shift to gear 4, sprint.
+#   C cols 18-41 : sprint off the end of P3; a red jump drags down to yellow after 6 tiles and lands
+#                  on the yellow pad. A yellow takeoff lands green and falls through.
+#   D cols 37-53 : stop on P4, shift down to blue, walk onto the blue floor and let go above the
+#                  exit pocket to drop through it. Blue floor dead-ends on a safe nub; low ceiling.
+id: w0-02
+title: Grey Box
+world: 0
+teaches: combine (M1 test room): hold to move, runway to red, air drag, letting go to drop through
+version: 1
+---
+.............########.................................
+.............########.................................
+.............########.................................
+.............########.................................
+###########..########.................................
+###########..########.................................
+.............########.................................
+.@...........########.................................
+###BBBBBBBB..########................#################
+###....#.....########................#################
+###....#............................................##
+###....#............................................##
+###....######RRRRR########.......YYYY#####BBBBBBBBB###
+###....######.....########...........#####......#....#
+###....######.....########...........#####......#...E#
+###....######.....########...........#####......######
+###....######.....########...........#####......######

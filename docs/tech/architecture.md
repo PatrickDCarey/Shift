@@ -33,6 +33,7 @@ levels/                   *.txt levels + *.solution.txt recordings              
 backend/                  Supabase schema, edge functions                       backend-engineer
 assets/art, assets/audio  source and exported assets                            art-director / audio-designer
 tests/arch/               architecture guards (purity, lanes, tuning, docs, case) tech-lead
+tests/levels/             solvability test: real sim replays every level's solution tech-lead
 tests/e2e/                Playwright                                            qa-tester
 src/**/*.test.ts          unit tests, co-located with the code they test        owner of that code
 ```
@@ -72,12 +73,12 @@ The sim lane implements exactly this order; acceptance numbers in `docs/design/f
 |---|---|---|
 | 0 | **Status gate** | `won`: return the state unchanged except `prevInput` and `events = []`. `dead`/`restarting`: see §3.4. |
 | 1 | **Input** | `pressed(b) = input[b] && !prevInput[b]`. A `restart` press (any status but `won`) ends the step here (§3.4). |
-| 2 | **Shift** | `net = pressed(shiftUp) − pressed(shiftDown)` (both on one step cancel). Grounded at start: `gear = clamp(gear + net, minGear, MAX_GEAR)`, `shift` event if it changed. Airborne (incl. coyote): if `net ≠ 0`, add it to `shiftBufferNet` and restart the buffer window (`shiftBufferSteps`), `shiftBuffered` event. |
+| 2 | **Shift** | `net = pressed(shiftUp) − pressed(shiftDown)` (both on one step cancel). Grounded at start: `gear = clamp(gear + net, minGear, MAX_GEAR)`, `shift` event if it changed. Airborne (incl. coyote): if `net ≠ 0`, add it to `shiftBufferNet` and restart the buffer window (`shiftBufferSteps`), `shiftBuffered` event carrying the new running total (§3.2). |
 | 3 | **Direction** | Update `dirPriority` from the L/R press edges (only L pressed → −1, only R → +1, both → 0, none → unchanged). `d`: one held → it; none → 0; both → `dirPriority`. If `d ≠ 0`, `facing = d`. Store `moveDir = d`. |
 | 4 | **Ground speed** | Only if grounded at start: `motion.groundSpeed(vx, d × gearSpeeds[gear], params)` (GDD §4.4–4.5; segment chosen from the speed at the start of the step). Keep `vxOld` for phase 7. |
 | 5 | **Jump** | If (`pressed(jump)` or `jumpBufferSteps > 0`) and (grounded at start or `coyoteSteps > 0`): `vy = −jumpSpeed`, airborne, grace cleared, `airDistance = 0`, `coyoteSteps = 0`, `jumpBufferSteps = 0`, `jump` event. Else if `pressed(jump)` while airborne: `jumpBufferSteps` = the param. |
-| 6 | **Gravity** | If airborne: exact kinematics `dy = vy·dt + ½·g·dt²`, then `vy = min(vy + g·dt, maxFallSpeed)`. |
-| 7 | **Move X** | `dx = (vxOld + vx) / 2 × dt`. Resolve walls with the **band at start of step** (no-embed applies; grace never applies to walls). Blocked → snap to the face, `vx = 0`, `wallStop` event. |
+| 6 | **Gravity** | If airborne (`player.grounded` is false here: airborne at start, or jumped in phase 5; a walk-off is only detected in phase 8, so the walk-off step gets no gravity, §3.2): exact kinematics `dy = vy·dt + ½·g·dt²`, then `vy = min(vy + g·dt, maxFallSpeed)`. |
+| 7 | **Move X** | `dx = (vxOld + vx) / 2 × dt`. Resolve walls with the **band at start of step** (no-embed applies; grace never applies to walls). Blocked → snap to the face, `vx = 0`; `wallStop` event only on contact (§3.2), not while pushing into a wall the box already touches. |
 | 8 | **Move Y** | Resolve floors and ceilings with the band at start of step, no-embed, and grace (`graceBand` tiles solid from above only while `graceSteps > 0`). Ceiling → `vy = 0`, `ceiling` event. Landing → snap feet to the tile top, `vy = 0`. Then decide `grounded` (supported test, GDD §4.7). Grounded at start, airborne now, no jump this step → `coyoteSteps` = the param. |
 | 9 | **Air drag** | If **in the air this step** (§3.2): `airDistance += |dx actually moved|`, then `motion.airDrag(vx, airDistance, params)`; `airDrag` event if it dropped. At most one drop per step. |
 | 10 | **Band** | `band = motion.bandForSpeed(|vx|, edges)`; `bandChange` event if changed. If in the air this step: `gear = max(minGear, min(gear, band))`. |
@@ -85,7 +86,7 @@ The sim lane implements exactly this order; acceptance numbers in `docs/design/f
 | 12 | **Grace** | Grounded at start and now, band changed, previous band ≥ 1: `graceBand` = previous band, `graceSteps = colorGraceSteps`, `graceStart` event. Otherwise, if `graceSteps > 0`, count down (clear `graceBand` at 0). Leaving the ground clears grace. |
 | 13 | **Timers** | Decrement `coyoteSteps`, `jumpBufferSteps`, `shiftBufferSteps` if > 0 (a shift buffer reaching 0 clears `shiftBufferNet`). |
 | 14 | **Exit, then death** | Box overlaps an exit tile → `won`, `wonAtStep = step + 1`, `won` event. Else box top below the grid bottom → `dead`, `respawnInSteps = deathFreezeSteps`, `died` event. Exit wins on the same step. |
-| 15 | **Bookkeeping** | `step + 1`, `prevInput = input`, `events` = this step's list. |
+| 15 | **Bookkeeping** | `step + 1` (playing steps only, §3.4), `prevInput = input`, `events` = this step's list. |
 
 ### 3.2 Conventions the GDD leaves implicit (tech-lead rulings)
 
@@ -100,6 +101,9 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
 - **Both shifts on one step** cancel (net 0). Presses are per logical action, so with two keys on one action (Right Shift held, then E pressed) there is no new press until the action is released. Documented for ui-engineer.
 - **Band at start of step** decides collisions in phases 7–8; the band is recomputed only in phase 10. A colour change affects collisions from the next step.
 - **Air drag judges the band of the current `|vx|`** (after a wall stop that is white, so no drop).
+- **Gravity starts the step after a walk-off** (ruling 2026-11-02). Phase 6 runs before phase 8 can see that the floor is gone, so on the walk-off step the player moves only horizontally; coyote starts that step and the fall starts on the next. No look-ahead or second Y pass. Walk-off flights are therefore one step longer than a "same-step gravity" model (the sim lane's numbers in `*Acceptance.test.ts` are normative; design-lead updates the spec tables).
+- **`wallStop` fires once per contact** (ruling 2026-11-02): when phase 7 is blocked **and** (`vxOld ≠ 0` **or** the box moved this step). Holding into a wall from standing (vx 0 → 3 → blocked, box already flush) emits nothing, so audio/FX get one thud per impact, not 60 per second. `speed` stays `|vx|` before the stop. In the air a stop zeroes `vx`, so it cannot repeat anyway.
+- **`shiftBuffered.net` is the running buffer total** after the press (`player.shiftBufferNet`), unclamped, and may be 0 (`+` then `-` in one jump; the event still fires). The clamped outcome is the `shift` event on landing. Buffer expiry (phase 13) has no event: HUDs show pending shifts from `player.shiftBufferNet`/`shiftBufferSteps`, not from events.
 
 ### 3.3 Floating point
 
@@ -113,6 +117,7 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
 - **Restart** (a `restart` press on step r, any status except `won`) sets `status = 'restarting'`, `respawnInSteps = 0` and emits `restart`; nothing else runs on step r. Step r+1 is the respawn step. During a death freeze this skips the rest of the freeze.
 - **The respawn step** returns `{ ...createSim(level, params), prevInput: input }`: exactly the fresh-load state except `prevInput`, so buttons held through the respawn are not new presses. The new run's step 1 is the step after. This satisfies `safe-tiles-and-reset.md` checks 6, 10 and 11 literally (the state on the respawn step equals the fresh-load state).
 - `won` is terminal in the sim (R on the exit step is ignored); the scene starts a new run with `createSim`.
+- **`SimState.step` counts playing steps of the current run only** (ruling 2026-11-02). Frozen death steps, the restart step and `won` steps leave it unchanged; the respawn step resets it to 0. So `step` (and `wonAtStep`) is the run time; the number of recorded frames is the solution's `steps`, which also counts deaths, freezes and restarts.
 
 ### 3.5 Lanes inside `src/core` (M1-41)
 
@@ -125,10 +130,10 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
 | level | `src/core/level/` | level/solution parsers (LF + CRLF), input-log codec, `runInputLog`, `verifySolution`, `loadLevels` | 8 functions in `LevelLaneApi` | `../types` only |
 | tech-lead | `src/core/types.ts`, `src/core/contracts/**`, `src/core/index.ts` | shared types, contracts, barrel | everything above + types | contracts only |
 
-- **The level lane never imports the sim.** `runInputLog` and `verifySolution` take a `SimApi` (`{ createSim, step }`) argument, so the level lane is built and tested now with a stub sim. The real solution replay test (`src/core/level/*.test.ts`) imports the barrel `src/core`; tests are exempt from the lane-import rule.
+- **The level lane never imports the sim.** `runInputLog` and `verifySolution` take a `SimApi` (`{ createSim, step }`) argument, so the level lane is built and tested now with a stub sim. The real solution replay test (`tests/levels/solvability.test.ts`, tech-lead) imports the barrel `src/core`; tests are exempt from the lane-import rule.
 - **Order of work:** motion and level can start immediately; sim needs `motion` for phases 4, 9, 10 but can stub them until motion lands (motion is small and has the acceptance numbers in `movement-and-gears.md` and `air-drag.md`).
 - **Changing a contract:** ask tech-lead (requests.md). The signature changes in `contracts/lanes.ts` first; both lanes then follow.
-- **Enforced in CI** by `tests/arch/core-purity.test.ts` (purity; lane import edges; cross-lane imports only via `index.ts`; no stray files in the `src/core` root; code outside `src/core` imports only the barrel or `types`) and `tests/arch/lane-contracts.test.ts` (no unlisted lane exports; every export matches its contract type). At the M1 gate tech-lead sets `REQUIRE_COMPLETE` so a missing export fails too.
+- **Enforced in CI** by `tests/arch/core-purity.test.ts` (purity; lane import edges; cross-lane imports only via `index.ts`; no stray files in the `src/core` root; code outside `src/core` imports only the barrel or `types`) and `tests/arch/lane-contracts.test.ts` (no unlisted lane exports; every export matches its contract type). `REQUIRE_COMPLETE` is on since 2026-11-02 (all lanes implemented), so a missing export fails too.
 
 ## 4. Fixed-step loop (how Phaser drives the sim)
 
@@ -167,7 +172,8 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 ## 6. Replays and solvability tests
 
 - **Replay** = `createSim` + `step` over the decoded frames. No Phaser needed, so it runs in Vitest (Node), in the browser, and in a server function.
-- **Solvability test (M2).** One Vitest file iterates `levels/*.txt`, loads `<id>.solution.txt`, checks `levelVersion` matches, replays it, and asserts `status === 'won'` with `wonAtStep <= steps` (`wonAtStep` counts the winning run only). A level without a solution, or with a failing one, fails CI. Implemented in the level lane (`verifySolution`, `src/core/level/`); the test reads files with `node:fs` and gets the real sim from the `src/core` barrel.
+- **Solvability test** (`tests/levels/solvability.test.ts`, tech-lead, part of `npm test`). It loads levels exactly as the game bundles them (the §7 `import.meta.glob` raw map → `loadLevels`) plus a second glob for `levels/*.solution.txt`, derives params from the shipped `tuning.json`, and gets the real sim from the `src/core` barrel. One test case per level: the solution exists, parses (`parseSolution`), and `verifySolution` passes (`levelVersion` matches, `status === 'won'`, `wonAtStep <= steps`; `wonAtStep` counts the winning run only). Separate cases fail on an unparsable level, an orphaned solution (no level of that id) and a glob that disagrees with the files on disk. It passes with zero levels; a harness self-check proves each failure is reported.
+- **Pairing is test policy, not lane API** (ruling 2026-11-02). Matching `<id>.txt` to `<id>.solution.txt` is done by file name inside the solvability test, per level, so each level reports its own failure. `LevelLaneApi` does not gain a pairing function; the game never loads solutions.
 - **Golden determinism test.** Replaying the same solution twice must give deep-equal final states; a hash of the final state per level can be snapshotted to catch accidental rule changes.
 - **Ghosts (Could).** A ghost is just a replay drawn with a translucent player.
 - **Leaderboard validation.** Submissions carry the RLE input, not a time. The server can re-run `src/core` (pure TS, bundles for Deno edge functions) to verify `wonAtStep` (the run time) before accepting it.

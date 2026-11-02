@@ -41,7 +41,7 @@ Test conventions: see `movement-and-gears.md`.
 3. **Color changes on safe floor.** Cruising at gear 2 on a safe floor: press `+`, later `-` twice, later release, later skid by holding L from gear 4: grounded on every step.
 4. **Spawn state.** At spawn with nothing held for 60 steps: gear 1, `vx` 0, band 0, x unchanged.
 5. **Fall-out death.** Walk off a floor into a pit that reaches the bottom of the grid: a death event fires on the first step the box top is below the grid bottom, and no earlier.
-6. **Respawn timing and state.** After the death step d, the player is frozen until step d+24 and at the spawn on step d+25 (±1). The full sim state on the respawn step equals the state right after a fresh level load (every field compared except the previous-input record used for press edges).
+6. **Respawn timing and state.** After the death step d, the player is frozen until step d+24 and at the spawn on step d+25. The full sim state on the respawn step equals the state right after a fresh level load (every field compared except the previous-input record used for press edges).
 7. **Gear resets.** Cruise at gear 3, die: after respawn, gear 1.
 8. **Freeze ignores input.** Pressing `+`, J and holding L during the freeze changes nothing.
 9. **Held through respawn.** Hold R through a death and respawn without releasing: on the first step of the new run `vx` = 3; gear 1; no shift or jump happens from buttons that were already held.

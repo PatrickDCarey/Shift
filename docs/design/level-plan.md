@@ -1,6 +1,6 @@
 # Redshift — Level plan
 
-_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 1.1: re-checked for hold-to-move._
+_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 1.1: re-checked for hold-to-move; numbers re-checked against the implemented sim for GDD v1.2 (only w2-03 changed)._
 
 21 levels in 5 worlds. Each level introduces **one** new idea (or combines known ones, marked COMBINE). A level is rejected if it teaches two new ideas at once, needs precision the pillars forbid, or can be solved while ignoring its idea.
 
@@ -12,6 +12,8 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
 - Stops and turn-arounds above walking pace happen on safe ground (`#`). Players will let go of the arrow a lot; never put the natural "stop and think" spot on a colored floor unless that is the lesson.
 - Runway from standing: red needs ≥ 4 tiles (deny with ≤ 2.5); yellow ≥ 2.5 (deny ≤ 1.25). Stopping from sprint takes 3.74 tiles.
 - Max climb 2 tiles; never a 3-tile ledge.
+- A sprint walk-off stays red only down to a 4-tile drop (5.8 tiles of flight); 5+ tiles lands yellow.
+- Never hang a colored tile less than 1.5 tiles above a floor of the same color: while the player is inside a color, that whole color is a ghost to them (no-embed is per color, GDD §4.7), so they would fall through the floor.
 - Timing windows in intended solutions: at least 12 steps (0.2 s), or ≥ 3 tiles at sprint.
 - World 1 levels should be solvable without reading anything. w1-01 shows an arrow-key glyph at spawn; w1-02 shows a Shift/E/X glyph on its first pad.
 - Every level ships a solution recording.
@@ -31,7 +33,7 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
 |---|---|---|---|
 | w2-01 | Commit | NEW: in the air nothing you press changes your speed; you land in the color you took off in. | Safe pad, a green runway, a 4-tile gap, a green landing pad: being green is the only way to stand on the runway, so you take off green and land green; jump too early and steering back does nothing. |
 | w2-02 | Coast | NEW: air drag, every 6 tiles of flight costs one color. | Red runway, a 7-tile flat gap, a yellow landing pad: a red takeoff flies 8.7 tiles and turns yellow at 6, landing safely; a yellow takeoff lands green and drops through. |
-| w2-03 | Step Down | NEW: walking off a ledge is a shorter flight than jumping. | Sprint off a 4-tile-high ledge onto a long red floor below: walking off lands 5.6 tiles out, still red; jumping flies 10.7 tiles, turns yellow, and falls through the red floor. |
+| w2-03 | Step Down | NEW: walking off a ledge is a shorter flight than jumping. | Sprint off a 4-tile-high ledge onto a long red floor below: walking off lands 5.8 tiles out (29 airborne steps, under the 6-tile drag point), still red; jumping flies 10.65 tiles, turns yellow, and falls through the red floor. Keep the drop at exactly 4 tiles: a 5-tile drop makes the walk-off land yellow too. |
 | w2-04 | Two Colors | COMBINE: runway, commit, color grace. | A green floor runs under a yellow ledge 2 tiles up: cruise green, shift up mid-run, and jump in the 12 steps after you turn yellow, before the green floor lets you go. |
 
 ## World 3 — Ground (Must, M3)

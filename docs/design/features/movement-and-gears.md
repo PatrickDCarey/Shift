@@ -11,6 +11,7 @@ Hold Left or Right to move; your speed heads toward the selected gear's speed in
 - **Direction d:** one of `L`/`R` held → that way; neither → 0; both → the more recently pressed; both pressed on the same step → 0 until one is released. Facing becomes d whenever d ≠ 0.
 - **Target velocity** on the ground: `d × gearSpeeds[gear]`.
 - **Walking range is instant:** within 0 to `gearSpeeds[instantMaxGear]` (3), start, stop and turn take no distance. A turn at or below 3 goes straight to `min(|T|, 3)` the other way on the same step.
+- **Downshift inside the walking range** (only possible if `instantMaxGear` > 1): if the speed is already within 0 to `gearSpeeds[instantMaxGear]`, it snaps to the new target instantly; from above that range it brakes normally until it is inside, then snaps on the next step.
 - **Running range:** segments 1–3 use `accel[n] = (v[n+1]² − v[n]²) / (2 × tilesPerGearChange)` and `brake[n]` likewise with `brakeTilesPerGearChange` (10.8, 18.0, 25.2). Accelerating uses the largest n with `v[n] ≤ speed`; braking uses the largest n with `v[n] < speed`. Chosen from the speed at the start of the step; clamp at the target, never overshoot.
 - **Letting go, shifting down and skidding** all use the same braking rule.
 - Position advances by `(vx_old + vx_new) / 2 × dt`.
@@ -48,7 +49,8 @@ Hold Left or Right to move; your speed heads toward the selected gear's speed in
 - **Run steps** count from 1 at spawn. **Action steps** count from 1 on the step an action (a press, a release, a direction change) first appears in the input.
 - **Cruising at gear g** means holding a direction on flat ground at `|vx| = gearSpeeds[g]` for at least 10 steps.
 - **Distance** is the change in the player's center x since the step before action step 1 (or since spawn). **Height** is the player's feet above the takeoff floor.
-- Tolerances unless stated: step numbers ±2, distances ±0.15 tiles. Speeds set by snapping (instant walking-range changes, gear speeds, drag drops, wall stops) must be exact.
+- **Exactness (since GDD v1.2):** step numbers are exact. Distances and heights match to half a unit of the last printed digit (2.54 means ±0.005, 8.7 means ±0.05) unless more digits are printed. Speeds set by snapping (instant walking-range changes, gear speeds, drag drops, wall stops) must be exact. Every number below was confirmed through the implemented `step`.
+- **Band edges** are judged within `SIM_EPSILON` (GDD §4.6): a speed that sums to an edge (6 + 5 × 0.3 = 7.5) is the higher band.
 
 ### Checks
 
@@ -65,7 +67,7 @@ Hold Left or Right to move; your speed heads toward the selected gear's speed in
 11. **Clamping.** At spawn press `-`: gear stays 1. Press `+` five times (odd steps): gear 4.
 12. **Shift while standing.** At spawn press `+` twice, hold nothing for 60 steps: gear 3, `vx` = 0, x unchanged.
 13. **Mirror.** Check 1 with L instead of R: every band change on the same step, distances exact mirrors.
-14. **Wall stop keeps gear.** Cruising at gear 4 into a safe wall: on the contact step `vx` = 0, gear 4, band 0, and the box edge is within 0.01 tiles of the wall face without overlapping it. Keep holding R for 30 steps: `vx` = 0 at the end of every step, no overlap. Then hold L: `vx` = −3 on action step 1, −12 by action step 36.
+14. **Wall stop keeps gear.** Cruising at gear 4 into a safe wall: on the contact step `vx` = 0, gear 4, band 0, and the box edge is snapped exactly onto the wall face (no overlap). Keep holding R for 30 steps: `vx` = 0 at the end of every step, no overlap. Then hold L: `vx` = −3 on action step 1, −12 exactly from action step 36.
 15. **Band function (unit).** band(0) = 0, band(1.49) = 0, band(1.5) = 1, band(4.5) = 2, band(7.49) = 2, band(7.5) = 3, band(10.5) = 4, band(12) = 4.
 16. **Derived rates (unit).** `accel` = `brake` = 10.8, 18.0, 25.2 for segments 1–3 (±1e-9).
 17. **Alternate bindings (e2e, input module).** In the running game, E and X each produce one `+` press, Q and Z each one `-` press, same as Right/Left Shift.

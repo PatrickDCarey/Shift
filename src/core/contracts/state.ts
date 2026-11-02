@@ -61,14 +61,24 @@ export type SimStatus = 'playing' | 'dead' | 'restarting' | 'won';
 export type SimEvent =
   /** Selected gear changed on the ground (press or buffered presses on landing). */
   | { readonly type: 'shift'; readonly from: Gear; readonly to: Gear }
-  /** A shift press was stored in the air buffer. */
+  /**
+   * A shift press was stored in the air buffer. `net` is the running buffer
+   * total AFTER this press (`player.shiftBufferNet`), unclamped and possibly 0
+   * (`+` then `-`). The clamped result arrives as `shift` on landing; a buffer
+   * that expires is cleared silently, so HUDs read the state, not events.
+   */
   | { readonly type: 'shiftBuffered'; readonly net: number }
   | { readonly type: 'bandChange'; readonly from: Band; readonly to: Band }
   /** Stepwise air drag dropped one band ("clunk" + flash). */
   | { readonly type: 'airDrag'; readonly from: Band; readonly to: Band }
   | { readonly type: 'jump'; readonly coyote: boolean; readonly buffered: boolean }
   | { readonly type: 'land' }
-  /** Horizontal movement blocked; `speed` = |vx| before the stop, tiles/s. */
+  /**
+   * Horizontal movement blocked by a wall the box was not already touching:
+   * fires once per contact (blocked AND (vx at step start != 0 OR the box
+   * moved this step)), never again while the player keeps pushing into the
+   * same wall. `speed` = |vx| before the stop, tiles/s (architecture.md §3.2).
+   */
   | { readonly type: 'wallStop'; readonly speed: number }
   | { readonly type: 'ceiling' }
   /** Grace started: `band` tiles hold the player from above for colorGraceSteps. */
@@ -82,7 +92,11 @@ export type SimEvent =
  * Same Level + SimParams + input frames => identical SimState, always.
  */
 export interface SimState {
-  /** Steps simulated in the current run (0 at spawn). The run time for leaderboards. */
+  /**
+   * Playing steps of the current run (0 at spawn and on the respawn step). The
+   * run time for leaderboards. Frozen on dead, restart and won steps
+   * (architecture.md §3.4); not the number of recorded frames.
+   */
   readonly step: number;
   readonly status: SimStatus;
   /** Run step on which the exit was reached (null until won). */

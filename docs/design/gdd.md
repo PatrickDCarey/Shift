@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.1 (2026-11-02): hold-to-move control model. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -92,7 +92,7 @@ With shipped values (both 1.25 tiles) these are 10.8, 18.0, 25.2 tiles/s² for s
 2. **Otherwise** (moving with T, or standing still):
    - if `s < |T|` and `s < v[1]`: `s ← min(|T|, v[1])` instantly;
    - if `s < |T|` above walking pace: n = largest n with `v[n] ≤ s`; `s ← min(|T|, s + accel[n]·dt)`;
-   - if `s > |T|` (downshift): n = largest n with `v[n] < s`; `s ← max(|T|, s − brake[n]·dt)`.
+   - if `s > |T|` (downshift): if `s ≤ gearSpeeds[instantMaxGear]`, `s ← |T|` instantly (walking range); else n = largest n with `v[n] < s`; `s ← max(|T|, s − brake[n]·dt)`. (With shipped tuning the walking range holds only gear 1, so the instant case never arises; it matters only if `instantMaxGear` is raised.)
 3. The segment is chosen from the speed at the start of the step and is not split if the step crosses a gear speed.
 4. Horizontal position advances by `(vx_old + vx_new) / 2 × dt` (exact for constant acceleration).
 
@@ -108,7 +108,7 @@ Consequences: from standing, holding at gear 4 reaches full sprint in 4.0 tiles;
 
 ### 4.6 Speed bands (color)
 
-- The **band** (0–4) is the player's color: white, blue, green, yellow, red. `colorBandEdges` = [1.5, 4.5, 7.5, 10.5]; `band = number of edges ≤ s`. A speed exactly on an edge belongs to the higher band.
+- The **band** (0–4) is the player's color: white, blue, green, yellow, red. `colorBandEdges` = [1.5, 4.5, 7.5, 10.5]; `band = number of edges ≤ s`. A speed exactly on an edge belongs to the higher band; "exactly" is judged within `SIM_EPSILON` (1e-9, `docs/tech/architecture.md` §3.3), so a ramp that sums to 7.5 (6 + 5 × 0.3) is yellow on that step.
 - Edges sit midway between gear speeds; every cruising speed is 1.5 tiles/s from the nearest edge.
 - **No hysteresis.** Within a ramp, skid, or drag drop, speed moves monotonically through edges and cruising speeds are mid-band, so the color never flickers by itself. (A player can deliberately tap the arrow to hover near an edge; that is a player choice, and any flicker is honest feedback.)
 - The band is recomputed once per step, after all speed changes for that step (§4.14).
@@ -125,7 +125,7 @@ Tile kinds (level format characters from `docs/tech/level-format.md`):
 | exit | `E` | never solid; touching it completes the level |
 | player start | `@` | empty; the player spawns standing on the bottom edge of this cell |
 
-- **No-embed rule:** a colored tile that overlaps the player's box is treated as empty, even if the colors match, until the player stops overlapping it.
+- **No-embed rule (per color):** while the player's box overlaps any colored tile of color k at the start of a move, **every** color-k tile is treated as empty for that move (walls, floors, ceilings and grace), even if the colors match, until the box is clear of color k. In words: if you are inside a color, that color is a ghost to you until you are out. (Per tile would stop a player who changes color inside a thick wall at the wall's next column.) Level consequence: never hang a colored tile less than 1.5 tiles (player height) above a floor of the same color, or the player could fall through that floor while still inside the tile above it.
 - Colored geometry exists as floors, walls and ceilings; the same rule applies to every face. A red wall stops a red player and lets everyone else through.
 - **Landing** on a colored tile requires a match on the step of contact. There is no grace on landing.
 - **Walking onto** a mismatched colored tile is walking into a hole (coyote applies, grace does not).
@@ -149,8 +149,8 @@ The player is airborne whenever not supported (after a jump, walking off a ledge
 - **No steering.** Held directions never change velocity in the air, in either direction. Letting go in the air does not brake.
 - **No shifting.** A shift press while airborne goes into the **shift buffer** (net count of up/down presses). Each new press restarts a `shiftBufferMs` window (6 steps); if it expires the buffer clears. On the landing step, buffered presses are applied (clamped 1–4) after the landing rules.
 - **Gear follows color in the air.** Every airborne step, `gear ← max(minGear, min(gear, band))`. Flight can lower your gear but never raises it, so you land in the gear of the color you show and holding the arrow after landing does not re-accelerate you off a correct landing pad.
-- **Air drag is stepwise.** From leaving the ground, the sim accumulates horizontal distance actually moved in the air (`|Δx|` per step). Each time the total reaches `airDragTilesPerGear` (6), the player drops **exactly one band**: `|vx| ← gearSpeeds[band − 1]` (sign kept), counter −= 6. At most one drop per step.
-- **Drag floor:** drag never lowers the band below `airDragMinBand` (1, blue). Blue or white flyers keep their speed for any flight.
+- **Air drag is stepwise.** From leaving the ground, the sim accumulates horizontal distance actually moved in the air (`|Δx|` per step, counting the takeoff or walk-off step and the landing step). Each time the total reaches `airDragTilesPerGear` (6), the player drops **exactly one band**: `|vx| ← gearSpeeds[band − 1]` (sign kept), counter −= 6. At most one drop per step.
+- **Drag floor:** drag never lowers the band below `airDragMinBand` (1, blue). Blue or white flyers keep their speed for any flight. At or below the floor the counter keeps adding up but can never cause a drop (speed never rises in the air) and is reset on landing; the HUD hides the drag meter there.
 - The drag counter resets to 0 on landing. It also counts during coyote time.
 - **On landing**, ground rules resume on the next step with whatever is held then: holding the same way cruises in the (possibly lowered) gear, nothing held brakes to a stop, the opposite direction skids.
 - Rule of thumb: **every 6 tiles of flight costs one color.**
@@ -161,7 +161,8 @@ The player is airborne whenever not supported (after a jump, walking off a ledge
 - No variable jump height: releasing the key early does nothing.
 - Vertical motion uses exact constant-acceleration kinematics per step (`y += vy·dt + ½·g·dt²`), so the apex is exactly 3.0 tiles on step 24.
 - Falling speed is capped at `maxFallSpeed` (20 tiles/s).
-- **Takeoff speed** is the ground speed after that step's ground update (§4.14): pressing jump and an arrow together from standing gives a walking jump (3 tiles/s).
+- **Takeoff speed** is the ground speed after that step's ground update (§4.14): pressing jump and an arrow together from standing gives a walking jump (3 tiles/s). The launch step itself moves `(vx_old + vx_new)/2 × dt` like any ground step, so that walking jump lands 2.375 tiles out (not 2.4), and a jump pressed while braking takes off at the already-braked speed.
+- **Walking off a ledge:** leaving the ground is only detected when vertical movement is resolved (§4.14 step 8), so gravity starts on the step after the walk-off step. A walk-off therefore flies one step longer than the fall alone takes (§5.4). The walk-off step does count toward air drag.
 - **Coyote time:** a jump is allowed for `coyoteMs` (6 steps) after leaving the ground without jumping (walk-off, fall-through, grace expiry).
 - **Jump buffer:** a jump pressed while airborne is remembered for `jumpBufferMs` (6 steps); if the player lands in that window, it fires on the next step (after one ground speed update with whatever is held).
 - Jumping ends grace, resets the drag counter and consumes coyote time.
@@ -184,22 +185,22 @@ The player is airborne whenever not supported (after a jump, walking off a ledge
 
 ### 4.13 Determinism
 
-All rules above are pure functions of level + input frames (see `CLAUDE.md`, `docs/tech/architecture.md`). No randomness. Acceptance tests allow small tolerances only so engineering may choose equivalent formulas.
+All rules above are pure functions of level + input frames (see `CLAUDE.md`, `docs/tech/architecture.md`). No randomness. Since v1.2 the acceptance numbers in `docs/design/features/` are exact for the implemented sim: step numbers exactly, distances to the printed precision.
 
 ### 4.14 Reference step order
 
-Normative for M1, so acceptance numbers match. gameplay-engineer/tech-lead may propose a different order in `docs/tech/` if the acceptance tests in `docs/design/features/` still pass.
+Normative for M1, so acceptance numbers match. The implementation detail of each phase, and tech-lead's rulings on what this list leaves open, are in `docs/tech/architecture.md` §3.1–3.2; if the two ever differ, raise it in `docs/production/requests.md`.
 
 1. Read input: held `L`/`R`/`J`/`+`/`-` and press edges (vs. the previous frame); restart.
 2. **Shift:** if grounded, apply `+`/`-` presses to the gear (clamped 1–4). If airborne, add to the shift buffer.
 3. **Direction:** update direction priority, compute d, update facing.
 4. **Ground speed:** if grounded at the start of the step, apply §4.4 with target `d × gearSpeeds[gear]`.
 5. **Jump:** if a jump is pressed or buffered and the player is grounded or in coyote time, launch (`vy` = 15 up), become airborne, end grace, reset drag counter.
-6. **Gravity** (capped).
+6. **Gravity** (capped), if airborne at this point: airborne since an earlier step, or launched in step 5. A walk-off is only detected in step 8, so its first gravity step is the next one.
 7. **Move X**, resolve walls (§4.11).
 8. **Move Y**, resolve floors and ceilings using the current band, no-embed and grace. Determine grounded/airborne at end of step.
-9. **Air drag:** if airborne this step, add `|Δx|`, apply a band drop (§4.9).
-10. **Band:** recompute from `|vx|`. If airborne, `gear ← max(minGear, min(gear, band))`.
+9. **Air drag:** if in the air this step (not grounded at both start and end: includes takeoff, walk-off and landing steps), add `|Δx|`, apply a band drop (§4.9).
+10. **Band:** recompute from `|vx|`. If in the air this step, `gear ← max(minGear, min(gear, band))`.
 11. **Landing:** if the player landed this step: drag counter ← 0, apply shift buffer, end coyote.
 12. **Grace:** start grace if the band changed while grounded at both start and end of the step; otherwise count down.
 13. **Timers:** coyote, jump buffer, shift buffer count down.
@@ -207,7 +208,7 @@ Normative for M1, so acceptance numbers match. gameplay-engineer/tech-lead may p
 
 ## 5. Sanity math
 
-All numbers come from stepping these rules at 60 Hz with shipped tuning. Distances are center travel in tiles; step counts start at 1 on the first step of the action.
+All numbers come from stepping these rules at 60 Hz with shipped tuning, and were re-checked against the implemented sim (v1.2). Distances are center travel in tiles; step counts start at 1 on the first step of the action.
 
 ### 5.1 Runway from standing (hold a direction in gear 4)
 
@@ -221,18 +222,18 @@ All numbers come from stepping these rules at 60 Hz with shipped tuning. Distanc
 
 So **2.5 tiles of runway can never make red; 4 tiles always reach full sprint.** Yellow needs 1.9 tiles (deny with ≤ 1.25).
 
-Cruising, one gear up: blue→green after 0.57 tiles (9 steps), green→yellow 0.69 (6 steps), yellow→red 0.66 (4 steps). Reaching the new cruise speed takes 1.25–1.42 tiles.
+Cruising, one gear up: blue→green after 0.57 tiles (9 steps), green→yellow 0.56 (5 steps: 6 + 5 × 0.3 lands exactly on the 7.5 edge, which is yellow), yellow→red 0.66 (4 steps). Reaching the new cruise speed takes 1.25–1.42 tiles.
 
 ### 5.2 Slowing down
 
 | From cruise | Let go: stops after | Color sequence (let go) |
 |---|---|---|
 | gear 4 (12) | 3.74 tiles, step 35 | yellow 0.74 (step 4), green 1.91 (12), blue 3.24 (26), white 3.74 (35) |
-| gear 3 (9) | 2.54 tiles, step 28 | green 0.69 (5), blue 2.03 (19), white 2.54 (28) |
+| gear 3 (9) | 2.54 tiles, step 28 | green 0.81 (6; step 5 ends exactly on 7.5, still yellow), blue 2.03 (19), white 2.54 (28) |
 | gear 2 (6) | 1.29 tiles, step 18 | blue 0.78 (9), white 1.29 (18) |
 | gear 1 (3) | instantly, step 1 | white |
 
-Shifting down while holding brakes at the same rate: gear 4 → gear 1 reaches blue after 3.24 tiles (step 26) and cruises at 3 from step 34 (3.72 tiles). One gear down changes color after 0.69–0.78 tiles.
+Shifting down while holding brakes at the same rate: gear 4 → gear 1 reaches blue after 3.24 tiles (step 26) and cruises at 3 from step 34 (3.72 tiles). One gear down changes color after 0.74–0.81 tiles (4→3: 0.74, 3→2: 0.81, 2→1: 0.78).
 
 **Reversal (hold the other way):**
 
@@ -254,22 +255,36 @@ Air time is always 48 steps (0.8 s); apex 3.0 tiles on step 24. Unchanged by the
 | gear 2 (6) | 4.8 | none (< 6 tiles) | green |
 | gear 3 (9) | 6.8 | step 40 at 6.0 tiles | **green** |
 | gear 4 (12) | 8.7 | step 30 at 6.0 tiles | **yellow** |
-| red mid-ramp (10.5) | 8.1 | step 35 | yellow |
+| red mid-ramp (10.5) | 8.075 | step 35 | yellow |
+
+Takeoffs are from cruising speed. A walking jump from standing (jump and arrow pressed together) lands 2.375 tiles out, because the launch step accelerates from 0 (§4.10).
 
 Headline: **a gear-4 jump flies 8.7 tiles and lands yellow (gear 3).** Gear 2 and below keep their color on any flat jump. Drag happens at step 30, after the apex at step 24, so a sprint jump could only land red on a surface ≥ 2.8 tiles above takeoff, which the 2-tile climb limit forbids: **sprint jumps always land yellow or lower.**
 
 ### 5.4 Jumps to other heights
 
-| Landing height | Gear 4 lands | Gear 3 lands |
-|---|---|---|
-| +2 tiles | 7.2 tiles, yellow | 5.7 tiles, **yellow** (no drop) |
-| +1 | 8.1, yellow | 6.4, green (drop 4 steps before landing) |
-| 0 | 8.7, yellow | 6.8, green |
-| −2 | 9.8, yellow | 7.5, green |
-| −4 | 10.7, yellow | 8.1, green |
-| −7 | 12.1, **green** (two drops) | — |
+| Landing height | Lands on flight step | Gear 4 lands | Gear 3 lands |
+|---|---|---|---|
+| +2 tiles | 38 | 7.20 tiles, yellow | 5.70 tiles, **yellow** (no drop; it would come on step 40) |
+| +1 | 44 | 8.10, yellow | 6.40, green (drop on step 40, 4 steps before landing) |
+| 0 | 48 | 8.70, yellow | 6.80, green |
+| −2 | 55 | 9.75, yellow | 7.50, green |
+| −4 | 61 | 10.65, yellow | 8.10, green |
+| −7 | 70 | 12.00, **green** (two drops: steps 30 and 70) | 9.00, green |
 
-**Walking off a ledge at full sprint** (no jump): a 2-tile drop lands 4.0 tiles out, a 4-tile drop 5.6 tiles out, both still **red**; a 7-tile drop lands 7.2 tiles out, yellow.
+The −7 gear-4 row is a knife-edge: the second drop happens on the landing step itself (drag runs before landing, §4.14), so a takeoff even slightly below 12 lands yellow. Don't build a level on it.
+
+**Walking off a ledge at full sprint** (no jump). The walk-off step has no gravity yet (§4.10), so the flight is one step longer than the fall. Distances are from the player's x on the last grounded step; measured from where the box clears the edge they are 0–0.2 tiles shorter, depending on where in the step that happens.
+
+| Drop | Airborne steps (walk-off step = 1) | Lands | Color |
+|---|---|---|---|
+| 2 tiles | 21 | 4.20 | red |
+| 3 | 25 | 5.00 | red |
+| 4 | 29 | 5.80 | **red** (drag would come on step 30) |
+| 5 | 32 | 6.30 | yellow (drop on step 30) |
+| 7 | 38 | 7.20 | yellow |
+
+**4 tiles is the tallest drop a sprint walk-off survives in red.** That 1-step margin is safe: sprint (12) is the top speed and the flight length is fixed by the drop, so no input can push the flight past 6 tiles.
 
 ### 5.5 After landing
 
@@ -282,24 +297,27 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 ### 5.7 Fairness windows
 
 - Color grace + coyote: 12 steps (0.2 s) from your color changing under you to the last valid jump.
-- Two Colors (shift green→yellow, then jump): yellow 6 steps after the press, then up to 12 steps to jump.
+- Two Colors (shift green→yellow, then jump): yellow on the 5th step counting the press as step 1, then up to 12 steps to jump.
 - Brake (w1-04): the window to start slowing is ~3.5 tiles at sprint (≥ 17 steps).
 
 ### 5.8 What changed and why
 
+- v1.1 → v1.2 (matched to the implemented sim; no tuning change): speeds that land exactly on a band edge count as the higher band (green→yellow upshift 0.56 tiles / 5 steps; let go from gear 3 turns green at 0.81 / step 6); a walk-off has one gravity-free step (4-tile drop: 5.8 tiles, still red); a walking jump from standing lands 2.375; no-embed is per color; jump-to-height distances printed to two decimals (−7 row 12.00, knife-edge).
 - v1.0 → v1.1 (hold-to-move): walking range 0–3 is now instant on the ground, gears are 1–4, wall stops keep the gear. Runway to full sprint 5.02 → **4.00 tiles**; red 4.45 → **3.23**; stopping from sprint 4.87 → **3.74**. Air numbers are unchanged.
 - Seed → v1.0: `airDragTilesPerGear` 4 → 6 and `jumpTimeToApexMs` 380 → 400 (see decisions.md).
 
 ## 6. Level design rules of thumb
 
 - Runway from standing: red needs ≥ 4 tiles (deny with ≤ 2.5); yellow ≥ 2.5 (deny ≤ 1.25); green ≥ 1 (deny with ≤ 0.5). Blue is instant.
-- Upshift one gear from a cruise: color changes after ~0.6–0.7 tiles. Downshift or letting go: ~0.7–0.8 tiles per color.
+- Upshift one gear from a cruise: color changes after 0.56–0.66 tiles. Downshift or letting go: 0.74–0.81 tiles per color.
 - Stopping from sprint takes 3.74 tiles and passes every color: stop on safe tiles. Turnarounds above walking pace too.
 - Max climb: 2 tiles. Never 3. Jump headroom: player 1.5 + jump 3 = 4.5 tiles.
 - Every 6 tiles of flight costs one color, down to blue. Sprint jumps always land yellow or lower.
 - Recommended max gap: 2 × gear tiles.
 - Corridors: the player is 1.5 tiles tall; 2-tile-tall corridors are fine.
-- Keep intended drag drops at least 3 steps away from the intended landing.
+- Keep intended drag drops at least 3 steps away from the intended landing. (Exception: a sprint walk-off off a 4-tile drop lands red one step before its drop would come; that is safe because sprint is the top speed.)
+- A sprint walk-off keeps red down to a 4-tile drop; 5 tiles or more lands yellow.
+- Never hang a colored tile less than 1.5 tiles above a floor of the same color (no-embed is per color, §4.7).
 - Walls stop you but keep your gear.
 - Every level must ship a solution recording that passes the replay test.
 
@@ -330,7 +348,7 @@ Direction, not specs. Each gets a feature spec before engineering starts.
 
 - **Runway:** a red bridge 2 tiles in front of the spawn, an 8-tile room behind it. Red needs 3.2 tiles; walk back, turn (instant at walking pace), and come in from the far end already red.
 - **Coast:** red runway, a 7-tile flat gap, a yellow landing pad. A red takeoff flies 8.7 tiles, turns yellow at 6, lands yellow. Take off yellow and you land green and fall through.
-- **Step down:** sprint off a 4-tile ledge onto a red floor. Walking off keeps you red (5.6 tiles of flight); jumping lands yellow and drops you.
+- **Step down:** sprint off a 4-tile ledge onto a red floor. Walking off keeps you red (5.8 tiles of flight); jumping lands yellow and drops you.
 - **Two colors:** a green floor under a yellow ledge 2 tiles up. Shift up mid-run and jump in the 12 steps after you turn yellow.
 - **Stop sign:** a green bridge ends at the exit ledge with no safe pad: let go on the bridge and you drop; hold through it.
 - **Treadmill (world 4):** a white camera gate on a belt. Sprint against the belt so your world speed is zero while your legs stay red.
@@ -396,7 +414,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 
 - Neon geometry on near-black. The world's tint slides smoothly along the spectrum with your actual speed, while gameplay rules use the discrete bands.
 - The player's body shows the band color **and** the band's pattern or glyph (color is never the only signal).
-- **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop.
+- **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come.
 - A drag drop plays a short down-shift "clunk" and a color flash, because the speed change is instant.
 - Music pitch and filter follow your band: muffled and low when slow, bright and high at sprint.
 

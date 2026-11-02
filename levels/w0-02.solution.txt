@@ -1,0 +1,15 @@
+level: w0-02
+levelVersion: 1
+# Found and checked by replaying candidate logs through the real sim (createSim/step), not hand-tuned.
+# 226R  walk right in gear 1 across the blue bridge, drop into the runway room (lands at step 226)
+# 90L   walk back to the room's left wall
+# 1+ 1. 1+ 1. 1+  shift up to gear 4 while standing
+# 102R 1RJ  sprint (red after 3.2 tiles), cross the red bridge, jump near the end of the safe pad
+# 74R 36.   land yellow on the yellow pad, run onto the safe pad, let go and stop
+# 1- 1. 1-  shift down to gear 1
+# 167R 20.  walk onto the blue floor, let go above the pocket: grace runs out, you drop through
+# 51R   walk into the exit
+# Every key input still wins when moved by at least 6 steps either way (fairness: +-3).
+steps: 775
+---
+226R 90L 1+ 1. 1+ 1. 1+ 102R 1RJ 74R 36. 1- 1. 1- 167R 20. 51R

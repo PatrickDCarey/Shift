@@ -85,3 +85,20 @@ _Owner: design-lead. One line per decision, newest at the bottom of each section
 - **w1-01 teaches holding to move (fail by letting go on a blue bridge); w1-02 introduces the Shift keys** — the run starts in gear 1, so moving and shifting are now two separate first ideas.
 - **w1-03 uses a red bridge 2 tiles out** — yellow now needs only 1.9 tiles of runway, so a yellow bridge 2 tiles out would no longer deny it.
 - **w2-01 uses a green runway** — on a safe runway a yellow takeoff would land green on the pad via drag, teaching the wrong lesson.
+
+## 2026-11-02 — GDD v1.2: matched to the implemented M1 sim
+
+All items accepted; no tuning change. Every acceptance number in `features/` is now exact against the sim.
+
+- **Accepted: a speed that sums to a band edge within `SIM_EPSILON` is the higher band (green→yellow upshift 0.56 tiles / 5 steps, not 0.69 / 6; let go from gear 3 turns green at 0.81 / step 6, not 0.69 / 5; one gear down 0.74–0.81)** — it is what §4.6 already says; one step either way is invisible.
+- **Accepted: color-gating check 4 turns yellow on action step 5 (was 6)** — same edge cause; the grace window is measured from c, so nothing else moves.
+- **Accepted: the launch step moves (vx_old + vx_new)/2 × dt, so a walking jump from standing lands 2.375 (not 2.4)** — 0.025 tiles, invisible, and the same trapezoid as every other step.
+- **Accepted: gravity starts the step after a walk-off (detected in step 8), so walk-offs fly one step longer: 4-tile drop 29 steps, 5.8 tiles from the last grounded x, still red (2-tile 4.2, 7-tile 7.2 yellow)** — a 1/60 s float is invisible and matches architecture.md §3.1; a red walk-off off 4 tiles stays safe because 12 is the top speed (5.8 < 6).
+- **Walk-off distances are measured from the last grounded x, not the ledge edge** — the edge-based number shifts by up to 0.2 with where in the step the box leaves, so it can't be exact.
+- **Accepted: air-drag check 12 takes off at 10.32 (band 3), braked by the launch step's own ground update; band 4 is the state going into that step** — §4.10 already says takeoff speed is after the ground update; the check still proves a downshifted gear survives the flight.
+- **Accepted: no-embed is per color (inside any color-k tile, every color-k tile is empty for that move), not per tile** — keeps check 13 (no stop inside a thick wall), and "inside a color, that color is a ghost" reads simply; its only side effect (falling through a same-color floor while inside a same-color tile) is ruled out by a level rule: no colored tile hangs < 1.5 tiles over a same-color floor.
+- **Accepted: with `instantMaxGear` > 1, a downshift whose speed is already in the walking range snaps to the target** — it is the walking-range rule (§4.4); unreachable with shipped tuning.
+- **Accepted: below the drag floor the air-drag counter keeps growing** — speed never rises in the air and the counter resets on landing, so no drop can ever come from it; the HUD hides the drag meter at band ≤ `airDragMinBand`.
+- **GDD §5.4 −7 gear-4 row is 12.00 with the second drop on the landing step; marked knife-edge, not for levels** — a takeoff slightly under 12 lands yellow instead of green.
+- **Acceptance numbers are exact (steps exact, distances to printed precision) instead of ±2 steps / ±0.15 tiles** — the sim exists now, and exact numbers catch regressions the tolerances would hide.
+- **GDD §4.14 defers phase detail to architecture.md §3.1–3.2** — one source for implementation detail; the GDD keeps the player-facing order.

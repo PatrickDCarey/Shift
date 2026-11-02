@@ -16,7 +16,7 @@ Agent definitions live in `.claude/agents/`.
 |---|---|---|
 | `producer` | Lead: schedule, board, scope | `docs/production/**` |
 | `design-lead` | Lead: game design, final say on feel | `docs/design/**` (incl. itch page copy in `docs/design/itch-page.md`), `src/data/tuning.json` |
-| `tech-lead` | Lead: architecture, review gate | `docs/tech/**`, `src/core/types.ts`, `src/core/contracts/**`, `src/core/index.ts`, project config, CI, `index.html`, `src/main.ts`, `src/scenes/keys.ts`, `src/vite-env.d.ts`, `tests/arch/**`, `README.md`, `LICENSE`, `CREDITS.md`, `.gitignore`, `.gitattributes` |
+| `tech-lead` | Lead: architecture, review gate | `docs/tech/**`, `src/core/types.ts`, `src/core/contracts/**`, `src/core/index.ts`, project config, CI, `index.html`, `src/main.ts`, `src/scenes/keys.ts`, `src/vite-env.d.ts`, `tests/arch/**`, `tests/levels/**`, `README.md`, `LICENSE`, `CREDITS.md`, `.gitignore`, `.gitattributes` |
 | `gameplay-engineer` [sim] | Frontend: state, step order, jump, collision, color gating, reset | `src/core/sim/**` |
 | `gameplay-engineer` [motion] | Frontend: pure speed maths (ground speed, bands, air drag) | `src/core/motion/**` |
 | `gameplay-engineer` [level] | Frontend: level parser, solution codec, replay | `src/core/level/**` |
@@ -91,4 +91,4 @@ Node ≥ 22.12 (`.nvmrc`). Run from the project root.
 | `npm run test:e2e` | Playwright against a fresh build + preview server. |
 | `npm run check` | typecheck + coverage + build: run before calling a task done. |
 
-Single test file: `npx vitest run src/core/types.test.ts`. Tech docs: `docs/tech/architecture.md`, `docs/tech/level-format.md`.
+Single test file: `npx vitest run src/core/types.test.ts`. Level solvability only (every `levels/*.txt` replayed with its solution): `npx vitest run tests/levels`. Tech docs: `docs/tech/architecture.md`, `docs/tech/level-format.md`.
