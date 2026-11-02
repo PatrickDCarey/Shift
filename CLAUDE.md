@@ -16,8 +16,11 @@ Agent definitions live in `.claude/agents/`.
 |---|---|---|
 | `producer` | Lead: schedule, board, scope | `docs/production/**` |
 | `design-lead` | Lead: game design, final say on feel | `docs/design/**` (incl. itch page copy in `docs/design/itch-page.md`), `src/data/tuning.json` |
-| `tech-lead` | Lead: architecture, review gate | `docs/tech/**`, `src/core/types.ts`, project config, CI, `index.html`, `src/main.ts`, `src/scenes/keys.ts`, `src/vite-env.d.ts`, `tests/arch/**`, `README.md`, `LICENSE`, `CREDITS.md`, `.gitignore` |
-| `gameplay-engineer` | Frontend: simulation, game scene | `src/core/**` (not types.ts), `src/scenes/GameScene.ts`, `src/entities/**` |
+| `tech-lead` | Lead: architecture, review gate | `docs/tech/**`, `src/core/types.ts`, `src/core/contracts/**`, `src/core/index.ts`, project config, CI, `index.html`, `src/main.ts`, `src/scenes/keys.ts`, `src/vite-env.d.ts`, `tests/arch/**`, `README.md`, `LICENSE`, `CREDITS.md`, `.gitignore`, `.gitattributes` |
+| `gameplay-engineer` [sim] | Frontend: state, step order, jump, collision, color gating, reset | `src/core/sim/**` |
+| `gameplay-engineer` [motion] | Frontend: pure speed maths (ground speed, bands, air drag) | `src/core/motion/**` |
+| `gameplay-engineer` [level] | Frontend: level parser, solution codec, replay | `src/core/level/**` |
+| `gameplay-engineer` [scene] | Frontend: game scene, input sampling | `src/scenes/GameScene.ts`, `src/entities/**` |
 | `ui-engineer` | Frontend: menus, HUD, settings, saves | `src/ui/**`, menu scenes, `src/save/**` |
 | `backend-engineer` | Backend: leaderboards, release | `backend/**`, `src/net/**`, build/deploy scripts |
 | `level-designer` | Design: levels and puzzles | `levels/**` |
@@ -41,6 +44,10 @@ A task is **Done** only after steps 5 and 6 pass.
 ## Ownership
 
 Only edit files in your own area. If you need a change somewhere else, add a line to `docs/production/requests.md` (who, what, why) and mention it in your report. Agents working in parallel must never share an area.
+
+`gameplay-engineer` runs as up to four separate sittings, one per lane. Lanes talk only through the contracts in `src/core/contracts/lanes.ts`; the only allowed cross-lane import is sim → motion via `src/core/motion/index.ts`. Code outside `src/core` imports only `src/core/index.ts` or `src/core/types.ts`. Arch tests enforce this.
+
+**No case-only filename differences.** This repo is developed on Windows, where `foo.ts` and `Foo.ts` are the same file. `tests/arch/path-case.test.ts` enforces it.
 
 ## Hard rules
 

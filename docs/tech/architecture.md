@@ -1,6 +1,6 @@
 # Redshift — Technical Architecture
 
-_Owner: tech-lead. Keep in sync with the code; update when setup changes._
+_Owner: tech-lead. Keep in sync with the code; update when setup changes. Matches GDD v1.1 (hold-to-move)._
 
 ## 1. Stack
 
@@ -17,8 +17,10 @@ _Owner: tech-lead. Keep in sync with the code; update when setup changes._
 
 ```
 index.html, src/main.ts   Phaser.Game config (960x540, pixelArt, FIT scaling)   tech-lead
-src/core/                 PURE deterministic simulation (no Phaser)             gameplay-engineer
-src/core/types.ts         shared types and format constants                     tech-lead
+src/core/                 PURE deterministic simulation (no Phaser), 3 lanes    see §3.5
+  sim/ motion/ level/     lanes, each with a public index.ts                    gameplay-engineer (one sitting per lane)
+  types.ts, contracts/    shared types + lane contracts                         tech-lead
+  index.ts                barrel: the only core entry for other areas           tech-lead
 src/scenes/               Phaser scenes: Boot, Game (+ menu scenes)             gameplay-engineer (GameScene), ui-engineer (menus)
 src/entities/             display objects that DRAW sim state                   gameplay-engineer
 src/ui/                   HUD, menus, settings                                  ui-engineer
@@ -30,7 +32,7 @@ src/data/                 tuning.json (design-lead), palette.json (art-director)
 levels/                   *.txt levels + *.solution.txt recordings              level-designer
 backend/                  Supabase schema, edge functions                       backend-engineer
 assets/art, assets/audio  source and exported assets                            art-director / audio-designer
-tests/arch/               architecture guards (core purity)                     tech-lead
+tests/arch/               architecture guards (purity, lanes, tuning, docs, case) tech-lead
 tests/e2e/                Playwright                                            qa-tester
 src/**/*.test.ts          unit tests, co-located with the code they test        owner of that code
 ```
@@ -38,41 +40,95 @@ src/**/*.test.ts          unit tests, co-located with the code they test        
 Dependency direction (an arrow means "may import"):
 
 ```
-scenes, entities, ui, fx, audio ──► core ──► data/*.json
+scenes, entities, ui, fx, audio ──► core (index.ts or types.ts) ──► data/*.json
             │                        ▲
             └──► net, save ──────────┘ (types only)
 core ──► nothing outside core except src/data/*.json
 ```
 
-`tests/arch/core-purity.test.ts` enforces the `core` rules in CI: no package imports (Phaser included), no imports from outside `src/core` except `src/data/*.json`, no `Math.random`, `Date`, `performance`, timers or DOM globals.
+`tests/arch/core-purity.test.ts` enforces the `core` rules in CI: no package imports (Phaser included), no imports from outside `src/core` except `src/data/*.json` (sim lane only), no `Math.random`, `Date`, `performance`, timers, `import.meta` or DOM globals, plus the lane rules in §3.5. `tests/arch/path-case.test.ts` fails on two paths that differ only in case and on imports whose case differs from the file on disk (Windows hides both; Linux CI breaks).
 
 ## 3. Simulation / render split
 
 **The simulation (`src/core`) is a pure function of (level, params, input frames).**
 
 ```ts
+deriveParams(tuning: Tuning): SimParams          // validate first with tuningErrors / isTuning (types.ts)
 createSim(level: Level, params: SimParams): SimState
 step(state: SimState, input: InputFrame, level: Level, params: SimParams): SimState   // StepFn in types.ts
-deriveParams(tuning: Tuning): SimParams
 ```
 
-- `SimState` is immutable; `step` returns a new object. It contains everything needed to continue (including `prevInput` for edge detection). If randomness is ever needed, a seeded PRNG state lives inside `SimState`.
-- Units: tiles and steps (see the header of `src/core/types.ts`). Pixels and milliseconds never enter the sim except through `Tuning`, converted once in `deriveParams`.
-- `SimState.events` lists what happened in the last step (`shift`, `bandChange`, `jump`, `land`, `fallThrough`, `won`, `died`). Audio, FX and HUD react to events; they never mutate sim state.
-- **Floating point.** Positions are JS numbers. Use only `+ - * /`, comparisons, `Math.abs/min/max/floor/ceil/round/sign/sqrt` (all exactly specified by IEEE 754 / ECMAScript). Do **not** use `Math.sin/cos/pow/exp/log` etc. in the sim: their results may differ between engines, which would break replays and server-side validation. Never iterate over object keys or `Set`s where order could affect the result.
+- `SimState` is immutable; `step` returns a new object. It contains everything needed to continue (including `prevInput` for press edges). If randomness is ever needed, a seeded PRNG state lives inside `SimState`.
+- **Units** (header of `src/core/types.ts`): distances in tiles, **speeds in tiles/second everywhere** (tuning, params and state), time in whole steps, `dt = 1 / stepHz`. Snapped speeds are therefore exact (`vx === 3`, `vx === 12`), as the acceptance tests require. Pixels and milliseconds never enter the sim except through `Tuning`, converted once in `deriveParams` (`steps = round(ms × stepHz / 1000)`).
+- **Gear vs band.** `Gear` (1–4) is the selected cruise gear; `Band` (0–4) is the colour of the actual speed `|vx|`. They differ while ramping, braking, standing and after drag. Coloured tiles and cameras test the **band**, never the gear.
+- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `won`, `died`, `restart`). Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`.
+- **Renderer** (Phaser scenes and entities) reads `SimState` and draws it; it never decides game rules. Tiles → pixels (`× tileSize`) happens only there.
 
-**The renderer (Phaser scenes and entities)** reads `SimState` and draws it; it never decides game rules. Converting tiles to pixels (`× tileSize`) happens only here.
+### 3.1 Step order (normative: GDD §4.14)
 
-### Recommended step order (gameplay-engineer owns the details)
+The sim lane implements exactly this order; acceptance numbers in `docs/design/features/` depend on it. "Grounded at start" means `player.grounded` from the previous step.
 
-1. Derive press edges: `pressed = input.x && !state.prevInput.x`.
-2. Shifts (ground only): adjust `targetGear`, clamp to 0..4.
-3. Horizontal speed: on ground ramp toward `gearSpeeds[targetGear]` (one gear per `tilesPerGearChange` tiles travelled); in air apply drag (one gear per `airDragTilesPerGear` tiles flown).
-4. Jump (press edge, coyote, buffer), then gravity.
-5. Move and collide, X axis then Y axis, using the `band` at the **start** of the step to decide which coloured tiles are solid (decide and unit-test this rule explicitly).
-6. Update `band` from the new actual speed; floor-colour grace (`mismatchSteps` vs `colorGraceSteps`).
-7. Triggers: exit → `won`; below the grid → `died`; cameras (world 3).
-8. Emit events; store `prevInput = input`; `step + 1`.
+| # | Phase | Notes for implementation |
+|---|---|---|
+| 0 | **Status gate** | `won`: return the state unchanged except `prevInput` and `events = []`. `dead`/`restarting`: see §3.4. |
+| 1 | **Input** | `pressed(b) = input[b] && !prevInput[b]`. A `restart` press (any status but `won`) ends the step here (§3.4). |
+| 2 | **Shift** | `net = pressed(shiftUp) − pressed(shiftDown)` (both on one step cancel). Grounded at start: `gear = clamp(gear + net, minGear, MAX_GEAR)`, `shift` event if it changed. Airborne (incl. coyote): if `net ≠ 0`, add it to `shiftBufferNet` and restart the buffer window (`shiftBufferSteps`), `shiftBuffered` event. |
+| 3 | **Direction** | Update `dirPriority` from the L/R press edges (only L pressed → −1, only R → +1, both → 0, none → unchanged). `d`: one held → it; none → 0; both → `dirPriority`. If `d ≠ 0`, `facing = d`. Store `moveDir = d`. |
+| 4 | **Ground speed** | Only if grounded at start: `motion.groundSpeed(vx, d × gearSpeeds[gear], params)` (GDD §4.4–4.5; segment chosen from the speed at the start of the step). Keep `vxOld` for phase 7. |
+| 5 | **Jump** | If (`pressed(jump)` or `jumpBufferSteps > 0`) and (grounded at start or `coyoteSteps > 0`): `vy = −jumpSpeed`, airborne, grace cleared, `airDistance = 0`, `coyoteSteps = 0`, `jumpBufferSteps = 0`, `jump` event. Else if `pressed(jump)` while airborne: `jumpBufferSteps` = the param. |
+| 6 | **Gravity** | If airborne: exact kinematics `dy = vy·dt + ½·g·dt²`, then `vy = min(vy + g·dt, maxFallSpeed)`. |
+| 7 | **Move X** | `dx = (vxOld + vx) / 2 × dt`. Resolve walls with the **band at start of step** (no-embed applies; grace never applies to walls). Blocked → snap to the face, `vx = 0`, `wallStop` event. |
+| 8 | **Move Y** | Resolve floors and ceilings with the band at start of step, no-embed, and grace (`graceBand` tiles solid from above only while `graceSteps > 0`). Ceiling → `vy = 0`, `ceiling` event. Landing → snap feet to the tile top, `vy = 0`. Then decide `grounded` (supported test, GDD §4.7). Grounded at start, airborne now, no jump this step → `coyoteSteps` = the param. |
+| 9 | **Air drag** | If **in the air this step** (§3.2): `airDistance += |dx actually moved|`, then `motion.airDrag(vx, airDistance, params)`; `airDrag` event if it dropped. At most one drop per step. |
+| 10 | **Band** | `band = motion.bandForSpeed(|vx|, edges)`; `bandChange` event if changed. If in the air this step: `gear = max(minGear, min(gear, band))`. |
+| 11 | **Landing** | If airborne at start and grounded now: `airDistance = 0`, apply `shiftBufferNet` (clamped, `shift` event), clear the shift buffer, `coyoteSteps = 0`, `land` event. |
+| 12 | **Grace** | Grounded at start and now, band changed, previous band ≥ 1: `graceBand` = previous band, `graceSteps = colorGraceSteps`, `graceStart` event. Otherwise, if `graceSteps > 0`, count down (clear `graceBand` at 0). Leaving the ground clears grace. |
+| 13 | **Timers** | Decrement `coyoteSteps`, `jumpBufferSteps`, `shiftBufferSteps` if > 0 (a shift buffer reaching 0 clears `shiftBufferNet`). |
+| 14 | **Exit, then death** | Box overlaps an exit tile → `won`, `wonAtStep = step + 1`, `won` event. Else box top below the grid bottom → `dead`, `respawnInSteps = deathFreezeSteps`, `died` event. Exit wins on the same step. |
+| 15 | **Bookkeeping** | `step + 1`, `prevInput = input`, `events` = this step's list. |
+
+### 3.2 Conventions the GDD leaves implicit (tech-lead rulings)
+
+These make §3.1 deterministic and unambiguous. If design-lead disagrees, change the GDD and this section together.
+
+- **In the air this step** = *not* (grounded at start *and* grounded at end). It covers the takeoff, walk-off and landing steps. Used by drag (9) and gear-follows-band (10). This makes a gear-4 jump drop on flight step 30 (flight step 1 = takeoff step), and makes a drop on the landing step lower the gear too.
+- **Timer windows.** Every timer is "steps left"; phase 13 decrements every running timer, **including one set earlier in the same step**. Grace is the exception: it counts down in phase 12, not on the step it starts. Resulting windows, which the acceptance tests match:
+  - grace started on step c holds on steps c+1 … c+6; the player falls on c+7;
+  - coyote set on the walk-off step k allows a jump on steps k+1 … k+5 (step k itself started grounded, so a jump on k is a ground jump). With grace expiring (c+7 = k) that gives jumps on c+1 … c+12: the GDD's 12-step window;
+  - a jump pressed in the air on step p fires on step L+1 if the landing step L ≤ p+4;
+  - a shift pressed in the air on step p applies if the landing step L ≤ p+5.
+- **Both shifts on one step** cancel (net 0). Presses are per logical action, so with two keys on one action (Right Shift held, then E pressed) there is no new press until the action is released. Documented for ui-engineer.
+- **Band at start of step** decides collisions in phases 7–8; the band is recomputed only in phase 10. A colour change affects collisions from the next step.
+- **Air drag judges the band of the current `|vx|`** (after a wall stop that is white, so no drop).
+
+### 3.3 Floating point
+
+- Positions are JS numbers. Use only `+ − × ÷`, comparisons, `Math.abs/min/max/floor/ceil/round/sign/sqrt/trunc` (exactly specified by IEEE 754 / ECMAScript). Do **not** use `Math.sin/cos/pow/exp/log` etc.: results may differ between engines, which would break replays and server-side validation. Never iterate over object keys or `Set`s where order could affect the result.
+- **Use `SIM_EPSILON` (1e-9, `types.ts`) for every "reached" test on an accumulated value**: drag counter vs `airDragTilesPerGear`, band edges, overlap tests (`a < b − ε`). Example: at gear 2, 60 steps of `6 × dt` sum to 5.999999999999995, so a plain `≥ 6` drops one step late.
+- **Snap, don't accumulate, at contacts:** wall stops set x so the box face equals the tile edge; landings set feet y to the tile top; instant speed changes and drag drops assign exact gear speeds. Box sizes (0.75 × 1.5) are exact binary fractions, so snapped edges compare exactly.
+
+### 3.4 Death, restart, respawn
+
+- **Death** (phase 14) sets `status = 'dead'`, `respawnInSteps = deathFreezeSteps` (24). While `dead`, each step is frozen (no rules run, inputs ignored except restart) and decrements `respawnInSteps`; the step that starts with `respawnInSteps === 0` is the **respawn step**. Death on step d: frozen d+1 … d+24, respawn on d+25.
+- **Restart** (a `restart` press on step r, any status except `won`) sets `status = 'restarting'`, `respawnInSteps = 0` and emits `restart`; nothing else runs on step r. Step r+1 is the respawn step. During a death freeze this skips the rest of the freeze.
+- **The respawn step** returns `{ ...createSim(level, params), prevInput: input }`: exactly the fresh-load state except `prevInput`, so buttons held through the respawn are not new presses. The new run's step 1 is the step after. This satisfies `safe-tiles-and-reset.md` checks 6, 10 and 11 literally (the state on the respawn step equals the fresh-load state).
+- `won` is terminal in the sim (R on the exit step is ignored); the scene starts a new run with `createSim`.
+
+### 3.5 Lanes inside `src/core` (M1-41)
+
+`src/core` is split into three lanes so up to three gameplay-engineer sittings can work at once. Each lane has a public `index.ts`; **its exports and their signatures are fixed by `src/core/contracts/lanes.ts`** (`MotionApi`, `SimLaneApi`, `LevelLaneApi`, listed at runtime in `LANE_EXPORTS`). Build against the contract, not against another lane's internals.
+
+| Lane | Folder | Contents | Publishes | May import |
+|---|---|---|---|---|
+| motion | `src/core/motion/` | pure speed maths: ground accel/brake/skid, bands, segment rates, air drag | `bandForSpeed`, `segmentRates`, `groundSpeed`, `airDrag` | `../types` |
+| sim | `src/core/sim/` | state, step order (§3.1), jump, collision, colour gating and grace, death/restart, tuning loader | `createSim`, `step`, `deriveParams` | `../types`, `../motion` (index only), `src/data/*.json` |
+| level | `src/core/level/` | level/solution parsers (LF + CRLF), input-log codec, `runInputLog`, `verifySolution`, `loadLevels` | 8 functions in `LevelLaneApi` | `../types` only |
+| tech-lead | `src/core/types.ts`, `src/core/contracts/**`, `src/core/index.ts` | shared types, contracts, barrel | everything above + types | contracts only |
+
+- **The level lane never imports the sim.** `runInputLog` and `verifySolution` take a `SimApi` (`{ createSim, step }`) argument, so the level lane is built and tested now with a stub sim. The real solution replay test (`src/core/level/*.test.ts`) imports the barrel `src/core`; tests are exempt from the lane-import rule.
+- **Order of work:** motion and level can start immediately; sim needs `motion` for phases 4, 9, 10 but can stub them until motion lands (motion is small and has the acceptance numbers in `movement-and-gears.md` and `air-drag.md`).
+- **Changing a contract:** ask tech-lead (requests.md). The signature changes in `contracts/lanes.ts` first; both lanes then follow.
+- **Enforced in CI** by `tests/arch/core-purity.test.ts` (purity; lane import edges; cross-lane imports only via `index.ts`; no stray files in the `src/core` root; code outside `src/core` imports only the barrel or `types`) and `tests/arch/lane-contracts.test.ts` (no unlisted lane exports; every export matches its contract type). At the M1 gate tech-lead sets `REQUIRE_COMPLETE` so a missing export fails too.
 
 ## 4. Fixed-step loop (how Phaser drives the sim)
 
@@ -101,31 +157,31 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 
 ## 5. Input → frames → recording
 
-- **Sampling.** `InputFrame` holds the *held* state of five buttons for one step (edge semantics documented in `types.ts`). The sampler listens to keydown/keyup and **latches** any key that went down since the last step, so taps shorter than 16 ms are not lost.
+- **Sampling.** `InputFrame` holds the *held* state of six **logical actions** for one step: `left`, `right`, `jump`, `shiftUp`, `shiftDown`, `restart` (edge semantics in `types.ts`). The sampler listens to keydown/keyup and **latches** any key that went down since the last step, so taps shorter than 16 ms are not lost.
+- **Bindings** (ui-engineer, `src/ui/`) map physical keys to actions, all active at once (GDD §3): left = Left/A, right = Right/D, jump = Space/W/Up, shiftUp = Right Shift/E/X, shiftDown = Left Shift/Q/Z, restart = R. An action is held if **any** of its keys is held. The sim never sees keys, so remapping (Could) needs no sim change.
 - **Left vs right Shift.** Phaser's `Key` objects cannot tell the two Shift keys apart (both keyCode 16). Use the native event: `this.input.keyboard!.on('keydown', (e: KeyboardEvent) => …)` and check `e.code === 'ShiftLeft' | 'ShiftRight'`.
 - **iframe hygiene.** Call `keyboard.addCapture` for Space and the arrow keys so the itch.io page does not scroll; show a "click to focus" prompt when the canvas loses focus.
-- **Risk — Windows Sticky Keys.** Pressing Shift five times quickly opens the OS Sticky Keys dialog. Gear-heavy play will hit this. Alternate bindings (GDD *Should*) should ship with M1 or M2; flagged to design-lead/producer.
-- **Bindings.** Key → button mapping lives in the input module (ui-engineer owns rebinding UI). The sim only sees `InputFrame`.
-- **Recording.** Every played step's frame is appended to a recorder. On level completion the run is encoded as run-length text (`docs/tech/level-format.md` §4) and can be saved as a solution, kept as a local best, or submitted to the leaderboard.
+- **Windows Sticky Keys.** Five Shift presses open the OS dialog. Mitigated by the Q/E and Z/X bindings (Must, M1) and the one-time tip (Must, M2), both ui-engineer.
+- **Recording.** Every played step's frame is appended to a recorder. On level completion the recording (every frame since level load, including deaths and restarts) is encoded as run-length text (`docs/tech/level-format.md` §4) and can be saved as a solution, kept as a local best, or submitted to the leaderboard.
 
 ## 6. Replays and solvability tests
 
 - **Replay** = `createSim` + `step` over the decoded frames. No Phaser needed, so it runs in Vitest (Node), in the browser, and in a server function.
-- **Solvability test (M2).** One Vitest file iterates `levels/*.txt`, loads `<id>.solution.txt`, checks `levelVersion` matches, replays it, and asserts `status === 'won'` with `wonAtStep <= steps`. A level without a solution, or with a failing one, fails CI. Implemented by gameplay-engineer in `src/core/replay.ts` + `src/core/replay.test.ts`; the test reads files with `node:fs`.
+- **Solvability test (M2).** One Vitest file iterates `levels/*.txt`, loads `<id>.solution.txt`, checks `levelVersion` matches, replays it, and asserts `status === 'won'` with `wonAtStep <= steps` (`wonAtStep` counts the winning run only). A level without a solution, or with a failing one, fails CI. Implemented in the level lane (`verifySolution`, `src/core/level/`); the test reads files with `node:fs` and gets the real sim from the `src/core` barrel.
 - **Golden determinism test.** Replaying the same solution twice must give deep-equal final states; a hash of the final state per level can be snapshotted to catch accidental rule changes.
 - **Ghosts (Could).** A ghost is just a replay drawn with a translucent player.
-- **Leaderboard validation.** Submissions carry the RLE input, not a time. The server can re-run `src/core` (pure TS, bundles for Deno edge functions) to verify `wonAtStep` before accepting it.
+- **Leaderboard validation.** Submissions carry the RLE input, not a time. The server can re-run `src/core` (pure TS, bundles for Deno edge functions) to verify `wonAtStep` (the run time) before accepting it.
 
 ## 7. Data loading
 
-- `src/data/tuning.json` is imported statically (`import tuning from '../data/tuning.json'`) and passed through `deriveParams`. Its shape is `Tuning` in `types.ts`; validate at load and fail fast with a clear message.
+- `src/data/tuning.json` is imported statically by the sim lane, checked with `tuningErrors()` / `isTuning()` from `types.ts` (fail fast with those messages), then passed through `deriveParams`. `tests/arch/tuning-schema.test.ts` fails CI if the JSON and the `Tuning` type drift apart in either direction (keys or value kinds), both at typecheck and at test time.
 - Levels are bundled as raw text so the zip needs no fetch:
   ```ts
   const files = import.meta.glob(['/levels/*.txt', '!/levels/*.solution.txt'],
     { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
   ```
-  Parsing (`src/core/level.ts`) is pure and shared with the Node tests.
-- `src/data/palette.json` is read by `src/fx` and the renderer only; the sim never knows colours, just gears.
+  The scene passes that map to `loadLevels` (level lane); parsing is pure, shared with the Node tests, and accepts LF and CRLF (`level-format.md` §1).
+- `src/data/palette.json` is read by `src/fx` and the renderer only; its per-band entries sit under a `gears` object keyed by `BandColor` names. The sim never knows colours, just bands.
 
 ## 8. Networking stays optional (`src/net`)
 
@@ -141,12 +197,12 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 
 | Team | Entry point |
 |---|---|
-| gameplay-engineer | `src/core/*` (`step`, `deriveParams`, level parser, replay), `GameScene` loop, `src/entities` |
-| ui-engineer | menu scenes registered in `src/main.ts`, HUD reading `SimState.player.targetGear/band`, `src/save` |
-| art-director | `src/fx` consumes `SimState` + events; `palette.json` keyed by `GearColor` names |
-| audio-designer | `src/audio` consumes `SimEvent`s and `band` each step |
+| gameplay-engineer | one lane per sitting: `src/core/sim`, `src/core/motion`, `src/core/level` (§3.5); scene lane: `GameScene` loop, `src/entities` |
+| ui-engineer | menu scenes registered in `src/main.ts`, HUD reading `SimState.player.gear` (selected 1–4) and `.band` (colour), key bindings, Sticky Keys tip, `src/save` |
+| art-director | `src/fx` consumes `SimState` + events (`airDrag` flash); `palette.json` per-band entries under `gears`, keyed by `BandColor` names |
+| audio-designer | `src/audio` consumes `SimEvent`s (`airDrag` clunk) and `band` each step |
 | backend-engineer | `src/net` (dynamic import), `backend/` |
-| level-designer | `levels/*.txt` + `*.solution.txt` (format in `level-format.md`) |
+| level-designer | `levels/*.txt` + `*.solution.txt` (format in `level-format.md`, LF or CRLF) |
 | qa-tester | `tests/e2e/**`, runs `npm run check` + `npm run test:e2e` |
 
 Adding a scene: create it in the owner's folder, add its key to `src/scenes/keys.ts`, register it in `src/main.ts` (ask tech-lead).

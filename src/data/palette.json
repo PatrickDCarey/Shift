@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "background": "#0B0D14",
+  "safeTile": {
+    "fill": "#7E88A6",
+    "outline": "#D5DBEE",
+    "pattern": "plain"
+  },
+  "gears": {
+    "white": {
+      "label": "standing",
+      "pattern": "plain",
+      "solid": { "fill": "#F2F4FF", "outline": "#F7F8FF", "ink": "#0B0D14" },
+      "ghost": { "fill": "#F2F4FF", "outline": "#C4C6D0", "ink": "#C4C6D0" }
+    },
+    "blue": {
+      "label": "walk",
+      "pattern": "stripes",
+      "solid": { "fill": "#4C8DFF", "outline": "#94BBFF", "ink": "#0B0D14" },
+      "ghost": { "fill": "#4C8DFF", "outline": "#3F73D0", "ink": "#3F73D0" }
+    },
+    "green": {
+      "label": "jog",
+      "pattern": "dots",
+      "solid": { "fill": "#5CF29B", "outline": "#A4F8C6", "ink": "#0B0D14" },
+      "ghost": { "fill": "#5CF29B", "outline": "#4CC480", "ink": "#4CC480" }
+    },
+    "yellow": {
+      "label": "run",
+      "pattern": "chevrons",
+      "solid": { "fill": "#FFD60A", "outline": "#FFE66C", "ink": "#0B0D14" },
+      "ghost": { "fill": "#FFD60A", "outline": "#CEAE0C", "ink": "#CEAE0C" }
+    },
+    "red": {
+      "label": "sprint",
+      "pattern": "crosshatch",
+      "solid": { "fill": "#F5283C", "outline": "#F98A94", "ink": "#0B0D14" },
+      "ghost": { "fill": "#F5283C", "outline": "#C62334", "ink": "#C62334" }
+    }
+  },
+  "treatment": {
+    "solid": { "fillAlpha": 1, "outlineWidth": 2.5, "inkAlpha": 0.75, "dash": null },
+    "ghost": { "fillAlpha": 0.12, "outlineWidth": 1.5, "inkAlpha": 1, "dash": [5, 4] }
+  },
+  "pattern": {
+    "minStrokePx": 1.5
+  },
+  "ui": {
+    "text": "#E8ECF8",
+    "textMuted": "#A3AECB",
+    "panel": "#141826",
+    "panelBorder": "#5A6590",
+    "focus": "#FFFFFF"
+  },
+  "tint": {
+    "stops": [
+      { "t": 0, "gear": "white" },
+      { "t": 0.25, "gear": "blue" },
+      { "t": 0.5, "gear": "green" },
+      { "t": 0.75, "gear": "yellow" },
+      { "t": 1, "gear": "red" }
+    ],
+    "strength": 0.16
+  },
+  "flash": {
+    "color": "#FFFFFF",
+    "alpha": 0.35,
+    "durationMs": 120
+  }
+}

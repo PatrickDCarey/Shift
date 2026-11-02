@@ -1,22 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BAND_COLORS,
+  BANDS,
   EMPTY_INPUT,
-  GEAR_COLORS,
   GEARS,
   INPUT_BUTTONS,
   INPUT_LETTERS,
   INPUT_NONE_LETTER,
+  MAX_GEAR,
   PLAYER_START_CHAR,
   RESERVED_CHARS,
   TILE_KINDS,
   TILE_LEGEND,
 } from './types';
 
-describe('gear constants', () => {
-  it('maps every gear to a distinct colour name', () => {
-    const colors = GEARS.map((g) => GEAR_COLORS[g]);
+describe('gear and band constants', () => {
+  it('maps every band to a distinct colour name', () => {
+    const colors = BANDS.map((b) => BAND_COLORS[b]);
     expect(colors).toEqual(['white', 'blue', 'green', 'yellow', 'red']);
-    expect(new Set(colors).size).toBe(GEARS.length);
+    expect(new Set(colors).size).toBe(BANDS.length);
+  });
+
+  it('selectable gears are 1..4 (standing is not a gear)', () => {
+    expect(GEARS).toEqual([1, 2, 3, 4]);
+    expect(MAX_GEAR).toBe(GEARS[GEARS.length - 1]);
   });
 });
 
@@ -34,12 +41,12 @@ describe('TILE_LEGEND', () => {
     expect([...kinds].sort()).toEqual([...TILE_KINDS].sort());
   });
 
-  it('has one char per coloured gear and one camera per gear', () => {
+  it('has one char per coloured band and one camera per band', () => {
     const tiles = Object.values(TILE_LEGEND);
-    const colored = tiles.flatMap((t) => (t.kind === 'colored' ? [t.gear] : []));
-    const cameras = tiles.flatMap((t) => (t.kind === 'camera' ? [t.gear] : []));
+    const colored = tiles.flatMap((t) => (t.kind === 'colored' ? [t.band] : []));
+    const cameras = tiles.flatMap((t) => (t.kind === 'camera' ? [t.band] : []));
     expect(colored.sort()).toEqual([1, 2, 3, 4]);
-    expect(cameras.sort()).toEqual([...GEARS]);
+    expect(cameras.sort()).toEqual([...BANDS]);
   });
 
   it('does not collide with the start marker or reserved chars', () => {
@@ -58,7 +65,8 @@ describe('input constants', () => {
     expect(Object.keys(INPUT_LETTERS).sort()).toEqual([...INPUT_BUTTONS].sort());
   });
 
-  it('EMPTY_INPUT holds nothing', () => {
+  it('EMPTY_INPUT holds nothing and has exactly the canonical buttons', () => {
     expect(INPUT_BUTTONS.every((b) => !EMPTY_INPUT[b])).toBe(true);
+    expect(Object.keys(EMPTY_INPUT).sort()).toEqual([...INPUT_BUTTONS].sort());
   });
 });

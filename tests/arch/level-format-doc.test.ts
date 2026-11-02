@@ -16,7 +16,7 @@ function legendCharsInDoc(): Set<string> {
   return new Set(firstCells.flatMap((cell) => [...cell.matchAll(/`(.)`/g)].map((m) => m[1] ?? '')));
 }
 
-const TOKEN_RE = /^[1-9][0-9]*(\.|(?=[LRJ+-])L?R?J?\+?-?)$/;
+const TOKEN_RE = /^[1-9][0-9]*(\.|(?=[LRJ+!-])L?R?J?\+?-?!?)$/;
 
 describe('level-format.md', () => {
   it('documents every legend character and the start marker', () => {
@@ -34,8 +34,12 @@ describe('level-format.md', () => {
 
   it('token regex matches the canonical button letters', () => {
     const all = `7${INPUT_BUTTONS.map((b) => INPUT_LETTERS[b]).join('')}`;
-    expect(DOC).toContain(String.raw`^[1-9][0-9]*(\.|(?=[LRJ+-])L?R?J?\+?-?)$`);
-    for (const ok of ['30.', '1R+', '359R', '2LJ', all]) expect(ok).toMatch(TOKEN_RE);
-    for (const bad of ['0R', '5', 'R', '3RL', '2R.', '1++']) expect(bad).not.toMatch(TOKEN_RE);
+    expect(DOC).toContain(String.raw`^[1-9][0-9]*(\.|(?=[LRJ+!-])L?R?J?\+?-?!?)$`);
+    for (const ok of ['30.', '1R+', '359R', '2LJ', '1!', '1R!', all]) expect(ok).toMatch(TOKEN_RE);
+    for (const bad of ['0R', '5', 'R', '3RL', '2R.', '1++', '1!R', '1!!']) expect(bad).not.toMatch(TOKEN_RE);
+  });
+
+  it('requires parsers to accept LF and CRLF line endings', () => {
+    expect(DOC).toContain('Parsers must accept both `\\n` and `\\r\\n`');
   });
 });

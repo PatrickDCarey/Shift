@@ -1,3 +1,7 @@
-// Shaders, tint, particles, colour-blind patterns. Owner: art-director.
+// Tint, glow, colour-blind patterns, render-only tile treatments. Owner: art-director.
+// Everything here reads simulation state and src/data/palette.json; nothing writes sim state.
 
-export {};
+export * from './color';
+export * from './patterns';
+export * from './palette';
+export * from './tileRender';
