@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { BandColor } from '../core/types';
 import { hexToNumber } from './color';
 import { palette, patternOf, tintForSpeed, tintStops } from './palette';
-import { drawGearGlyph, drawGearTile, drawSafeTile, type TileCanvas } from './tileRender';
+import { drawGearBody, drawGearGlyph, drawGearTile, drawSafeTile, type TileCanvas } from './tileRender';
 
 type Call = readonly [string, ...number[]];
 
@@ -86,6 +86,53 @@ describe('drawSafeTile and drawGearGlyph', () => {
     drawGearTile(b.canvas, 'green', 'solid', 10, 10, 16);
     expect(a.calls).toEqual(b.calls);
     expect(count(a.calls, 'fillCircle')).toBe(4); // coarser 2x2 dots at HUD size
+  });
+});
+
+describe('drawGearBody', () => {
+  it('fills the box, draws the pattern as two stacked 24 px cells, and outlines it', () => {
+    const { canvas, calls } = recorder();
+    drawGearBody(canvas, 'blue', 100, 200, 24, 48, { halo: false });
+    expect(calls[0]).toEqual(['fillStyle', hexToNumber(palette.gears.blue.solid.fill), 1]);
+    expect(calls[1]).toEqual(['fillRect', 100, 200, 24, 48]);
+    expect(count(calls, 'lineBetween')).toBe(8); // 4 stripes x 2 cells
+    expect(count(calls, 'strokeRect')).toBe(1);
+    expect(count(calls, 'fillRect')).toBe(1); // no notch without a facing
+  });
+
+  it('draws the same marks as two tile patterns stacked (consistent with tiles)', () => {
+    const body = recorder();
+    drawGearBody(body.canvas, 'green', 0, 0, 24, 48, { halo: false });
+    const tile = recorder();
+    drawGearTile(tile.canvas, 'green', 'solid', 0, 0, 24);
+    expect(count(body.calls, 'fillCircle')).toBe(2 * count(tile.calls, 'fillCircle'));
+  });
+
+  it('adds a halo (default) and a facing notch only when asked', () => {
+    const plain = recorder();
+    drawGearBody(plain.canvas, 'red', 0, 0, 24, 48, { halo: false });
+    const full = recorder();
+    drawGearBody(full.canvas, 'red', 0, 0, 24, 48, { facing: 1 });
+    expect(count(full.calls, 'strokeRect')).toBe(count(plain.calls, 'strokeRect') + 1);
+    expect(count(full.calls, 'fillRect')).toBe(count(plain.calls, 'fillRect') + 1);
+    expect(full.calls.filter((c) => c[0] === 'fillRect').pop()).toEqual(['fillRect', 14.5, 8, 5, 5]);
+  });
+
+  it('white body is plain: no pattern marks', () => {
+    const { canvas, calls } = recorder();
+    drawGearBody(canvas, 'white', 0, 0, 24, 48, { halo: false });
+    expect(count(calls, 'lineBetween')).toBe(0);
+    expect(count(calls, 'fillCircle')).toBe(0);
+  });
+
+  it('every band draws different calls', () => {
+    const seen = new Set<string>();
+    for (const g of ['white', 'blue', 'green', 'yellow', 'red'] as const) {
+      const { canvas, calls } = recorder();
+      drawGearBody(canvas, g, 0, 0, 24, 48);
+      seen.add(JSON.stringify(calls));
+    }
+    expect(seen.size).toBe(5);
   });
 });
 

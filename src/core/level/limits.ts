@@ -7,3 +7,6 @@ export const MAX_REPLAY_STEPS = 1_000_000;
 
 /** Most errors a single parse reports before it summarises the rest. */
 export const MAX_REPORTED_ERRORS = 25;
+
+/** Highest world number (worlds are numbered 0 to MAX_WORLD). */
+export const MAX_WORLD = 5;

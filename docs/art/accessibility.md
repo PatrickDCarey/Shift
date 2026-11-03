@@ -14,7 +14,7 @@ Background: `#0B0D14` (near-black). Contrast ratios are WCAG 2.x against that ba
 | blue (gear 1) | 3 | stripes | `#4C8DFF` | `#94BBFF` | `#3F73D0` | 6.06 | 4.23 |
 | green (gear 2) | 6 | dots | `#5CF29B` | `#A4F8C6` | `#4CC480` | 13.52 | 8.79 |
 | yellow (gear 3) | 9 | chevrons | `#FFD60A` | `#FFE66C` | `#CEAE0C` | 13.75 | 8.95 |
-| red (gear 4) | 12 | crosshatch | `#F5283C` | `#F98A94` | `#C62334` | 4.85 | 3.41 |
+| red (gear 4) | 12 | crosshatch | `#F5283C` | `#F98A94` | `#D02536` | 4.85 | 3.70 |
 
 Safe tile (`#`, always solid, drawn grey, no pattern): fill `#7E88A6` (5.51:1), outline `#D5DBEE` (14.05:1). It is the only plain tile, so "plain grey" always means "safe to stop here".
 
@@ -22,7 +22,7 @@ UI colors: text `#E8ECF8`, muted text `#A3AECB`, panel `#141826`, panel border `
 
 ### Colors changed from the first draft
 - Green: `#2EE66B` to `#5CF29B`, red: `#FF3B4E` to `#F5283C`. The first pair were nearly the same lightness, so deuteranopia pushed green and red to a delta-E of 16 (not separable). Making green lighter and red darker and more saturated lifts that to 34 while keeping red at 4.85:1.
-- Ghost outlines are the band color mixed 20% toward the background (30% pushed red and blue under 3:1).
+- Ghost outlines are the band color mixed 20% toward the background (30% pushed red and blue under 3:1). Red's is only 14% toward it (`#C62334` to `#D02536`) because the tinted background (section 7) lifts the red ghost fill and `#C62334` fell to 2.9:1 against it.
 
 ## 2. Contrast results
 
@@ -30,9 +30,9 @@ All pass; thresholds are WCAG 1.4.11 (3:1 for gameplay and UI components) and 1.
 
 | Check | Result | Required |
 |---|---|---|
-| Solid fills, solid outlines, ghost outlines, safe tile vs background | min 3.41 (red ghost outline); every other value is higher (table above) | 3:1 |
+| Solid fills, solid outlines, ghost outlines, safe tile vs background | min 3.70 (red ghost outline); every other value is higher (table above) | 3:1 |
 | Pattern marks vs the tile under them (solid, ink at 0.75 alpha) | white 8.48, blue 4.27, green 7.34, yellow 7.44, red 3.82 | 3:1 |
-| Pattern marks vs the tile under them (ghost, ink at 1.0 alpha) | white 8.56, blue 3.69, green 6.96, yellow 7.09, red 3.14 | 3:1 |
+| Pattern marks vs the tile under them (ghost, ink at 1.0 alpha) | white 8.56, blue 3.69, green 6.96, yellow 7.09, red 3.40 | 3:1 |
 | Focus ring, panel border vs background | 19.41, 3.42 | 3:1 |
 | Text `#E8ECF8` vs background / panel | 16.44 / 14.97 | 4.5:1 |
 | Muted text `#A3AECB` vs background / panel | 8.76 / 7.97 | 4.5:1 |
@@ -59,7 +59,7 @@ Closest pair among the five ghost outline colors (dimmer, so slightly closer):
 |---|---|---|---|
 | normal | white-blue | 58.3 | pass |
 | protanopia | white-green | 37.2 | pass |
-| deuteranopia | green-red | 28.0 | pass |
+| deuteranopia | green-red | 27.7 | pass |
 | tritanopia | blue-green | 28.9 | pass |
 
 The grey safe tile against each solid band color: minimum 26 (blue under tritanopia), all others 40 or more. Tested for normal vision and all three types.
@@ -93,8 +93,44 @@ Tests assert: ghost fill alpha is under a quarter of solid fill alpha; solid vs 
 
 The mapping of when a colored tile is drawn solid or ghost (band matches or not, plus grace) belongs to the renderer; `src/fx/tileRender.ts` only draws the two treatments (`drawGearTile(g, band, 'solid' | 'ghost', x, y, size)`).
 
-## 6. Not yet covered
+## 6. Player body (0.75 x 1.5 tiles)
 
-- The player sprite and the drag-downshift flash have colors defined here but are not yet drawn.
+`drawGearBody(g, band, x, y, width, height, { facing, halo })` in `src/fx/tileRender.ts`; geometry in `src/fx/bodyGeometry.ts` (pure, unit-tested). The body is the solid treatment of the current band: fill, 2.5 px outline, then the band's pattern as **square tile-pattern cells stacked down the box**. At 24 x 48 px that is two full 24 px tile patterns (4 stripes, 3x3 dots, 3 chevron rows, crosshatch each), so the body reads like the tiles it can stand on. A dark facing notch (about 5 px) sits near the top on the leading side; a soft halo (6 px stroke, 18% alpha) is the cheap glow.
+
+Tests rasterise every body pattern at 24 x 48 and require ink coverage between 10% and 55% and every pair of patterns (plain included) to differ on at least 15% of pixels, plus geometry checks (shapes stay inside the box; cell count and centring for non-square boxes; notch inside the outline).
+
+## 7. Tinted background (the world colour at every speed)
+
+The background is not constant: it takes a hue from the player's speed (`backgroundForSpeed(speed, topSpeed)` in `src/fx/palette.ts`). **Standing it is exactly `#0B0D14`.** Each band pulls it toward a dark version of the band hue, at a fixed relative luminance of 0.0055 (palette `tint.maxBackgroundLuminance`), in proportion to how saturated the tint is (`tint.backgroundStrength` 0.85); white has almost no saturation, so it adds nothing.
+
+| Speed (tiles/s) | Tint | Background | Luminance |
+|---|---|---|---|
+| 0 | white | `#0B0D14` | 0.0041 |
+| 3 | blue | `#070F1F` | 0.0048 |
+| 6 | green | `#07110E` | 0.0047 |
+| 9 | yellow | `#141004` | 0.0052 |
+| 12 | red | `#210509` | 0.0046 |
+
+Bug this replaced: the scene mixed the background 16% toward the raw tint colour, and the tint at speed 0 is white `#F2F4FF`, so the standing background rendered as medium grey (about `#2E3036` in screenshots, luminance 0.03, 8 times brighter than the palette). Against that grey the old red ghost outline `#C62334` is about 2.3:1. `tint.strength` (the raw-colour mix, kept for the glow and trail) is now 0.03; at that strength even the old formula passes every check below (tested on both paths).
+
+`src/fx/background.test.ts` samples 101 speeds from 0 to top speed for both the helper and the old formula and takes the worst case. Worst case is at yellow (speed 9), the lightest tint; red-ghost checks are the tightest.
+
+| Element vs tinted background | Worst case | Required |
+|---|---|---|
+| Safe fill / outline | 5.40 / 13.77 | 3:1 |
+| Solid fills: white, blue, green, yellow, red | 17.36, 5.95, 13.26, 13.48, 4.76 | 3:1 |
+| Solid outlines (min over bands: red) | 8.24 | 3:1 |
+| Ghost outlines: white, blue, green, yellow, red | 11.18, 4.14, 8.62, 8.77, 3.62 | 3:1 |
+| Ghost pattern marks on the ghost fill (fill follows the background): blue, red | 3.61, 3.25 (others 6.8 and up) | 3:1 |
+| Solid fill vs ghost fill (min: red) | 4.27 | 3:1 |
+| Focus ring, panel border | 19.03, 3.35 | 3:1 |
+| UI text, muted text | 16.11, 8.58 | 4.5:1 |
+| Band colours as HUD text (min: red) | 4.76 | 4.5:1 |
+
+Rule for any future tint change: the background's relative luminance must stay under 0.0055 at every speed; the red ghost outline and red ghost marks have the least slack.
+
+## 8. Not yet covered
+
+- The drag-downshift flash colours are defined here but the flash is not yet drawn by `src/fx` (the scene has its own).
 - Reduced-motion and reduced-effects: flash and screen shake must respect both (see `docs/art/style.md`).
-- Contrast of text drawn directly over the tinted world has not been measured; keep text on `ui.panel` until it is.
+- Text drawn directly over geometry (as opposed to the tinted background): keep text on `ui.panel`.

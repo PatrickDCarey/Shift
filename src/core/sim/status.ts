@@ -4,6 +4,7 @@
  */
 import type { InputFrame, Level, SimParams, SimState } from '../types';
 import { createSim } from './create';
+import { recordInput } from './input';
 import { boxAt, overlapsTile } from './geometry';
 import { emit, type Work } from './work';
 
@@ -14,21 +15,21 @@ export function restartState(state: SimState, input: InputFrame): SimState {
     status: 'restarting',
     respawnInSteps: 0,
     player: { ...state.player },
-    prevInput: { ...input },
+    prevInput: recordInput(input),
     events: [{ type: 'restart' }],
   };
 }
 
 /** The respawn step: exactly the fresh-load state except prevInput (held buttons are not new presses). */
 export function respawnState(input: InputFrame, level: Level, params: SimParams): SimState {
-  return { ...createSim(level, params), prevInput: { ...input } };
+  return { ...createSim(level, params), prevInput: recordInput(input) };
 }
 
 /** A step while dead or restarting: respawn, restart, or stay frozen (inputs ignored but recorded). */
 export function frozenStep(state: SimState, input: InputFrame, level: Level, params: SimParams): SimState {
   if (state.respawnInSteps <= 0) return respawnState(input, level, params);
   if (input.restart && !state.prevInput.restart) return restartState(state, input);
-  return { ...state, respawnInSteps: state.respawnInSteps - 1, player: { ...state.player }, prevInput: { ...input }, events: [] };
+  return { ...state, respawnInSteps: state.respawnInSteps - 1, player: { ...state.player }, prevInput: recordInput(input), events: [] };
 }
 
 export type Outcome = 'won' | 'dead' | null;

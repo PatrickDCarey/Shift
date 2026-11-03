@@ -4,7 +4,7 @@
  */
 import type { BandColor } from '../core/types';
 import paletteJson from '../data/palette.json';
-import { hexToRgb, spectrumTint, type Rgb, type TintStop } from './color';
+import { hexToRgb, mixCapped, saturation, spectrumTint, withLuminance, type Rgb, type TintStop } from './color';
 import { isPatternId, type PatternId } from './patterns';
 
 export interface TileTreatmentColors {
@@ -44,7 +44,12 @@ export interface Palette {
   };
   readonly tint: {
     readonly stops: ReadonlyArray<{ readonly t: number; readonly gear: string }>;
+    /** Mix toward the raw tint colour; for glow and trail, not the background. */
     readonly strength: number;
+    /** How far a fully saturated tint pulls the background toward its dark hue (see `backgroundForSpeed`). */
+    readonly backgroundStrength: number;
+    /** Hard cap on the tinted background's relative luminance (keeps 3:1 against the dimmest gameplay colour). */
+    readonly maxBackgroundLuminance: number;
   };
   readonly flash: { readonly color: string; readonly alpha: number; readonly durationMs: number };
 }
@@ -80,4 +85,22 @@ export function tintForSpeed(speed: number, topSpeed: number): Rgb {
 
 export function backgroundRgb(): Rgb {
   return hexToRgb(palette.background);
+}
+
+/**
+ * Colour of the world behind the tiles for the player's speed. The tint hue is
+ * taken at the fixed dark luminance `tint.maxBackgroundLuminance`, and the
+ * background moves toward it in proportion to how saturated the tint is. So
+ * standing (white, almost no saturation) leaves the background unchanged, each
+ * band gives a dark but visible hue (navy, forest, olive, wine), and no speed
+ * ever lifts the background above the cap, which is what keeps gameplay colours
+ * at 3:1 and text at 4.5:1 (docs/art/accessibility.md section 7).
+ */
+export function backgroundForSpeed(speed: number, topSpeed: number, p: Palette = palette): Rgb {
+  const bg = hexToRgb(p.background);
+  const t = topSpeed <= 0 ? 0 : speed / topSpeed;
+  const tint = spectrumTint(tintStops(p), t);
+  const cap = p.tint.maxBackgroundLuminance;
+  const dark = withLuminance(tint, cap);
+  return mixCapped(bg, dark, p.tint.backgroundStrength * saturation(tint), cap);
 }

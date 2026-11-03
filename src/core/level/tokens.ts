@@ -13,6 +13,9 @@ import {
 } from '../types';
 import { MAX_REPLAY_STEPS } from './limits';
 
+/** Longest step count a run token may spell (a longer digit string is too large whatever its value). */
+const MAX_STEPS_DIGITS = String(MAX_REPLAY_STEPS).length;
+
 export type TokenResult =
   | { readonly ok: true; readonly run: InputRun }
   | { readonly ok: false; readonly message: string };
@@ -66,7 +69,7 @@ export function parseRunToken(token: string): TokenResult {
   const rest = token.slice(digits.length);
   if (digits === '') return bad(token, "start with a step count, for example '30R'");
   if (digits.startsWith('0')) return bad(token, 'the count must be a positive integer without leading zeros');
-  if (digits.length > 7 || Number(digits) > MAX_REPLAY_STEPS) {
+  if (digits.length > MAX_STEPS_DIGITS || Number(digits) > MAX_REPLAY_STEPS) {
     return { ok: false, message: `run token '${token}': count ${digits} is too large (a solution has at most ${MAX_REPLAY_STEPS} steps)` };
   }
   if (rest === '') return bad(token, `add the buttons held (${LETTER_LIST}) or '${INPUT_NONE_LETTER}' for nothing held`);

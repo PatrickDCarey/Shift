@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Level, ParseResult } from '../types';
 import { loadLevels } from './index';
-import { pairSolutions } from './loadLevels';
 
 function levelText(id: string, world: number, grid: readonly string[] = ['@E']): string {
   return [`id: ${id}`, `title: Level ${id}`, `world: ${world}`, 'teaches: t', 'version: 1', '---', ...grid, ''].join('\n');
@@ -96,56 +95,5 @@ describe('loadLevels', () => {
       loadLevels({ '/levels/w1-01.txt': levelText('w1-01', 1), '/more/w1-01.txt': levelText('w1-01', 1) }),
     );
     expect(e).toEqual(["w1-01.txt: found twice (/levels/w1-01.txt and /more/w1-01.txt); level ids must be unique"]);
-  });
-});
-
-describe('pairSolutions', () => {
-  const lvls = (ids: readonly string[]): readonly Level[] =>
-    levels(loadLevels(Object.fromEntries(ids.map((id) => [`/levels/${id}.txt`, levelText(id, Number(id[1]))]))));
-
-  it('pairs each level with the solution of the same id', () => {
-    const result = pairSolutions(lvls(['w1-01', 'w1-02']), {
-      '/levels/w1-01.solution.txt': solutionText('w1-01', 3),
-      '/levels/w1-02.solution.txt': solutionText('w1-02', 4),
-    });
-    if (!result.ok) throw new Error(result.errors.join('\n'));
-    expect([...result.value.keys()]).toEqual(['w1-01', 'w1-02']);
-    expect(result.value.get('w1-02')?.steps).toBe(4);
-  });
-
-  it('reports a level without a solution as missing', () => {
-    const e = errors(pairSolutions(lvls(['w1-01', 'w1-02']), { '/levels/w1-01.solution.txt': solutionText('w1-01') }));
-    expect(e).toEqual(["w1-02: no solution recording (expected levels/w1-02.solution.txt; every level ships with one)"]);
-  });
-
-  it('reports a solution without a level as orphaned', () => {
-    const e = errors(
-      pairSolutions(lvls(['w1-01']), {
-        '/levels/w1-01.solution.txt': solutionText('w1-01'),
-        '/levels/w1-09.solution.txt': solutionText('w1-09'),
-      }),
-    );
-    expect(e).toEqual(["w1-09.solution.txt: orphaned solution (there is no level 'w1-09')"]);
-  });
-
-  it('reports a solution file that does not parse, with its name and position', () => {
-    const e = errors(pairSolutions(lvls(['w1-01']), { '/levels/w1-01.solution.txt': 'level: w1-01\n---\n1R' }));
-    expect(e[0]).toBe("w1-01.solution.txt:2:1: missing required header key 'levelVersion'");
-  });
-
-  it('ignores plain level files and unrelated names in the map', () => {
-    const result = pairSolutions(lvls(['w1-01']), {
-      '/levels/w1-01.txt': levelText('w1-01', 1),
-      '/levels/w1-01.solution.txt': solutionText('w1-01'),
-      '/levels/notes.md': 'x',
-    });
-    expect(result.ok).toBe(true);
-  });
-
-  it('parses CRLF solutions', () => {
-    const result = pairSolutions(lvls(['w1-01']), {
-      '/levels/w1-01.solution.txt': solutionText('w1-01').replace(/\n/g, '\r\n'),
-    });
-    expect(result.ok).toBe(true);
   });
 });

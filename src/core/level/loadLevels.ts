@@ -1,16 +1,16 @@
 /**
  * Level loading from a `{ path: text }` map, the shape `import.meta.glob`
- * (raw text) produces render-side, plus the level <-> solution pairing check
- * used by the solvability test. Pure; reports problems as error values.
+ * (raw text) produces render-side. Pure; reports problems as error values.
+ * Level <-> solution pairing is repo policy (tests/levels/solvability.test.ts), not lane API.
  */
-import type { Level, LoadLevelsFn, ParseResult, Solution } from '../types';
+import type { Level, LoadLevelsFn } from '../types';
+import { MAX_WORLD } from './limits';
 import { parseLevel } from './parseLevel';
-import { parseSolution } from './solutionFile';
 import { capErrors, inFile } from './text';
 
 const SOLUTION_SUFFIX = '.solution.txt';
 const LEVEL_SUFFIX = '.txt';
-const LEVEL_STEM_RE = /^w([0-5])-[0-9]{2}$/;
+const LEVEL_STEM_RE = new RegExp('^w([0-' + MAX_WORLD + '])-[0-9]{2}$');
 
 interface NamedFile {
   readonly path: string;
@@ -73,38 +73,3 @@ export const loadLevels: LoadLevelsFn = (files) => {
   if (errors.length > 0) return { ok: false, errors: capErrors(errors) };
   return { ok: true, value: levels.sort(compareLevels) };
 };
-
-/**
- * Parses every `*.solution.txt` in the map and pairs it with the level of the
- * same id. Reports unparsable solutions, levels without a solution (missing)
- * and solutions without a level (orphaned). Returns id -> Solution.
- */
-export function pairSolutions(
-  levels: readonly Level[],
-  files: Readonly<Record<string, string>>,
-): ParseResult<ReadonlyMap<string, Solution>> {
-  const errors: string[] = [];
-  const paired = new Map<string, Solution>();
-  const known = new Set(levels.map((l) => l.meta.id));
-  const present = new Set<string>();
-  for (const file of filesEnding(files, SOLUTION_SUFFIX)) {
-    const stem = file.name.slice(0, -LEVEL_SUFFIX.length);
-    const id = stem.slice(0, -'.solution'.length);
-    if (!known.has(id)) {
-      errors.push(inFile(file.name, `orphaned solution (there is no level '${id}')`));
-      continue;
-    }
-    present.add(id);
-    const parsed = parseSolution(file.text, stem);
-    if (parsed.ok) paired.set(id, parsed.value);
-    else errors.push(...parsed.errors);
-  }
-  for (const level of levels) {
-    const id = level.meta.id;
-    if (!present.has(id)) {
-      errors.push(inFile(id, `no solution recording (expected levels/${id}${SOLUTION_SUFFIX}; every level ships with one)`));
-    }
-  }
-  if (errors.length > 0) return { ok: false, errors: capErrors(errors) };
-  return { ok: true, value: new Map([...paired.entries()].sort(([a], [b]) => (a < b ? -1 : 1))) };
-}

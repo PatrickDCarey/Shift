@@ -3,9 +3,9 @@
  * check built on it (docs/tech/level-format.md section 4, "Pass criteria").
  * The level lane never imports the sim, so the sim comes in as `SimApi`.
  */
-import type { InputLogRun, RunInputLogFn, SimState, VerifySolutionFn } from '../types';
-import { expandRuns } from './codec';
+import type { InputLogRun, InputRun, Level, RunInputLogFn, SimApi, SimParams, SimState, VerifySolutionFn } from '../types';
 import { MAX_REPLAY_STEPS } from './limits';
+import { normalizeFrame } from './tokens';
 
 export const runInputLog: RunInputLogFn = (sim, level, params, frames) => {
   if (frames.length > MAX_REPLAY_STEPS) {
@@ -51,13 +51,31 @@ function outcomeErrors(id: string, final: SimState, steps: number): readonly str
   return [];
 }
 
+/**
+ * Streams the runs through the sim keeping only the current state, and stops at
+ * the first won state (nothing after a win can change the verdict). Unlike
+ * `runInputLog` it never builds a frame list or a state list, so a
+ * 1,000,000-step submission costs one state at a time. Counts must already be
+ * validated (see `structureErrors`).
+ */
+function replayToWin(sim: SimApi, level: Level, params: SimParams, runs: readonly InputRun[]): SimState {
+  let state = sim.createSim(level, params);
+  for (const run of runs) {
+    const frame = normalizeFrame(run.frame);
+    for (let k = 0; k < run.count; k++) {
+      state = sim.step(state, frame, level, params);
+      if (state.status === 'won') return state;
+    }
+  }
+  return state;
+}
+
 export const verifySolution: VerifySolutionFn = (sim, level, params, solution) => {
   const id = level.meta.id;
   const structural = structureErrors(id, level.meta.version, solution);
   if (structural.length > 0) return structural;
   try {
-    const { final } = runInputLog(sim, level, params, expandRuns(solution.runs));
-    return outcomeErrors(id, final, solution.steps);
+    return outcomeErrors(id, replayToWin(sim, level, params, solution.runs), solution.steps);
   } catch (error: unknown) {
     return [`${id}: the sim threw during replay: ${messageOf(error)}`];
   }

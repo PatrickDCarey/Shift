@@ -259,3 +259,72 @@ describe('verifySolution', () => {
     expect(verifySolution(sim, LEVEL, PARAMS, solution)).toEqual(verifySolution(sim, LEVEL, PARAMS, solution));
   });
 });
+
+describe('verifySolution on long solutions (review L1)', () => {
+  const LONG = 200_000;
+  const NEVER_WINS: Level = { ...LEVEL, width: LONG * 2 };
+  const BALLAST_NUMBERS = 64;
+
+  /** Heap in use, read through globalThis because browser-side tsconfig has no Node types (tests run in Node). */
+  const heapUsed = (): number =>
+    (globalThis as unknown as { process: { memoryUsage: () => { heapUsed: number } } }).process.memoryUsage().heapUsed;
+
+  /** A solution of `count` steps built directly as one run (solutionOf would compare 200,000 frames as JSON). */
+  const oneRun = (frame: InputFrame, count: number): Solution => ({
+    levelId: 'w0-01',
+    levelVersion: 1,
+    steps: count,
+    runs: [{ count, frame }],
+  });
+
+  /** Fake sim whose every state carries ~0.7 KB, so retaining 200,000 of them would cost well over 100 MB. */
+  function makeHeavySim(onStep: (n: number) => void): SimApi {
+    let n = 0;
+    return {
+      createSim: () => freshState(EMPTY_INPUT),
+      step: (state, input) => {
+        n += 1;
+        onStep(n);
+        const heavy = { ...state, step: state.step + 1, prevInput: input, events: [] };
+        (heavy as unknown as { ballast: number[] }).ballast = new Array<number>(BALLAST_NUMBERS).fill(n);
+        return heavy;
+      },
+    };
+  }
+
+  it('stops stepping at the first won state instead of replaying the whole recording', () => {
+    const calls = { creates: 0, steps: 0 };
+    const solution: Solution = {
+      levelId: 'w0-01',
+      levelVersion: 1,
+      steps: 5 + LONG,
+      runs: [
+        { count: 5, frame: R },
+        { count: LONG, frame: EMPTY_INPUT },
+      ],
+    };
+    expect(verifySolution(makeFakeSim(calls), LEVEL, PARAMS, solution)).toEqual([]);
+    expect(calls).toEqual({ creates: 1, steps: 5 });
+  });
+
+  it('runs to the step limit and reports a non-win when the recording never wins', () => {
+    const calls = { creates: 0, steps: 0 };
+    const e = verifySolution(makeFakeSim(calls), NEVER_WINS, PARAMS, oneRun(R, LONG));
+    expect(calls.steps).toBe(LONG);
+    expect(e).toHaveLength(1);
+    expect(e[0]).toContain(`status 'playing' after ${LONG} steps`);
+  });
+
+  it('does not retain intermediate states while replaying a 200,000-step solution', () => {
+    let baseline = 0;
+    let peakDelta = 0;
+    const sim = makeHeavySim((n) => {
+      if (n === 1) baseline = heapUsed();
+      if (n % 25_000 === 0) peakDelta = Math.max(peakDelta, heapUsed() - baseline);
+    });
+    const e = verifySolution(sim, NEVER_WINS, PARAMS, oneRun(R, LONG));
+    expect(e).toHaveLength(1);
+    // Keeping every state would add over 100 MB; one state at a time stays far below this.
+    expect(peakDelta).toBeLessThan(40 * 1024 * 1024);
+  });
+});

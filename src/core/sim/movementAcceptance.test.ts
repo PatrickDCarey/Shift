@@ -1,8 +1,7 @@
 /**
  * docs/design/features/movement-and-gears.md acceptance checks 1-16 through
  * the real `step` (check 17 is an e2e input-module check). Step numbers are
- * asserted exactly, distances to the spec's printed precision (tolerance
- * ±0.15) unless a comment says the value is pinned.
+ * asserted exactly, distances to the spec's printed precision.
  */
 import { describe, expect, it } from 'vitest';
 import { bandForSpeed } from '../motion';

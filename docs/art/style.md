@@ -11,7 +11,7 @@ Glowing neon geometry on a near-black background (`#0B0D14`). Everything is flat
 The whole world's tint slides along the spectrum with the player's **actual** speed. It is a continuous cue; gameplay still uses the discrete bands.
 
 - Stops (`palette.tint.stops`): standing 0 white, 0.25 blue, 0.5 green, 0.75 yellow, 1.0 red, in normalized speed (`|vx| / gearSpeeds[4]`). They are the band fill colors, interpolated in sRGB by `spectrumTint` (`src/fx/color.ts`); `tintForSpeed(speed, topSpeed)` does the lookup.
-- Apply it as a low-strength wash over the background and as the glow color of the player trail, not over the tiles themselves (tile colors must stay true to the palette or the color rule stops being readable). Strength `palette.tint.strength` is 0.16.
+- The **background** takes it through `backgroundForSpeed(speed, topSpeed)`: a dark hue shift at a fixed luminance cap (0.0055), exactly `#0B0D14` when standing. Do not mix the raw tint colour into the background: white at speed 0 turns it grey (that was a bug, see `docs/art/accessibility.md` section 7). The raw tint (`tintForSpeed`, weight `palette.tint.strength` 0.03) is for the glow and trail only, never over tiles (tile colors must stay true to the palette).
 - Smooth the speed before lookup (ease over about 100 ms) so the tint never flickers around a band edge.
 - It is the "redshift": slow is cool and pale, sprint is red.
 - The band edges are 1.5, 4.5, 7.5 and 10.5 tiles/s; the tint passes through the same colors at the gear speeds 3, 6, 9, 12, so a cruising player sits exactly on a band color.
@@ -33,7 +33,7 @@ Requested by design-lead: air drag drops the player one band instantly mid-fligh
 
 ## Player
 
-Rounded rectangle (0.75 x 1.5 tiles) filled with the current band color and **the band's pattern** drawn on the body, same geometry as tiles. Color comes from actual speed, never the selected gear. The HUD gear meter shows the selected gear and the current band side by side using `drawGearGlyph`; the pattern keeps them apart for color-blind players.
+Box (0.75 x 1.5 tiles, 24 x 48 px) filled with the current band color and **the band's pattern** drawn as two stacked tile-pattern cells, drawn by `drawGearBody` (`src/fx/tileRender.ts`). Color comes from actual speed, never the selected gear. The HUD gear meter shows the selected gear and the current band side by side using `drawGearGlyph`; the pattern keeps them apart for color-blind players.
 
 ## Tiles
 

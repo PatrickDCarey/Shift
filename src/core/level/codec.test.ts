@@ -96,25 +96,52 @@ describe('expandRuns', () => {
   });
 });
 
+/** Same buttons held in both frames. Plain comparison: cheaper than `expect` per element. */
+function sameFrame(a: InputFrame, b: InputFrame): boolean {
+  return INPUT_BUTTONS.every((button) => a[button] === b[button]);
+}
+
+function sameFrames(a: readonly InputFrame[], b: readonly InputFrame[]): boolean {
+  return a.length === b.length && a.every((frame, i) => sameFrame(frame, b[i] ?? EMPTY_INPUT));
+}
+
+function sameRuns(a: readonly InputRun[], b: readonly InputRun[]): boolean {
+  return a.length === b.length && a.every((run, i) => run.count === b[i]?.count && sameFrame(run.frame, b[i]?.frame ?? EMPTY_INPUT));
+}
+
+/** What is wrong with the round trip of one log, or null when it is canonical and lossless. */
+function roundTripProblem(log: readonly InputFrame[]): string | null {
+  const runs = encodeRuns(log);
+  if (!sameFrames(expandRuns(runs), log)) return 'expandRuns(encodeRuns(log)) differs from the log';
+  if (runs.reduce((sum, r) => sum + r.count, 0) !== log.length) return 'run counts do not add up to the log length';
+  for (let i = 1; i < runs.length; i++) {
+    if (sameFrame(runs[i]?.frame ?? EMPTY_INPUT, runs[i - 1]?.frame ?? EMPTY_INPUT)) return `runs ${i} and ${i + 1} hold the same buttons (not canonical)`;
+  }
+  if (!sameRuns(encodeRuns(expandRuns(runs)), runs)) return 'encodeRuns(expandRuns(runs)) differs from runs';
+  return null;
+}
+
 describe('encodeRuns / expandRuns round trip', () => {
   it('round-trips 300 generated input logs and always emits canonical runs', () => {
     const rng = makeRng(20261102);
+    const problems: string[] = [];
     for (let n = 0; n < 300; n++) {
-      const log = randomLog(rng, 40);
-      const runs = encodeRuns(log);
-      expect(expandRuns(runs)).toEqual(log);
-      expect(runs.reduce((sum, r) => sum + r.count, 0)).toBe(log.length);
-      for (let i = 1; i < runs.length; i++) {
-        expect(frameLetters(runs[i]?.frame ?? EMPTY_INPUT)).not.toBe(frameLetters(runs[i - 1]?.frame ?? EMPTY_INPUT));
-      }
-      expect(encodeRuns(expandRuns(runs))).toEqual(runs);
+      const problem = roundTripProblem(randomLog(rng, 40));
+      if (problem !== null) problems.push(`log ${n}: ${problem}`);
     }
+    expect(problems).toEqual([]);
   });
 
   it('round-trips every one of the 64 button combinations', () => {
     const all = Array.from({ length: 64 }, (_, bits) => frameFromBits(bits));
-    expect(expandRuns(encodeRuns(all))).toEqual(all);
+    expect(roundTripProblem(all)).toBeNull();
     expect(encodeRuns(all)).toHaveLength(64);
+  });
+
+  it('detects a broken round trip (the helper really compares)', () => {
+    expect(sameFrames([R], [RJ])).toBe(false);
+    expect(sameRuns([{ count: 1, frame: R }], [{ count: 2, frame: R }])).toBe(false);
+    expect(sameRuns([{ count: 1, frame: R }], [{ count: 1, frame: R }])).toBe(true);
   });
 });
 
@@ -174,21 +201,28 @@ describe('parseRunToken', () => {
   it('agrees with the regex in the format doc on 20000 generated strings', () => {
     const rng = makeRng(7);
     const alphabet = '0123456789123456789.LRJ+-!!xr ';
+    const disagreements: string[] = [];
     for (let n = 0; n < 20000; n++) {
       const length = 1 + Math.floor(rng() * 7);
       let token = '';
       for (let i = 0; i < length; i++) token += alphabet[Math.floor(rng() * alphabet.length)] ?? '';
       const parsed = parseRunToken(token);
       const bounded = !DOC_TOKEN_RE.test(token) || Number.parseInt(token, 10) <= 1_000_000;
-      if (bounded) expect(parsed.ok, `token ${JSON.stringify(token)}`).toBe(DOC_TOKEN_RE.test(token));
+      if (bounded && parsed.ok !== DOC_TOKEN_RE.test(token)) disagreements.push(JSON.stringify(token));
     }
+    expect(disagreements).toEqual([]);
   });
 
   it('formats then parses back every generated run', () => {
     const rng = makeRng(99);
+    const failures: string[] = [];
     for (let n = 0; n < 500; n++) {
       const r: InputRun = { count: 1 + Math.floor(rng() * 5000), frame: frameFromBits(Math.floor(rng() * 64)) };
-      expect(parseRunToken(formatRunToken(r))).toEqual({ ok: true, run: r });
+      const back = parseRunToken(formatRunToken(r));
+      if (!back.ok || back.run.count !== r.count || !INPUT_BUTTONS.every((b) => back.run.frame[b] === r.frame[b])) {
+        failures.push(formatRunToken(r));
+      }
     }
+    expect(failures).toEqual([]);
   });
 });

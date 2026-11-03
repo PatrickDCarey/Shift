@@ -16,6 +16,9 @@ import {
 } from '../core';
 import { advanceClock } from './interpolation';
 
+/** One input frame per call; null means "do not step now" (a replay that has finished). */
+export type FrameSupplier = () => InputFrame | null;
+
 export class RunDriver {
   /** State after the latest step. */
   state: SimState;
@@ -46,12 +49,29 @@ export class RunDriver {
    * Run the steps due for `deltaMs` of render time. `sample` is called once
    * per step. Returns the events of every step run, in order.
    */
-  advance(deltaMs: number, sample: () => InputFrame): readonly SimEvent[] {
+  advance(deltaMs: number, sample: FrameSupplier): readonly SimEvent[] {
     const clock = advanceClock(this.acc, deltaMs, this.stepMs);
     this.acc = clock.acc;
     this.alpha = clock.alpha;
+    return this.run(clock.steps, sample);
+  }
+
+  /** Run up to `count` steps regardless of render time (fast replays). Draws the latest state, no blending. */
+  advanceFixed(count: number, sample: FrameSupplier): readonly SimEvent[] {
+    this.alpha = 1;
+    return this.run(count, sample);
+  }
+
+  private run(count: number, sample: FrameSupplier): readonly SimEvent[] {
     const events: SimEvent[] = [];
-    for (let i = 0; i < clock.steps; i += 1) events.push(...this.stepOnce(sample()));
+    for (let i = 0; i < count; i += 1) {
+      const frame = sample();
+      if (frame === null) {
+        this.alpha = 1; // stopped: show the final state, not a blend toward it
+        break;
+      }
+      events.push(...this.stepOnce(frame));
+    }
     return events;
   }
 

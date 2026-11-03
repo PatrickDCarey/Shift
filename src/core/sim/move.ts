@@ -6,7 +6,8 @@ import { supported, sweepX, sweepY } from './collision';
 import { gateFor } from './gating';
 import { emit, withPlayer, type StepCtx, type Work } from './work';
 
-/** Phase 7: trapezoid dx, wall stop snaps to the face and zeroes vx (gear kept). */
+/** Phase 7: trapezoid dx, wall stop snaps to the face and zeroes vx (gear kept);
+ * `wallStop` only on contact, not while pushing into a wall already touched. */
 export function moveXPhase(w: Work, ctx: StepCtx): Work {
   const p = w.player;
   const dx = ((w.vxOld + p.vx) / 2) * ctx.params.dt;
@@ -15,7 +16,10 @@ export function moveXPhase(w: Work, ctx: StepCtx): Work {
   const res = sweepX(ctx.level, ctx.params, p.x, p.y, dx, gate);
   const moved = { ...withPlayer(w, { x: res.x }), dxMoved: res.x - p.x };
   if (!res.blocked) return moved;
-  return emit(withPlayer(moved, { vx: 0 }), { type: 'wallStop', speed: Math.abs(p.vx) });
+  const stopped = withPlayer(moved, { vx: 0 });
+  // Once per contact (architecture.md 3.2): pushing into a wall the box already touches is silent.
+  const contact = w.vxOld !== 0 || res.x !== p.x;
+  return contact ? emit(stopped, { type: 'wallStop', speed: Math.abs(p.vx) }) : stopped;
 }
 
 /** Phase 8: floors, ceilings, then the supported test; walk-offs start coyote time. */

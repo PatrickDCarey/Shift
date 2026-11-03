@@ -69,20 +69,15 @@ describe('air-drag check 2-3: jog and run jumps', () => {
 });
 
 describe('air-drag check 4: walk-off keeps red', () => {
-  it('gear 4 off a 4-tile ledge: lands 5.6 tiles out, |vx| 12, band 4', () => {
+  it('gear 4 off a 4-tile ledge: 29 airborne steps, lands 5.80 from the last grounded x, |vx| 12, band 4', () => {
     const lvl = ledge(30, 4);
     const s = runFrames(lvl, cruise(lvl, 4), repeat(120, 'R'));
     const off = firstStep(s, (t) => !t.player.grounded);
     const l = landStep(s);
-    // Pinned: 29 airborne steps (phase 6 gravity starts the step after the
-    // walk-off, which phase 8 detects), 5.8 from the last grounded x. Measured
-    // from the ledge edge (centre when the box's back edge leaves it) it is
-    // inside the ±0.15 tolerance of 5.6.
+    // Phase 6 gravity starts the step after the walk-off, which phase 8
+    // detects, so the flight is 29 steps long (architecture.md 3.2).
     expect(l - off + 1).toBe(29);
     expect(at(s, l).player.x - at(s, off - 1).player.x).toBeCloseTo(5.8, 9);
-    const fromEdge = at(s, l).player.x - (30 + params.playerWidth / 2);
-    expect(fromEdge).toBeCloseTo(5.722, 3);
-    expect(Math.abs(fromEdge - 5.6)).toBeLessThanOrEqual(0.15);
     expect(at(s, l).player).toMatchObject({ vx: 12, band: 4, y: 14 });
   });
 });
@@ -93,7 +88,7 @@ describe('air-drag check 5: two drops', () => {
     const s = runFrames(lvl, cruise(lvl, 4), [frame('RJ'), ...repeat(120, 'R')]);
     const l = landStep(s);
     expect(dropSteps(s.slice(0, l))).toEqual([30, 70]);
-    expect(l).toBeGreaterThanOrEqual(70);
+    expect(l).toBe(70);
     expect(at(s, l).player).toMatchObject({ vx: 6, band: 2, y: 17 });
   });
 });
@@ -169,9 +164,12 @@ describe('air-drag check 11: gear follows band at takeoff', () => {
 describe('air-drag check 12: downshift kept', () => {
   it('- on action steps 1 and 3, jump on step 4 (band 4, gear 2): gear 2 for the whole flight', () => {
     const s = runFrames(level, cruise(level, 4), [frame('R-'), frame('R'), frame('R-'), frame('RJ'), ...repeat(80, 'R')]);
-    // "band 4" is the band going into step 4 (end of step 3, |vx| 10.74);
-    // the launch step's ground update brakes to 10.32 (band 3) before takeoff.
+    // Band 4 holds going into step 4 (end of step 3, |vx| 10.74); the launch
+    // step's ground update brakes to 10.32 (band 3) at takeoff.
     expect(at(s, 3).player).toMatchObject({ band: 4, gear: 2 });
+    expect(at(s, 3).player.vx).toBeCloseTo(10.74, 2);
+    expect(at(s, 4).player.vx).toBeCloseTo(10.32, 2);
+    expect(at(s, 4).player.band).toBe(3);
     const flightEnd = 3 + landStep(s.slice(3));
     expect(s.slice(3, flightEnd).every((t) => t.player.gear === 2)).toBe(true);
   });

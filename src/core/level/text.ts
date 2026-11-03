@@ -32,7 +32,7 @@ export interface HeaderResult {
   readonly errors: readonly string[];
 }
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 export function atPos(file: string, line: number, col: number, message: string): string {
   return `${file}:${line}:${col}: ${message}`;

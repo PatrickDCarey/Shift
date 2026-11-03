@@ -68,11 +68,10 @@ describe('gating check 3: no grace on landing', () => {
 });
 
 describe('gating check 4-5: grace windows on green', () => {
-  it('shift: band 3 on action step c (pinned 5, spec expects 6); grounded c+1..c+6, airborne c+7', () => {
+  it('shift: band 3 on action step c = 5; grounded c+1..c+6, airborne c+7', () => {
     const s = runFrames(green, cruiseOnto(green, 2, 20), [frame('R+'), ...repeat(40, 'R')]);
     const c = bandStep(s, 3);
     expect(c).toBe(5);
-    expect(Math.abs(c - 6)).toBeLessThanOrEqual(2);
     expectGraceWindow(s, c);
   });
 

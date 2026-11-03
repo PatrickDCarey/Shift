@@ -3,10 +3,10 @@
  * SimEvent type (architecture.md §3.1, §3.4, contracts/state.ts).
  */
 import { describe, expect, it } from 'vitest';
-import { EMPTY_INPUT, type SimEvent, type SimState } from '../types';
+import { EMPTY_INPUT, INPUT_BUTTONS, type InputFrame, type SimEvent, type SimState } from '../types';
 import { createSim } from './create';
 import { step } from './step';
-import { advance, at, cruise, eventTypes, firstStep, frame, gridLevel, params, repeat, room, runFrames, runFromSpawn } from './testkit';
+import { advance, at, block, cruise, eventTypes, firstStep, frame, gridLevel, params, repeat, room, runFrames, runFromSpawn } from './testkit';
 
 const level = room(240, 2);
 const fresh = createSim(level, params);
@@ -14,6 +14,10 @@ const firstEvent = (states: readonly SimState[], type: SimEvent['type']): { n: n
   const n = firstStep(states, (s) => eventTypes(s).includes(type));
   return { n, event: n > 0 ? at(states, n).events.find((e) => e.type === type) : undefined };
 };
+
+/** 1-based steps whose events include `type`. */
+const firstStepsWith = (states: readonly SimState[], type: SimEvent['type']): number[] =>
+  states.flatMap((s, i) => (eventTypes(s).includes(type) ? [i + 1] : []));
 
 describe('createSim', () => {
   it('spawns standing on the bottom edge of the @ cell, startGear, white, facing right, step 0', () => {
@@ -69,6 +73,33 @@ describe('purity', () => {
     const w = firstStep(s, (t) => t.status === 'won');
     const after = step(at(s, w), frame('LJ!'), lvl, params);
     expect(after).toEqual({ ...at(s, w), prevInput: frame('LJ!'), events: [] });
+  });
+});
+
+describe('prevInput', () => {
+  const buttons = [...INPUT_BUTTONS].sort();
+  const noisy = { ...frame('RJ'), analogX: 0.7, tick: 12 } as InputFrame;
+  const keys = (s: SimState): string[] => Object.keys(s.prevInput).sort();
+
+  it('stores exactly the six contract buttons, dropping extra fields, in every status', () => {
+    const cliff = room(240, 2, [{ row: 10, col: 0, chars: '#'.repeat(10) }], '.');
+    const exit = room(40, 2, [{ row: 9, col: 3, chars: 'E' }]);
+    const playing = step(createSim(level, params), noisy, level, params);
+    const restarting = step(createSim(level, params), { ...frame('!'), extra: true } as InputFrame, level, params);
+    const won = step(runFromSpawn(exit, repeat(60, 'R')).at(-1) as SimState, noisy, exit, params);
+    const dead = runFromSpawn(cliff, repeat(400, 'R')).find((t) => t.status === 'dead') as SimState;
+    const frozen = step(dead, noisy, cliff, params);
+    const respawned = step({ ...dead, respawnInSteps: 0 }, noisy, cliff, params);
+    const states = [playing, restarting, won, frozen, respawned];
+    expect(states.map((t) => t.status)).toEqual(['playing', 'restarting', 'won', 'dead', 'playing']);
+    states.forEach((t) => expect(keys(t)).toEqual(buttons));
+    expect(playing.prevInput).toEqual(frame('RJ'));
+  });
+
+  it('a frame with extra fields gives the same states as the clean frame', () => {
+    const clean = repeat(40, 'R+');
+    const dirty = clean.map((f, i) => ({ ...f, tick: i }) as InputFrame);
+    expect(runFromSpawn(level, dirty)).toEqual(runFromSpawn(level, clean));
   });
 });
 
@@ -136,6 +167,34 @@ describe('events', () => {
     const c = firstEvent(runFromSpawn(roofed, [frame('J'), ...repeat(30, '')]), 'ceiling');
     expect(c.event).toEqual({ type: 'ceiling' });
     expect(at(runFromSpawn(roofed, [frame('J'), ...repeat(30, '')]), c.n).player.y).toBe(8.5);
+  });
+
+  it('wallStop fires once per contact: holding into a wall emits one event, not one per step', () => {
+    const wall = room(60, 2, block([5, 6, 7, 8, 9], 6, '#'));
+    const s = runFromSpawn(wall, repeat(150, 'R'));
+    const stops = firstStepsWith(s, 'wallStop');
+    const contact = stops[0] ?? -1;
+    expect(stops).toHaveLength(1);
+    expect(contact).toBeGreaterThan(0);
+    expect(150 - contact).toBeGreaterThanOrEqual(60);
+    expect(at(s, 150).player.x).toBeCloseTo(6 - params.playerWidth / 2, 9);
+  });
+
+  it('wallStop fires again when the player leaves the wall and hits it again', () => {
+    const wall = room(60, 2, block([5, 6, 7, 8, 9], 6, '#'));
+    const s = runFromSpawn(wall, [...repeat(100, 'R'), ...repeat(30, 'L'), ...repeat(80, 'R')]);
+    const stops = firstStepsWith(s, 'wallStop');
+    expect(stops).toHaveLength(2);
+    expect(stops[0]).toBeLessThan(100);
+    expect(stops[1]).toBeGreaterThan(130);
+  });
+
+  it('wallStop fires once for a jump into a wall mid-air, and not again while still held in', () => {
+    const wall = room(60, 2, block([1, 2, 3, 4, 5, 6, 7, 8, 9], 4, '#'));
+    const s = runFromSpawn(wall, [frame('RJ'), ...repeat(150, 'R')]);
+    const stops = firstStepsWith(s, 'wallStop');
+    expect(stops).toHaveLength(1);
+    expect(at(s, stops[0] ?? 0).player.grounded).toBe(false);
   });
 
   it('graceStart names the previous band; a second change replaces the grace colour', () => {

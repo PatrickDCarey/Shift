@@ -64,16 +64,15 @@ describe('jump check 3: no variable height', () => {
 });
 
 describe('jump check 5: walking takeoff', () => {
-  it('J and R on the same step from standing: vx = 3 at launch; lands 2.4 tiles out', () => {
+  it('J and R on the same step from standing: vx = 3 at launch; lands 2.375 tiles out', () => {
     const start = createSim(level, params);
     const s = flight(level, start, 'R');
     expect(at(s, 1).player.vx).toBe(3);
     expect(jumped(at(s, 1))).toBe(true);
-    // Pinned 2.375: the launch step moves (0 + 3) / 2 * dt (phase 7 trapezoid
-    // from standing), 0.025 short of 48 * 3 * dt = 2.4. Within the ±0.15 tolerance.
+    // The launch step moves (0 + 3) / 2 * dt (phase 7 trapezoid from standing),
+    // 0.025 short of 48 * 3 * dt = 2.4, so the spec value is exactly 2.375.
     const out = at(s, landStep(s)).player.x - start.player.x;
     expect(out).toBeCloseTo(2.375, 9);
-    expect(Math.abs(out - 2.4)).toBeLessThanOrEqual(0.15);
   });
 });
 

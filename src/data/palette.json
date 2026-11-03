@@ -35,7 +35,7 @@
       "label": "sprint",
       "pattern": "crosshatch",
       "solid": { "fill": "#F5283C", "outline": "#F98A94", "ink": "#0B0D14" },
-      "ghost": { "fill": "#F5283C", "outline": "#C62334", "ink": "#C62334" }
+      "ghost": { "fill": "#F5283C", "outline": "#D02536", "ink": "#D02536" }
     }
   },
   "treatment": {
@@ -60,7 +60,9 @@
       { "t": 0.75, "gear": "yellow" },
       { "t": 1, "gear": "red" }
     ],
-    "strength": 0.16
+    "strength": 0.03,
+    "backgroundStrength": 0.85,
+    "maxBackgroundLuminance": 0.0055
   },
   "flash": {
     "color": "#FFFFFF",

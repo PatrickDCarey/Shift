@@ -3,5 +3,6 @@
 
 export * from './color';
 export * from './patterns';
+export * from './bodyGeometry';
 export * from './palette';
 export * from './tileRender';

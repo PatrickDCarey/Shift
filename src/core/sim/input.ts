@@ -5,6 +5,11 @@
 import { INPUT_BUTTONS, type InputFrame, type MoveDir } from '../types';
 import { clampGear, emit, withPlayer, type StepCtx, type Work } from './work';
 
+/** The frame as stored in `prevInput`: exactly the six contract buttons, nothing a sampler may add. */
+export function recordInput(input: InputFrame): InputFrame {
+  return Object.fromEntries(INPUT_BUTTONS.map((b) => [b, input[b]])) as unknown as InputFrame;
+}
+
 /** pressed(b) = input[b] && !prevInput[b] for every button. */
 export function pressEdges(input: InputFrame, prev: InputFrame): InputFrame {
   return Object.fromEntries(INPUT_BUTTONS.map((b) => [b, input[b] && !prev[b]])) as unknown as InputFrame;

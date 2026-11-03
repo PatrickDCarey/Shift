@@ -147,6 +147,42 @@ export function simulateCvd(rgb: Rgb, type: CvdType): Rgb {
   return { r: linearToSrgb(out[0] ?? 0), g: linearToSrgb(out[1] ?? 0), b: linearToSrgb(out[2] ?? 0) };
 }
 
+/** HSV-style saturation 0..1: 0 for any grey (and black), 1 for a pure hue. */
+export function saturation(rgb: Rgb): number {
+  const hi = Math.max(rgb.r, rgb.g, rgb.b);
+  return hi === 0 ? 0 : (hi - Math.min(rgb.r, rgb.g, rgb.b)) / hi;
+}
+
+/** The same hue, scaled in linear light so its relative luminance is `targetLuminance`. */
+export function withLuminance(rgb: Rgb, targetLuminance: number): Rgb {
+  const l = relativeLuminance(rgb);
+  if (l <= 0) return rgb;
+  const k = targetLuminance / l;
+  return {
+    r: linearToSrgb(srgbToLinear(rgb.r) * k),
+    g: linearToSrgb(srgbToLinear(rgb.g) * k),
+    b: linearToSrgb(srgbToLinear(rgb.b) * k),
+  };
+}
+
+/**
+ * `base` shifted toward `target` by `amount` (0..1), then pulled back toward
+ * `base` as far as needed so the result's relative luminance is at most
+ * `maxLuminance`. If `base` is itself brighter than the cap it is returned as is.
+ */
+export function mixCapped(base: Rgb, target: Rgb, amount: number, maxLuminance: number): Rgb {
+  const wanted = mix(base, target, amount);
+  if (relativeLuminance(wanted) <= maxLuminance) return wanted;
+  let lo = 0;
+  let hi = clamp(amount, 0, 1);
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (relativeLuminance(mix(base, target, mid)) <= maxLuminance) lo = mid;
+    else hi = mid;
+  }
+  return mix(base, target, lo);
+}
+
 // --- Spectrum tint -----------------------------------------------------------
 
 export interface TintStop {

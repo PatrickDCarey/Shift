@@ -5,7 +5,7 @@
 import type { InputFrame, Level, SimParams, SimState } from '../types';
 import { bandPhase, dragPhase, landingPhase } from './air';
 import { gracePhase, timersPhase } from './grace';
-import { directionPhase, pressEdges, shiftPhase } from './input';
+import { directionPhase, pressEdges, recordInput, shiftPhase } from './input';
 import { gravityPhase, groundPhase, jumpPhase } from './jump';
 import { moveXPhase, moveYPhase } from './move';
 import { frozenStep, outcomePhase, restartState } from './status';
@@ -38,13 +38,13 @@ function playingStep(state: SimState, input: InputFrame, ctx: StepCtx): SimState
     wonAtStep: outcome === 'won' ? next : null,
     respawnInSteps: outcome === 'dead' ? ctx.params.deathFreezeSteps : 0,
     player: work.player,
-    prevInput: { ...input },
+    prevInput: recordInput(input),
     events: work.events,
   };
 }
 
 export function step(state: SimState, input: InputFrame, level: Level, params: SimParams): SimState {
-  if (state.status === 'won') return { ...state, player: { ...state.player }, prevInput: { ...input }, events: [] };
+  if (state.status === 'won') return { ...state, player: { ...state.player }, prevInput: recordInput(input), events: [] };
   if (state.status !== 'playing') return frozenStep(state, input, level, params);
   const pressed = pressEdges(input, state.prevInput);
   if (pressed.restart) return restartState(state, input);

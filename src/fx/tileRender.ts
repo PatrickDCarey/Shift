@@ -7,6 +7,7 @@
 import type Phaser from 'phaser';
 import type { BandColor } from '../core/types';
 import { hexToNumber } from './color';
+import { bodyNotch, bodyPatternGeometry } from './bodyGeometry';
 import { dashedRectSegments, patternGeometry, type PatternId, type PatternShape } from './patterns';
 import { palette, patternOf, type TileMode } from './palette';
 
@@ -102,4 +103,55 @@ export function drawSafeTile(g: TileCanvas, x: number, y: number, size: number):
  */
 export function drawGearGlyph(g: TileCanvas, color: BandColor, x: number, y: number, size: number): void {
   drawGearTile(g, color, 'solid', x, y, size);
+}
+
+export interface GearBodyOptions {
+  /** Facing sign (1 right, -1 left, 0 none): draws the facing notch. Default 0. */
+  readonly facing?: number;
+  /** Soft halo around the body (the cheap stroke glow). Default true. */
+  readonly halo?: boolean;
+}
+
+const HALO_WIDTH = 6;
+const HALO_ALPHA = 0.18;
+
+/**
+ * Draw the player body at pixel (x, y), `width` x `height` px (0.75 x 1.5 tiles
+ * is 24 x 48 at tile size 32): the solid treatment of `color`, with the band's
+ * pattern stacked as square tile-pattern cells, an optional facing notch and halo.
+ */
+export function drawGearBody(
+  g: TileCanvas,
+  color: BandColor,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  opts: GearBodyOptions = {},
+): void {
+  const style = palette.gears[color].solid;
+  const t = palette.treatment.solid;
+  if (opts.halo ?? true) {
+    g.lineStyle(HALO_WIDTH, hexToNumber(style.fill), HALO_ALPHA);
+    g.strokeRect(x - HALO_WIDTH / 2, y - HALO_WIDTH / 2, width + HALO_WIDTH, height + HALO_WIDTH);
+  }
+  g.fillStyle(hexToNumber(style.fill), t.fillAlpha);
+  g.fillRect(x, y, width, height);
+  const geo = bodyPatternGeometry(patternOf(color), width, height, palette.pattern.minStrokePx);
+  if (geo.shapes.length > 0) {
+    const ink = hexToNumber(style.ink);
+    g.lineStyle(geo.strokeWidth, ink, t.inkAlpha);
+    g.fillStyle(ink, t.inkAlpha);
+    geo.shapes.forEach((s: PatternShape) => {
+      if (s.kind === 'line') g.lineBetween(x + s.x1, y + s.y1, x + s.x2, y + s.y2);
+      else g.fillCircle(x + s.cx, y + s.cy, s.r);
+    });
+  }
+  g.lineStyle(t.outlineWidth, hexToNumber(style.outline), 1);
+  g.strokeRect(x + t.outlineWidth / 2, y + t.outlineWidth / 2, width - t.outlineWidth, height - t.outlineWidth);
+  const notch = bodyNotch(width, height, opts.facing ?? 0, t.outlineWidth);
+  if (notch) {
+    g.fillStyle(hexToNumber(style.ink), 1);
+    g.fillRect(x + notch.x, y + notch.y, notch.size, notch.size);
+  }
 }

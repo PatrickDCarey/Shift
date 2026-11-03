@@ -1,6 +1,7 @@
 /**
  * Draws the level grid. Coloured tiles are solid when they would hold the
- * player now (band matches, or the grace colour) and ghost otherwise; the
+ * player now (band matches, or the grace colour, and the player's box is not
+ * inside that colour: the no-embed rule) and ghost otherwise; the
  * coloured layer is redrawn only when that answer changes. Reads sim state,
  * never writes it.
  *
@@ -10,6 +11,7 @@
 import type Phaser from 'phaser';
 import { BAND_COLORS, type Band, type ColoredBand, type Level, type TilePos } from '../core/types';
 import { asTileCanvas, drawGearTile, drawSafeTile, hexToNumber, palette, type TileCanvas } from '../fx';
+import { isEmbedded, type EmbeddedMask } from './embedded';
 
 const DEPTH_TILES = 0;
 const DEPTH_EXIT = 1;
@@ -34,12 +36,12 @@ export class LevelView {
     this.drawStatic(asTileCanvas(this.staticGfx));
   }
 
-  /** Call every frame: redraws tiles only if the band or grace colour changed. */
-  update(band: Band, graceBand: ColoredBand | null, timeMs: number): void {
-    const key = `${band}:${graceBand ?? 0}`;
+  /** Call every frame: redraws tiles only if the band, grace colour or embedded colours changed. */
+  update(band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask, timeMs: number): void {
+    const key = `${band}:${graceBand ?? 0}:${embedded}`;
     if (key !== this.modeKey) {
       this.modeKey = key;
-      this.drawColored(asTileCanvas(this.coloredGfx), band, graceBand);
+      this.drawColored(asTileCanvas(this.coloredGfx), band, graceBand, embedded);
     }
     this.drawExits(timeMs);
   }
@@ -70,12 +72,12 @@ export class LevelView {
     });
   }
 
-  private drawColored(g: TileCanvas, band: Band, graceBand: ColoredBand | null): void {
+  private drawColored(g: TileCanvas, band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask): void {
     this.coloredGfx.clear();
     const size = this.tileSize;
     this.forEachTile((tile, col, row) => {
       if (tile.kind !== 'colored') return;
-      const holds = tile.band === band || tile.band === graceBand;
+      const holds = (tile.band === band || tile.band === graceBand) && !isEmbedded(embedded, tile.band);
       drawGearTile(g, BAND_COLORS[tile.band], holds ? 'solid' : 'ghost', col * size, row * size, size);
     });
   }

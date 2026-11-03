@@ -5,13 +5,17 @@ import { debugText } from '../entities/debugText';
 import { FeedbackFx } from '../entities/FeedbackFx';
 import { GameHud } from '../entities/GameHud';
 import { InputSampler } from '../entities/inputSampler';
+import { embeddedMask } from '../entities/embedded';
+import { focusPromptVisible } from '../entities/focusPrompt';
 import { easeToward, renderPosition } from '../entities/interpolation';
 import { attachKeyboard } from '../entities/keyboardInput';
 import { LEVEL_FILES } from '../entities/levelFiles';
 import { LevelView } from '../entities/LevelView';
 import { loadGameParams, type GameParams } from '../entities/params';
 import { PlayerView } from '../entities/PlayerView';
-import { RunDriver } from '../entities/runDriver';
+import { chooseFrameSource, type FrameSource, type ReplayFeed } from '../entities/replay';
+import { RunDriver, type FrameSupplier } from '../entities/runDriver';
+import { SOLUTION_FILES } from '../entities/solutionFiles';
 import { selectLevel } from '../entities/levelSelect';
 import { backgroundRgb, hexToNumber, mix, palette, rgbToHex, tintForSpeed } from '../fx';
 import { SCENE_KEYS } from './keys';
@@ -19,10 +23,20 @@ import { SCENE_KEYS } from './keys';
 /** The world tint follows actual speed, eased so it never flickers at a band edge (docs/art/style.md). */
 const TINT_EASE_MS = 100;
 
+function hudTitle(id: string, title: string, source: FrameSource): string {
+  return source.kind === 'replay' ? `${id}  ${title}  [replay, R restarts]` : `${id}  ${title}`;
+}
+
+/** The replay error, if any, shown beside the level-load messages. */
+function sourceMessages(source: FrameSource): readonly string[] {
+  return source.kind === 'error' ? [source.message] : [];
+}
+
 /** Read-only snapshot for QA and debugging in the browser console. */
 interface DebugHook {
   readonly levelId: string;
   readonly state: RunDriver['state'];
+  readonly replay: { readonly active: boolean; readonly done: boolean; readonly frames: number };
 }
 
 /**
@@ -42,6 +56,8 @@ export class GameScene extends Phaser.Scene {
   private showDebug = false;
   private tintSpeed = 0;
   private lastBackground = -1;
+  /** Set while `?replay=1` is playing a solution; keyboard play is off then. */
+  private replay: { readonly feed: ReplayFeed; readonly speed: number | null } | null = null;
 
   constructor() {
     super(SCENE_KEYS.game);
@@ -57,31 +73,60 @@ export class GameScene extends Phaser.Scene {
     this.playerView = new PlayerView(this, tuning.tileSize, tuning.playerWidthTiles, tuning.playerHeightTiles);
     this.fx = new FeedbackFx(this);
     const { id, title } = selection.level.meta;
-    this.hud = new GameHud(this, `${id}  ${title}`, selection.messages);
+    const source = chooseFrameSource(window.location.search, selection.level, SOLUTION_FILES);
+    this.replay = source.kind === 'replay' ? { feed: source.feed, speed: source.speed } : null;
+    this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
     this.detachKeyboard = attachKeyboard(this.sampler, {
       onToggleDebug: () => {
         if (this.debugOn) this.showDebug = !this.showDebug;
       },
     });
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, () => window.focus());
     this.installDebugHook(id);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
   }
 
   override update(time: number, delta: number): void {
-    const events = this.driver.advance(delta, () => this.sampler.sample());
+    const events = this.runSim(delta);
     const { state, prev, alpha } = this.driver;
     const ts = this.cfg.tuning.tileSize;
     const pos = renderPosition(prev, state, alpha);
     const feetX = pos.x * ts;
     const feetY = pos.y * ts;
     this.reactToEvents(events, feetX, feetY - (this.cfg.tuning.playerHeightTiles * ts) / 2);
-    this.levelView.update(state.player.band, state.player.graceBand, time);
+    const embedded = embeddedMask(
+      this.driver.level,
+      state.player.x,
+      state.player.y,
+      this.cfg.tuning.playerWidthTiles,
+      this.cfg.tuning.playerHeightTiles,
+    );
+    this.levelView.update(state.player.band, state.player.graceBand, embedded, time);
     this.playerView.draw(feetX, feetY, state.player.band, state.player.facing);
     this.followCamera(feetX, feetY - (this.cfg.tuning.playerHeightTiles * ts) / 2);
     this.applyTint(Math.abs(state.player.vx), delta);
     this.fx.update(delta);
     this.hud.setWon(state.wonAtStep, state.status === 'won');
+    this.hud.setFocusPrompt(focusPromptVisible(document.hasFocus()));
     this.hud.setDebug(this.debugOn && this.showDebug ? debugText(state, this.game.loop.actualFps) : null);
+  }
+
+  /** Advance the sim: from the keyboard, or from the recorded frames, one per step. */
+  private runSim(delta: number): readonly SimEvent[] {
+    const replay = this.replay;
+    if (replay === null) return this.driver.advance(delta, () => this.sampler.sample());
+    if (replay.feed.restartPressed(this.sampler.sample().restart)) this.restartReplay(replay.feed);
+    const supply: FrameSupplier = () => replay.feed.next(this.driver.state);
+    const events =
+      replay.speed === null ? this.driver.advance(delta, supply) : this.driver.advanceFixed(replay.speed, supply);
+    if (replay.feed.isDone(this.driver.state)) this.driver.alpha = 1;
+    return events;
+  }
+
+  /** R while replaying: a fresh sim and the first frame again. */
+  private restartReplay(feed: ReplayFeed): void {
+    feed.rewind();
+    this.driver = new RunDriver(this.driver.level, this.driver.params);
   }
 
   private reactToEvents(events: readonly SimEvent[], centerX: number, centerY: number): void {
@@ -112,10 +157,15 @@ export class GameScene extends Phaser.Scene {
 
   private installDebugHook(levelId: string): void {
     const read = (): RunDriver['state'] => this.driver.state;
+    const replay = this.replay;
     const hook: DebugHook = {
       levelId,
       get state() {
         return read();
+      },
+      get replay() {
+        if (replay === null) return { active: false, done: false, frames: 0 };
+        return { active: true, done: replay.feed.isDone(read()), frames: replay.feed.frames.length };
       },
     };
     Object.defineProperty(window, '__redshift', { value: hook, configurable: true });

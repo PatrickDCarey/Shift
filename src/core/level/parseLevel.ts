@@ -13,6 +13,7 @@ import {
   type Tile,
   type TilePos,
 } from '../types';
+import { MAX_WORLD } from './limits';
 import {
   atPos,
   capErrors,
@@ -72,7 +73,7 @@ function parseHeader(file: string, stem: string, header: readonly SourceLine[], 
   const meta: LevelMeta = {
     id: idEntry?.value ?? '',
     title: readText(file, 'title', entries.get('title'), errors),
-    world: readInteger(file, entries.get('world'), errors, 0, 5, 'world must be an integer from 0 to 5'),
+    world: readInteger(file, entries.get('world'), errors, 0, MAX_WORLD, `world must be an integer from 0 to ${MAX_WORLD}`),
     teaches: readText(file, 'teaches', entries.get('teaches'), errors),
     version: readInteger(file, entries.get('version'), errors, 1, Number.MAX_SAFE_INTEGER, 'version must be an integer of at least 1'),
   };

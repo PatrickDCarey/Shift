@@ -7,6 +7,7 @@
  */
 import type Phaser from 'phaser';
 import { palette } from '../fx';
+import { FOCUS_PROMPT_TEXT } from './focusPrompt';
 
 const DEPTH_HUD = 200;
 const MARGIN = 10;
@@ -19,6 +20,7 @@ export function winText(steps: number | null): string {
 export class GameHud {
   private readonly banner: Phaser.GameObjects.Text;
   private readonly debug: Phaser.GameObjects.Text;
+  private readonly focusPrompt: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, title: string, messages: readonly string[]) {
     const { width, height } = scene.scale;
@@ -38,6 +40,13 @@ export class GameHud {
         .setOrigin(1, 0)
         .setVisible(false),
     );
+    // Plain text, no input handling: it never blocks a key or a click.
+    this.focusPrompt = fixed(
+      scene.add
+        .text(width / 2, height - MARGIN, FOCUS_PROMPT_TEXT, { ...base, ...panel, fontSize: '16px' })
+        .setOrigin(0.5, 1)
+        .setVisible(false),
+    );
     if (messages.length > 0) {
       fixed(
         scene.add.text(MARGIN, 36, messages.join('\n'), {
@@ -54,6 +63,11 @@ export class GameHud {
   setWon(steps: number | null, won: boolean): void {
     if (won) this.banner.setText(winText(steps));
     this.banner.setVisible(won);
+  }
+
+  /** Show the "click to focus" prompt (the page has no keyboard focus yet) or hide it. */
+  setFocusPrompt(visible: boolean): void {
+    this.focusPrompt.setVisible(visible);
   }
 
   /** Show the debug overlay with `text`, or hide it with null. */
