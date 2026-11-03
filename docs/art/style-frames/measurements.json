@@ -1,0 +1,886 @@
+{
+  "neon": {
+    "frames": {
+      "white": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF6273",
+            "bg": "#201B22",
+            "ratio": 5.84,
+            "cvd": {
+              "protanopia": 4.48,
+              "deuteranopia": 6.73,
+              "tritanopia": 5.09
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#DAB911",
+            "bg": "#1D1D1F",
+            "ratio": 8.76,
+            "cvd": {
+              "protanopia": 8.2,
+              "deuteranopia": 9.12,
+              "tritanopia": 8.62
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#6094E8",
+            "bg": "#23262E",
+            "ratio": 4.97,
+            "cvd": {
+              "protanopia": 5.41,
+              "deuteranopia": 4.7,
+              "tritanopia": 5.15
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#3D3F46",
+            "ratio": 10.51,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 10.44,
+              "deuteranopia": 10.55,
+              "tritanopia": 10.49
+            }
+          }
+        ],
+        "tint": [
+          14,
+          17,
+          25
+        ]
+      },
+      "blue": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF6278",
+            "bg": "#162143",
+            "ratio": 5.46,
+            "cvd": {
+              "protanopia": 4.07,
+              "deuteranopia": 6.41,
+              "tritanopia": 4.71
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#D8BA16",
+            "bg": "#132341",
+            "ratio": 8.15,
+            "cvd": {
+              "protanopia": 7.42,
+              "deuteranopia": 8.62,
+              "tritanopia": 7.88
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#3C465B",
+            "ratio": 9.46,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 9.22,
+              "deuteranopia": 9.62,
+              "tritanopia": 9.4
+            }
+          }
+        ],
+        "tint": [
+          13,
+          27,
+          52
+        ]
+      },
+      "green": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF6372",
+            "bg": "#12261A",
+            "ratio": 5.52,
+            "cvd": {
+              "protanopia": 4.17,
+              "deuteranopia": 6.45,
+              "tritanopia": 4.83
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#D8BA0F",
+            "bg": "#0F2817",
+            "ratio": 8.2,
+            "cvd": {
+              "protanopia": 7.56,
+              "deuteranopia": 8.62,
+              "tritanopia": 8.09
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#5E95E8",
+            "bg": "#172F27",
+            "ratio": 4.71,
+            "cvd": {
+              "protanopia": 5.06,
+              "deuteranopia": 4.5,
+              "tritanopia": 4.92
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#394945",
+            "ratio": 9.49,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 9.3,
+              "deuteranopia": 9.62,
+              "tritanopia": 9.5
+            }
+          }
+        ],
+        "tint": [
+          9,
+          29,
+          23
+        ]
+      },
+      "yellow": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF636F",
+            "bg": "#342504",
+            "ratio": 5.14,
+            "cvd": {
+              "protanopia": 4.06,
+              "deuteranopia": 5.83,
+              "tritanopia": 4.5
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#6395E8",
+            "bg": "#332F15",
+            "ratio": 4.49,
+            "cvd": {
+              "protanopia": 4.99,
+              "deuteranopia": 4.2,
+              "tritanopia": 4.66
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#504B37",
+            "ratio": 8.74,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 8.89,
+              "deuteranopia": 8.66,
+              "tritanopia": 8.78
+            }
+          }
+        ],
+        "tint": [
+          38,
+          31,
+          5
+        ]
+      },
+      "red": {
+        "probes": [
+          {
+            "name": "ghost-Y",
+            "fg": "#E1B60E",
+            "bg": "#4E0B0C",
+            "ratio": 7.91,
+            "cvd": {
+              "protanopia": 8.17,
+              "deuteranopia": 7.76,
+              "tritanopia": 7.62
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#6792E8",
+            "bg": "#4D151D",
+            "ratio": 4.76,
+            "cvd": {
+              "protanopia": 5.7,
+              "deuteranopia": 4.25,
+              "tritanopia": 4.89
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#61383D",
+            "ratio": 9.81,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 10.56,
+              "deuteranopia": 9.36,
+              "tritanopia": 9.81
+            }
+          }
+        ],
+        "tint": [
+          59,
+          8,
+          14
+        ]
+      }
+    },
+    "tintDeltaEvsStanding": {
+      "white": 0,
+      "blue": 14,
+      "green": 13.4,
+      "yellow": 22.3,
+      "red": 29
+    },
+    "tintDeltaEYellowVsWhite": 22.3,
+    "worstCaseVsBrightestBackground": {
+      "maxBackgroundLuminance": 0.0135,
+      "ghostOutline": {
+        "blue": 5.45,
+        "green": 7.49,
+        "yellow": 7.63,
+        "red": 5.45
+      },
+      "solidFill": {
+        "blue": 5.17,
+        "green": 11.52,
+        "yellow": 11.71,
+        "red": 4.13
+      },
+      "safeFill": 3.04
+    },
+    "minProbeAcrossFrames": {
+      "ghost-R": {
+        "min": 5.14,
+        "minCvd": 4.06
+      },
+      "ghost-Y": {
+        "min": 7.91,
+        "minCvd": 7.42
+      },
+      "ghost-B": {
+        "min": 4.49,
+        "minCvd": 4.2
+      },
+      "exit-frame": {
+        "min": 8.74,
+        "minCvd": 8.66
+      }
+    }
+  },
+  "poster": {
+    "frames": {
+      "white": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#0C0E15",
+            "ratio": 6.36,
+            "cvd": {
+              "protanopia": 4.74,
+              "deuteranopia": 7.43,
+              "tritanopia": 5.47
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#FFD60A",
+            "bg": "#0C0E15",
+            "ratio": 13.66,
+            "cvd": {
+              "protanopia": 12.68,
+              "deuteranopia": 14.28,
+              "tritanopia": 12.63
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#4C8DFF",
+            "bg": "#0C0E15",
+            "ratio": 6.02,
+            "cvd": {
+              "protanopia": 6.72,
+              "deuteranopia": 5.58,
+              "tritanopia": 6.68
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#55565B",
+            "ratio": 7.32,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 7.29,
+              "deuteranopia": 7.34,
+              "tritanopia": 7.31
+            }
+          }
+        ],
+        "tint": [
+          13,
+          15,
+          22
+        ]
+      },
+      "blue": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#0B182F",
+            "ratio": 5.84,
+            "cvd": {
+              "protanopia": 4.28,
+              "deuteranopia": 6.89,
+              "tritanopia": 4.98
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#FFD60A",
+            "bg": "#0B182F",
+            "ratio": 12.54,
+            "cvd": {
+              "protanopia": 11.46,
+              "deuteranopia": 13.25,
+              "tritanopia": 11.48
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#545D6D",
+            "ratio": 6.64,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 6.5,
+              "deuteranopia": 6.73,
+              "tritanopia": 6.61
+            }
+          }
+        ],
+        "tint": [
+          13,
+          29,
+          56
+        ]
+      },
+      "green": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#081A13",
+            "ratio": 5.93,
+            "cvd": {
+              "protanopia": 4.39,
+              "deuteranopia": 6.97,
+              "tritanopia": 5.12
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#FFD60A",
+            "bg": "#081A13",
+            "ratio": 12.74,
+            "cvd": {
+              "protanopia": 11.74,
+              "deuteranopia": 13.4,
+              "tritanopia": 11.81
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#4C8DFF",
+            "bg": "#081A13",
+            "ratio": 5.62,
+            "cvd": {
+              "protanopia": 6.22,
+              "deuteranopia": 5.23,
+              "tritanopia": 6.24
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#525F5A",
+            "ratio": 6.68,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 6.57,
+              "deuteranopia": 6.76,
+              "tritanopia": 6.69
+            }
+          }
+        ],
+        "tint": [
+          9,
+          33,
+          22
+        ]
+      },
+      "yellow": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#231C02",
+            "ratio": 5.59,
+            "cvd": {
+              "protanopia": 4.24,
+              "deuteranopia": 6.47,
+              "tritanopia": 4.83
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#4C8DFF",
+            "bg": "#231C02",
+            "ratio": 5.3,
+            "cvd": {
+              "protanopia": 6.01,
+              "deuteranopia": 4.85,
+              "tritanopia": 5.9
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#65604E",
+            "ratio": 6.29,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 6.39,
+              "deuteranopia": 6.24,
+              "tritanopia": 6.32
+            }
+          }
+        ],
+        "tint": [
+          40,
+          32,
+          1
+        ]
+      },
+      "red": {
+        "probes": [
+          {
+            "name": "ghost-Y",
+            "fg": "#FFD60A",
+            "bg": "#37060B",
+            "ratio": 12.47,
+            "cvd": {
+              "protanopia": 12.35,
+              "deuteranopia": 12.52,
+              "tritanopia": 11.43
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#4C8DFF",
+            "bg": "#37060B",
+            "ratio": 5.5,
+            "cvd": {
+              "protanopia": 6.54,
+              "deuteranopia": 4.89,
+              "tritanopia": 6.05
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#735154",
+            "ratio": 6.92,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 7.34,
+              "deuteranopia": 6.67,
+              "tritanopia": 6.92
+            }
+          }
+        ],
+        "tint": [
+          64,
+          7,
+          13
+        ]
+      }
+    },
+    "tintDeltaEvsStanding": {
+      "white": 0,
+      "blue": 17,
+      "green": 17.5,
+      "yellow": 23.9,
+      "red": 31.6
+    },
+    "tintDeltaEYellowVsWhite": 23.9,
+    "worstCaseVsBrightestBackground": {
+      "maxBackgroundLuminance": 0.031,
+      "ghostOutline": {
+        "blue": 4.05,
+        "green": 9.03,
+        "yellow": 9.18,
+        "red": 4.27
+      },
+      "solidFill": {
+        "blue": 4.05,
+        "green": 9.03,
+        "yellow": 9.18,
+        "red": 3.24
+      },
+      "safeFill": 2.38
+    },
+    "minProbeAcrossFrames": {
+      "ghost-R": {
+        "min": 5.59,
+        "minCvd": 4.24
+      },
+      "ghost-Y": {
+        "min": 12.47,
+        "minCvd": 11.43
+      },
+      "ghost-B": {
+        "min": 5.3,
+        "minCvd": 4.85
+      },
+      "exit-frame": {
+        "min": 6.29,
+        "minCvd": 6.24
+      }
+    }
+  },
+  "pixel": {
+    "frames": {
+      "white": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#040508",
+            "ratio": 6.72,
+            "cvd": {
+              "protanopia": 5.02,
+              "deuteranopia": 7.84,
+              "tritanopia": 5.79
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#CEAE0C",
+            "bg": "#040508",
+            "ratio": 9.4,
+            "cvd": {
+              "protanopia": 8.79,
+              "deuteranopia": 9.79,
+              "tritanopia": 9.25
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#5A93F5",
+            "bg": "#040508",
+            "ratio": 6.72,
+            "cvd": {
+              "protanopia": 7.45,
+              "deuteranopia": 6.29,
+              "tritanopia": 7.17
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#0C0E15",
+            "ratio": 19.28,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 19.22,
+              "deuteranopia": 19.31,
+              "tritanopia": 19.26
+            }
+          }
+        ],
+        "tint": [
+          15,
+          16,
+          23
+        ]
+      },
+      "blue": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#040911",
+            "ratio": 6.58,
+            "cvd": {
+              "protanopia": 4.9,
+              "deuteranopia": 7.69,
+              "tritanopia": 5.67
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#CEAE0C",
+            "bg": "#040911",
+            "ratio": 9.2,
+            "cvd": {
+              "protanopia": 8.58,
+              "deuteranopia": 9.6,
+              "tritanopia": 9.05
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#0B182F",
+            "ratio": 17.71,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 17.36,
+              "deuteranopia": 17.92,
+              "tritanopia": 17.51
+            }
+          }
+        ],
+        "tint": [
+          11,
+          25,
+          50
+        ]
+      },
+      "green": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#030A07",
+            "ratio": 6.59,
+            "cvd": {
+              "protanopia": 4.91,
+              "deuteranopia": 7.71,
+              "tritanopia": 5.68
+            }
+          },
+          {
+            "name": "ghost-Y",
+            "fg": "#CEAE0C",
+            "bg": "#030A07",
+            "ratio": 9.22,
+            "cvd": {
+              "protanopia": 8.6,
+              "deuteranopia": 9.62,
+              "tritanopia": 9.08
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#5A93F5",
+            "bg": "#030A07",
+            "ratio": 6.59,
+            "cvd": {
+              "protanopia": 7.29,
+              "deuteranopia": 6.18,
+              "tritanopia": 7.04
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#081A13",
+            "ratio": 17.99,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 17.79,
+              "deuteranopia": 18.13,
+              "tritanopia": 18
+            }
+          }
+        ],
+        "tint": [
+          8,
+          28,
+          19
+        ]
+      },
+      "yellow": {
+        "probes": [
+          {
+            "name": "ghost-R",
+            "fg": "#FF5A6A",
+            "bg": "#0D0A01",
+            "ratio": 6.52,
+            "cvd": {
+              "protanopia": 4.9,
+              "deuteranopia": 7.6,
+              "tritanopia": 5.63
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#5A93F5",
+            "bg": "#0D0A01",
+            "ratio": 6.53,
+            "cvd": {
+              "protanopia": 7.27,
+              "deuteranopia": 6.09,
+              "tritanopia": 6.97
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#231C02",
+            "ratio": 16.96,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 17.19,
+              "deuteranopia": 16.81,
+              "tritanopia": 17.01
+            }
+          }
+        ],
+        "tint": [
+          35,
+          28,
+          2
+        ]
+      },
+      "red": {
+        "probes": [
+          {
+            "name": "ghost-Y",
+            "fg": "#CEAE0C",
+            "bg": "#140204",
+            "ratio": 9.31,
+            "cvd": {
+              "protanopia": 8.82,
+              "deuteranopia": 9.61,
+              "tritanopia": 9.16
+            }
+          },
+          {
+            "name": "ghost-B",
+            "fg": "#5A93F5",
+            "bg": "#140204",
+            "ratio": 6.66,
+            "cvd": {
+              "protanopia": 7.48,
+              "deuteranopia": 6.17,
+              "tritanopia": 7.1
+            }
+          },
+          {
+            "name": "exit-frame",
+            "fg": "#FFFFFF",
+            "bg": "#37060B",
+            "ratio": 17.6,
+            "vsSafeFill": 5.44,
+            "cvd": {
+              "protanopia": 18.71,
+              "deuteranopia": 16.93,
+              "tritanopia": 17.44
+            }
+          }
+        ],
+        "tint": [
+          58,
+          6,
+          11
+        ]
+      }
+    },
+    "tintDeltaEvsStanding": {
+      "white": 0,
+      "blue": 14.9,
+      "green": 14.3,
+      "yellow": 20.1,
+      "red": 28.6
+    },
+    "tintDeltaEYellowVsWhite": 20.1,
+    "worstCaseVsBrightestBackground": {
+      "maxBackgroundLuminance": 0.0135,
+      "ghostOutline": {
+        "blue": 5.45,
+        "green": 7.49,
+        "yellow": 7.63,
+        "red": 5.45
+      },
+      "solidFill": {
+        "blue": 5.17,
+        "green": 11.52,
+        "yellow": 11.71,
+        "red": 4.13
+      },
+      "safeFill": 3.04
+    },
+    "minProbeAcrossFrames": {
+      "ghost-R": {
+        "min": 6.52,
+        "minCvd": 4.9
+      },
+      "ghost-Y": {
+        "min": 9.2,
+        "minCvd": 8.58
+      },
+      "ghost-B": {
+        "min": 6.53,
+        "minCvd": 6.09
+      },
+      "exit-frame": {
+        "min": 16.96,
+        "minCvd": 16.81
+      }
+    }
+  },
+  "pixelPatternStats": {
+    "tile 12x10": {
+      "coverage": {
+        "plain": 0,
+        "stripes": 40,
+        "dots": 16.7,
+        "chevrons": 25,
+        "crosshatch": 35
+      },
+      "minPairDiff": 16.7,
+      "pair": "plain/dots"
+    },
+    "body cell 10x15": {
+      "coverage": {
+        "plain": 0,
+        "stripes": 40,
+        "dots": 16,
+        "chevrons": 25.3,
+        "crosshatch": 36
+      },
+      "minPairDiff": 16,
+      "pair": "plain/dots"
+    },
+    "hud 12x8": {
+      "coverage": {
+        "plain": 0,
+        "stripes": 50,
+        "dots": 15.6,
+        "chevrons": 25,
+        "crosshatch": 34.4
+      },
+      "minPairDiff": 15.6,
+      "pair": "plain/dots"
+    }
+  }
+}

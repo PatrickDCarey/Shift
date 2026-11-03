@@ -10,7 +10,7 @@ _Owner: tech-lead. Keep in sync with the code; update when setup changes. Matche
 | TypeScript | 7.0.2, `strict` + `noUncheckedIndexedAccess` | `npm run typecheck` checks `tsconfig.json` (browser, `src/`) and `tsconfig.node.json` (configs, `tests/`). |
 | Vite | 8.3.5, `base: './'` | Relative asset paths so `dist/` runs from a zip in the itch.io iframe. |
 | Vitest | 5.0.5 + `@vitest/coverage-v8` | Node environment. Threshold: `src/core/**` ≥ 80% lines/branches/functions/statements. |
-| Playwright | 1.64.1, Chromium only | Runs against `vite build` + `vite preview` on port 4173. |
+| Playwright | 1.64.1, Chromium only | Runs against `vite build` (with `VITE_QA_HOOK=1`, §11) + `vite preview` on port 4173. 960×540 viewport, 2 workers. |
 | Node | ≥ 22.12 (`.nvmrc` = 22) | |
 
 ## 2. Module layout and owners
@@ -217,3 +217,4 @@ Adding a scene: create it in the owner's folder, add its key to `src/scenes/keys
 
 - CI (`.github/workflows/ci.yml`): `npm ci` → typecheck → unit tests with coverage (thresholds enforced) → build; then a Playwright smoke job.
 - Review checklist: `.claude/agents/tech-lead.md`.
+- **QA hook.** `window.__redshift` (read-only `{ levelId, state, replay }`, used by every e2e spec) is installed only when `import.meta.env.DEV` or `VITE_QA_HOOK=1` at build time. Playwright's `webServer` sets `VITE_QA_HOOK=1` for its build (locally and in CI); a plain `npm run build` (the itch.io zip) has no hook and no `__redshift` string in `dist/`. Replay mode (`?replay=1`) is not gated. `tests/arch/qa-hook.test.ts` requires every `'__redshift'` use in `src/` to sit on an `if (QA_HOOK)` line. Never set `VITE_QA_HOOK` in `.env` or a release build.

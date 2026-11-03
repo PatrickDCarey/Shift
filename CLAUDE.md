@@ -88,7 +88,7 @@ Node ≥ 22.12 (`.nvmrc`). Run from the project root.
 | `npm run test:watch` | Vitest in watch mode. |
 | `npm run test:coverage` | Tests with v8 coverage; fails if `src/core` < 80%. HTML report in `coverage/`. |
 | `npm run test:e2e:install` | One-time: download Playwright's Chromium. |
-| `npm run test:e2e` | Playwright against a fresh build + preview server. |
+| `npm run test:e2e` | Playwright against a fresh build (with `VITE_QA_HOOK=1`, so `window.__redshift` exists) + preview server; port 4173 must be free. |
 | `npm run check` | typecheck + coverage + build: run before calling a task done. |
 
 Single test file: `npx vitest run src/core/types.test.ts`. Level solvability only (every `levels/*.txt` replayed with its solution): `npx vitest run tests/levels`. Tech docs: `docs/tech/architecture.md`, `docs/tech/level-format.md`.

@@ -34,6 +34,13 @@ function sourceMessages(source: FrameSource): readonly string[] {
   return source.kind === 'error' ? [source.message] : [];
 }
 
+/**
+ * `window.__redshift` (the QA/replay hook) exists only in dev and in builds made with VITE_QA_HOOK=1
+ * (Playwright's e2e build). Both are inlined at build time, so the itch.io build has no hook at all.
+ * tests/arch/qa-hook.test.ts requires every `'__redshift'` use to sit on an `if (QA_HOOK)` line.
+ */
+const QA_HOOK = import.meta.env.DEV || import.meta.env.VITE_QA_HOOK === '1';
+
 /** Read-only snapshot for QA and debugging in the browser console. */
 interface DebugHook {
   readonly levelId: string;
@@ -173,7 +180,7 @@ export class GameScene extends Phaser.Scene {
         return { active: true, done: replay.feed.isDone(read()), frames: replay.feed.frames.length };
       },
     };
-    Object.defineProperty(window, '__redshift', { value: hook, configurable: true });
+    if (QA_HOOK) Object.defineProperty(window, '__redshift', { value: hook, configurable: true });
   }
 
   private teardown(): void {
@@ -183,6 +190,6 @@ export class GameScene extends Phaser.Scene {
     this.playerView.destroy();
     this.fx.destroy();
     this.gearMeter.destroy();
-    Reflect.deleteProperty(window, '__redshift');
+    if (QA_HOOK) Reflect.deleteProperty(window, '__redshift');
   }
 }

@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -67,7 +67,7 @@ Theme link: you **shift** gears with the **Shift** keys, and the world **red-shi
   - only one held → that direction;
   - neither held → 0;
   - both held → the one pressed more recently; if both went down on the same step, 0 until one is released.
-- **Facing** is +1 or −1, starts at +1 (right), and becomes d whenever d ≠ 0 (ground or air). Facing is visual, except that a boost pad uses it when the player is standing still (§7.1).
+- **Facing** is +1 or −1, starts at +1 (right), and becomes d whenever d ≠ 0 (ground or air). Facing is visual only (boost pads, which would have used it, are cut).
 - On the ground, the **target velocity** is `d × gearSpeeds[gear]` (0 when nothing is held).
 - **In the air, held directions do nothing to velocity** (§4.8). They only update facing.
 
@@ -122,11 +122,13 @@ Tile kinds (level format characters from `docs/tech/level-format.md`):
 | empty | `.` | never |
 | safe | `#` | always, all faces. Drawn white/grey: "you can stop and turn here". |
 | colored | `B` `G` `Y` `R` | all faces, **only while the player's band matches**, subject to no-embed and grace |
+| speed gate | `w` `b` `g` `y` `r` (band 0–4) | all faces, **unless the player's band equals the gate's band**; own no-embed group per band; never graced (M2, `features/speed-gates.md`) |
 | exit | `E` | never solid; touching it completes the level |
 | player start | `@` | empty; the player spawns standing on the bottom edge of this cell |
 
 - **No-embed rule (per color):** while the player's box overlaps any colored tile of color k at the start of a move, **every** color-k tile is treated as empty for that move (walls, floors, ceilings and grace), even if the colors match, until the box is clear of color k. In words: if you are inside a color, that color is a ghost to you until you are out. (Per tile would stop a player who changes color inside a thick wall at the wall's next column.) Level consequence: never hang a colored tile less than 1.5 tiles (player height) above a floor of the same color, or the player could fall through that floor while still inside the tile above it.
-- Colored geometry exists as floors, walls and ceilings; the same rule applies to every face. A red wall stops a red player and lets everyone else through.
+- Colored geometry exists as floors, walls and ceilings; the same rule applies to every face. A red wall stops a red player and lets everyone else through (taught in w1-05; checks in `features/colored-walls.md`).
+- **Speed gates are the opposite:** a gate of band k is solid for everyone except a band-k player ("opens only for its color"). In the floor it is a trapdoor that opens on the step after you turn its color (no grace; coyote applies). Gates have their own no-embed group: being inside a green gate never empties green colored tiles, and vice versa. A white gate (`w`) opens only at speed 0, so it is used as a floor or ceiling, never as a wall.
 - **Landing** on a colored tile requires a match on the step of contact. There is no grace on landing.
 - **Walking onto** a mismatched colored tile is walking into a hole (coyote applies, grace does not).
 - The player is **supported** on any step where some floor-solid tile's top face is level with the feet and overlaps the player horizontally. Standing across two tiles counts if either supports.
@@ -197,8 +199,8 @@ Normative for M1, so acceptance numbers match. The implementation detail of each
 4. **Ground speed:** if grounded at the start of the step, apply §4.4 with target `d × gearSpeeds[gear]`.
 5. **Jump:** if a jump is pressed or buffered and the player is grounded or in coyote time, launch (`vy` = 15 up), become airborne, end grace, reset drag counter.
 6. **Gravity** (capped), if airborne at this point: airborne since an earlier step, or launched in step 5. A walk-off is only detected in step 8, so its first gravity step is the next one.
-7. **Move X**, resolve walls (§4.11).
-8. **Move Y**, resolve floors and ceilings using the current band, no-embed and grace. Determine grounded/airborne at end of step.
+7. **Move X**, resolve walls (§4.11), including colored tiles and speed gates, with the band at the start of the step.
+8. **Move Y**, resolve floors and ceilings using the band at the start of the step, no-embed and grace (grace never applies to gates). Determine grounded/airborne at end of step.
 9. **Air drag:** if in the air this step (not grounded at both start and end: includes takeoff, walk-off and landing steps), add `|Δx|`, apply a band drop (§4.9).
 10. **Band:** recompute from `|vx|`. If in the air this step, `gear ← max(minGear, min(gear, band))`.
 11. **Landing:** if the player landed this step: drag counter ← 0, apply shift buffer, end coyote.
@@ -302,6 +304,7 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 
 ### 5.8 What changed and why
 
+- v1.2 → v1.3 (puzzle depth review): no number in §5 changed and no tuning change. New derived flight positions used by gates and walls: a gear-4 flat jump reaches x = 3.8 on flight step 19 (red) and x = 6.75 on flight step 35 (yellow); a gear-3 jump to −4 reaches x = 3.75 on flight step 25 (yellow) and 7.2 on flight step 52 (green).
 - v1.1 → v1.2 (matched to the implemented sim; no tuning change): speeds that land exactly on a band edge count as the higher band (green→yellow upshift 0.56 tiles / 5 steps; let go from gear 3 turns green at 0.81 / step 6); a walk-off has one gravity-free step (4-tile drop: 5.8 tiles, still red); a walking jump from standing lands 2.375; no-embed is per color; jump-to-height distances printed to two decimals (−7 row 12.00, knife-edge).
 - v1.0 → v1.1 (hold-to-move): walking range 0–3 is now instant on the ground, gears are 1–4, wall stops keep the gear. Runway to full sprint 5.02 → **4.00 tiles**; red 4.45 → **3.23**; stopping from sprint 4.87 → **3.74**. Air numbers are unchanged.
 - Seed → v1.0: `airDragTilesPerGear` 4 → 6 and `jumpTimeToApexMs` 380 → 400 (see decisions.md).
@@ -317,32 +320,30 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 - Corridors: the player is 1.5 tiles tall; 2-tile-tall corridors are fine.
 - Keep intended drag drops at least 3 steps away from the intended landing. (Exception: a sprint walk-off off a 4-tile drop lands red one step before its drop would come; that is safe because sprint is the top speed.)
 - A sprint walk-off keeps red down to a 4-tile drop; 5 tiles or more lands yellow.
-- Never hang a colored tile less than 1.5 tiles above a floor of the same color (no-embed is per color, §4.7).
+- Never hang a colored tile less than 1.5 tiles above a floor of the same color (no-embed is per color, §4.7). Same for gate tiles over a gate floor of the same band.
 - Walls stop you but keep your gear.
+- **A good level puts two decisions in tension at nearby places** (where to build speed, where to shed it, what you are at a point, what you commit to at takeoff, where your color changes), so the answer is a place-and-pace pair, not "go fast" or "stop". Each level must fail when its new piece is removed (`mechanics-review.md` §1).
+- Gates: full-height columns as walls; `w` only as floors and ceilings; never spawn on or in a gate; the first gate is met at walking pace on safe ground.
+- A sprint jump is red for its first 6.0 tiles of flight and yellow after: a wall or gate 4 tiles out sees red, one 7 tiles out sees yellow.
 - Every level must ship a solution recording that passes the replay test.
 
 ## 7. Puzzle toolbox (teaching order)
 
-| World | Theme | Pieces | Milestone |
-|---|---|---|---|
-| 1 Gears | moving, shifting, runway, braking | colored floors, safe tiles | M2 |
-| 2 Flight | committing at takeoff | air drag, long gaps, drops, colored landing pads | M2 |
-| 3 Ground | surfaces that change pace | colored walls, mud, ice, boost pads, speed cameras | M3 |
-| 4 Relative | speed relative to the world | conveyors, moving platforms, crates | M3 (Should) |
-| 5 Afterimage | your past pace as geometry | red ghost platforms | M3 (Should) |
+Revised 2026-11-03 by the puzzle depth review (`mechanics-review.md`): the old plan taught one requirement per place ("be color X on this floor"), which made worlds 1–2 thin. The two cheapest pieces that create tension, colored walls ("not this color here") and speed gates ("only this color here"), move into M2.
 
-### 7.1 World 3–5 pieces (provisional, specs due before M3)
+| World | Theme | New pieces | Levels | Priority | Milestone |
+|---|---|---|---|---|---|
+| 1 Gears | moving, shifting, runway, braking, "not this color" | colored floors, safe tiles, **colored walls** | 5 | Must | M2 |
+| 2 Commit | decide your pace before you arrive | air commitment, air drag, walk-offs, **speed gates** | 5 | Must | M2 |
+| 3 Gates | where your color changes | gates in flight and in the floor (trapdoors), braking zones | 4 | Must | M3 |
+| 4 Remix | old rules, new faces | colored ceilings, ice | 4 | Should | M3 |
 
-Direction, not specs. Each gets a feature spec before engineering starts.
+### 7.1 Pieces after M1
 
-- **Colored walls:** already covered by §4.7. Blocks only its own color.
-- **Mud** (`~`, always solid): while supported only by mud, `gear ← min(gear, mudMaxGear)` (2). Entering faster brakes at the normal rate, so you stay fast for a short distance; the gear stays capped after you leave.
-- **Ice** (`=`, always solid): while supported only by ice, speed and gear are locked. Shift presses are ignored (not buffered); holding, letting go and reversing do nothing. You leave ice at the speed you entered.
-- **Boost pad** (`*`, always solid): touching its top while grounded sets gear `boostPadGear` (4) and `|vx|` 12 instantly, in the direction of motion (or facing, if standing).
-- **Speed camera gate** (`w b g y r`): solid unless your band equals the camera's gear. A colored wall stops its color; a camera admits only its color. On the ground you can't move at white pace, so white cameras only open to vertical movement or riding a conveyor.
-- **Conveyors / moving platforms (world 4):** world velocity = leg velocity + surface velocity. Colored tiles read **leg** speed; camera gates read **world** speed. Not holding on a belt = white legs, carried along.
-- **Crates (world 4):** running into a crate pushes it; it takes your band color and keeps it. Details open.
-- **Afterimage (world 5), candidate rule:** while red and airborne, you leave a ghost tile under your feet every `ghostSpacingTiles` (1); ghosts last `ghostLifetimeMs` (3000 ms), become solid only once you no longer overlap them, and are solid from above for every band except red. Needs a design spike.
+- **Colored walls and ceilings (M2, Must):** §4.7; built in M1. Spec with extra checks: `features/colored-walls.md`.
+- **Speed gates (M2, Must):** §4.7; spec `features/speed-gates.md`. Replaces the "speed camera" of v1.2: same characters, but gates read the band of the player's own speed (there is no world speed, conveyors are cut).
+- **Ice (M3, Should)** (`=`, always solid): while supported only by ice, speed and gear are locked. Shift presses are ignored (not buffered); holding, letting go and reversing do nothing. You leave ice at the speed you entered. Open: what happens at speed 0 on ice (§12). Spec before M3; no tuning key expected.
+- **Cut 2026-11-03** (reasons in `mechanics-review.md` §4; post-jam at most): mud (`~`) and boost pads (`*`), whose puzzles collapse into "slow here" and "go fast"; conveyors (`<` `>`), moving platforms, crates and afterimage ghosts, which each need a new subsystem; and the new ideas considered in the review (tint gates, springs, crumble floors, speed limits, one-way floors).
 
 ## 8. Example puzzles (with numbers)
 
@@ -351,7 +352,10 @@ Direction, not specs. Each gets a feature spec before engineering starts.
 - **Step down:** sprint off a 4-tile ledge onto a red floor. Walking off keeps you red (5.8 tiles of flight); jumping lands yellow and drops you.
 - **Two colors:** a green floor under a yellow ledge 2 tiles up. Shift up mid-run and jump in the 12 steps after you turn yellow.
 - **Stop sign:** a green bridge ends at the exit ledge with no safe pad: let go on the bridge and you drop; hold through it.
-- **Treadmill (world 4):** a white camera gate on a belt. Sprint against the belt so your world speed is zero while your legs stay red.
+- **Red Wall (w1-05):** a red wall, 1 safe tile, a red bridge. Arrive red and the wall stops you; from its face red needs 3.23 tiles but only 2.75 remain. Arrive yellow and shift up: red 0.66 tiles later (shift window 2.75 tiles ≈ 18 steps).
+- **Gate (w2-04):** a green gate, 2 safe tiles, a yellow bridge. Green at the gate, yellow 0.56 tiles after shifting up; shift window 3.75 tiles.
+- **Trapdoor (w3-02):** a blue-gate floor over a pit with the exit pocket under its middle. Let go at sprint 3.24 tiles before the pocket (from yellow, 2.03): you turn blue and it opens under you.
+- **Gate Window (w3-03):** a yellow gate 4 tiles out and a green gate 7.5 tiles out in one gap, landing 4 tiles lower. Only a yellow takeoff passes both: yellow at 4, dragged to green at 6.0, lands 8.10 out.
 
 ## 9. Tuning keys (`src/data/tuning.json`)
 
@@ -378,18 +382,19 @@ Direction, not specs. Each gets a feature spec before engineering starts.
 | `playerWidthTiles` | 0.75 | tiles | Player collision box width. |
 | `playerHeightTiles` | 1.5 | tiles | Player collision box height. |
 | `deathFreezeMs` | 400 | ms | Pause between falling out and respawning. |
-| `mudMaxGear` | 2 | gear | World 3, provisional. Gear cap on mud. |
-| `boostPadGear` | 4 | gear | World 3, provisional. Gear and speed set by a boost pad. |
-| `ghostSpacingTiles` | 1 | tiles | World 5, provisional. Distance between afterimage ghosts. |
-| `ghostLifetimeMs` | 3000 | ms | World 5, provisional. How long a ghost lasts. |
+| `mudMaxGear` | 2 | gear | **Unused** (mud cut 2026-11-03). Removed together with the schema entry. |
+| `boostPadGear` | 4 | gear | **Unused** (boost pads cut). Removed together with the schema entry. |
+| `ghostSpacingTiles` | 1 | tiles | **Unused** (afterimage cut). Removed together with the schema entry. |
+| `ghostLifetimeMs` | 3000 | ms | **Unused** (afterimage cut). Removed together with the schema entry. |
 
-Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity, jump launch speed. Removed in v1.1: `pivotMaxBand` (replaced by `instantMaxGear`).
+Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity, jump launch speed. Removed in v1.1: `pivotMaxBand` (replaced by `instantMaxGear`). Speed gates and colored walls need no keys. The four unused keys stay in `tuning.json` until tech-lead drops them from `Tuning`/`TUNING_SCHEMA`; design-lead deletes them from the JSON in the same batch so `tests/arch` never breaks.
 
 ## 10. Scope and deliverables
 
-- **Must:** core rules §4, worlds 1–3 (13 levels), HUD gear meter, title + level select, color-blind patterns, **alternate gear bindings (Q/E, Z/X) and the one-time Sticky Keys tip**, web build on itch.io, **itch.io page copy**.
-- **Should:** worlds 4–5 (8 levels), per-level leaderboards, adaptive music that pitch-shifts with gear.
+- **Must:** core rules §4 including **speed gates**, worlds 1–3 (**14 levels**), HUD gear meter, title + level select, color-blind patterns (including gate glyphs), **alternate gear bindings (Q/E, Z/X) and the one-time Sticky Keys tip**, web build on itch.io, **itch.io page copy**.
+- **Should:** world 4 (4 levels, with ice), per-level leaderboards, adaptive music that pitch-shifts with gear.
 - **Could:** free key-remap screen, ghost replays of top runs, level timer medals, a hidden "ultraviolet" reverse gear.
+- **Cut (2026-11-03):** mud, boost pads, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`).
 
 ### Design deliverables
 
@@ -397,17 +402,18 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 |---|---|---|
 | GDD | `docs/design/gdd.md` | M1 |
 | M1 feature specs | `docs/design/features/*.md` | M1 |
-| Level plan | `docs/design/level-plan.md` | M2 |
-| World 3 specs (mud, ice, boost, camera) | `docs/design/features/` | before M3 |
-| World 4–5 specs | `docs/design/features/` | before M3 |
+| Level plan | `docs/design/level-plan.md` (v2.0, 2026-11-03) | M2 |
+| Puzzle depth review | `docs/design/mechanics-review.md` | done 2026-11-03 |
+| Speed gates and colored walls specs | `features/speed-gates.md`, `features/colored-walls.md` | done 2026-11-03 (M2) |
+| Ice spec (Should) | `docs/design/features/ice.md` | before M3 (Nov 15) |
 | itch.io page copy | `docs/design/itch-page.md` | M4 (Nov 28) |
 | Decision log | `docs/design/decisions.md` | ongoing |
 
 ### Milestone mapping
 
 - **M1 grey-box (Nov 8):** §4 in full in one test room, all input bindings including Q/E and Z/X. Specs: `features/movement-and-gears.md`, `color-gating.md`, `air-drag.md`, `jump.md`, `safe-tiles-and-reset.md`.
-- **M2 first worlds (Nov 15):** worlds 1–2 (8 levels), HUD gear meter, title, level select, Sticky Keys tip.
-- **M3 content (Nov 22):** world 3 (Must), worlds 4–5 (Should).
+- **M2 first worlds (Nov 15):** speed gates in the sim, worlds 1–2 (10 levels), HUD gear meter, title, level select, Sticky Keys tip. If gates slip past Nov 12, w2-04 moves to world 3 and M2 ships 9 levels.
+- **M3 content (Nov 22):** world 3 (Must, no new sim work), world 4 (Should, ice).
 - **M4 freeze (Nov 28):** itch.io page copy final.
 
 ## 11. HUD, audio and visual direction
@@ -423,5 +429,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 
 1. **Stepwise drag feel.** The instant speed drop mid-flight is a visible kink. We sell it with audio and a flash; if it reads as a bug in playtests, the fallback is continuous drag (needs re-tuning).
 2. **No air control** is a strong choice for players used to platformers. Playtest early; the fallback is a small air nudge that cannot change speed band, which would complicate drag math.
-3. **World 5 afterimage rule** needs a design spike before M3.
-4. **Crates** (world 4) push rules are undecided.
+3. ~~World 5 afterimage rule~~ closed 2026-11-03: afterimage cut.
+4. ~~Crates push rules~~ closed 2026-11-03: crates cut.
+5. **Gate readability.** Gates are solid *except* for their color, blocks only *for* their color: two opposite rules per color. Mitigated by art (bars, not filled tiles), a harmless first bump in w2-04, and teaching gates late in M2. Checked in the M2 playtest (M2-30); fallback is fewer gate colors in levels, not a rule change.
+6. **Ice at speed 0** (Should): a player who lands on ice standing still would be locked at 0. The ice spec rules on it before M3.

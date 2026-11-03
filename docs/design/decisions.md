@@ -132,3 +132,40 @@ No `tuning.json` change in this pass: every issue found was missing information 
 - **Win banner shows time, not steps: `M:SS.ss` from `wonAtStep / stepHz`, truncated to hundredths** — a step count means nothing to players; steps stay the stored and compared value, so replays and leaderboards stay exact.
 - **The timer still runs from spawn, including idle time** — a deterministic run time needs no "first input" rule; revisit only for leaderboards (M3-02). The 76,900 was a real 21-minute run.
 - **Reported "red jump flies over the whole yellow pad": not a cheese** — from P3 (edge x = 26) a gear-4 jump flies 8.7 tiles and even the latest coyote takeoff (x ≈ 27.6) lands at x ≈ 36.3, on the pad (cols 33–36), short of P4; the playtester most likely landed on the pad's far end and rolled onto P4 between screenshots. A yellow takeoff still lands green and falls (level README sweep). Even if it were a cheese it would not matter in an internal room.
+
+## 2026-11-03 — GDD v1.3: puzzle depth review (`docs/design/mechanics-review.md`)
+
+Trigger: the studio owner played the build and judged the puzzles thin. No `tuning.json` change.
+
+### Diagnosis
+- **Worlds 1–2 were thin because every level asked one thing at one place ("be color X on this floor")** — with red 3.23 tiles from standing and safe pads between sections, one constraint at a time always has an obvious answer; good levels need two decisions in tension nearby (pillar 1).
+- **Collapse test adopted: a mechanic is cut if its paper puzzles reduce to "go fast" or "go slow" with no choice of where** — that is reflex or patience, not pace (pillar 1).
+- **New level rule: each level must fail when its new piece is removed** — it is the practical form of "can't be solved by ignoring the intended idea" (pillar 4).
+
+### Mechanics
+- **Speed gates (`w b g y r`) move from world 3 (M3) into M2, Must** — the strongest constraint reviewed (checks your color where you pass, in flight with drag and in the floor as an aimed trapdoor), for one solidity rule and no tuning.
+- **Gates read the band of the player's own speed, not a "world speed"** — conveyors are cut, so there is no world speed; one speed to read keeps pillar 2.
+- **Gates are their own no-embed group per band** — being inside a green gate must not empty green floors (and vice versa), or a gate standing on a green floor would drop green players.
+- **Gates never get grace; a trapdoor opens the step after you turn its color, coyote applies** — grace protects you from losing your own color's floor; turning a gate's color is entering it, and a 6-step lag would make trapdoor aim unreadable.
+- **White gates only as floors and ceilings** — the slowest ground speed is blue, so a white gate wall could never be passed.
+- **Player-facing name "gate" (was "speed camera")** — "a gate that opens only for its color" reads at a glance; "camera" needed explaining.
+- **Colored walls move from w3-01 into world 1 (w1-05), Must, no engineering** — built in M1, and "not this color here" is the natural partner of colored floors; world 1 gets its first conflict (yellow at the wall, red behind it).
+- **Colored ceilings taught in world 4 (Should)** — a twist on walls; not needed for the Must path.
+- **Ice moves from M3 Must to M3 Should (world 4)** — half its paper puzzles collapse into "enter at color X", and the speed-0 case still needs a ruling.
+- **Mud cut** — its puzzles collapse into "the mud slows you here"; the player only holds.
+- **Boost pads cut** — they remove the runway decision instead of creating one ("go fast").
+- **Conveyors and moving platforms cut** — each needs a second velocity and moving geometry; "legs vs world speed" fails the 10-second read.
+- **Crates cut** — push rules undecided and a physics subsystem for puzzles no stronger than gate puzzles.
+- **Afterimage ghosts cut (post-jam candidate)** — good puzzles but a runtime-geometry subsystem whose rule still needed a spike; not affordable with one engineer.
+- **New ideas (tint gates, springs, crumble floors, speed limits, one-way floors) cut** — four collapse into go fast/go slow or duplicate colored floors; tint gates change world colors at runtime (pillar 2) and need new state.
+- **Provisional keys `mudMaxGear`, `boostPadGear`, `ghostSpacingTiles`, `ghostLifetimeMs` unused; kept in `tuning.json` until tech-lead removes them from the schema, then deleted in the same batch** — removing them first would break `tests/arch` (tuning schema).
+
+### Levels and scope
+- **Worlds become 1 Gears (5), 2 Commit (5), 3 Gates (4) Must, 4 Remix (4) Should: 14 Must + 4 Should = 18 (was 13 + 8 = 21)** — M2 gains two levels that need little or no new engineering, M3 Must needs no new sim work, and the cut Should worlds were the most expensive content in the plan.
+- **w1-05 Red Wall and w2-04 Gate added to M2; Two Colors moves to w2-05** — one new idea per level; gates are met after floors, walls and flight are fluent.
+- **w3-01 No Green, w3-02 Trapdoor, w3-03 Gate Window, w3-04 Redshift replace the old world 3** — test, twist and combine gates; each answer is a place-and-pace pair.
+- **Fallback if gates slip past Nov 12: w2-04 moves to the top of world 3 and M2 ships 9 levels** — world 3 still fits M3 because it needs nothing else from the sim.
+- **Fallback if the M2 playtest confuses gates with blocks: fewer gate colors and stronger art, not a rule change** — the inverse rule is the point of the piece.
+
+### w0-02
+- **w0-02 rework is held except the spawn-headroom fix already requested (M1-21)** — the room is the M1 playtest room; it keeps M1 pieces only, and the headroom fix unblocks the M1-28 playtest and qa's spawn-jump e2e.
