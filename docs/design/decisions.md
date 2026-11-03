@@ -169,3 +169,36 @@ Trigger: the studio owner played the build and judged the puzzles thin. No `tuni
 
 ### w0-02
 - **w0-02 rework is held except the spawn-headroom fix already requested (M1-21)** — the room is the M1 playtest room; it keeps M1 pieces only, and the headroom fix unblocks the M1-28 playtest and qa's spawn-jump e2e.
+
+## 2026-11-03 — Owner asks for bigger ideas; art direction C
+
+- **Studio owner chose "push for bigger ideas" over adopting the v1.3 gates-and-walls plan (owner decision)** — gates and walls refine "be color X at place Y" and don't make the puzzles distinctive. v1.3 (`mechanics-review.md`, commit b432391) stays as the fallback; nothing is built from it until the owner picks.
+- **Art direction C, Pixel Dither (480×270 logical, 2×), chosen by the owner** — every candidate mechanic must read at 16 px tiles by shape and pattern, never color alone.
+- **Three core-twist candidates written up for the owner: Tandem, Wet Paint, Redshift Clock (`core-twists.md`); design recommends Tandem** — it is the only candidate whose puzzles are pure planning (no timing creep) and it keeps pace as the only verb. Not adopted until the owner picks; the GDD, specs, level plan and requests are unchanged.
+
+## 2026-11-03 — GDD v1.4: Tandem is the core twist (owner decision)
+
+### Plan
+- **The studio owner picked Tandem (one throttle, two runners) from `core-twists.md` (owner decision)** — puzzles are pure planning and pace stays the only verb.
+- **World 3 becomes five Tandem levels (Must, M3); worlds 1–2 stay single-runner (5 + 4, M2); Must stays 14** — the twist needs fluent single-runner skills first, and the M2 levels need no new engineering.
+- **w2-04 Gate leaves M2; speed gates and ice become Should (world 4 Gates)** — Tandem takes the engineering slot gates had. Gates' best puzzle is now a Tandem combine (w4-03).
+- **Schedule: Tandem spec Nov 3, sim and scene Nov 9–13, decision gate Nov 12; if `tandem.md` checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world** — the sim lane is on M1 until about Nov 8, and the fallback is fully specced, so the gamble is bounded.
+- **Open: Tandem first appears at level 10; decide at M2-31 whether to move Two Colors after w3-01 or trim world 1** — jam voters play about 10 minutes.
+
+### Rules settled in `features/tandem.md`
+- **Twin spawn glyph `&`, at most one per level; without it nothing changes** — every M1 check must pass untouched (regression safety for the gate).
+- **Same input frame for both bodies; direction computed once (shared priority), everything else per body** — "same keys, separate bodies" is the whole rule, and one shared input stream keeps recordings unchanged.
+- **Shifts apply per body (grounded shifts now, airborne buffers); the existing 1–4 clamp is the resync rule, with no new mechanic** — gear splits come from the air rule and buffers that already exist, and pressing past the top or bottom re-syncs them.
+- **Jumps launch every body that can jump; the others buffer** — the same per-body rule as shifts.
+- **Bodies never collide, push or support each other** — interaction would need a physics rule for body contact and a step-order dependency; lanes give the puzzles without it.
+- **Runner (body 0) is stepped before twin (body 1); with no interaction, this only orders events** — deterministic event lists for audio and replays.
+- **A body touching an exit is home: frozen, no events, never dies; won when both are home** — makes parking a puzzle tool and keeps single-body levels identical (one body home = all home).
+- **Home is checked before death on the same step; if not all are home, any non-home body below the grid kills the run** — keeps "exit beats death" from v1.0 without letting a win hide a death.
+- **Either body falling out kills the run; death and restart reset both, home flags included** — one run, one state, simple replays (pillar 3: fast retries).
+- **No new tuning keys** — Tandem is structure, not numbers.
+- **Camera frames the midpoint of non-home bodies; with one home it frames the other; beyond 28 tiles apart it follows the runner with an edge arrow; lanes + divider ≤ 15 rows (tech-lead's ADR: the HUD sits on top), each lane ≤ 7 rows, intended spread ≤ 26 tiles** — at 480×270 both bodies must be visible without vertical scrolling; the "not home" rule matches tech-lead's proposal.
+- **The twin differs from the runner by shape at 12×24 px and both show their band pattern; the HUD shows two stacked strips, each marked with its body's silhouette** — color is never the only signal (CLAUDE.md), and which strip is whose must read at a glance.
+- **Derived numbers in `tandem.md` (air-stop flight step 14, clamp ramp steps 31/35, Out of Step offsets) are pinned by tests, then the spec is updated to match** — same practice as GDD v1.2.
+
+### Art
+- **Art direction C (Pixel Dither, 480×270 logical, 16 px tiles, 12×24 px player) recorded in GDD §11** — owner decision; every gameplay element must read at that size by shape and pattern.

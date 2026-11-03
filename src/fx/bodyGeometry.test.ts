@@ -6,12 +6,15 @@ const MIN_STROKE = 1.5;
 const W = 24;
 const H = 48;
 
-function distToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+/** Is the point within a butt-capped stroke of width `w` along the segment (how Phaser draws lineBetween)? */
+function onStroke(px: number, py: number, x1: number, y1: number, x2: number, y2: number, w: number): boolean {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len2 = dx * dx + dy * dy;
-  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2));
-  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  if (len2 === 0) return false;
+  const t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  if (t < 0 || t > 1) return false;
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)) <= w / 2 + 1e-9;
 }
 
 /** Rasterise the body pattern to an ink mask (pixel centres). */
@@ -23,7 +26,7 @@ function mask(id: PatternId, w: number, h: number): boolean[] {
       out.push(
         geo.shapes.some((s: PatternShape) =>
           s.kind === 'line'
-            ? distToSegment(x + 0.5, y + 0.5, s.x1, s.y1, s.x2, s.y2) <= geo.strokeWidth / 2
+            ? onStroke(x + 0.5, y + 0.5, s.x1, s.y1, s.x2, s.y2, geo.strokeWidth)
             : Math.hypot(x + 0.5 - s.cx, y + 0.5 - s.cy) <= s.r,
         ),
       );
@@ -95,8 +98,8 @@ describe('bodyPatternGeometry', () => {
   });
 
   it('is deterministic', () => {
-    expect(bodyPatternGeometry('crosshatch', W, H, MIN_STROKE)).toEqual(
-      bodyPatternGeometry('crosshatch', W, H, MIN_STROKE),
+    expect(bodyPatternGeometry('checker', W, H, MIN_STROKE)).toEqual(
+      bodyPatternGeometry('checker', W, H, MIN_STROKE),
     );
   });
 

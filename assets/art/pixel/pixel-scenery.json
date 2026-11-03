@@ -1,0 +1,124 @@
+{
+ "frames": {
+  "bg/horizon": {
+   "frame": {
+    "x": 1,
+    "y": 1,
+    "w": 480,
+    "h": 270
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 480,
+    "h": 270
+   },
+   "sourceSize": {
+    "w": 480,
+    "h": 270
+   }
+  },
+  "bg/stars": {
+   "frame": {
+    "x": 1,
+    "y": 272,
+    "w": 480,
+    "h": 270
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 480,
+    "h": 270
+   },
+   "sourceSize": {
+    "w": 480,
+    "h": 270
+   }
+  },
+  "bg/ridge_far": {
+   "frame": {
+    "x": 1,
+    "y": 543,
+    "w": 480,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 480,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 480,
+    "h": 88
+   }
+  },
+  "bg/ridge_near": {
+   "frame": {
+    "x": 1,
+    "y": 632,
+    "w": 480,
+    "h": 56
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 480,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 480,
+    "h": 56
+   }
+  }
+ },
+ "meta": {
+  "app": "redshift art-director",
+  "version": "1",
+  "image": "pixel-scenery.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 482,
+   "h": 689
+  },
+  "scale": "1"
+ },
+ "redshift": {
+  "hashes": {
+   "bg/horizon": "f9bfa7c7",
+   "bg/stars": "b156ac0f",
+   "bg/ridge_far": "80da8912",
+   "bg/ridge_near": "a660cdc2"
+  },
+  "note": "White masks, tint at runtime with sceneryColors(). ridge placement is RIDGES[layer].top in the 480x270 view; ridges repeat every 480 px.",
+  "ridges": {
+   "far": {
+    "top": 128,
+    "height": 88,
+    "base": 168,
+    "amp": 26,
+    "k1": 2,
+    "k2": 5,
+    "phase": 0.9
+   },
+   "near": {
+    "top": 160,
+    "height": 56,
+    "base": 190,
+    "amp": 18,
+    "k1": 3,
+    "k2": 8,
+    "phase": 1.7
+   }
+  }
+ }
+}

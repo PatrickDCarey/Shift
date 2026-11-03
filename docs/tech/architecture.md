@@ -13,6 +13,8 @@ _Owner: tech-lead. Keep in sync with the code; update when setup changes. Matche
 | Playwright | 1.64.1, Chromium only | Runs against `vite build` (with `VITE_QA_HOOK=1`, §11) + `vite preview` on port 4173. 960×540 viewport, 2 workers. |
 | Node | ≥ 22.12 (`.nvmrc` = 22) | |
 
+**Rendering resolution:** decided in [`adr-pixel-rendering.md`](adr-pixel-rendering.md) (2026-11-03): 480 x 270 logical, `Scale.NONE` + integer `MAX_ZOOM`, 16 px tiles, bitmap font, textures built at boot from `palette.json`. The game still runs at 960 x 540 with 32 px tiles until the migration (PX-1 to PX-11) lands.
+
 ## 2. Module layout and owners
 
 ```

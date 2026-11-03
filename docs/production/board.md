@@ -1,291 +1,320 @@
 # Redshift — Task Board
 
-_Owner: producer. Last updated: 2026-11-02 (Mon), re-plan for GDD v1.1 (hold-to-move). Jam closes 2026-12-01 21:37 UTC; studio submits 2026-11-30._
+_Owner: producer. Last updated: 2026-11-03 (Tue), re-plan for GDD v1.4 (Tandem), level plan v3.0, art direction C (Pixel Dither, ADR `docs/tech/adr-pixel-rendering.md`). Jam closes 2026-12-01 21:37 UTC; studio submits 2026-11-30._
 
-**Status:** on track, tight. Design (M1-01) and the scaffold (M1-02) exist in the repo; v1.1 alignment is running (Batch A). Nothing is Done yet: Done needs tech-lead review and qa-tester verification. Biggest M1 exposure: the `src/core` simulation lane is 7 serial sittings (M1-06, 47, 08, 10, 11, 12, 13). The core split requested in `requests.md` (M1-41) takes about 3 other tasks off that lane; without it the lane is 10 sittings and M1 (Nov 8) is at risk.
-**Critical path (M1):** M1-39 + M1-41 → M1-06 → M1-47 → M1-08 → M1-10 → M1-11 → M1-12 → M1-13 → M1-21 → playtest M1-28 (Nov 7) → tuning M1-29 → gate M1-37 (Nov 8). Side lanes (motion, level, scene, UI, art, audio, backend) have slack and must not block it.
+**Status:** on track for M1 (Nov 8), **at risk for M2 (Nov 15) and M3 (Nov 22)**. The M1 simulation is built far ahead of the old board: `src/core/{sim,motion,level}` with 1055 unit and arch tests passing, 27 e2e tests passing, HUD gear meter mounted, replay mode, `w0-02` with a recording (QA run 2, 2026-11-03; tech-lead review `docs/tech/reviews/2026-11-core-lanes.md`). What is missing for M1 is verification, one level fix and the side tracks (packaging, audio engine, Supabase schema). The risk is everything the owner added today: the pixel cutover (~43 h across five owners), Tandem (sim, scene, HUD, art, contracts) and 9 levels for M2, all on one gameplay engineer and a tech-lead who is on every critical path. Nothing is Done until tech-lead has reviewed it and qa-tester has verified it; most M1 work is therefore in Review, and one verification sweep (M1-35/36) will close it.
 
-Line format: `- [Mx] <id> · <task> — owner: <agent> — accept: <criteria> — needs: <ids or none>`
-Task ids are `M1-nn`, `M2-nn`, `M3-nn`, `M4-nn`, `S-nn`, and `USER-n` for things only the user can do.
-"Reviewed" means tech-lead approved; "verified" means qa-tester passed the acceptance criteria. A task is Done only after both (see `CLAUDE.md` pipeline). Tech-lead's own deliverables (M1-02, M1-39, M1-41, M2-03, M2-24) have no second reviewer in the pipeline; qa-tester verifies them and the code-reviewer agent should read the code.
+**Critical paths**
+- **M1 (Nov 8):** M1-21 (w0-02 headroom fix, Nov 4) → M1-28 fresh playtest (Nov 6–7) → M1-29 done → M1-37 gate (Nov 8). In parallel: tech-lead review sweep (M1-30/33/34, Nov 5–6) → qa M1-35/36 (Nov 6–7). Side tracks M1-18, M1-19, M1-24 must be in Review by Nov 7 or they slip to M2 without holding the gate.
+- **M2 (Nov 15):** art PX-1/2/3 (Nov 4–7) → tag `m1` (Nov 8) → pixel cutover PX-4..PX-10 (Nov 8–10, scene lane PX-6/7/8 = 11 h is the long pole) → ui PX-9 then M2-11 title and level select (Nov 10–12) → M2-12 pause/results, M2-13 controls → M2-28 e2e → M2-29 verify (Nov 13–14) → M2-30 playtest → M2-31 → M2-32 gate (Nov 15). Parallel: 9 levels (M2-19..22, M2-45, Nov 4–11) → M2-23 approvals.
+- **M3 (Nov 22):** T-01 Tandem contracts (tech-lead, Nov 4–5) → T-10..T-12 Tandem sim (Nov 9–12) → **T-13/T-15 decision gate (Nov 12)** → T-20 Tandem scene (Nov 10–14, needs the cutover) → w3-01..w3-05 (Nov 13–20) → M3-33 verify → M3-34 playtest (Nov 21) → M3-36 gate (Nov 22). Leaderboards: USER-2 (Nov 14) → M3-12 → M3-13 → M3-14.
 
-**Lane tags.** If `docs/production/requests.md` split (M1-41) is accepted, `src/core` becomes three areas, each worked by one gameplay-engineer sitting at a time, plus the scene lane. Tags in task lines: **[sim]** `src/core/sim/**` (state, step orchestration, jump and collision, color gating, reset, tuning loader), **[motion]** `src/core/motion/**` (pure speed maths: gears, ground acceleration and braking, bands, air drag), **[level]** `src/core/level/**` (parser, input-log codec, replay, loader), **[scene]** `GameScene.ts` and `src/entities/**`. If the split is refused, the tags still show the order the lane must run in (sim order is the critical path; run motion and level work in the gaps).
+**Calendar**
+
+| Day | Plan |
+|---|---|
+| Wed Nov 4 | Batch 1 starts (see Next batches). Art keeps PX-1/2/3; nothing else is scheduled into `src/fx`, `palette.json`, `assets/art` until art-director reports. |
+| Thu Nov 5 | Batch 1 in Review. Tandem contract (T-01) lands. |
+| Fri Nov 6 – Sat Nov 7 | Batch 2. M1-28 playtest, M1-35/36 verification. PX-1..3 in Review by Nov 7 end of day (trigger). |
+| Sun Nov 8 | **M1 gate** (M1-37). Tag `m1`. Batch 3 (pixel cutover) starts after the tag. |
+| Mon Nov 9 | Cutover continues. Tandem sim T-10 starts. |
+| Tue Nov 10 | Cutover lands (target); PX-11 review and playtest; Tandem scene T-20 starts; menus start. |
+| Thu Nov 12 | **Tandem decision gate** (checks 1–12). |
+| Sat Nov 14 | M2 playtest. USER-2 (Supabase) due. |
+| Sun Nov 15 | **M2 gate** (worlds 1–2 = 9 levels, pixel build, HUD, title and level select, colored-wall tests). |
+| Sun Nov 22 | **M3 gate** (Tandem world 3, leaderboards, audio). |
+| Sat Nov 28 | M4 freeze. Mon Nov 30: submit. |
+
+Line format: `- [Mx] <id> · <task> — owner: <agent> — est: <hours> — accept: <criteria> — needs: <ids or none>`
+Task ids: `M1-nn`..`M4-nn`, `PX-n` (pixel rendering, from the ADR), `T-nn` (Tandem), `G-n` (gates package: Should, or Must if the Tandem gate fails), `S-nn`, `USER-n`. "Reviewed" means tech-lead approved; "verified" means qa-tester passed the acceptance criteria. A task is Done only after both (`CLAUDE.md`). Tech-lead's own deliverables have no second reviewer in the pipeline: qa-tester verifies them and the code-reviewer agent reads the code.
+
+**Lane tags.** `src/core` is split into three areas plus the scene lane, one gameplay-engineer sitting per lane at a time: **[sim]** `src/core/sim/**`, **[motion]** `src/core/motion/**`, **[level]** `src/core/level/**`, **[scene]** `GameScene.ts` and `src/entities/**`. Only the scene lane touches rendering. **`src/scenes/BootScene.ts` has no owner in the roster: tech-lead takes it (offered in PX-4); the roster row in `CLAUDE.md` needs the user or orchestrator to add it (see requests triage).**
 
 ---
 
-## Decisions to revisit (provisional, user has not overruled)
+## Settled decisions (owner and design-lead, 2026-11-03)
 
-Both were set by the producer/design-lead as defaults on 2026-11-02 and are recorded in `docs/design/decisions.md`. They are tied to the M1 playtest (M1-28, Nov 7). Verdicts are made by design-lead in M1-29 (Nov 7–8) and written to `decisions.md`; the user gets them in the Nov 8 gate summary. Deadline for changing either one cheaply is **M1-29**: World 2 levels (the first that depend on air rules) start about Nov 11.
-
-| # | Provisional decision | What the playtest must answer | Cost if changed after M1-29 |
-|---|---|---|---|
-| D-1 | **No air control.** Held directions never change velocity in the air (GDD §4.9). | Do fresh players feel robbed of control, or do they plan the takeoff? Do they blame the game for failed jumps? | GDD §4.9, air-drag spec, every world 2–5 sketch and solution recording. Fallback (a nudge that cannot change band) complicates the drag maths. |
-| D-2 | **Letting go brakes at the same rate as shifting down** (`brakeTilesPerGearChange`, one rule). | Is tapping the arrow a clean way to slow down, or do players want a faster release brake? | A new tuning key plus a small core change; level numbers for stopping (3.74 tiles from sprint) move. |
-| D-3 (GDD §12.1) | **Stepwise air drag** (a visible instant drop every 6 tiles). | Does the drop read as a rule or as a bug, with the band-drop flash and clunk? | Needs continuous drag and re-tuning of all flight numbers. Fallback described in the GDD. |
+| Decision | State | Where |
+|---|---|---|
+| **Core twist: Tandem** (two runners, one set of controls). | Adopted, GDD v1.4, `features/tandem.md`, level plan v3.0. **Fallback:** if `tandem.md` checks 1–12 do not pass by **Nov 12**, world 3 reverts to the v1.3 gates world (speed gates become Must; package G-1..G-6 below becomes the plan). | `decisions.md` |
+| **Art direction C, Pixel Dither** (480×270 at integer zoom, 16 px tiles, 12×24 player, 5×7 bitmap font). | Adopted. Pixel migration PX-1..PX-11 (~43 h). Cutover lands before the M2 menus and before the Tandem scene work. | `adr-pixel-rendering.md` |
+| **D-1 no air control: KEEP. D-2 release braking at the shift-down rate: KEEP (and the remembered gear at rest). D-3 stepwise air drag: KEEP.** No `tuning.json` change. | Settled by design-lead in M1-29. Re-checked with real levels at M2-30 (R1), numbers lock at M2-31. | `decisions.md` (2026-11-03) |
+| HUD gear meter pulled into M1 (core strip); drag meter and pending-shift bracket Should for M1, else M2. | Meter exists and is mounted (Review). Rest is M2-08. | `features/hud-gear-meter.md` |
+| Win banner shows time `M:SS.ss`, not steps. | Built (request 2026-11-03, DONE). | `decisions.md` |
+| Cut for good: mud, boost pads, conveyors, moving platforms, crates, afterimage ghosts, camera-tint gates, springs, crumble floors, speed limits, one-way floors. Ice and speed gates are Should (world 4). | See cut list. | `mechanics-review.md` |
+| Worlds: 1 Gears (5), 2 Flight (4) = M2, 9 levels. 3 Tandem (5) = M3, Must. 4 Gates (4) = Should. Must 14, total 18. | | `level-plan.md` v3.0 |
 
 ---
 
 ## Next batches
 
-A **batch** is one agent sitting per owner area (and per lane), with no dependencies between tasks inside the batch. "Sitting" means hours, not days. A batch starts when what it needs is at least in Review. Idle owners are pulled forward onto later work.
+A **batch** is one agent sitting per owner area (and per gameplay lane), with no dependencies between the tasks inside it. Details with "done" definitions are in the report; the lines here are the contract.
 
-**Batch A — running now (Nov 2)** — see Doing:
-1. tech-lead — M1-39 (v1.1 alignment: types, tuning type test, architecture, level-format, `.gitattributes`, README, CREDITS)
-2. art-director — M1-22 palette, M1-23 per-gear patterns, M2-14 color-blind doc
-3. ui-engineer — M1-16 storage, settings and key bindings (all bindings active at once), M1-40 Sticky Keys tip logic
+**Batch 1 — Wed Nov 4 (starts now; lands in Review by Thu Nov 5)**
+1. art-director — PX-1, PX-2, PX-3 (in Doing; the only work in `src/fx`, `palette.json`, `assets/art`)
+2. tech-lead — T-01 Tandem contracts, then M2-40 SaveStore wiring, then M2-03 hint headers
+3. design-lead — M2-34 specs part 2 (title, level select, pause, results, progress), M2-01 remainder (tip, controls screen, onboarding)
+4. gameplay-engineer [sim] — M1-46 sim follow-ups, M2-47 colored-wall tests
+5. gameplay-engineer [level] — M1-48 level follow-ups
+6. level-designer — M1-21 w0-02 headroom, then M2-19 (w1-01, w1-02)
+7. ui-engineer — M2-08 (drag meter, pending bracket, drop pulse, key-cap hints, built at today's 960×540 layout, PX-9 halves it)
+8. backend-engineer — M1-19 Supabase schema, then M1-18 packaging
+9. audio-designer — M1-24 audio engine
+10. qa-tester — M1-42 close BUG-1..3, M1-50 test-plan additions
 
-**A+ — ready now, no area conflicts with A (launch if the orchestrator has capacity; none of these waits on M1-39):**
-4. design-lead — M2-01 (specs part 1: HUD meter, Sticky Keys tip, controls screen, onboarding hints)
-5. qa-tester — M1-26 M1 test plan from the rewritten v1.1 criteria
-6. backend-engineer — M1-19 Supabase schema and RLS draft
-7. audio-designer — M1-24 audio engine wrapper
+(No scene-lane task in Batch 1: M2-06 needs the SaveStore from M2-40, which tech-lead builds in this batch.)
 
-**A-tail — tech-lead, right after M1-39:** M1-41 split `src/core` into `sim/`, `motion/`, `level/` and publish the lane contracts (small; it gates Batch B). If tech-lead is still in M1-39, it may fold this in.
+**Batch 2 — Fri Nov 6 – Sat Nov 7 (needs Batch 1 in Review)**
+1. tech-lead — M1-30/33/34 review sweep, M1-44 ±3-step test, M2-03 if not done, T-02 (cut glyphs and unused tuning keys)
+2. design-lead — T-03 (delete the cut tuning keys in the same batch as T-02), M3-02 specs, M1-25, M2-23 (rolling)
+3. gameplay-engineer [scene] — M2-06 progression and pause hook, M2-39 Sticky Keys tip mount
+4. gameplay-engineer [motion] — M1-51 test cleanup
+5. ui-engineer — M2-10 progress model, pure menu models
+6. level-designer — M2-20 (w1-03, w1-04), M2-45 (w1-05)
+7. audio-designer — M2-17 SFX set
+8. backend-engineer — M2-18 net skeleton
+9. qa-tester — M1-35, M1-36 verification sweeps
+10. playtester — M1-28 fresh playtest (with the HUD)
+11. art-director — PX-1..3 to Review, confirm API names in requests, M2-14 accessibility doc for pixel patterns
 
-**Batch B — starts when M1-39 and M1-41 land (target Nov 3):**
-1. gameplay-engineer **[sim]** — M1-06 sim skeleton, tuning loader, v1.1 state
-2. gameplay-engineer **[motion]** — M1-09 ground speed model (pure functions, tested against GDD §5.1/§5.2)
-3. gameplay-engineer **[level]** — M1-07 level parser (CRLF tolerant)
-4. tech-lead — M1-03 feasibility review of the M1 specs
-5. ui-engineer — M2-08 HUD gear meter component (needs only A's palette and patterns)
-6. level-designer — M1-20 grey-box room `levels/w0-02.txt` (hand-checked against `level-format.md`; M1-21 re-checks it with the real parser)
-7. design-lead — M2-34 (specs part 2: title, level select, pause and results, progress, loader behaviour)
-8. backend-engineer — M1-18 itch.io zip packaging
-9. audio-designer — M2-17 SFX set (including the air-drag "clunk")
-
-Priority if the orchestrator can run fewer concurrent sittings: sim (M1-06) > motion (M1-09) > tech-lead M1-03 > level (M1-07) > the rest.
-
-**Batch C — starts when B's tasks are at least in Review (target Nov 4–5):**
-1. gameplay-engineer **[sim]** — M1-47 shift, direction, facing and ground-speed wiring (needs M1-06, M1-09)
-2. gameplay-engineer **[motion]** — M1-45 air drag pure functions (needs M1-09)
-3. gameplay-engineer **[level]** — M1-43 input-log codec and `runInputLog` (needs M1-06, M1-07)
-4. gameplay-engineer **[scene]** — M1-14 GameScene with all key bindings (needs M1-06, M1-07, M1-16)
-5. tech-lead — M1-30 review core A (M1-06, M1-07, M1-09)
-6. art-director — M2-15 `src/fx` tile and player module, with the band-drop flash (needs M1-23, M2-14)
-7. ui-engineer — M2-13 controls screen (needs M2-01, M1-16)
-8. design-lead — M2-02 World 3 tile specs (Must; lead time before M3)
-9. backend-engineer — M2-18 Supabase client skeleton (needs M1-19)
-
-Priority if constrained: sim (M1-47) > scene (M1-14, M1-15 and the playtest need it) > level (M1-43 is needed by M1-13) > motion (M1-45 is needed only by M1-11).
-
-**After C (sketch, re-planned at each batch close):** D: sim M1-08, level-lane idle, tech-lead M1-31, M1-04 and M2-40 (SaveStore at start-up), ui M1-17, qa starts M1-27 when M1-15 lands. E: sim M1-10, scene M1-15 (needs M1-10 to M1-12), tech-lead M1-32. F: sim M1-11, level-designer M1-21 once M1-13 lands. G: sim M1-12. H: sim M1-13, then M1-21, M1-25, M1-28 playtest (Nov 7), M1-29, M1-37 (Nov 8). Level-designer and audio-designer have slack Nov 3–6 by design.
+**Batch 3 — Sun Nov 8 – Tue Nov 10: the pixel cutover (one commit, after the `m1` tag)**
+tech-lead PX-4, design-lead PX-5, scene PX-6/7/8, ui-engineer PX-9, qa-tester PX-10. Running alongside in other areas: [sim] T-10 (Tandem sim, Nov 9), level-designer M2-21 (w2-01, w2-02), backend M3-11, audio M3-16 prototype once M3-02 is in. Then Batch 4 (Nov 10–12): PX-11, T-20, M2-11/12/13, T-05, T-06, M2-15, T-11, T-12.
 
 ---
 
 ## User actions (not agent tasks)
 
-- `USER-1` — **DONE 2026-11-02:** repo created at https://github.com/PatrickDCarey/Shift (private until release), `git init` done, two commits pushed, MIT license chosen (`LICENSE` exists). The remaining step, making it public, is `USER-6`.
-- `USER-2` — by **Nov 14**: create the **Supabase project**. Run `backend/migrations/*.sql`, then put `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in a local `.env`. Put the service role key only in Supabase function secrets. `backend/README.md` (M1-19) has the exact steps. Needed by M3-12. If skipped, the game ships offline-only (see cut-list).
-- `USER-3` — by **Nov 26**: create the **itch.io game page as a draft** (kind: HTML, "play in browser", 960×540, restricted visibility) and upload a test zip from `npm run package`. Optional: create a butler API key and store it as a GitHub secret. Needed by M4-15.
-- `USER-4` — by **Nov 29**: confirm you are signed up for the **GitHub Game Off 2026** jam on itch.io, then **publish** the page and **submit the entry** on **Nov 30** with the public repo link (S-03, S-06).
-- `USER-5` — standing: review windows. design-lead has the final say on feel, so you only need to look at the milestone gate summaries (about 30 minutes each, at Nov 8, 15, 22, 28). The Nov 8 summary includes the D-1/D-2/D-3 verdicts.
-- `USER-6` — on **Nov 30 (morning, before S-02)**: **make the GitHub repo public** (Settings, Danger zone, Change visibility) after the secrets audit (M4-09) is clean. The jam requires a public repo. I will remind you at the M4 gate (Nov 28).
+- `USER-1` — **DONE 2026-11-02:** repo created at https://github.com/PatrickDCarey/Shift (private until release), MIT license. Making it public is `USER-6`.
+- `USER-2` — by **Nov 14**: create the **Supabase project** and run `backend/migrations/*.sql` (steps in `backend/README.md`, written in M1-19). Needed by M3-12. If skipped, the game ships offline-only (cut list).
+- `USER-3` — by **Nov 26**: create the **itch.io game page as a draft** (HTML, play in browser, 960×540, restricted) and upload a test zip from `npm run package` (M1-18). Needed by M4-15.
+- `USER-4` — by **Nov 29**: confirm you are signed up for the **GitHub Game Off 2026** jam on itch.io; **publish** and **submit the entry** on **Nov 30** with the public repo link (S-03, S-06).
+- `USER-5` — standing: review windows. design-lead has the final say on feel; the user only reads the gate summaries (Nov 8, 15, 22, 28, about 30 minutes each). The Nov 12 Tandem decision-gate result is sent as a short note.
+- `USER-6` — **Nov 30 morning, before S-02:** make the GitHub repo public after the secrets audit (M4-09). Reminder at the M4 gate.
+- `USER-7` — before **Nov 8**: add `src/scenes/BootScene.ts` to the tech-lead row of the `CLAUDE.md` roster (only the user or orchestrator may edit it). Until then tech-lead edits it under PX-4 by agreement.
 
 ---
 
 ## Doing
 
-Batch A, running in parallel on 2026-11-02 (no two share an area):
-
-- [M1] M1-39 · v1.1 alignment: update `Tuning` and `SimState` in `types.ts` (keys `minGear`, `startGear`, `instantMaxGear`; no `pivotMaxBand`; gears 1–4; direction priority, facing, shift buffer, drag counter, grace and coyote state; step order GDD §4.14), add `dragDrop` to the event list, make the tuning type test fail when `tuning.json` and `Tuning` diverge, update `architecture.md` and `level-format.md` (fix the w0-01 example text; require CRLF tolerance), add `.gitattributes` (`* text=auto eol=lf`), `README.md` (what it is, play, run, MIT, link to CREDITS) and `CREDITS.md` — owner: tech-lead — accept: every key in `tuning.json` is in `Tuning` and vice versa (test); `SimState` can express every rule in the M1 specs; `npm run check` passes; README commands match `package.json` — needs: M1-02
-- [M1] M1-22 · `src/data/palette.json`: five gear colors per the GDD plus white, background, ghost color, and a pattern id per band — owner: art-director — accept: keys match the types; gameplay colors have ≥ 3:1 contrast against the background (numbers noted in `docs/art/`) — needs: M1-02
-- [M1] M1-23 · Per-gear pattern definitions and textures generated in code (`src/fx/patterns.ts`) — owner: art-director — accept: five distinct patterns plus the white/safe pattern, shown in a screenshot at `docs/art/patterns.png`; id-to-pattern mapping unit-tested — needs: M1-22
-- [M2] M2-14 · `docs/art/accessibility.md`: palette under deuteranopia, protanopia, tritanopia; adjust patterns if gears confuse — owner: art-director — accept: each gear distinguishable by pattern alone in the simulation images (screenshots of the real game are added at M2-29) — needs: M1-22, M1-23
-- [M1] M1-16 · Safe storage wrapper (`src/save`), settings store, and the key-binding table with every binding **active at once**: shift down = Left Shift, Q, Z; shift up = Right Shift, E, X; move = arrows and A/D; jump = Space, W, Up; restart = R — owner: ui-engineer — accept: never throws when storage is blocked (test); every action has at least one binding; no key maps to two actions; Left and Right Shift are told apart by `e.code`; pure helpers `heldActions`, `toSimButtons`, `boundCodes` (no Phaser) for the input sampler; unit tests — needs: M1-02
-- [M1] M1-40 · Sticky Keys tip logic (pure): "should show" is true only on Windows (user agent) and only until dismissed once; dismissal saved via the safe storage — owner: ui-engineer — accept: true on a Windows user agent when unseen, false after dismissal, false on macOS/Linux/mobile user agents; blocked storage does not throw (falls back to memory, may show again next session); the non-blocking overlay (`StickyKeysTipView`, Q/E and Z/X glyphs, dismissable) is part of this task and only needs a scene to be mounted (M2-39); unit tests — needs: M1-16
+- [M1] PX-1 · Pixel data in `palette.json` (1-bit pattern cells redesigned for pixel scale, lip and shade rows, dither densities, key-color-to-role map, palette deltas from the style-frame README: exit, ghost outlines, yellow tint, ledge lip), texture builders in `src/fx` with unit tests (`buildPixelTextures`, `tileFrame`, `playerTextureKey`) — owner: art-director — est: 8 h — accept: builders unit-tested; every pattern pair differs on at least 15% of a tile cell; ghost outlines at least 3:1 against the background for all five bands, exit at least 4.5:1 against background and safe tiles (numbers in `docs/art/`); API names confirmed or renamed in requests before Batch 3 — needs: none
+- [M1] PX-2 · `assets/art/player.png` + `player.json` (Phaser JSON-hash; frames `stand`, `run-0..3`, `jump`, `fall`, the same seven as `twin-*` as a hollow outline body with a 1 px inner line, plus `exit`; 18×26 cell, even width, 1 px gap, key colors only) — owner: art-director — est: 6 h — accept: frame names and cell size as in the ADR; runner and twin distinguishable in grayscale at 1× (check S4 in `tandem.md`); no final color baked in — needs: none
 
 ## Review
 
-Exist in the repo; waiting on tech-lead review and qa-tester verification (M1-03 reviews the specs; M1-35/M1-36 verify).
+Built in the repo; waiting on tech-lead sign-off where noted and on the qa-tester sweeps M1-35 (simulation) and M1-36 (side tracks and repo files). Evidence: `docs/qa/test-plan.md` run 2, `docs/tech/reviews/`.
 
-- [M1] M1-01 · Expand the GDD; write M1 feature specs in `docs/design/features/`; write `src/data/tuning.json` and `docs/design/level-plan.md` — owner: design-lead — accept: each spec has Rule/Edge cases/Tuning/Acceptance/Priority; every tuning key from the GDD present; level-plan lists worlds 1–5 with one idea per level — needs: none. _State: GDD v1.1, five specs rewritten for hold-to-move, level plan v1.1 (21 levels), `decisions.md` current._
-- [M1] M1-02 · Scaffold Vite + Phaser + TypeScript + Vitest + Playwright; `src/core/types.ts`, `docs/tech/architecture.md`, `docs/tech/level-format.md`, CI workflow, `.env.example`, `.gitignore`, `LICENSE` — owner: tech-lead — accept: `npm run dev/test/build` run; vite `base` is `./`; types cover InputFrame, SimState, Tile, Level, InputLog; CI runs typecheck, test and build; `.env.example` has `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` only — needs: none. _State: files present, coverage and dist outputs exist. Types are v1.0 until M1-39._
+- [M1] M1-01 · GDD v1.4, feature specs (movement, jump, color gating, air drag, safe tiles, HUD meter, colored walls, speed gates, Tandem), `tuning.json`, level plan v3.0 — owner: design-lead — needs: none. _Specs exist; tech-lead feasibility is covered by the core review._
+- [M1] M1-02 · Scaffold, types, architecture, level format, CI, `.env.example`, `.gitignore`, LICENSE — owner: tech-lead — needs: none. _Present (`.github/workflows/ci.yml` exists)._
+- [M1] M1-39 · v1.1 alignment (types, tuning type test, `.gitattributes`, README, CREDITS) — owner: tech-lead — _`tests/arch/tuning-schema.test.ts`, `.gitattributes`, `README.md`, `CREDITS.md` exist._
+- [M1] M1-41 · `src/core` split into `sim/`, `motion/`, `level/` with lane contracts — owner: tech-lead — _`src/core/contracts/lanes.ts`, `tests/arch/lane-contracts.test.ts`, `core-purity.test.ts`._
+- [M1] M1-06, M1-47, M1-08, M1-10, M1-11, M1-12, M1-13 · **[sim]** skeleton, shift and direction wiring, vertical motion and collision, color gating, air commitment, death and restart, determinism golden test — owner: gameplay-engineer — _`src/core/sim/*Acceptance.test.ts` (one per spec) and `determinism.test.ts`; coverage of `src/core` is 100% lines, 93% branches (tech-lead review). Review verdict: sim "Changes needed" for S1 (`wallStop` once per contact); `move.ts:21` now has the contact guard, so S1 looks fixed. M1-30 closes it._
+- [M1] M1-09, M1-45 · **[motion]** ground speed model and air drag functions — owner: gameplay-engineer — _Approved in the core review; `acceptance.test.ts`._
+- [M1] M1-07, M1-43 · **[level]** parser (CRLF tolerant), input-log codec, `runInputLog`, `verifySolution` — owner: gameplay-engineer — _Approved with follow-ups (M1-48)._
+- [M1] M1-14, M1-15, M1-17 · **[scene]** GameScene with all key bindings and fixed step, debug overlay and `window.__redshift` (now dev or `VITE_QA_HOOK=1` only, guard `tests/arch/qa-hook.test.ts`), BootScene and focus prompt — owners: gameplay-engineer (M1-14, M1-15), ui-engineer (M1-17) — _`src/scenes/GameScene.ts`, `src/entities/*`, review `docs/tech/reviews/2026-11-qa-hook.md`._
+- [M1] M1-16, M1-40 · Safe storage, settings, key-binding table (all bindings active), Sticky Keys tip logic and view — owner: ui-engineer — _`src/save/*`, `src/ui/bindings.ts`, `stickyKeysTip.ts`, `StickyKeysTipView.ts` with tests. Mounting is M2-39._
+- [M1] M1-22, M1-23 · Palette and per-gear patterns — owner: art-director — _`palette.json`, `src/fx/*`, tests. Being reworked for pixel scale in PX-1._
+- [M1] M1-27 · Playwright suite (smoke, keyboard, embed, replay) — owner: qa-tester — _`tests/e2e/*`, 27 passed twice (run 2)._
+- [M1] M1-20 · `levels/w0-02.txt` and `w0-02.solution.txt` — owner: level-designer — _exist; spawn headroom fix is M1-21._
+- [M2] M2-05 · Solution replay test — owner: tech-lead (the test lives in `tests/levels/`, tech-lead's area; the old task named gameplay-engineer) — _`tests/levels/solvability.test.ts` passes (6 tests). The ±3-step check is M1-44._
+- [M2] M2-08 (Must part) · HUD gear meter component: five-cell strip, lit band, selected-gear bracket, needle, pure `hudModel` — owner: ui-engineer — _`src/ui/gearMeter.ts`, `GearMeterView.ts`, `gearMeter.test.ts`. The rest of the spec (drag meter, pending bracket, drop pulse, key-cap hints) is M2-08 in Todo._
+- [M2] M2-09 · Mount the HUD gear meter in GameScene and show time in the win banner — owner: gameplay-engineer [scene] — _`GameScene.ts` creates `GearMeterView`; `GameHud.winText` change was requested and reported done._
+- [M2] M2-04 (core) · **[level]** `loadLevels` and the scene's level files — _`src/core/level/loadLevels.ts`, `src/entities/levelFiles.ts`. Hint headers are M2-04 in Todo._
+- [M2] M2-14 · `docs/art/accessibility.md` — owner: art-director — _exists; needs the pixel-pattern update (Todo, M2-14b)._
+- [M2] M2-24 · Repo readiness — owner: tech-lead — _README, LICENSE, CREDITS, CI present; the "CI green on `main`" link is still needed._
 
 ## Done
 
-_(empty)_
+- `USER-1` — repo created and pushed (2026-11-02).
+- [M1] M1-26 · `docs/qa/test-plan.md` mapping every M1 criterion — owner: qa-tester — verified: file exists and lists every check once. (Checked by the producer against the five specs; tech-lead read not needed for a plan.)
+- [M1] M1-29 · Tuning pass 1 and D-1..D-3 verdicts — owner: design-lead — verified: `decisions.md` (2026-11-03) has a verdict per decision and a reason for every change (none changed); board table updated by the producer today.
 
 ---
 
-## Todo — M1 Grey-box (Nov 3–8)
+## Todo — M1 Grey-box (Nov 4–8)
 
-Target pacing: Nov 2 Batch A, A+ and M1-41. Nov 3 Batch B. Nov 4–5 Batch C. Nov 5–7 the sim lane finishes (M1-08 to M1-13) and the scene becomes playable. Nov 7 playtest (M1-28) and tuning pass (M1-29), with the D-1 to D-3 verdicts. Nov 8 QA gate.
+Done when: one room with gears, acceleration over distance, color-gated tiles, air drag and safe tiles; deterministic sim with tests. **Met in code; the remaining work is verification and one level fix.**
 
-### Design
-- [M1] M1-25 · Approve the grey-box room (layout and solution) against the specs — owner: design-lead — accept: approval or change list recorded in `docs/design/decisions.md`; room demonstrates all five M1 mechanics — needs: M1-21
-- [M1] M1-29 · Tuning pass 1 from the playtest report, **plus a keep/change verdict on D-1 (no air control), D-2 (release braking) and D-3 (stepwise drag)** — owner: design-lead — accept: every `tuning.json` change has a one-line reason in `decisions.md`; each of D-1 to D-3 has a written verdict and the board section above is updated by the producer; unit tests still pass after the change — needs: M1-28
+### Level design and approval
+- [M1] M1-21 · `w0-02` spawn headroom: open the ceiling over cols 0–2 so the first jump from the start pad reaches the full 3-tile apex, keep the low ceiling over the blue bridge, re-record `w0-02.solution.txt`, rerun the cheese sweeps, update `levels/README.md` — owner: level-designer — est: 1.5 h — accept: a standing jump at the spawn never touches a ceiling (apex 3.0 tiles, shown by replay or sim); solution still wins and still wins with inputs shifted ±3 steps; `npx vitest run tests/levels` passes; the bridge still cannot be jumped — needs: none
+- [M1] M1-25 · Approve the grey-box room — owner: design-lead — est: 0.5 h — accept: verdict in `decisions.md` — needs: M1-21
+- [M1] M1-28 · Fresh-eyes playtest of w0-02 with the HUD, answering D-1..D-3 again plus design-lead's four extra questions (can you say which gear red needs, did the first jump look full, can you see the exit and yellow ghosts, did you notice the drag meter and pending bracket) — owner: playtester — est: 2 h — accept: report `docs/playtests/2026-11-07-m1-greybox.md`. **Known:** exit contrast and ghost contrast are pixel-art fixes (PX-1) and will still fail on the old render; the report records them for PX-11 and is not a blocker — needs: M1-21, M1-27, M2-08 Must part
 
 ### Tech
-- [M1] M1-03 · Feasibility review of the M1 feature specs v1.1 (pipeline step 3) — owner: tech-lead — accept: written notes in `docs/tech/spec-review-m1.md`; GDD §4.14 step order confirmed implementable or an alternative proposed; blocking issues raised to design-lead via requests — needs: M1-01, M1-39
-- [M1] M1-04 · Guard rails: the core-purity arch test and the 80% coverage threshold already exist; add the ESLint (or arch-test) ban on Phaser, `Math.random`, `Date` for every `src/core` sub-folder, and a CI secret check (no `.env`, no service key patterns) — owner: tech-lead — accept: a deliberate violation in each of `sim/`, `motion/`, `level/` fails CI (shown and reverted); coverage gate fails below 80% (shown and reverted); a planted fake key fails the secret check — needs: M1-41
-- [M1] M1-05 · Commands section of `CLAUDE.md` (exists) gets the `npm run package` row and is checked against `package.json` — owner: tech-lead — accept: every listed command runs — needs: M1-18
-- [M1] M1-41 · **Split `src/core`** (see `requests.md`): create `src/core/sim/`, `src/core/motion/`, `src/core/level/`; keep `types.ts` shared; add the lane contracts to `types.ts` (function types for the ground-speed step, band lookup, air-drag step, level parser, input-log codec and `runInputLog`); update `architecture.md` §2/§6/§10 and the core-purity arch test to cover every sub-folder; the coverage threshold still covers `src/core/**` — owner: tech-lead — accept: `npm run check` passes with the empty folders; the arch test fails if a file in any sub-folder imports Phaser (shown, reverted); contracts documented; a request is filed naming the roster rows for `CLAUDE.md` — needs: M1-39
-- [M1] M1-30 · Review core A (sim skeleton, speed model, level parser) — owner: tech-lead — accept: Approve with no CRITICAL/HIGH findings, or Changes needed with a `file:line` list — needs: M1-06, M1-07, M1-09
-- [M1] M1-31 · Review core B (shift/direction wiring, vertical and collision, air drag functions, codec and `runInputLog`) — owner: tech-lead — accept: as M1-30 — needs: M1-47, M1-08, M1-45, M1-43
-- [M1] M1-32 · Review core C (color gating, air commitment, reset and exit, determinism test) — owner: tech-lead — accept: as M1-30; determinism test inspected — needs: M1-10, M1-11, M1-12, M1-13
-- [M1] M1-33 · Review scene work (GameScene, debug overlay, BootScene) — owner: tech-lead — accept: as M1-30; Phaser is only used for input and drawing; all bindings come from the `src/save` table — needs: M1-14, M1-15, M1-17
-- [M1] M1-34 · Review side tracks (storage, bindings and Sticky Keys logic, packaging, Supabase schema and RLS, palette, patterns, audio engine) — owner: tech-lead — accept: as M1-30; RLS reviewed by the security-reviewer agent — needs: M1-16, M1-40, M1-18, M1-19, M1-22, M1-23, M1-24
+- [M1] M1-30 · Close the core review: confirm S1 (`wallStop` once per contact) and S2 (`prevInput` holds only the six buttons) are fixed and approve the sim lane — owner: tech-lead — est: 1 h — accept: Approve, no CRITICAL/HIGH; replaces M1-31 and M1-32 — needs: M1-46
+- [M1] M1-33 · Review scene work, HUD mount, replay mode and the hook; **decide whether `levels/*.solution.txt` ship in the release build** (request 2026-11-02, architecture §6) — owner: tech-lead — est: 1.5 h — accept: Approve; decision written in `architecture.md` — needs: none
+- [M1] M1-34 · Review side tracks (storage, bindings, Sticky Keys logic, packaging, Supabase schema and RLS with the security-reviewer agent, palette, patterns, audio engine). Side tracks not yet in Review on Nov 7 are reviewed in M2 — owner: tech-lead — est: 2 h — accept: Approve or file:line list — needs: M1-16, M1-40
+- [M1] M1-04 · Guard rails: confirm the arch test covers all three sub-folders and the 80% gate, add the CI secret check (no `.env`, no service-key patterns) — owner: tech-lead — est: 1 h — accept: a planted fake key fails the check (shown, reverted) — needs: none
+- [M1] M1-05 · `CLAUDE.md` Commands table gets `npm run package` — owner: tech-lead — est: 0.25 h — accept: every listed command runs — needs: M1-18. _`CLAUDE.md` edits need the user or orchestrator; tech-lead files the line._
+- [M1] M1-44 · Robustness test: every level's recording still wins with each input transition shifted ±3 steps (gap G3) — owner: tech-lead — est: 1.5 h — accept: Vitest in `tests/levels/`; a recording that only wins at exact timing fails (shown, reverted) — needs: none
 
-### Gameplay — **[sim]** lane (`src/core/sim/**`, serial, tests first; order M1-06, 47, 08, 10, 11, 12, 13)
-- [M1] M1-06 · **[sim]** Sim skeleton: `createSim`, pure `step`, `deriveParams` with tuning validation, v1.1 `SimState`, press-edge derivation from `prevInput`, step counter, GDD §4.14 step order with later steps as stubs — owner: gameplay-engineer — accept: initial state is standing on the `@` cell, gear `startGear` (1), facing right, band 0; ms→steps exact (100 ms = 6 steps); missing or invalid tuning key throws a clear error naming the key; `step` does not mutate its inputs (frozen-object test); no Phaser/Math.random/Date; tests pass — needs: M1-01, M1-39, M1-41
-- [M1] M1-47 · **[sim]** Shift, direction and ground-speed wiring: press edges move the gear one step (clamped 1–4, holding does not repeat, extra presses not stored), direction priority (latest press wins, same-step tie gives 0), facing, ground target `d × gearSpeeds[gear]` fed to the motion functions — owner: gameplay-engineer — accept: the runway-from-standing numbers of GDD §5.1 hold through `step` (vx = 3 after step 1; band 2 on step 10, 3 on step 23, 4 on step 32; vx = 12 from step 36); shifting while standing changes gear not speed; gear persists through letting go; mirrored left/right tests; tests per `movement-and-gears.md` — needs: M1-06, M1-09
-- [M1] M1-08 · **[sim]** Vertical motion and solid collision: gravity with exact kinematics, jump (apex height, coyote, jump buffer), safe-tile collision, wall stop (vx = 0, gear kept), ceiling, level bounds (left/right/top solid, bottom open), supported test — owner: gameplay-engineer — accept: apex = `jumpHeightTiles` ±0.1 on step 24; flat jump is 48 steps; coyote and buffer windows match tuning; a 2-tile ledge is reachable, a 3-tile ledge is not; jump plus arrow from standing gives a walking jump (3 tiles/s); tests per `jump.md` — needs: M1-06, M1-07
-- [M1] M1-10 · **[sim]** Color-gated tiles: solid only on a matching band, no-embed rule, landing needs a match, walking onto a mismatch is a hole, grace (6 steps, from above only, replaced by a new change, ended by leaving the ground), coyote starts when grace ends — owner: gameplay-engineer — accept: grace boundary tests (exactly 6 steps holds, step 7 falls); colored walls stop only their color; grace never applies on landing or to walls or ceilings; tests per `color-gating.md` — needs: M1-08, M1-47
-- [M1] M1-11 · **[sim]** Air commitment: held directions never change velocity in the air, shift presses are buffered (net count, 6-step window, applied on landing, clamped 1–4), gear follows color down but never up, stepwise drag via the motion function (floor at `airDragMinBand`, counter reset on landing, counts during coyote), `dragDrop` event emitted — owner: gameplay-engineer — accept: GDD §5.3 table through `step` (gear 4 flat jump 8.7 tiles, drop at step 30, lands yellow; gear 3 drop at step 40, lands green; gears 1–2 keep their color; standing jump stays white); letting go in the air does not brake; tests per `air-drag.md` — needs: M1-10, M1-45
-- [M1] M1-12 · **[sim]** Death, restart and exit: falling out of the grid freezes 24 steps then respawns; R restarts at any time (even during the freeze) on the next step; reset restores the whole initial state including gear 1; buttons held through a respawn act normally but are not new presses; touching `E` wins in any color and gear, and wins over death on the same step; level time is the step count — owner: gameplay-engineer — accept: state after reset deep-equals the initial state; works mid-air, mid-shift and mid-skid; tests per `safe-tiles-and-reset.md` — needs: M1-08, M1-47
-- [M1] M1-13 · **[sim]** Determinism golden test: the same log run twice gives an identical state hash; a golden hash is checked in; mirrored left/right runs match; `src/core` coverage ≥ 80% shown in the report — owner: gameplay-engineer — accept: all four items demonstrated; golden hash changes only with a recorded reason — needs: M1-10, M1-11, M1-12, M1-43
+### Gameplay
+- [M1] M1-46 · **[sim]** Follow-ups from the core review and design replies: S2 (`prevInput` stores exactly the six buttons, `step.ts`, `status.ts`), replace "pinned, spec expects" comments and tolerance assertions with the exact spec values (requests 2026-11-02, design-lead lines) — owner: gameplay-engineer — est: 1.5 h — accept: a frame with extra fields gives the same state hash as one without; spec numbers asserted exactly; suite green — needs: none
+- [M1] M1-48 · **[level]** Review follow-ups L1–L6: `verifySolution` folds states and stops at the first `won`, delete `pairSolutions`, BOM as an escape, one `MAX_WORLD`, `MAX_REPLAY_STEPS`-derived digit limit, speed up the codec round-trip test — owner: gameplay-engineer — est: 2 h — accept: a 1,000,000-step log verifies without allocating a state per step (test); codec test under 1 s; coverage stays ≥ 80% — needs: none
+- [M1] M1-51 · **[motion]** Drop the "GDD prints… within tolerance" comments and the secondary tolerance assertions in `src/core/motion/acceptance.test.ts` (red mid-ramp row is 8.075) — owner: gameplay-engineer — est: 0.5 h — accept: assertions equal the GDD v1.2 tables — needs: none
 
-### Gameplay — **[motion]** lane (`src/core/motion/**`, pure functions of numbers, no level or state)
-- [M1] M1-09 · **[motion]** Ground speed model: segment acceleration and braking derived at load (`tilesPerGearChange`, `brakeTilesPerGearChange`), instant walking range (`instantMaxGear`), slowing, skid and instant turn at walking pace, band lookup (edge belongs to the higher band) — owner: gameplay-engineer — accept: stepping the functions at 60 Hz on flat ground reproduces GDD §5.1 and §5.2 (from standing at gear 4: 3 exact after step 1, band 2 step 10, band 3 step 23, band 4 step 32 at 3.23 ±0.15 tiles, 12 exact from step 36; letting go at 12 stops at step 35 after 3.74 ±0.15; gear-4 reversal turns on step 35 after 3.72); left/right mirror tests; no Phaser/Math.random/Date — needs: M1-39, M1-41
-- [M1] M1-45 · **[motion]** Air drag as a pure function: accumulate `|Δx|`, drop exactly one band per `airDragTilesPerGear`, floor at `airDragMinBand`, at most one drop per step, counter carries over — owner: gameplay-engineer — accept: a gear-4 flight drops at 6.0 tiles and again at 12.0; gear 2 and below never drop in a 5.9-tile flight; blue never drops; one drop per step even for a huge Δx; tests per `air-drag.md` — needs: M1-09
-
-### Gameplay — **[level]** lane (`src/core/level/**`)
-- [M1] M1-07 · **[level]** Level parser per `level-format.md` v1.1: header and grid, every tile glyph, `@` start, `E` exit, validation errors naming file, row and column, **tolerates `\r\n`** — owner: gameplay-engineer — accept: one test per tile glyph; a CRLF copy of a level parses to the same `Level` as the LF copy; malformed input (ragged rows, two `@`, no `E`, unknown key, `id` ≠ stem) gives the documented error; no Phaser/Math.random/Date — needs: M1-39, M1-41
-- [M1] M1-43 · **[level]** Input-log codec (run-length text, CRLF tolerant) and `runInputLog(level, params, log)` returning final state and status — owner: gameplay-engineer — accept: encode then decode is the identity; invalid tokens give a descriptive error; `runInputLog` equals manual stepping of the same frames; `steps` header check — needs: M1-06, M1-07
-
-### Gameplay — **[scene]** lane (`GameScene.ts`, `src/entities/**`)
-- [M1] M1-14 · **[scene]** GameScene: fixed-step accumulator (capped steps per frame), input sampler that latches taps, **every binding active at once**: the sampler (in `src/entities/`, gameplay-engineer's area; `keys.ts` stays scene keys only) tracks held `e.code` values from native keydown/keyup, calls `heldActions` and `toSimButtons` from `src/ui/bindings.ts` each step, uses restart and pause on press edges, and calls `addCapture(boundCodes())` (Left/Right Shift by `e.code`, Q/E, Z/X, arrows and A/D, Space/W/Up, R), draws tiles and the player tinted by band color (band pattern once M1-23 lands) — owner: gameplay-engineer — accept: runs in the dev server at 960×540; sim step rate is independent of display fps (mocked-clock test); each of Right Shift, E and X raises the selected gear by one and each of Left Shift, Q and Z lowers it; a key tap shorter than one frame is not lost; page does not scroll; the sampler has a unit test with fake key events — needs: M1-06, M1-07, M1-16
-- [M1] M1-15 · **[scene]** Debug overlay (F3: gear, band, speed, direction, facing, grounded, air distance and drag counter, grace and coyote timers) and a dev-only read-only state hook `window.__redshift` — owner: gameplay-engineer — accept: overlay values match sim state; hook is absent from the production build (search of `dist/` shown) — needs: M1-10, M1-11, M1-12, M1-14
-
-### UI
-- [M1] M1-17 · BootScene starts GameScene; canvas focus on click and a "click to focus" cue; `preventDefault` for Space and arrows; no page scroll inside an iframe — owner: ui-engineer — accept: game starts in the dev server with no console errors; keys do not scroll the page — needs: M1-14
-
-### Backend / release
-- [M1] M1-18 · `npm run package`: production build zipped for itch.io — owner: backend-engineer — accept: unzip into a subfolder, serve it, and the game loads (relative paths); zip has no `.env` or secrets — needs: M1-02
-- [M1] M1-19 · Supabase schema draft: `backend/migrations/0001_runs.sql` with RLS (public read, no client writes), plus `backend/README.md` listing the exact steps the user must do — owner: backend-engineer — accept: policies deny anon insert/update/delete; no keys in the repo; README steps are copy-pasteable — needs: none
-
-### Level design
-- [M1] M1-20 · `levels/w0-02.txt` (the grey-box room; `w0-01` stays the format example, and ids must equal the file stem) with a `levels/README.md` entry: safe start, color-gated floors, a runway to a red bridge (red needs 4 tiles, deny with 2.5), a gap needing air drag onto a yellow pad (a gear-4 takeoff flies 8.7 tiles and lands yellow), a safe tile mid-room to stop on — owner: level-designer — accept: follows `level-format.md`; each M1 mechanic (gears, runway, color gating, air drag, safe tiles and reset) is used at least once; parse is re-checked with the real parser in M1-21 — needs: M1-01, M1-39
-- [M1] M1-21 · Solution recording `levels/w0-02.solution.txt`, verified with `runInputLog` — owner: level-designer — accept: the room parses with the M1-07 parser; replay reaches the goal; still reaches the goal with key inputs shifted ±3 steps — needs: M1-13, M1-20, M1-43
-
-### Art
-(M1-22 and M1-23 are in Doing.)
+### Backend and release
+- [M1] M1-19 · Supabase schema draft `backend/migrations/0001_runs.sql` with RLS (public read, no client writes) and `backend/README.md` with copy-paste user steps — owner: backend-engineer — est: 2 h — accept: policies deny anon insert, update, delete; no keys in the repo; steps copy-pasteable — needs: none
+- [M1] M1-18 · `npm run package`: production build zipped for itch.io (the `package` script does not exist yet) — owner: backend-engineer — est: 2 h — accept: unzip into a subfolder, serve it, and the game loads; zip has no `.env` or secrets; script is in `package.json` — needs: none. _Re-check after the cutover (PX-4 changes `main.ts` and `index.html`)._
 
 ### Audio
-- [M1] M1-24 · `src/audio/engine.ts`: lazy AudioContext resumed on the first keydown/click, master/music/SFX buses, mute, tone helper — owner: audio-designer — accept: nothing throws before a gesture (mocked-context unit tests); mute and bus volumes tested — needs: M1-02
+- [M1] M1-24 · `src/audio/engine.ts`: lazy AudioContext resumed on first gesture, master/music/SFX buses, mute, tone helper (`src/audio/index.ts` is an empty stub today) — owner: audio-designer — est: 3 h — accept: nothing throws before a gesture (mocked-context tests); mute and bus volumes tested — needs: none
 
-### QA and playtest
-- [M1] M1-26 · `docs/qa/test-plan.md`: every M1 acceptance criterion in the v1.1 specs mapped to unit, replay, e2e or manual, using the test conventions in `movement-and-gears.md` — owner: qa-tester — accept: each criterion in the five M1 specs appears exactly once; the alternate-binding and Sticky Keys checks are listed — needs: M1-01
-- [M1] M1-27 · Playwright smoke test: boot, canvas is 960×540, no console errors, state hook reachable; Right Shift, E and X each raise the selected gear by one and Left Shift, Q and Z each lower it; Space and arrows do not scroll the page — owner: qa-tester — accept: `npm run test:e2e` passes locally; test file at `tests/e2e/smoke.spec.ts` — needs: M1-15, M1-17
-- [M1] M1-28 · Fresh-eyes playtest of the grey-box room (first 30 seconds, feel of acceleration, confusion points) **answering three questions: air control (D-1), release braking (D-2), stepwise drag (D-3)** — owner: playtester — accept: report at `docs/playtests/2026-11-07-m1-greybox.md` per the playtest template, with a direct answer to each of D-1 to D-3 — needs: M1-21, M1-27
-- [M1] M1-35 · Verify the simulation against the M1 specs; run the full suite — owner: qa-tester — accept: each spec criterion Pass/Fail with evidence; unit test counts and coverage reported; core coverage ≥ 80% — needs: M1-26, M1-30, M1-31, M1-32
-- [M1] M1-36 · Verify side tracks and repo files (storage, bindings, Sticky Keys logic, packaging, palette, patterns, audio engine, v1.1 types, `.gitattributes`, README, CREDITS) — owner: qa-tester — accept: each task's accept line checked with evidence — needs: M1-26, M1-34, M1-39, M1-41
-- [M1] M1-37 · **M1 gate**: the grey-box room plays end to end in the browser with every alternate binding; full suite, typecheck and production build pass — owner: qa-tester — accept: no open blocker or major bug in `docs/qa/bugs.md`; playthrough with the solution recording matches the replay result — needs: M1-25, M1-29, M1-33, M1-35, M1-36
+### QA
+- [M1] M1-42 · Close BUG-1, BUG-2, BUG-3 in `docs/qa/bugs.md` after re-running the e2e suite (tech-lead fixed them in b432391: hook gated to dev or `VITE_QA_HOOK=1`, viewport after the device spread, `workers: 2`, `reuseExistingServer: false`) — owner: qa-tester — est: 0.5 h — accept: each bug has a closed entry with evidence (`dist/` search shown for BUG-1) — needs: none
+- [M1] M1-50 · Add to the test plan: HUD checks 1–12 and the time banner, the shift-buffer scene check (press on flight step 10 of a 48-step jump is dropped, within 6 steps of landing applies), and e2e for them where the scene exposes the meter model (gap G4) — owner: qa-tester — est: 1.5 h — accept: each added check appears once with its verification layer — needs: none
+- [M1] M1-35 · Verify the simulation against the five M1 specs and run the full suite; on pass, the whole Review list above moves to Done — owner: qa-tester — est: 2 h — accept: Pass/Fail per spec criterion with evidence; test counts and coverage reported — needs: M1-26, M1-30
+- [M1] M1-36 · Verify side tracks and repo files — owner: qa-tester — est: 1.5 h — accept: each task's accept line checked with evidence; packaging, schema and audio engine only if in Review — needs: M1-34, M1-18, M1-19, M1-24
+- [M1] M1-37 · **M1 gate (Nov 8)**: w0-02 plays end to end in the browser with every alternate binding; suite, typecheck and build pass — owner: qa-tester — est: 1 h — accept: no open blocker or major in `docs/qa/bugs.md`; replay result matches; commit tagged `m1` — needs: M1-25, M1-28, M1-33, M1-35, M1-36, M1-42
 
 ### Producer
-- [M1] M1-38 · M1 close-out: check the repo against the board, move tasks, record D-1 to D-3 verdicts on this board, re-plan M2 — owner: producer — accept: board and files agree; M2 start batch listed — needs: M1-37
+- [M1] M1-38 · M1 close-out: board against the repo, move tasks, publish the cutover go or no-go — owner: producer — est: 1 h — accept: board and files agree — needs: M1-37
+
+**Superseded in M1:** M1-03 (feasibility review of the specs: the sim was built and reviewed directly, `docs/tech/reviews/2026-11-core-lanes.md`), M1-31 and M1-32 (merged into M1-30).
+
+---
+
+## Todo — Pixel cutover (Nov 8–10, one commit; ADR `docs/tech/adr-pixel-rendering.md`)
+
+Starts after the `m1` tag and PX-1..PX-3 in Review. Batch 3 tasks touch disjoint areas and land together; the game and the e2e suite are inconsistent in between. **Trigger:** if PX-1..3 are not in Review by Nov 7 end of day, the cutover starts Nov 9 and Tandem scene work waits for it (see risks R8 and the cut list).
+
+- [M2] PX-4 · `src/main.ts` to 480×270 with `Scale.NONE` + `MAX_ZOOM` + centre, re-zoom on window resize, `fps.panicMax: 0`; `BootScene` preloads atlas and font and calls `buildPixelTextures` (tech-lead owns BootScene); `index.html` letterbox colour; `architecture.md` — owner: tech-lead — est: 3 h — accept: canvas 480×270 at 2× in a 960×540 frame; zoom becomes 4× at 1920×1080 after a live resize; boots with storage blocked; SaveStore (M2-40) still shared via the registry — needs: PX-1, PX-2, PX-3, M2-40, M1-37
+- [M2] PX-5 · `tuning.json` `tileSize` 32 → 16 (render-only), note the 480×270 base in the GDD — owner: design-lead — est: 0.25 h — accept: no `src/core` test changes; view is 30 × 16.875 tiles; no level change — needs: M1-37
+- [M2] PX-6 · **[scene]** `LevelView` on Tilemap layers over the generated tileset (top and inner variants, colored indices swapped on mode change), exit as a sprite — owner: gameplay-engineer — est: 4 h — accept: no per-frame rect redraw; solid, ghost and exit visible at 2× (screenshot); band change swaps tiles without a frame hitch — needs: PX-1, PX-2
+- [M2] PX-7 · **[scene]** `PlayerView` as a sprite, one instance per body, `playerFrame(player, params)` pure and tested, camera helper taking a list of snapped body positions with the snapping invariant and unit tests, `FeedbackFx` sizes halved, `GameScene` wiring (including the drop flash) — owner: gameplay-engineer — est: 5 h — accept: for any x the player's screen x is constant while the camera is unclamped (unit test); animation frame comes from sim state, not wall clock; a replay renders identically twice — needs: PX-1, PX-2, PX-6
+- [M2] PX-8 · **[scene]** `GameHud` on BitmapText at 480×270: title, banner at 2×, debug overlay, focus prompt, halved constants — owner: gameplay-engineer — est: 2 h — accept: all text uses the bitmap font and integer positions; win banner still `M:SS.ss` — needs: PX-3, PX-7
+- [M2] PX-9 · `GearMeterView` at 110×32 with the bitmap font, a compact 110×14 strip variant for two bodies, `StickyKeysTipView` rebuilt for 480×270, tests — owner: ui-engineer — est: 7 h — accept: meter model unchanged (`hudModel` tests pass); both sizes drawn from the same model; tip dismissable by key — needs: PX-3, M2-08
+- [M2] PX-10 · e2e for the new canvas: 480×270 attributes, CSS width a whole multiple of 480 at 960, 1366×768, 1920×1080 and 2560×1440, live resize test, a 2× screenshot check, `EMBED_VIEWPORT` comment — owner: qa-tester — est: 3 h — accept: `npm run test:e2e` green against the new build — needs: PX-4
+- [M2] PX-11 · Review of the cutover and fresh play in the 960×540 iframe and fullscreen at 1366×768 and 1920×1080 (judder, legibility, dither, exit and ghost contrast) — owners: tech-lead (review, 1.5 h) and playtester (play, 1.5 h) — accept: review Approve; playtest report lists legibility and the exit and ghost questions left from M1-28 — needs: PX-4..PX-10
+
+---
+
+## Todo — Tandem (sim Nov 9–13, decision gate Nov 12)
+
+Spec: `docs/design/features/tandem.md`. Contract and architecture first, then the sim, then the scene after the cutover.
+
+- [M3] T-01 · Tandem contracts: `SimState.twin: PlayerState | null`, `PlayerState.home`, `body: 0 | 1` on player events, `home { body }` event, `died` gains `body`, shared input state at run level, `Level` twin spawn; level format `&` (at most one, parses as empty, spawn rule like `@`, reject `&` on an exit); `architecture.md` §3.1/3.4 (phases 0, 1, 3, 14, 15 once, phases 2 and 4–13 per body, home before death); the second player view and camera rules in the ADR; lane contracts updated and arch tests green — owner: tech-lead — est: 4 h — accept: `npm run check` passes with the types in place and no behaviour change; docs state the step order exactly as `tandem.md`; announced in requests — needs: none. **Must land by Nov 5 so the sim lane can start Nov 9 without waiting.**
+- [M3] T-02 · Cut the dead items: `~` mud, `*` boost, `<` `>` conveyors become a parse error or reserved (tech-lead's call), remove `mudMaxGear`, `boostPadGear`, `ghostSpacingTiles`, `ghostLifetimeMs` from `Tuning`, `TUNING_SCHEMA`, `SimParams`; `=` ice stays (Should); "speed camera" becomes "speed gate" in `level-format.md` — owner: tech-lead — est: 1.5 h — accept: `tests/arch` green in the same batch as T-03; no `src/core` behaviour change — needs: T-01
+- [M3] T-03 · Delete the four unused keys from `src/data/tuning.json` in the same batch as T-02 — owner: design-lead — est: 0.25 h — accept: tuning-schema test green — needs: T-01
+- [M3] T-04 · **[level]** Parse the twin spawn `&` (error naming row and column on a second); `Level` carries the twin spawn — owner: gameplay-engineer — est: 2 h — accept: one test per rule; a CRLF copy parses identically; levels without `&` parse as before — needs: T-01
+- [M3] T-10 · **[sim]** Tandem part 1: per-body player state, twin spawn, shared direction priority and `prevInput` at run level, phases split once vs per body (runner first), events with `body`, checks 1, 2, 3, 16, 17 — owner: gameplay-engineer — est: 6 h — accept: checks 1–3 and 16–17 of `tandem.md` pass; every M1 acceptance test passes unchanged (check 1) — needs: T-01
+- [M3] T-11 · **[sim]** Tandem part 2: per-body shift and jump (grounded now, airborne buffers), clamp resync, wall stop for one body, home, win, death and restart for both bodies, checks 4–15 — owner: gameplay-engineer — est: 5 h — accept: checks 4–15 pass (**checks 1–12 are the decision gate**); derived numbers pinned by tests, differences filed in requests — needs: T-10
+- [M3] T-12 · **[sim]** Tandem part 3: determinism (check 18), golden hash for a two-body log, coverage ≥ 80%, request lines for every derived number that differs — owner: gameplay-engineer — est: 3 h — accept: checks 1–18 pass; golden hash recorded with a reason — needs: T-11
+- [M3] T-13 · **Decision gate, verify:** run `tandem.md` checks 1–12 against the sim; report Pass/Fail per check — owner: qa-tester — est: 2 h — accept: written table in `docs/qa/`; Nov 12 — needs: T-11
+- [M3] T-14 · Review the Tandem sim and contract — owner: tech-lead — est: 2 h — accept: Approve, no CRITICAL/HIGH; determinism inspected — needs: T-12
+- [M3] T-15 · **Decision gate, decide (Nov 12):** checks 1–12 pass → world 3 stays Tandem, G-1..G-6 stay Should. Checks 1–12 do not pass → world 3 reverts to the gates plan (level plan v3.0 fallback), G-1..G-6 become Must, T-20 and T-05, T-06, T-21, M3-22, M3-23, M3-40, M3-41 are replaced by G-6 levels. The user gets a short note either way — owner: producer — est: 0.5 h — accept: decision and date written on this board and in `decisions.md` request to design-lead — needs: T-13
+- [M3] T-05 · Art for Tandem: home and parked pose or glyph, silhouette glyph for the HUD strips and the camera edge arrow, lane divider reads as solid ground, runner vs twin checked in grayscale and in the three color-vision simulations (added to `docs/art/accessibility.md`) — owner: art-director — est: 3 h — accept: runner and twin distinguishable by shape in the simulation images; both show their band pattern in every frame — needs: PX-2, T-01
+- [M3] T-06 · HUD for two bodies: two stacked compact strips (top runner, bottom twin), each marked with its silhouette glyph, band cell, bracket, needle, drag meter and pending shift; a home strip dims and shows a home glyph; one strip when `twin` is null — owner: ui-engineer — est: 4 h — accept: unit checks: two strips from a two-body state, a gear 1 / gear 3 split shows different brackets, home strip dimmed — needs: T-01, PX-9, T-05
+- [M3] T-20 · **[scene]** Tandem view: second `PlayerView` (twin frames), camera per `tandem.md` (midpoint of non-home bodies, the non-home body when one is home, runner plus an edge arrow beyond 28 tiles), home pose, events by body in `FeedbackFx`, scene checks S1–S4 — owner: gameplay-engineer — est: 8 h — accept: S1–S4 pass; level with no `&` renders unchanged — needs: PX-7, T-10, T-05
+- [M3] T-21 · e2e for Tandem scene checks S1–S4 and the two-strip HUD; add `tandem.md` checks 1–18 to the M3 test plan — owner: qa-tester — est: 3 h — accept: passes via `npm run test:e2e`; plan lists checks 1–18 once each — needs: T-20, T-06
 
 ---
 
 ## Todo — M2 First worlds (Nov 9–15)
 
-Done when: level loader, solution replay test, worlds 1–2 (8 levels), HUD gear meter, title and level select, Sticky Keys tip.
+Done when: level loader and replay test, **worlds 1–2 = 9 levels**, HUD gear meter (Must part plus drag meter), title and level select, Sticky Keys tip, colored-wall tests, on the pixel build.
 
 ### Design and tech
-- [M2] M2-01 · Specs part 1: HUD gear meter (selected gear 1–4 beside the current band, in-air drag meter, pattern per gear), Sticky Keys tip overlay, controls screen, onboarding glyph hints (arrow glyph at the w1-01 spawn, Shift/E/X glyph on the first white pad of w1-02), color-blind patterns in play — owner: design-lead — accept: each spec has Rule/Edge cases/Tuning/Acceptance/Priority — needs: M1-01
-- [M2] M2-34 · Specs part 2: title, level select (locked, unlocked, best steps), pause and results, progress save, loader and replay-test behaviour — owner: design-lead — accept: as M2-01 — needs: M1-01
-- [M2] M2-02 · Specs for World 3 tiles (mud, ice, boost pads, speed cameras; colored walls need no new spec, see GDD §4.7) with tuning keys — owner: design-lead — accept: edge cases cover each tile at each gear; keys added to `tuning.json` — needs: M1-01 (Must)
-- [M2] M2-03 · Approve M2 specs; finalize `level-format.md` (including optional onboarding **hint** headers: glyph id and tile position) and shared types for loader, solution recording, RunResult and hints — owner: tech-lead — accept: `types.ts` and `level-format.md` updated; changes announced via requests — needs: M2-01, M2-34
-- [M2] M2-40 · `src/main.ts` creates one `SaveStore` at start-up (`createSaveStore()`), shares it with scenes through the Phaser registry (registry key in `src/scenes/keys.ts`) and documents it in `architecture.md` — owner: tech-lead — accept: scenes read the store from the registry (no second store); the game still boots with storage blocked (e2e or unit test) — needs: M1-16
-- [M2] M2-24 · Repo readiness (repo stays private until S-02): `README.md` play and run instructions, `LICENSE` (MIT), `CREDITS.md` complete, CI green on GitHub — owner: tech-lead — accept: README commands run; `CREDITS.md` lists every third-party asset or says none; latest CI run on `main` is green (link in the report) — needs: M1-39
-- [M2] M2-23 · Approve World 1 and 2 levels (rolling, per pair as they land) — owner: design-lead — accept: each level has a one-line verdict in `decisions.md`; any rejection names the pillar broken — needs: M2-22
+- [M2] M2-34 · Specs part 2: title, level select (locked, unlocked, best time), pause and results, progress save, loader behaviour; **include a first-level-of-each-world unlock rule proposal for the 10-minute voter (R9)** — owner: design-lead — est: 4 h — accept: Rule/Edge cases/Tuning/Acceptance/Priority; written for 480×270 — needs: M1-01
+- [M2] M2-01 · Remaining specs: Sticky Keys tip overlay, controls screen, onboarding glyph hints (arrow in w1-01, Shift/E/X in w1-02); HUD part is `hud-gear-meter.md` — owner: design-lead — est: 2 h — accept: as M2-34 — needs: M1-01
+- [M2] M2-02 · Ice spec (Should, world 4) with tuning keys — owner: design-lead — est: 2 h — accept: edge cases per gear incl. speed 0; due Nov 15; drop first if behind — needs: M1-01
+- [M2] M2-03 · Hint headers in `level-format.md` (glyph id plus tile position), `LevelMeta` and `RunResult` types — owner: tech-lead — est: 3 h — accept: types and docs updated, requests answered — needs: M1-01
+- [M2] M2-40 · `src/main.ts` creates one `SaveStore` (`createSaveStore()`), shares it through the Phaser registry (key in `src/scenes/keys.ts`), documented in `architecture.md` — owner: tech-lead — est: 1.5 h — accept: scenes read the registry store; game boots with storage blocked — needs: M1-16. _Lands before PX-4 so both edits of `main.ts` are sequential._
+- [M2] M2-23 · Approve levels, rolling per pair — owner: design-lead — est: 2 h — accept: one-line verdict per level in `decisions.md`; a rejection names the pillar — needs: M2-19, M2-20, M2-21, M2-22, M2-45
+- [M2] M2-25 · Review loader, progression, mounts, hint mount — owner: tech-lead — est: 2 h — accept: Approve — needs: M2-04, M2-06, M2-39, M2-41
+- [M2] M2-26 · Review UI (menus, HUD, tip, controls, glyphs) — owner: tech-lead — est: 2 h — accept: Approve — needs: M2-08, M2-10, M2-11, M2-12, M2-13, M2-36
+- [M2] M2-27 · Review art, audio and net skeleton — owner: tech-lead — est: 1.5 h — accept: Approve — needs: M2-14, M2-15, M2-17, M2-18
 
 ### Gameplay
-- [M2] M2-04 · **[level]** Level loader: all `levels/*.txt` via Vite glob, header parse including hint headers, validation errors naming the file — owner: gameplay-engineer — accept: loads every level in `levels/`; a bad file gives a descriptive error naming the file; CRLF files load identically — needs: M2-03, M1-43
-- [M2] M2-05 · **[level]** Solution replay test: Vitest replays every level's recording and fails if any does not finish — owner: gameplay-engineer — accept: a deliberately broken recording fails the test (shown, then reverted); a level without a recording fails — needs: M2-04
-- [M2] M2-06 · **[scene]** Progression in GameScene: goal reached gives a complete event with step count, restart, next level — owner: gameplay-engineer — accept: completing a level reports steps equal to the replay's and calls `store.recordLevelComplete(levelId, wonAtStep)` on the shared SaveStore — needs: M2-04, M2-40
-- [M2] M2-09 · **[scene]** Mount the HUD gear meter in GameScene — owner: gameplay-engineer — accept: meter updates every step; selected gear and band match sim state; drag meter fills in the air — needs: M2-08, M2-06
-- [M2] M2-39 · **[scene]** Mount the Sticky Keys tip (`showStickyKeysTipIfDue` from `src/ui/StickyKeysTipView.ts`, store from the registry, first level start of the page session) and the onboarding hint glyphs in GameScene — owner: gameplay-engineer — accept: tip appears once on a Windows user agent at the first level start and never blocks input; hint glyphs appear at the positions in the level file — needs: M1-40, M2-36, M2-04, M2-40
-- [M2] M2-16 · **[scene]** GameScene adopts the `src/fx` tile and player style and plays the band-drop flash and clunk on the `dragDrop` event — owner: gameplay-engineer — accept: solid and mismatched tiles differ in more than hue (screenshot); an air-drag drop shows a flash and plays the clunk — needs: M2-15, M2-17, M1-11
+- [M2] M2-47 · **[sim]** Colored-wall acceptance tests from `features/colored-walls.md` checks 1–7 (behaviour already built) — owner: gameplay-engineer — est: 3 h — accept: seven checks as tests, no sim change needed (if one fails, a request is filed) — needs: none
+- [M2] M2-04 · **[level]** Hint headers in the parser and loader — owner: gameplay-engineer — est: 2 h — accept: a level with hint headers loads; a bad hint names file, row and column; CRLF identical — needs: M2-03
+- [M2] M2-06 · **[scene]** Progression: goal gives a complete event with time (steps stored), restart, next level; `store.recordLevelComplete(levelId, wonAtStep)` on the shared SaveStore; a pause flag freezes the sim accumulator — owner: gameplay-engineer — est: 3 h — accept: stored step count equals the replay's; pause freezes the sim (test) — needs: M2-04 (core), M2-40
+- [M2] M2-39 · **[scene]** Mount the Sticky Keys tip (`showStickyKeysTipIfDue`, first level start of the page session) — owner: gameplay-engineer — est: 1.5 h — accept: tip shows once on a Windows user agent and never blocks input — needs: M1-40, M2-40
+- [M2] M2-41 · **[scene]** Mount the onboarding hint glyphs at the positions in the level file — owner: gameplay-engineer — est: 1.5 h — accept: glyphs appear where the headers say — needs: M2-36, M2-04, PX-7
 
 ### UI
-- [M2] M2-08 · HUD gear meter component: selected gear 1–4, current band, progress, color plus pattern, in-air drag meter — owner: ui-engineer — accept: renders from a plain state object; pattern shown for every gear; selected and current differ when standing, ramping or after drag; unit test for the pure parts — needs: M2-01, M1-22, M1-23, M1-39
-- [M2] M2-36 · Onboarding hint glyph renderer (arrow, Shift, E, X glyphs; icons not text) — owner: ui-engineer — accept: renders each glyph id from a plain data object; unit test for id lookup — needs: M2-03
-- [M2] M2-10 · Progress model on top of `SaveStore` (best steps are already recorded by `recordLevelComplete`): unlock rule (completing a level unlocks the next; world 0 never listed) and best-step helpers — owner: ui-engineer — accept: survives reload; blocked storage falls back to memory; unit tests for the unlock rule — needs: M1-16, M2-34
-- [M2] M2-11 · Title scene and level select (keyboard nav, locked and unlocked, best steps) — owner: ui-engineer — accept: reachable with keyboard only; locked levels cannot start — needs: M2-34, M2-04, M2-10
-- [M2] M2-12 · Pause and results scenes (retry, next, back to select) — owner: ui-engineer — accept: pause freezes the sim; results show steps and best — needs: M2-06, M2-11
-- [M2] M2-13 · Controls screen: lists every binding including Q/E and Z/X, with "show the Sticky Keys tip again". No remapping (Could) — owner: ui-engineer — accept: reachable and usable without Shift; every binding from the `src/save` table is listed — needs: M2-01, M1-16
+- [M2] M2-08 · HUD remainder: drag meter (hidden at or below `airDragMinBand`, else `airDistance / airDragTilesPerGear` capped at 1), pending-shift bracket, drop pulse, key-cap hints, reduced-motion respected — owner: ui-engineer — est: 3 h — accept: checks 1–12 of `hud-gear-meter.md` as unit tests; built at 960×540 (PX-9 halves it) — needs: none
+- [M2] M2-10 · Progress model on `SaveStore`: unlock rule (completing a level unlocks the next; world 0 never listed; plus design-lead's rule for first levels per world if adopted) and best-time helpers — owner: ui-engineer — est: 3 h — accept: survives reload; blocked storage falls back to memory; unit tests — needs: M1-16, M2-34
+- [M2] M2-36 · Onboarding hint glyph renderer (arrow, Shift, E, X; icons not text) at 480×270 — owner: ui-engineer — est: 2 h — accept: each glyph id renders from a plain object; unit test for id lookup — needs: M2-03, PX-3
+- [M2] M2-11 · Title scene and level select at 480×270 (keyboard nav, locked, unlocked, best time, BitmapText, integer positions) — owner: ui-engineer — est: 5 h — accept: reachable with keyboard only; locked levels cannot start — needs: M2-34, M2-10, PX-9
+- [M2] M2-12 · Pause and results scenes (retry, next, back to select) — owner: ui-engineer — est: 4 h — accept: pause freezes the sim; results show time and best — needs: M2-06, M2-11
+- [M2] M2-13 · Controls screen: every binding including Q/E and Z/X, "show the Sticky Keys tip again", no remapping — owner: ui-engineer — est: 2 h — accept: usable without Shift; every binding from the table listed — needs: M2-01, PX-9
 
 ### Art and audio
-- [M2] M2-15 · `src/fx` tile and player visual module (solid vs mismatched: brightness, fill, outline, pattern) plus a one-shot band-drop flash — owner: art-director — accept: module has a documented API for GameScene; screenshots show solid vs ghost at a glance; flash is visible without color (brightness pulse) — needs: M1-23, M2-14
-- [M2] M2-17 · SFX set behind one function each: shift up, shift down (distinct), jump, land, fall-through, reset, level complete, UI move, UI select, **air-drag clunk** (ten) — owner: audio-designer — accept: all ten exist; audible at low volume (noted in the report); clunk is clearly different from shift down — needs: M1-24
+- [M2] M2-14b · Update `docs/art/accessibility.md` for the 1-bit pixel patterns (each gear distinguishable by pattern alone in the three simulations; red crosshatch checked against "reads as grating") — owner: art-director — est: 2 h — accept: numbers and simulation images in `docs/art/` — needs: PX-1
+- [M2] M2-15 · Pixel world look beyond the pipeline: dithered horizon with the pace tint (yellow distinct from white), exit door glow and slow pulse (reduced-motion safe), two-frame dither wipe for the band-drop flash, reduced-effects variants — owner: art-director — est: 5 h — accept: yellow background at least delta-E 20 from standing; flash visible without color; screenshots in `docs/art/`. **Replaces old M2-15 and M2-16 (the scene half is in PX-7)** — needs: PX-1, PX-4
+- [M2] M2-17 · SFX set behind one function each: shift up, shift down, jump, land, fall-through, reset, level complete, UI move, UI select, air-drag clunk — owner: audio-designer — est: 4 h — accept: all ten exist and are audible at low volume; clunk differs from shift down — needs: M1-24
 
 ### Backend
-- [M2] M2-18 · `src/net` Supabase client skeleton: timeout, quiet failure, no-op when env is missing — owner: backend-engineer — accept: unit tests with a mocked fetch: timeout, 500 and offline all resolve without throwing — needs: M1-19
+- [M2] M2-18 · `src/net` Supabase client skeleton: timeout, quiet failure, no-op without env — owner: backend-engineer — est: 3 h — accept: mocked fetch: timeout, 500 and offline all resolve without throwing — needs: M1-19
 
-### Level design
-- [M2] M2-19 · World 1 levels w1-01 (First Steps) and w1-02 (Shift), each with a recording and the onboarding hint headers — owner: level-designer — accept: replay test passes; headers set; safe spot near the start; w1-01 fails if you let go on the bridge; recordings survive ±3 steps — needs: M2-01, M2-05, M2-03
-- [M2] M2-20 · World 1 levels w1-03 (Runway) and w1-04 (Brake) with recordings — owner: level-designer — accept: as M2-19; w1-03 red bridge 2 tiles out, 8-tile safe room behind — needs: M2-19
-- [M2] M2-21 · World 2 levels w2-01 (Commit) and w2-02 (Coast) with recordings — owner: level-designer — accept: as M2-19; w2-01 uses a green runway, w2-02 teaches drag (a yellow takeoff lands green and drops) — needs: M2-20
-- [M2] M2-22 · World 2 levels w2-03 (Step Down) and w2-04 (Two Colors) with recordings — owner: level-designer — accept: as M2-19 — needs: M2-21
+### Level design (9 levels; each records in `levels/README.md` that removing the new piece breaks the intended line)
+- [M2] M2-19 · w1-01 First Steps and w1-02 Shift, with recordings (hint headers added when M2-04 lands) — owner: level-designer — est: 4 h — accept: replay test passes; ±3-step test passes; safe spot near the start; w1-01 fails if you let go on the bridge — needs: M1-21
+- [M2] M2-20 · w1-03 Runway and w1-04 Brake — owner: level-designer — est: 4 h — accept: as M2-19; w1-03 red bridge 2 tiles out, 8-tile safe room behind — needs: M2-19
+- [M2] M2-45 · w1-05 Red Wall — owner: level-designer — est: 3 h — accept: as M2-19; the shift window is the 2.75 tiles in the plan; removing the wall breaks it — needs: M2-20
+- [M2] M2-21 · w2-01 Commit and w2-02 Coast — owner: level-designer — est: 4 h — accept: as M2-19; w2-02 red takeoff lands yellow on the pad, a yellow takeoff falls — needs: M2-45
+- [M2] M2-22 · w2-03 Step Down (drop exactly 4 tiles) and w2-04 Two Colors — owner: level-designer — est: 4 h — accept: as M2-19; w2-03 walk-off lands 5.8 tiles out, jump 10.65 — needs: M2-21. _Hint headers for w1-01 and w1-02 and the `levels/README.md` pass: 1 h, after M2-04._
 
-### Review, QA, playtest
-- [M2] M2-25 · Review loader, replay test, progression, HUD mount, tip and hint mount, fx adoption — owner: tech-lead — accept: Approve, no CRITICAL/HIGH — needs: M2-04, M2-05, M2-06, M2-09, M2-39, M2-16
-- [M2] M2-26 · Review UI work (including the Sticky Keys tip view from M1-40) — owner: tech-lead — accept: as M2-25 — needs: M2-08, M2-36, M2-10, M2-11, M2-12, M2-13
-- [M2] M2-27 · Review art, audio and net skeleton — owner: tech-lead — accept: as M2-25 — needs: M2-14, M2-15, M2-17, M2-18
-- [M2] M2-28 · E2E: boot, title, level select, play, complete, results, Q/E and Z/X shift gears, Sticky Keys tip shows once (Windows user agent emulated), controls screen — owner: qa-tester — accept: passes via `npm run test:e2e` — needs: M2-09, M2-39, M2-11, M2-12, M2-13
-- [M2] M2-29 · Verify M2: all accept lines, 960×540 in an iframe, keyboard-only, alternate bindings, tip, color-blind screenshots added to `docs/art/` evidence — owner: qa-tester — accept: Pass/Fail per criterion with evidence — needs: M2-23, M2-25, M2-26, M2-27, M2-28
-- [M2] M2-30 · Playtest worlds 1–2 (fresh eyes), including a re-check of D-1 and D-3 with real levels — owner: playtester — accept: report in `docs/playtests/` with per-level sections — needs: M2-29
-- [M2] M2-31 · Triage the playtest into decisions (tuning, level changes, accept) and **lock the tuning numbers** — owner: design-lead — accept: each issue has a decision and a reason in `decisions.md`; the lock is recorded — needs: M2-30
-- [M2] M2-32 · **M2 gate**: suite, build, worlds 1–2 verified after the decisions are applied — owner: qa-tester — accept: no open blocker or major bug — needs: M2-29, M2-31, M2-24
-- [M2] M2-33 · M2 close-out and M3 re-plan — owner: producer — accept: board current; cut-list triggers checked — needs: M2-32
+### QA, playtest, gate
+- [M2] M2-28 · E2E: boot, title, level select, play, complete, results, Q/E and Z/X, Sticky Keys tip once (Windows user agent emulated), controls screen, a colored wall — owner: qa-tester — est: 4 h — accept: passes via `npm run test:e2e` — needs: M2-06, M2-11, M2-12, M2-13, M2-39
+- [M2] M2-29 · Verify M2 on the pixel build: all accept lines, colored-wall checks 1–7, 960×540 in an iframe, keyboard only, alternate bindings, color-blind screenshots — owner: qa-tester — est: 3 h — accept: Pass/Fail per criterion with evidence — needs: M2-23, M2-25, M2-26, M2-27, M2-28, M2-47
+- [M2] M2-30 · Playtest worlds 1–2 (fresh eyes) including re-checks of D-1 and D-3 and **how far a 10-minute player gets** (R9) — owner: playtester — est: 2 h — accept: report with per-level sections and a "would they reach level 10" estimate — needs: M2-29
+- [M2] M2-31 · Triage the playtest into decisions, lock tuning, **decide whether Two Colors moves after w3-01 or world 1 trims** (GDD §12.7) — owner: design-lead — est: 2 h — accept: each issue decided with a reason; lock recorded — needs: M2-30
+- [M2] M2-32 · **M2 gate (Nov 15):** suite, build, worlds 1–2 verified after the decisions — owner: qa-tester — est: 1.5 h — accept: no open blocker or major — needs: M2-29, M2-31
+- [M2] M2-33 · M2 close-out, M3 re-plan, Tandem gate outcome applied — owner: producer — est: 1 h — accept: board current; cut triggers checked — needs: M2-32
 
 ---
 
 ## Todo — M3 Content complete (Nov 16–22)
 
-Done when: worlds 3–5, leaderboards live, adaptive audio, palette and shaders. World 3 (5 levels) is a Must; Worlds 4–5 (8 levels) are Should and are the first scope-cut candidates (see `cut-list.md`).
+Done when: Tandem world 3 (5 levels), leaderboards live, adaptive audio, pixel effects and reduced-effects path.
 
 ### Design and tech
-- [M3] M3-01 · Specs for World 4 (conveyors, moving platforms, crates) and World 5 (afterimage) — owner: design-lead — accept: spec sections complete; keys in `tuning.json` — needs: M1-01 (Should)
-- [M3] M3-02 · Specs: leaderboard UX, adaptive audio mapping, Doppler shader and reduced-effects behaviour (including the band-drop flash and clunk) — owner: design-lead — accept: spec sections complete — needs: M1-01
-- [M3] M3-04 · Approve M3 specs; add shared types for new tiles — owner: tech-lead — accept: `types.ts` and docs updated, requests answered — needs: M2-02, M3-01, M3-02
-- [M3] M3-28 · Approve World 3 levels — owner: design-lead — accept: verdict per level in `decisions.md` — needs: M3-40
-- [M3] M3-29 · Approve Worlds 4 and 5 levels — owner: design-lead — accept: as M3-28 — needs: M3-27
-
-(The itch.io page copy moved to M4-10, owned by design-lead; old M3-03 removed.)
+- [M3] M3-02 · Specs: leaderboard UX (time vs steps, name rules), adaptive audio mapping, pixel effects and reduced-effects behaviour (including flash and clunk, Tandem effects per body) — owner: design-lead — est: 4 h — accept: sections complete; due Nov 11 so audio and backend can start — needs: M1-01
+- [M3] M3-04 · Approve M3 specs, shared types for the leaderboard payload — owner: tech-lead — est: 1 h — accept: `types.ts` and docs updated — needs: M3-02
+- [M3] M3-28 · Approve world 3 levels (rolling) — owner: design-lead — est: 2 h — accept: verdict per level — needs: M3-22, M3-23, M3-40, M3-41
 
 ### Gameplay
-- [M3] M3-05 · **[sim]** Event stream completeness and determinism: shift, bandChange, dragDrop, jump, land, fallThrough, reset, won are emitted identically on replay; golden event list for the grey-box room — owner: gameplay-engineer — accept: replay of a log yields the same event list twice; tests — needs: M3-04
-- [M3] M3-06 · **[sim]** World 3 tiles A: mud (caps gear at `mudMaxGear`) and ice (locks speed and gear, ignores shifts). Colored walls already exist from M1-10 — owner: gameplay-engineer — accept: tests from the spec; core coverage ≥ 80% — needs: M2-02, M3-04 (Must)
-- [M3] M3-07 · **[sim]** World 3 tiles B: boost pads (instant gear 4) and speed cameras — owner: gameplay-engineer — accept: as M3-06 — needs: M3-06 (Must)
-- [M3] M3-08 · **[sim]** Conveyors and moving platforms — owner: gameplay-engineer — accept: world speed vs leg speed per spec; deterministic movers; tests — needs: M3-01, M3-07 (Should)
-- [M3] M3-09 · **[sim]** Crates that keep the color they were pushed at — owner: gameplay-engineer — accept: tests from the spec — needs: M3-08 (Should)
-- [M3] M3-10 · **[sim]** Afterimage: gear-4 ghost platforms that expire — owner: gameplay-engineer — accept: lifetime deterministic and in tuning; tests — needs: M3-09 (Should)
-- [M3] M3-21 · **[scene]** GameScene feeds state and events to audio and fx; reduced-effects flag — owner: gameplay-engineer — accept: fx and audio receive the same steps as the sim; toggling the flag removes post-processing — needs: M3-05, M3-16, M3-18
+- [M3] M3-05 · **[sim]** Event stream completeness: shift, bandChange, airDrag, jump, land, fallThrough, reset, home, won identical on replay with `body` ids; golden event list for w0-02 and a Tandem level — owner: gameplay-engineer — est: 3 h — accept: replay yields the same event list twice — needs: T-12
+- [M3] M3-21 · **[scene]** Feed state and events (with body ids) to audio and fx; reduced-effects flag — owner: gameplay-engineer — est: 3 h — accept: fx and audio receive the same steps as the sim; flag removes post effects — needs: M3-05, M3-16, M3-18, T-20
 
 ### Backend and leaderboards
-- [M3] M3-11 · Edge function `submit-run` v1: payload, floor-time, name checks, per-IP rate limit; RLS tests — owner: backend-engineer — accept: unit tests for each rejection; the service key is read only from function secrets — needs: M3-02, M2-18
-- [M3] M3-12 · Deploy the migration and function to the user's Supabase project; integration check — owner: backend-engineer — accept: submit then read round-trip works; direct client insert is denied — needs: M3-11, USER-2
-- [M3] M3-13 · Wire `src/net` to the real endpoints (read top N, submit) — owner: backend-engineer — accept: offline, slow and error responses never block play (tests) — needs: M3-11, M2-18
-- [M3] M3-14 · Results leaderboard panel, name entry, quiet offline state; best times in level select — owner: ui-engineer — accept: menus work with the network off; name rules shown — needs: M3-13, M3-02
-- [M3] M3-15 · Settings: reduced effects, music and SFX volume, mute, reduced motion — owner: ui-engineer — accept: all persist; mute works before the first gesture without error — needs: M2-13, M3-02
+- [M3] M3-11 · Edge function `submit-run` v1: payload, floor-time, name checks, per-IP rate limit; RLS tests — owner: backend-engineer — est: 4 h — accept: unit tests for each rejection; service key only from function secrets — needs: M3-02, M2-18
+- [M3] M3-12 · Deploy migration and function to the user's Supabase project — owner: backend-engineer — est: 2 h — accept: submit and read round trip; direct client insert denied — needs: M3-11, USER-2
+- [M3] M3-13 · Wire `src/net` to the real endpoints — owner: backend-engineer — est: 2 h — accept: offline, slow and error responses never block play (tests) — needs: M3-11, M2-18
+- [M3] M3-14 · Results leaderboard panel, name entry, quiet offline state, best times in level select (480×270) — owner: ui-engineer — est: 5 h — accept: works with the network off; name rules shown — needs: M3-13, M3-02, M2-12
+- [M3] M3-15 · Settings: reduced effects, music and SFX volume, mute, reduced motion — owner: ui-engineer — est: 3 h — accept: all persist; mute works before the first gesture — needs: M2-13, M3-02
 
 ### Art and audio
-- [M3] M3-16 · Adaptive music engine: pitch and filter glide with band — owner: audio-designer — accept: low and muffled at white, bright at red; no throw before a gesture — needs: M3-02, M2-17
-- [M3] M3-17 · Wire SFX to the event stream and music/SFX volume to settings — owner: audio-designer — accept: every event plays the right sound; volumes respond to settings — needs: M3-05, M3-16, M3-15
-- [M3] M3-18 · Doppler tint shader, glow, particles, reduced-effects path (including a reduced band-drop flash) — owner: art-director — accept: 60 fps on a mid-range laptop (measured, noted); reduced mode removes post-processing — needs: M2-15, M3-02
-- [M3] M3-19 · Final palette and tile visuals for World 3–5 pieces — owner: art-director — accept: each tile has a distinct pattern or glyph; accessibility doc updated — needs: M2-14, M2-02, M3-01
-- [M3] M3-20 · itch.io cover (630×500) and first screenshot set — owner: art-director — accept: files in `assets/art/itch/`; readable at thumbnail size — needs: M3-18, M2-23
+- [M3] M3-16 · Adaptive music engine: pitch and filter glide with band (a prototype can start once M3-02 is in) — owner: audio-designer — est: 5 h — accept: low and muffled at white, bright at red; no throw before a gesture — needs: M3-02, M2-17
+- [M3] M3-17 · Wire SFX to the event stream, volumes to settings — owner: audio-designer — est: 3 h — accept: every event plays the right sound; Tandem events play once per body — needs: M3-05, M3-16, M3-15
+- [M3] M3-18 · Pixel effects: dithered afterimages in earlier band colors, 1 px speed lines, dust pixels, lean, reduced-effects path (replaces the Doppler shader plan) — owner: art-director — est: 6 h — accept: 60 fps on a mid-range laptop (measured, noted); reduced mode removes everything but the flash — needs: M2-15, M3-02
+- [M3] M3-20 · itch.io cover (630×500) and first screenshot set in the pixel look — owner: art-director — est: 3 h — accept: files in `assets/art/itch/`; readable at thumbnail size — needs: M3-18, M2-23
 
 ### Level design
-- [M3] M3-22 · World 3 levels w3-01 (Red Wall; no new tile, may start early if the level lane is free) and w3-02 (Mud), with recordings (Must) — owner: level-designer — accept: replay test passes; one new idea each — needs: M3-06, M2-05
-- [M3] M3-23 · World 3 levels w3-03 (Ice) and w3-04 (Boost) with recordings (Must) — owner: level-designer — accept: as M3-22 — needs: M3-07, M3-22
-- [M3] M3-40 · World 3 level w3-05 (Camera) with recording (Must) — owner: level-designer — accept: as M3-22; the gate cannot be passed without dropping to its gear — needs: M3-07, M3-23
-- [M3] M3-24 · World 4 levels w4-01 and w4-02 (Should) — owner: level-designer — accept: as M3-22 — needs: M3-08, M3-40
-- [M3] M3-25 · World 4 levels w4-03 and w4-04 (Should) — owner: level-designer — accept: as M3-22 — needs: M3-09, M3-24
-- [M3] M3-26 · World 5 levels w5-01 and w5-02 (Should) — owner: level-designer — accept: as M3-22 — needs: M3-10, M3-25
-- [M3] M3-27 · World 5 levels w5-03 and w5-04 (Should) — owner: level-designer — accept: as M3-22 — needs: M3-26
+- [M3] M3-22 · w3-01 Two Lanes and w3-02 Out of Step with recordings; paper drafts of w3-01..w3-03 (in `levels/drafts/`, not `*.txt`, so the loader ignores them) can start Nov 11 — owner: level-designer — est: 5 h — accept: replay and ±3 tests pass; lanes plus divider ≤ 15 rows, lanes ≤ 7, spread ≤ 26 tiles; each split says undone or final in `levels/README.md`; removing the new piece breaks the solution — needs: T-04, T-11
+- [M3] M3-23 · w3-03 Gear Split — owner: level-designer — est: 3 h — accept: as M3-22; the block catches the runner on flight step 14 — needs: M3-22
+- [M3] M3-40 · w3-04 Clamp — owner: level-designer — est: 3 h — accept: as M3-22; the runner's red bridge starts at least 3.5 tiles after the last safe pad — needs: M3-23
+- [M3] M3-41 · w3-05 Redshift (finale) — owner: level-designer — est: 5 h — accept: as M3-22; only known ideas, difficulty from the order — needs: M3-40
 
 ### Review, QA, playtest
-- [M3] M3-30 · Review sim and new tiles — owner: tech-lead — accept: Approve, no CRITICAL/HIGH — needs: M3-05, M3-06, M3-07, M3-08, M3-09, M3-10, M3-21
-- [M3] M3-31 · Review backend and net, with the security-reviewer agent (validation, RLS, secrets) — owner: tech-lead — accept: no secrets in the repo; Approve — needs: M3-11, M3-12, M3-13
-- [M3] M3-32 · Review UI, audio and fx — owner: tech-lead — accept: Approve; effects are render-only — needs: M3-14, M3-15, M3-16, M3-17, M3-18, M3-19, M3-20
-- [M3] M3-33 · Verify M3: all worlds solvable, leaderboards online and offline, audio starts after a gesture, 60 fps, reduced effects — owner: qa-tester — accept: Pass/Fail per criterion with evidence — needs: M3-30, M3-31, M3-32
-- [M3] M3-34 · Playtest of worlds 1–5 as a jam voter (about 10 minutes) — owner: playtester — accept: report with jam-category scores — needs: M3-33, M3-28
-- [M3] M3-35 · Triage the playtest into decisions — owner: design-lead — accept: each issue has a decision — needs: M3-34
-- [M3] M3-36 · **M3 gate**: suite and build pass; content complete — owner: qa-tester — accept: no open blocker or major bug — needs: M3-33, M3-35
-- [M3] M3-37 · M3 close-out and freeze plan — owner: producer — accept: the freeze list is published on the board — needs: M3-36
+- [M3] M3-30 · Review scene and fx wiring — owner: tech-lead — est: 2 h — accept: Approve — needs: M3-05, M3-21, T-20
+- [M3] M3-31 · Review backend and net with the security-reviewer agent — owner: tech-lead — est: 2 h — accept: no secrets in the repo; Approve — needs: M3-11, M3-12, M3-13
+- [M3] M3-32 · Review UI, audio and fx — owner: tech-lead — est: 2 h — accept: Approve; effects are render-only — needs: M3-14, M3-15, M3-16, M3-17, M3-18, M3-20, T-06
+- [M3] M3-33 · Verify M3: world 3 solvable, Tandem checks 1–18 and S1–S4, leaderboards online and offline, audio after a gesture, 60 fps, reduced effects — owner: qa-tester — est: 4 h — accept: Pass/Fail per criterion with evidence — needs: M3-30, M3-31, M3-32, T-21, M3-28
+- [M3] M3-34 · Playtest worlds 1–3 as a jam voter (about 10 minutes) — owner: playtester — est: 2 h — accept: report with jam-category scores and where the player stopped — needs: M3-33
+- [M3] M3-35 · Triage the playtest into decisions — owner: design-lead — est: 1.5 h — accept: each issue decided — needs: M3-34
+- [M3] M3-36 · **M3 gate (Nov 22)** — owner: qa-tester — est: 1 h — accept: no open blocker or major — needs: M3-33, M3-35
+- [M3] M3-37 · M3 close-out and freeze plan — owner: producer — est: 1 h — accept: freeze list on the board — needs: M3-36
+
+### Should: world 4 and the gates package (G-1..G-6)
+Built only if Tandem world 3 is on track. **If the Nov 12 decision gate fails, every G task becomes Must and replaces T-20, T-05, T-06, T-21 and the world 3 Tandem levels** (fallback table in `level-plan.md`). Schedule if Should: start Nov 14 earliest; decide Nov 16 whether to continue (cut list).
+- [M3] G-1 · Gate tiles in the contract: `w b g y r` solid in phases 7–8 unless the band at the start of the step equals the gate band, own no-embed group per band, never graced; `architecture.md` §3.1/3.2; rename in `level-format.md` — owner: tech-lead — est: 1.5 h — accept: types and docs; tests/arch green — needs: T-02
+- [M3] G-2 · **[sim]** Speed gates per `features/speed-gates.md` checks 1–18 — owner: gameplay-engineer — est: 8 h — accept: 18 checks as tests; all M1 and Tandem checks unchanged — needs: G-1, T-12
+- [M3] G-3 · **[level]** Parse test for a level using all five gate glyphs — owner: gameplay-engineer — est: 1 h — accept: test passes — needs: G-1
+- [M3] G-4 · **[scene]** Draw gates (open or closed per the player's band) through the `src/fx` gate drawing — owner: gameplay-engineer — est: 2 h — accept: gates read as gates (screenshot) — needs: G-5, T-20
+- [M3] G-5 · Gate visuals: frame with bars, band pattern in the frame, open vs closed by shape, floor-gate hatch, white gate uses the standing glyph, grayscale and color-vision checks in `docs/art/accessibility.md` — owner: art-director — est: 3 h — accept: gate and colored block distinguishable in grayscale — needs: PX-1
+- [M3] G-6 · World 4 levels w4-01 Gate, w4-02 Trapdoor, w4-03 Two Gates (needs Tandem), w4-04 Ice (needs ice spec and sim, first cut), recordings; if the Tandem gate fails: w3-01..w3-05 are the gates levels — owner: level-designer — est: 3 h each — accept: as M3-22 — needs: G-2, M3-23 (w4-03), M2-02 (w4-04)
+- [M3] G-7 · qa verification: `speed-gates.md` checks 1–18 — owner: qa-tester — est: 2 h — accept: Pass/Fail table — needs: G-2
 
 ---
 
@@ -293,41 +322,62 @@ Done when: worlds 3–5, leaderboards live, adaptive audio, palette and shaders.
 
 Polish and bug fixes only. No new features.
 
-- [M4] M4-01 · Final triage, content freeze, final tuning pass — owner: design-lead — accept: decisions logged; no new content after this task — needs: M3-37
-- [M4] M4-02 · Fix level issues from playtests; re-record affected solutions — owner: level-designer — accept: replay test passes for every level — needs: M4-01
-- [M4] M4-03 · Gameplay bug fixes from `docs/qa/bugs.md` (blocker and major first) — owner: gameplay-engineer — accept: each bug id verified closed by qa-tester — needs: M4-01
-- [M4] M4-04 · UI polish and bug fixes — owner: ui-engineer — accept: as M4-03 — needs: M4-01
-- [M4] M4-05 · Visual polish and performance pass — owner: art-director — accept: 60 fps measured; reduced effects works — needs: M4-01
-- [M4] M4-06 · Final itch.io assets: cover, 4–6 screenshots, 1–2 GIFs — owner: art-director — accept: files in `assets/art/itch/`; sizes match itch requirements — needs: M3-20, M4-02
-- [M4] M4-07 · Audio mix and balance pass — owner: audio-designer — accept: no clipping; music vs SFX levels noted — needs: M4-01
-- [M4] M4-08 · Production build, zip, butler script (dry run) — owner: backend-engineer — accept: zip from a tagged commit runs from a subfolder — needs: M3-37
-- [M4] M4-09 · Leaderboard production smoke test and secrets audit — owner: backend-engineer — accept: no service key in the repo, history or bundle (search results shown) — needs: M3-12
-- [M4] M4-10 · **itch.io page copy** in `docs/design/itch-page.md` (design-lead deliverable, due Nov 28): title, short description, pitch of at most 120 words, controls including the alternate bindings (Q/E, Z/X) and a Sticky Keys note, accessibility note, tags — owner: design-lead — accept: matches the final build and controls; word count shown — needs: M3-37
-- [M4] M4-11 · Final review of all fixes; bundle size and performance check — owner: tech-lead — accept: Approve — needs: M4-02, M4-03, M4-04, M4-05, M4-07, M4-08, M4-09
-- [M4] M4-12 · Repo hygiene: README, LICENSE, CREDITS complete, `.env.example`, `.gitattributes`, secret scan, `CLAUDE.md` Commands current — owner: tech-lead — accept: checklist in the report — needs: M2-24
-- [M4] M4-13 · Full regression: all level recordings, e2e, build, 960×540 iframe, keyboard-only, alternate bindings, Sticky Keys tip once on Windows, reduced effects, blocked storage, network off, 60 fps — owner: qa-tester — accept: Pass/Fail per item with evidence — needs: M4-11
-- [M4] M4-14 · Full-game fresh-eyes playtest on the freeze build — owner: playtester — accept: report with jam-category scores and the one change that would help most — needs: M4-11
-- [M4] M4-15 · Verify the draft itch.io embed (iframe, 960×540, keyboard, focus) — owner: qa-tester — accept: evidence screenshots — needs: USER-3, M4-08
-- [M4] M4-16 · **M4 gate (Nov 28)**: freeze build tagged; only blocker fixes after this; remind the user of USER-6 — owner: producer — accept: M4-10, M4-12, M4-13, M4-14 and M4-15 are Pass — needs: M4-10, M4-12, M4-13, M4-14, M4-15
-
----
+- [M4] M4-01 · Final triage, content freeze, final tuning pass — owner: design-lead — est: 2 h — accept: decisions logged; no new content after this — needs: M3-37
+- [M4] M4-02 · Fix level issues from playtests; re-record affected solutions — owner: level-designer — est: 4 h — accept: replay and ±3 tests pass for every level — needs: M4-01
+- [M4] M4-03 · Gameplay bug fixes from `docs/qa/bugs.md` (blocker and major first) — owner: gameplay-engineer — est: 6 h — accept: each bug verified closed by qa-tester — needs: M4-01
+- [M4] M4-04 · UI polish and bug fixes — owner: ui-engineer — est: 4 h — accept: as M4-03 — needs: M4-01
+- [M4] M4-05 · Visual polish and performance pass in the pixel look — owner: art-director — est: 4 h — accept: 60 fps measured; reduced effects works — needs: M4-01
+- [M4] M4-06 · Final itch.io assets: cover, 4–6 screenshots, 1–2 GIFs (2× pixel art, no smoothing) — owner: art-director — est: 3 h — accept: files in `assets/art/itch/`; sizes match itch requirements — needs: M3-20, M4-02
+- [M4] M4-07 · Audio mix and balance pass — owner: audio-designer — est: 3 h — accept: no clipping; levels noted — needs: M4-01
+- [M4] M4-08 · Production build, zip, butler script (dry run) — owner: backend-engineer — est: 2 h — accept: zip from a tagged commit runs from a subfolder — needs: M3-37
+- [M4] M4-09 · Leaderboard production smoke test and secrets audit — owner: backend-engineer — est: 2 h — accept: no service key in repo, history or bundle (search shown) — needs: M3-12
+- [M4] M4-10 · itch.io page copy in `docs/design/itch-page.md`: title, short description, pitch ≤ 120 words, controls incl. Q/E and Z/X and a Sticky Keys note, accessibility note, tags, **a line saying Tandem arrives in world 3** — owner: design-lead — est: 2 h — accept: matches the final build; word count shown — needs: M3-37
+- [M4] M4-11 · Final review of all fixes; bundle size and performance check — owner: tech-lead — est: 2 h — accept: Approve — needs: M4-02, M4-03, M4-04, M4-05, M4-07, M4-08, M4-09
+- [M4] M4-12 · Repo hygiene: README, LICENSE, CREDITS (bitmap font and any third-party asset), `.env.example`, `.gitattributes`, secret scan, `CLAUDE.md` Commands current — owner: tech-lead — est: 1.5 h — accept: checklist in the report — needs: M2-24
+- [M4] M4-13 · Full regression: all recordings, e2e, build, 960×540 iframe, fullscreen integer zoom, keyboard only, alternate bindings, Sticky Keys tip once, reduced effects, blocked storage, network off, 60 fps — owner: qa-tester — est: 4 h — accept: Pass/Fail per item — needs: M4-11
+- [M4] M4-14 · Full-game fresh-eyes playtest on the freeze build — owner: playtester — est: 2 h — accept: report with jam-category scores and the one change that would help most — needs: M4-11
+- [M4] M4-15 · Verify the draft itch.io embed (iframe, 960×540, keyboard, focus, integer scale) — owner: qa-tester — est: 1 h — accept: evidence screenshots — needs: USER-3, M4-08
+- [M4] M4-16 · **M4 gate (Nov 28)**: freeze build tagged; remind the user of USER-6 — owner: producer — est: 0.5 h — accept: M4-10, M4-12, M4-13, M4-14, M4-15 Pass — needs: M4-10, M4-12, M4-13, M4-14, M4-15
 
 ## Todo — Submit (Nov 29–30)
 
-- [Submit] S-01 · Final zip from the tagged commit, with a checksum — owner: backend-engineer — accept: unzip and serve from a subfolder and it plays; checksum in the report — needs: M4-16
-- [Submit] S-02 · Verify the repo is public, CI green, no secrets in history, tag `v1.0` — owner: tech-lead — accept: repo opens in a logged-out browser; no secrets in history — needs: M4-16, USER-6
-- [Submit] S-03 · Upload the zip to itch.io, publish the page, link the repo — owner: USER (USER-4) — accept: page public — needs: S-01, S-02
-- [Submit] S-04 · Smoke-test the live itch.io page (iframe, keyboard, leaderboards offline-safe) — owner: qa-tester — accept: evidence screenshots — needs: S-03
-- [Submit] S-05 · Fresh-eyes check of the live page: first 30 seconds — owner: playtester — accept: short report in `docs/playtests/` — needs: S-03
-- [Submit] S-06 · Submit the entry to GitHub Game Off 2026 with the repo link — owner: USER (USER-4) — accept: entry visible on the jam page before Nov 30 end of day — needs: S-04
-- [Submit] S-07 · Submission checklist and the Dec 1 buffer plan — owner: producer — accept: checklist ticked on the board — needs: S-06
+- [Submit] S-01 · Final zip from the tagged commit, with a checksum — owner: backend-engineer — est: 1 h — accept: unzip and serve from a subfolder and it plays — needs: M4-16
+- [Submit] S-02 · Verify the repo is public, CI green, no secrets in history, tag `v1.0` — owner: tech-lead — est: 1 h — accept: repo opens in a logged-out browser — needs: M4-16, USER-6
+- [Submit] S-03 · Upload the zip to itch.io, publish, link the repo — owner: USER (USER-4) — accept: page public — needs: S-01, S-02
+- [Submit] S-04 · Smoke-test the live page — owner: qa-tester — est: 1 h — accept: evidence screenshots — needs: S-03
+- [Submit] S-05 · Fresh-eyes check of the live page: first 30 seconds — owner: playtester — est: 1 h — accept: short report — needs: S-03
+- [Submit] S-06 · Submit the entry to GitHub Game Off 2026 — owner: USER (USER-4) — accept: entry visible before Nov 30 end of day — needs: S-04
+- [Submit] S-07 · Submission checklist and Dec 1 buffer plan — owner: producer — est: 0.5 h — accept: checklist ticked — needs: S-06
 
 ---
 
-## Changes on 2026-11-02 (v1.1 re-plan)
+## Superseded and cut (as of 2026-11-03)
 
-- **Removed:** M2-07 (GameScene reads preset bindings; superseded because all bindings are active at once and M1-14/M1-16 cover it), M2-38 (tip overlay; the ui-engineer built it inside M1-40, mounting is M2-39), M3-03 (itch copy; moved to M4-10).
-- **Merged or reshaped:** M1-09 split into M1-09 (motion) and M1-47 (sim wiring); M1-11 drag maths moved to M1-45; M1-13 codec and `runInputLog` moved to M1-43; M2-01 split into M2-01 and M2-34; M2-13 is now a controls screen (no remap); M2-19 to M2-22 renumbered to the level ids `w1-01`…`w2-04`; level 3-5 is M3-40.
-- **New:** M1-39, M1-40, M1-41, M1-43, M1-45, M1-47, M2-34, M2-36, M2-39, M2-40, M3-40, USER-6.
-- **Requests from ui-engineer answered:** the input-sampler wiring is in M1-14 (gameplay-engineer, `src/entities/`), the shared `SaveStore` in M2-40 (tech-lead, `main.ts`), the tip and `recordLevelComplete` calls in M2-39 and M2-06.
-- **Fixes:** grey-box room is `levels/w0-02.txt` (the old `grey-box-room.txt` broke the id = file stem rule); e2e command is `npm run test:e2e`; USER-3 is needed by M4-15 (was M4-16).
+| Task | Status | Why |
+|---|---|---|
+| M1-03 feasibility review of specs | Superseded | The sim was built and reviewed directly. |
+| M1-31, M1-32 | Merged into M1-30 | One closure of the core review. |
+| M2-02 mud, ice, boost, speed-camera specs | Cut (mud, boost, camera as designed); ice kept as Should | Mechanics review v1.3. |
+| M2-07, M2-38 | Removed 2026-11-02 | See that day's changes. |
+| M2-15, M2-16 (Graphics-based `src/fx` and scene adoption) | Superseded by PX-1, PX-6, PX-7 and the new M2-15 | Pixel direction. |
+| M3-06, M3-07 (mud, ice, boost pads, speed cameras in the sim) | Cut; ice is Should, gates are G-2 | v1.3 and v1.4. |
+| M3-08, M3-09, M3-10 (conveyors, platforms, crates, afterimage) | Cut | v1.3 (collapse test). |
+| M3-01 specs for worlds 4–5 | Reduced to the existing gates spec plus M2-02 ice | World 5 cut. |
+| M3-24..M3-27 (old world 4–5 levels) | Replaced by G-6 | Level plan v3.0. |
+| M3-18 Doppler tint shader | Reshaped into pixel effects | Direction C has no shader glow. |
+| M3-19 world 3–5 tile visuals | Replaced by T-05 (Tandem) and G-5 (gates, Should) | |
+| w2-04 Gate as an M2 level | Moved to world 4 | v1.4. |
+| Gates as Must | Should (Must again only if the Tandem gate fails) | v1.4. |
+
+---
+
+## Request triage map (2026-11-03)
+
+Statuses are marked in `requests.md`. Lines on the board: 67 → M1-21; 68 → PX-1 and M2-15; 69, 72 → M1-50; 70 → M1-28; 74 → M2-47 (walls) and G-2 (gates, Should); 75 → G-3; 76 → G-4; 77 → T-02 and G-1; 78 → M2-15 and G-5; 79, 96 → M2-19..M2-45 and M3-22..M3-41; 80, 97 → M2-29, T-21, G-7; 81 → M1-42; 85, 86 → PX-1..PX-11; 87 → PX-5; 88 → PX-9 and M2-11; 90 → T-01, T-02, PX-4; 91 → T-10..T-12; 92 → T-04; 93 → T-20; 94 → T-06; 95 → PX-2, T-05. Superseded: 73 (by 89). Done: 62, 63, 64, 65, 66, 71, 82, 83, 84, 89.
+
+## Changes on 2026-11-03 (v1.4 and pixel re-plan)
+
+- Board rewritten from the repo: most of M1 is built and in Review; M2-05, M2-08 (Must part), M2-09, M2-14, M2-24 and the core of M2-04 exist.
+- New: PX-1..PX-11, T-01..T-06, T-10..T-15, T-20, T-21, G-1..G-7, M1-42, M1-44, M1-46, M1-48, M1-50, M1-51, M2-45, M2-47, M2-14b, M3-41.
+- Superseded and cut tasks are in the table above. D-1..D-3 verdicts moved to Settled.
+- Hours are agent-hours; the gameplay-engineer total for Nov 4–22 is about 75 h over four lanes (see R10).

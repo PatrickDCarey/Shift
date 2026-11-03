@@ -2,6 +2,8 @@
 
 _Owner: art-director. 2026-11-03. Nothing in the game or `palette.json` has changed; these are mock-ups for a decision._
 
+**Update (same day): the owner picked C, Pixel Dither.** The palette deltas below were applied with small changes found by a CVD search (ghost outlines blue `#4F86E8`, green `#40D88C`, red `#E11E3A` instead of the frame values; red's pattern is now a checker instead of the crosshatch; decor cap 0.013). See `docs/art/accessibility.md` and `docs/art/style.md` for the current values; the frames and numbers below are the original mock-up.
+
 Three directions, same moment each: the w0-02 room (a condensed 30 x 17 tile slice of `levels/w0-02.txt`: start floor, red bridge, safe pillar, yellow pad, blue bridge over the exit pocket, low ceiling), the player running at yellow, the red bridge ahead and the blue bridge as ghosts, the exit visible in its pocket, the HUD gear meter at 10,10 (220 x 64).
 
 For comparison, today's greybox: `00-current-greybox.png` (a screenshot of `?level=w0-02`).

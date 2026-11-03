@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   PATTERN_IDS,
+  PIXEL_CELLS,
   clipLineToSquare,
   dashedRectSegments,
   isPatternId,
   patternGeometry,
+  pixelPatternMask,
+  pixelPatternOn,
   type PatternId,
   type PatternShape,
 } from './patterns';
@@ -12,12 +15,15 @@ import {
 const MIN_STROKE = 1.5;
 const SIZES = [32, 16] as const;
 
-function distToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+/** Is the point within a butt-capped stroke of width `w` along the segment (how Phaser draws lineBetween)? */
+function onStroke(px: number, py: number, x1: number, y1: number, x2: number, y2: number, w: number): boolean {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len2 = dx * dx + dy * dy;
-  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2));
-  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  if (len2 === 0) return false;
+  const t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  if (t < 0 || t > 1) return false;
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)) <= w / 2 + 1e-9;
 }
 
 /** Rasterise a pattern to an ink mask at `size` x `size` pixels (pixel centres). */
@@ -31,7 +37,7 @@ function mask(id: PatternId, size: number): boolean[] {
       out.push(
         geo.shapes.some((s: PatternShape) =>
           s.kind === 'line'
-            ? distToSegment(px, py, s.x1, s.y1, s.x2, s.y2) <= geo.strokeWidth / 2
+            ? onStroke(px, py, s.x1, s.y1, s.x2, s.y2, geo.strokeWidth)
             : Math.hypot(px - s.cx, py - s.cy) <= s.r,
         ),
       );
@@ -84,7 +90,7 @@ describe('patternGeometry', () => {
   });
 
   it('is deterministic', () => {
-    expect(patternGeometry('crosshatch', 32, MIN_STROKE)).toEqual(patternGeometry('crosshatch', 32, MIN_STROKE));
+    expect(patternGeometry('checker', 32, MIN_STROKE)).toEqual(patternGeometry('checker', 32, MIN_STROKE));
   });
 
   it.each(SIZES)('patterns cover a legible share of a %i px tile (10 to 55 percent ink)', (size) => {
@@ -161,5 +167,110 @@ describe('isPatternId', () => {
   it('accepts known ids only', () => {
     expect(isPatternId('chevrons')).toBe(true);
     expect(isPatternId('zigzag')).toBe(false);
+  });
+});
+
+describe('pixel patterns (16 px tile art)', () => {
+  const cells = Object.entries(PIXEL_CELLS) as Array<[string, { width: number; height: number }]>;
+  const marked = PATTERN_IDS.filter((id) => id !== 'plain');
+  const PHASES = [0, 1, 2, 3, 4, 5, 6, 7];
+
+  it('plain never inks and is the only such pattern', () => {
+    expect(pixelPatternOn('plain', 3, 4, 12)).toBe(false);
+    for (const id of marked) expect(pixelPatternMask(id, 12, 10).some(Boolean), id).toBe(true);
+  });
+
+  it.each(cells)('covers 20 to 55 percent of the %s cell at every phase', (_name, c) => {
+    for (const id of marked) {
+      for (const sx of PHASES) {
+        for (const sy of PHASES) {
+          const cov = coverage([...pixelPatternMask(id, c.width, c.height, sx, sy)]);
+          expect(cov, `${id} ${c.width}x${c.height} phase ${sx},${sy}`).toBeGreaterThanOrEqual(0.2);
+          expect(cov, `${id} ${c.width}x${c.height} phase ${sx},${sy}`).toBeLessThanOrEqual(0.55);
+        }
+      }
+    }
+  });
+
+  it.each(cells)('marked patterns differ from each other on at least 30 percent of the %s cell at any relative phase', (_name, c) => {
+    for (let a = 0; a < marked.length; a++) {
+      for (let b = a + 1; b < marked.length; b++) {
+        const A = marked[a] as PatternId;
+        const B = marked[b] as PatternId;
+        let worst = 1;
+        for (const sx of PHASES) {
+          for (const sy of PHASES) {
+            worst = Math.min(worst, difference([...pixelPatternMask(A, c.width, c.height)], [...pixelPatternMask(B, c.width, c.height, sx, sy)]));
+          }
+        }
+        expect(worst, `${A} vs ${B} ${c.width}x${c.height}`).toBeGreaterThanOrEqual(0.3);
+      }
+    }
+  });
+
+  it.each(cells)('plain differs from every marked pattern on at least 20 percent of the %s cell', (_name, c) => {
+    for (const id of marked) {
+      for (const sx of PHASES) {
+        for (const sy of PHASES) {
+          expect(difference([...pixelPatternMask('plain', c.width, c.height)], [...pixelPatternMask(id, c.width, c.height, sx, sy)]), id).toBeGreaterThanOrEqual(0.2);
+        }
+      }
+    }
+  });
+
+  it('every mark is at least 2 px wide (survives 2x scaling and a shrunken iframe)', () => {
+    for (const id of marked) {
+      for (const sy of PHASES) {
+        const m = pixelPatternMask(id, 12, 10, 0, sy);
+        for (let y = 0; y < 10; y++) {
+          let run = 0;
+          for (let x = 0; x <= 12; x++) {
+            const on = x < 12 && m[y * 12 + x] === true;
+            if (on) run++;
+            else {
+              if (run > 0) expect(run, `${id} row ${y} phase ${sy}`).toBeGreaterThanOrEqual(2);
+              run = 0;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('still tells the patterns apart after 2x2 averaging (a half-scale view)', () => {
+    const pool = (m: readonly boolean[], w: number, h: number): number[] => {
+      const out: number[] = [];
+      for (let y = 0; y + 1 < h; y += 2) {
+        for (let x = 0; x + 1 < w; x += 2) {
+          out.push(((m[y * w + x] ? 1 : 0) + (m[y * w + x + 1] ? 1 : 0) + (m[(y + 1) * w + x] ? 1 : 0) + (m[(y + 1) * w + x + 1] ? 1 : 0)) / 4);
+        }
+      }
+      return out;
+    };
+    const { width: w, height: h } = PIXEL_CELLS.tile;
+    for (let a = 0; a < PATTERN_IDS.length; a++) {
+      for (let b = a + 1; b < PATTERN_IDS.length; b++) {
+        const A = pool(pixelPatternMask(PATTERN_IDS[a] as PatternId, w, h), w, h);
+        const B = pool(pixelPatternMask(PATTERN_IDS[b] as PatternId, w, h), w, h);
+        const d = A.reduce((n, v, i) => n + Math.abs(v - (B[i] ?? 0)), 0) / A.length;
+        expect(d, `${PATTERN_IDS[a]} vs ${PATTERN_IDS[b]}`).toBeGreaterThanOrEqual(0.15);
+      }
+    }
+  });
+
+  it('chevrons are centred on the cell and do not move with a sideways phase', () => {
+    expect(pixelPatternMask('chevrons', 12, 10, 0, 0)).toEqual(pixelPatternMask('chevrons', 12, 10, 3, 0));
+  });
+});
+
+describe('checker (vector, replaces the crosshatch)', () => {
+  it('is half ink at 32 px and 16 px and made of square cells', () => {
+    for (const size of SIZES) {
+      const g = patternGeometry('checker', size, MIN_STROKE);
+      const cell = size >= 24 ? size / 4 : size / 2;
+      expect(g.strokeWidth).toBeCloseTo(cell, 9);
+      expect(g.shapes).toHaveLength(size >= 24 ? 8 : 2);
+      expect(coverage(mask('checker', size))).toBeCloseTo(0.5, 1);
+    }
   });
 });

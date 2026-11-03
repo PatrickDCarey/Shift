@@ -1,12 +1,14 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
 A puzzle-platformer where **your pace is your color**. Stand still and you're white; sprint and you're red. Colored platforms are only solid when your color matches them, so every puzzle is about where you speed up, where you slow down, and where you take off.
 
-Theme link: you **shift** gears with the **Shift** keys, and the world **red-shifts** as you speed up.
+Then the twist: **one throttle, two runners.** A second runner, the twin, obeys the same keys on its own floor. Same input, but each body's color comes from its own history, so the puzzle becomes putting the two out of step (a wall that stops only one, a jump that resets one) and back in step.
+
+Theme link: you **shift** gears with the **Shift** keys, the world **red-shifts** as you speed up, and in Tandem you phase-shift two runners against each other.
 
 ## 2. Pillars
 
@@ -122,7 +124,8 @@ Tile kinds (level format characters from `docs/tech/level-format.md`):
 | empty | `.` | never |
 | safe | `#` | always, all faces. Drawn white/grey: "you can stop and turn here". |
 | colored | `B` `G` `Y` `R` | all faces, **only while the player's band matches**, subject to no-embed and grace |
-| speed gate | `w` `b` `g` `y` `r` (band 0–4) | all faces, **unless the player's band equals the gate's band**; own no-embed group per band; never graced (M2, `features/speed-gates.md`) |
+| speed gate | `w` `b` `g` `y` `r` (band 0–4) | all faces, **unless the player's band equals the gate's band**; own no-embed group per band; never graced (Should since v1.4, `features/speed-gates.md`) |
+| twin spawn | `&` | empty; the twin spawns standing on the bottom edge of this cell (§4.15); at most one |
 | exit | `E` | never solid; touching it completes the level |
 | player start | `@` | empty; the player spawns standing on the bottom edge of this cell |
 
@@ -184,6 +187,7 @@ The player is airborne whenever not supported (after a jump, walking off a ledge
 - Buttons still held across a respawn act normally from the first step of the new run (holding Right through a death walks you right as soon as you respawn).
 - **No checkpoints.** Levels are single rooms sized for a 10–40 second solve.
 - **Exit:** the level is complete on the first step the player overlaps an exit tile, in any color and gear. Exit wins over death on the same step. The level time is the step count of that run.
+- **With a twin (§4.15):** a body touching an exit is *home* and freezes there; the level is complete when both are home. Either body falling out kills the run, and death and restart reset both.
 
 ### 4.13 Determinism
 
@@ -207,6 +211,21 @@ Normative for M1, so acceptance numbers match. The implementation detail of each
 12. **Grace:** start grace if the band changed while grounded at both start and end of the step; otherwise count down.
 13. **Timers:** coyote, jump buffer, shift buffer count down.
 14. **Exit, then death checks.**
+
+With a twin, phases 0, 1, 3, 14 and 15 run once per step, and phases 2 and 4–13 run per body, runner first, then twin (§4.15).
+
+### 4.15 Tandem (one throttle, two runners)
+
+Full rules and acceptance: `features/tandem.md`.
+
+- A level may hold one twin spawn `&`. The twin is a second body with its own full player state (position, speed, gear, band, grace, buffers, drag counter).
+- **Same input, separate bodies.** Every step both bodies get the same held direction, jump and shift presses. Direction is computed once; shifting, jumping and all physics run per body. A grounded body shifts now, an airborne one buffers, and the air rule lowers only its own gear, so **gears can split**.
+- **Resync by clamping.** Presses past gear 4 or below gear 1 do nothing for a body already there. Pressing up until both reach 4 (or down until both reach 1) brings split gears back together.
+- **No contact.** The bodies never collide, push or support each other.
+- **Home and win.** A body overlapping an exit is home: frozen, no events, never dies. The run is won on the first step both are home. Home is checked before death on the same step.
+- **Death and reset.** Either body falling out kills the run; respawn and restart reset both, home flags included.
+- **Step order.** Runner (body 0) before twin (body 1) each step. This only orders events, since the bodies can't affect each other.
+- **No twin, no change.** Without `&` the game plays exactly as §4.1–4.14.
 
 ## 5. Sanity math
 
@@ -325,23 +344,27 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 - **A good level puts two decisions in tension at nearby places** (where to build speed, where to shed it, what you are at a point, what you commit to at takeoff, where your color changes), so the answer is a place-and-pace pair, not "go fast" or "stop". Each level must fail when its new piece is removed (`mechanics-review.md` §1).
 - Gates: full-height columns as walls; `w` only as floors and ceilings; never spawn on or in a gate; the first gate is met at walking pace on safe ground.
 - A sprint jump is red for its first 6.0 tiles of flight and yellow after: a wall or gate 4 tiles out sees red, one 7 tiles out sees yellow.
+- **Tandem levels:** two lanes plus divider take at most 15 rows (the HUD sits above); lanes stacked with a safe divider at least 1 tile thick, each lane at most 7 rows; each body has its own reachable exit; intended solutions keep the bodies within 26 tiles in x; every split comes from the level (wall, air stop, gap, exit), never from timing.
 - Every level must ship a solution recording that passes the replay test.
 
 ## 7. Puzzle toolbox (teaching order)
 
-Revised 2026-11-03 by the puzzle depth review (`mechanics-review.md`): the old plan taught one requirement per place ("be color X on this floor"), which made worlds 1–2 thin. The two cheapest pieces that create tension, colored walls ("not this color here") and speed gates ("only this color here"), move into M2.
+Revised 2026-11-03 by the puzzle depth review (`mechanics-review.md`): the old plan taught one requirement per place ("be color X on this floor"), which made worlds 1–2 thin. v1.3 brought colored walls ("not this color here") into world 1 and speed gates ("only this color here") into M2. In v1.4 walls stay; gates move to Should behind the Tandem twist.
+
+v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1–2 teach one runner; world 3 hands you a second one.
 
 | World | Theme | New pieces | Levels | Priority | Milestone |
 |---|---|---|---|---|---|
 | 1 Gears | moving, shifting, runway, braking, "not this color" | colored floors, safe tiles, **colored walls** | 5 | Must | M2 |
-| 2 Commit | decide your pace before you arrive | air commitment, air drag, walk-offs, **speed gates** | 5 | Must | M2 |
-| 3 Gates | where your color changes | gates in flight and in the floor (trapdoors), braking zones | 4 | Must | M3 |
-| 4 Remix | old rules, new faces | colored ceilings, ice | 4 | Should | M3 |
+| 2 Flight | decide your pace before takeoff | air commitment, air drag, walk-offs | 4 | Must | M2 |
+| 3 Tandem | one throttle, two runners | the twin; splitting by walls and air stops; resync by clamping; parking at exits | 5 | Must | M3 |
+| 4 Gates | only this color here | speed gates, gate floors, ice | 4 | Should | M3 |
 
 ### 7.1 Pieces after M1
 
 - **Colored walls and ceilings (M2, Must):** §4.7; built in M1. Spec with extra checks: `features/colored-walls.md`.
-- **Speed gates (M2, Must):** §4.7; spec `features/speed-gates.md`. Replaces the "speed camera" of v1.2: same characters, but gates read the band of the player's own speed (there is no world speed, conveyors are cut).
+- **Tandem (M3, Must):** §4.15; spec `features/tandem.md`. Sim and scene built Nov 9–13; decision gate Nov 12 (if it fails, world 3 reverts to the v1.3 gates world and gates become Must again).
+- **Speed gates (Should since v1.4; Must in the fallback):** §4.7; spec `features/speed-gates.md`. Replaces the "speed camera" of v1.2: same characters, but gates read the band of the player's own speed (there is no world speed, conveyors are cut).
 - **Ice (M3, Should)** (`=`, always solid): while supported only by ice, speed and gear are locked. Shift presses are ignored (not buffered); holding, letting go and reversing do nothing. You leave ice at the speed you entered. Open: what happens at speed 0 on ice (§12). Spec before M3; no tuning key expected.
 - **Cut 2026-11-03** (reasons in `mechanics-review.md` §4; post-jam at most): mud (`~`) and boost pads (`*`), whose puzzles collapse into "slow here" and "go fast"; conveyors (`<` `>`), moving platforms, crates and afterimage ghosts, which each need a new subsystem; and the new ideas considered in the review (tint gates, springs, crumble floors, speed limits, one-way floors).
 
@@ -352,10 +375,12 @@ Revised 2026-11-03 by the puzzle depth review (`mechanics-review.md`): the old p
 - **Step down:** sprint off a 4-tile ledge onto a red floor. Walking off keeps you red (5.8 tiles of flight); jumping lands yellow and drops you.
 - **Two colors:** a green floor under a yellow ledge 2 tiles up. Shift up mid-run and jump in the 12 steps after you turn yellow.
 - **Stop sign:** a green bridge ends at the exit ledge with no safe pad: let go on the bridge and you drop; hold through it.
+- **Out of Step (Tandem):** both runners cruise red; a red wall in your lane only stops you. Hold on: you restart at blue and are green 0.60–1.88 tiles past the wall (§5.1) while the twin is still red, so your lane has a green bridge where the twin's has a red one.
+- **Gear Split (Tandem):** both sprint-jump; a hanging block in your lane stops you in the air and drops your gear to 1, while the twin drags to gear 3. Holding right now gives you blue and the twin yellow. Press up three times and both clamp at gear 4.
 - **Red Wall (w1-05):** a red wall, 1 safe tile, a red bridge. Arrive red and the wall stops you; from its face red needs 3.23 tiles but only 2.75 remain. Arrive yellow and shift up: red 0.66 tiles later (shift window 2.75 tiles ≈ 18 steps).
-- **Gate (w2-04):** a green gate, 2 safe tiles, a yellow bridge. Green at the gate, yellow 0.56 tiles after shifting up; shift window 3.75 tiles.
-- **Trapdoor (w3-02):** a blue-gate floor over a pit with the exit pocket under its middle. Let go at sprint 3.24 tiles before the pocket (from yellow, 2.03): you turn blue and it opens under you.
-- **Gate Window (w3-03):** a yellow gate 4 tiles out and a green gate 7.5 tiles out in one gap, landing 4 tiles lower. Only a yellow takeoff passes both: yellow at 4, dragged to green at 6.0, lands 8.10 out.
+- **Gate (w4-01, Should):** a green gate, 2 safe tiles, a yellow bridge. Green at the gate, yellow 0.56 tiles after shifting up; shift window 3.75 tiles.
+- **Trapdoor (w4-02, Should):** a blue-gate floor over a pit with the exit pocket under its middle. Let go at sprint 3.24 tiles before the pocket (from yellow, 2.03): you turn blue and it opens under you.
+- **Gate Window (fallback world 3 only):** a yellow gate 4 tiles out and a green gate 7.5 tiles out in one gap, landing 4 tiles lower. Only a yellow takeoff passes both: yellow at 4, dragged to green at 6.0, lands 8.10 out.
 
 ## 9. Tuning keys (`src/data/tuning.json`)
 
@@ -391,10 +416,11 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 
 ## 10. Scope and deliverables
 
-- **Must:** core rules §4 including **speed gates**, worlds 1–3 (**14 levels**), HUD gear meter, title + level select, color-blind patterns (including gate glyphs), **alternate gear bindings (Q/E, Z/X) and the one-time Sticky Keys tip**, web build on itch.io, **itch.io page copy**.
-- **Should:** world 4 (4 levels, with ice), per-level leaderboards, adaptive music that pitch-shifts with gear.
-- **Could:** free key-remap screen, ghost replays of top runs, level timer medals, a hidden "ultraviolet" reverse gear.
-- **Cut (2026-11-03):** mud, boost pads, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`).
+- **Must:** core rules §4 including **Tandem** (§4.15), worlds 1–3 (**14 levels**), HUD gear meter for one or two bodies, title + level select, color-blind patterns (including the twin's silhouette), **alternate gear bindings (Q/E, Z/X) and the one-time Sticky Keys tip**, web build on itch.io, **itch.io page copy**.
+- **Should:** world 4 Gates (4 levels: speed gates, gate floors, ice), per-level leaderboards, adaptive music that pitch-shifts with gear, mirrored twin.
+- **Could:** free key-remap screen, ghost replays of top runs, level timer medals, a hidden "ultraviolet" reverse gear; boost pads as a Tandem split tool (`core-twists.md` §1).
+- **Cut (2026-11-03):** mud, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`); the Paint and Clock twists (`core-twists.md`).
+- **Fallback (decision gate Nov 12):** if Tandem's sim checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world and speed gates become Must again.
 
 ### Design deliverables
 
@@ -404,7 +430,9 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 | M1 feature specs | `docs/design/features/*.md` | M1 |
 | Level plan | `docs/design/level-plan.md` (v2.0, 2026-11-03) | M2 |
 | Puzzle depth review | `docs/design/mechanics-review.md` | done 2026-11-03 |
-| Speed gates and colored walls specs | `features/speed-gates.md`, `features/colored-walls.md` | done 2026-11-03 (M2) |
+| Speed gates and colored walls specs | `features/speed-gates.md` (Should), `features/colored-walls.md` (M2) | done 2026-11-03 |
+| Core twist candidates | `docs/design/core-twists.md` | done 2026-11-03; owner picked Tandem |
+| Tandem spec | `docs/design/features/tandem.md` | done 2026-11-03 (sim Nov 9–13) |
 | Ice spec (Should) | `docs/design/features/ice.md` | before M3 (Nov 15) |
 | itch.io page copy | `docs/design/itch-page.md` | M4 (Nov 28) |
 | Decision log | `docs/design/decisions.md` | ongoing |
@@ -412,15 +440,18 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 ### Milestone mapping
 
 - **M1 grey-box (Nov 8):** §4 in full in one test room, all input bindings including Q/E and Z/X. Specs: `features/movement-and-gears.md`, `color-gating.md`, `air-drag.md`, `jump.md`, `safe-tiles-and-reset.md`.
-- **M2 first worlds (Nov 15):** speed gates in the sim, worlds 1–2 (10 levels), HUD gear meter, title, level select, Sticky Keys tip. If gates slip past Nov 12, w2-04 moves to world 3 and M2 ships 9 levels.
-- **M3 content (Nov 22):** world 3 (Must, no new sim work), world 4 (Should, ice).
+- **M2 first worlds (Nov 15):** worlds 1–2 (9 levels), HUD gear meter, title, level select, Sticky Keys tip. Tandem sim and scene built Nov 9–13 alongside, with a decision gate on Nov 12.
+- **M3 content (Nov 22):** world 3 Tandem (Must, 5 levels), world 4 Gates (Should: gates, ice).
 - **M4 freeze (Nov 28):** itch.io page copy final.
 
 ## 11. HUD, audio and visual direction
 
-- Neon geometry on near-black. The world's tint slides smoothly along the spectrum with your actual speed, while gameplay rules use the discrete bands.
+- **Art direction C, Pixel Dither (owner decision 2026-11-03):** 480×270 logical, scaled 2× to the 960×540 itch frame; 16 px tiles (the screen still shows 30 × 16.9 tiles); the player is 12×24 px. Every gameplay element must read at that size by shape and dither pattern, never by color alone. Rendering approach: tech-lead's pixel-rendering ADR (`docs/tech/`); look: `docs/art/`.
+- The world's tint slides along the spectrum with your actual speed, while gameplay rules use the discrete bands.
 - The player's body shows the band color **and** the band's pattern or glyph (color is never the only signal).
-- **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come. Layout and checks: `docs/design/features/hud-gear-meter.md` (a five-cell white–red strip: lit cell = band, bracket = selected gear, speed needle, pending-shift bracket in the air). Pulled into M1 by the 2026-11-02 playtest.
+- **The twin** (Tandem) differs from the runner **by shape** at 12×24 px (for example a hollow outline body where the runner is filled) and shows its own band pattern. A home body shows a parked pose or glyph and stops animating. Stacked lanes are separated by a solid safe divider.
+- **Camera with a twin:** frames the midpoint of the non-home bodies. With one body home it frames the other; if both are moving and more than 28 tiles apart it follows the runner and shows an edge arrow with the twin's silhouette (`features/tandem.md`).
+- **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come. Layout and checks: `docs/design/features/hud-gear-meter.md` (a five-cell white–red strip: lit cell = band, bracket = selected gear, speed needle, pending-shift bracket in the air). Pulled into M1 by the 2026-11-02 playtest. **With a twin, the HUD shows two strips stacked** (top = runner, bottom = twin), each marked with its body's silhouette and showing that body's band, gear, needle, drag meter and pending shift; a home body's strip dims and shows the home glyph.
 - **Level time** is shown as time, not steps: `wonAtStep / stepHz` as `M:SS.ss` (hundredths, truncated). Steps stay the stored and compared value (saves, replays, leaderboards).
 - A drag drop plays a short down-shift "clunk" and a color flash, because the speed change is instant.
 - Music pitch and filter follow your band: muffled and low when slow, bright and high at sprint.
@@ -431,5 +462,8 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 2. **No air control** is a strong choice for players used to platformers. Playtest early; the fallback is a small air nudge that cannot change speed band, which would complicate drag math.
 3. ~~World 5 afterimage rule~~ closed 2026-11-03: afterimage cut.
 4. ~~Crates push rules~~ closed 2026-11-03: crates cut.
-5. **Gate readability.** Gates are solid *except* for their color, blocks only *for* their color: two opposite rules per color. Mitigated by art (bars, not filled tiles), a harmless first bump in w2-04, and teaching gates late in M2. Checked in the M2 playtest (M2-30); fallback is fewer gate colors in levels, not a rule change.
+5. **Gate readability** (now Should): gates are solid *except* for their color, blocks only *for* their color. Mitigations in `features/speed-gates.md`; matters again only if world 4 or the fallback ships.
 6. **Ice at speed 0** (Should): a player who lands on ice standing still would be locked at 0. The ice spec rules on it before M3.
+7. **Tandem first appears at level 10** (after 5 + 4 single-runner levels). A jam voter plays about 10 minutes, so the twist may be missed. Option if the M2 playtest shows players stopping early: move Two Colors (w2-04) after the first Tandem level, or trim world 1 to four levels. Decide at M2-31.
+8. **Two bodies at a glance** (pillar 2): can a new player tell which body is which, and which gear strip belongs to which, within a few seconds? Checked in the M3 playtest (M3-34); fallbacks are a stronger silhouette difference and lane-colored dividers (with a pattern).
+9. **Tandem decision gate (Nov 12):** if `features/tandem.md` checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world.

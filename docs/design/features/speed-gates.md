@@ -1,6 +1,6 @@
 # Feature: Speed gates
 
-_Owner: design-lead. Milestone: M2 (pulled forward from world 3 by `mechanics-review.md`, 2026-11-03). GDD: §4.7, §4.14, §7. Level chars `w b g y r` (`docs/tech/level-format.md`; formerly "speed camera")._
+_Owner: design-lead. Milestone: **Should, world 4 (M3)** since GDD v1.4 (Tandem is the core twist); **Must, M2–M3 again only if the Tandem decision gate on Nov 12 fails**. Originally pulled forward from world 3 by `mechanics-review.md`, 2026-11-03. GDD: §4.7, §4.14, §7. Level chars `w b g y r` (`docs/tech/level-format.md`; formerly "speed camera")._
 
 ## Rule
 
@@ -67,4 +67,4 @@ Test conventions: see `movement-and-gears.md`. A "gate column" is a 1-tile-wide 
 
 ## Priority
 
-Must (M2). Fallback if it slips past Nov 12: w2-04 moves to world 3 (M3), M2 ships 9 levels.
+Should (world 4, M3) since GDD v1.4. Must only in the fallback plan (Tandem decision gate fails on Nov 12), in which case world 3 is the v1.3 Gates world.

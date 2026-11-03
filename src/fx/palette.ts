@@ -52,6 +52,29 @@ export interface Palette {
     readonly maxBackgroundLuminance: number;
   };
   readonly flash: { readonly color: string; readonly alpha: number; readonly durationMs: number };
+  /** Direction C (pixel art): sizes and the colours that are not band colours. */
+  readonly pixel: {
+    readonly tileSize: number;
+    readonly body: { readonly width: number; readonly height: number };
+    /** 1 px line around the player that separates it from a same-coloured floor. */
+    readonly keyline: string;
+    /** Mix toward white for the lit top edge of a slab. */
+    readonly lipMix: number;
+    /** Mix toward the background for the shaded underside. */
+    readonly shadeMix: number;
+    /** Ghost tile dither wash: mix of the band colour into the background. */
+    readonly ghostWashMix: number;
+    /** Ghost outline dash and gap, in pixels. */
+    readonly ghostDash: readonly number[];
+    readonly exit: { readonly frame: string; readonly doorway: string; readonly glow: string };
+    readonly decor: {
+      /** Star colour: mix of the background toward white. */
+      readonly starMix: number;
+      /** Ridge silhouettes: mix of the background toward black (far, near). */
+      readonly ridgeFarShade: number;
+      readonly ridgeNearShade: number;
+    };
+  };
 }
 
 export const palette: Palette = paletteJson;

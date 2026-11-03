@@ -17,7 +17,7 @@ import {
   type Rgb,
 } from './color';
 import { isPatternId } from './patterns';
-import { palette } from './palette';
+import { backgroundForSpeed, palette } from './palette';
 
 /** WCAG 2.x 1.4.11 (non-text contrast) for gameplay elements. */
 const MIN_GAMEPLAY_CONTRAST = 3;
@@ -138,6 +138,29 @@ describe('text contrast', () => {
   it('gear colours used as text or HUD labels are at least 4.5:1 on the background', () => {
     for (const g of GEARS) {
       expect(contrastRatio(rgb(palette.gears[g].solid.fill), bg), g).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+    }
+  });
+});
+
+describe('gear colours as HUD labels', () => {
+  it('are at least 4.5:1 on the (darker) HUD panel, red included', () => {
+    const panel = rgb(palette.ui.panel);
+    for (const g of GEARS) {
+      expect(contrastRatio(rgb(palette.gears[g].solid.fill), panel), g).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+    }
+  });
+});
+
+describe('ghost outlines keep a floor under colour-vision deficiency', () => {
+  const tinted = Array.from({ length: 13 }, (_, s) => backgroundForSpeed(s, 12));
+
+  it.each(VISIONS)('every ghost outline is at least 2.4:1 against every tinted background (%s; 3:1 for normal vision)', (vision) => {
+    const floor = vision === 'normal' ? MIN_GAMEPLAY_CONTRAST : 2.4;
+    for (const g of GEARS) {
+      for (const b of tinted) {
+        const c = contrastRatio(seen(rgb(palette.gears[g].ghost.outline), vision), seen(b, vision));
+        expect(c, `${g} on ${JSON.stringify(b)}`).toBeGreaterThanOrEqual(floor);
+      }
     }
   });
 });
