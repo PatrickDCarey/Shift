@@ -3,10 +3,10 @@
  * Covers canvas size, focus handling and the page not scrolling under the host.
  * Console and page errors fail every test through the shared auto fixture.
  */
-import { TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
+import { EMBED_VIEWPORT, TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
 
 // The itch.io embed size. (A project's device preset would otherwise override the config-level viewport.)
-test.use({ viewport: { width: 960, height: 540 } });
+test.use({ viewport: EMBED_VIEWPORT });
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
 const LEVEL = 'w0-02';
@@ -75,17 +75,25 @@ test('browser shortcuts are left alone (Ctrl+E is not a gear shift)', async ({ p
   await pollState(page, (s) => s.state.player.gear).toBe(1);
 });
 
-// FIXME(qa-tester): never finds window.__redshift inside the iframe; a manual iframe check does. See requests.md 2026-11-03.
-test.fixme('inside a 960x540 iframe: keys work and the host page does not scroll', async ({ page, baseURL }) => {
+// Why this test once never found `window.__redshift`: the host page was `about:blank` + `setContent`,
+// and Chrome's Local Network Access check refuses to let such a page frame http://localhost
+// (`net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`), so the frame was `chrome-error://`. Not a game bug.
+// The host is now a routed page on the preview server's own origin (a different loopback origin is blocked the same way;
+// the cross-origin case is not covered here, only framing, focus, key capture and host scroll).
+test('inside a 960x540 iframe: keys work and the host page does not scroll', async ({ page, baseURL }) => {
   const src = new URL(`./?level=${LEVEL}`, baseURL).toString();
-  await page.setViewportSize({ width: 1100, height: 700 });
-  await page.goto('about:blank');
-  await page.setContent(
-    `<body style="margin:0"><div style="height:3000px"><iframe id="g" src="${src}" width="960" height="540" style="border:0"></iframe></div></body>`,
+  const hostUrl = new URL('./itch-host.html', baseURL).toString();
+  await page.route(hostUrl, (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<!doctype html><body style="margin:0"><div style="height:3000px"><iframe id="g" src="${src}" width="960" height="540" style="border:0"></iframe></div></body>`,
+    }),
   );
-  const handle = await page.waitForSelector('#g');
-  const frame = await handle.contentFrame();
+  await page.setViewportSize({ width: 1100, height: 700 });
+  await page.goto(hostUrl);
+  const frame = await (await page.waitForSelector('#g')).contentFrame();
   if (!frame) throw new Error('iframe has no content frame');
+  expect(frame.url(), 'iframe loaded the game, not an error page').toContain(`level=${LEVEL}`);
   await waitForHook(frame);
   await frame.locator('#game canvas').click();
   await expect(frame.locator('#game canvas')).toHaveAttribute('width', '960');

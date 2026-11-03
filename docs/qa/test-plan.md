@@ -15,7 +15,9 @@ _Owner: qa-tester. Task M1-26. Written 2026-11-02 against GDD v1.2 and the five 
 | **E2E** | `tests/e2e/*.spec.ts` (Playwright, Chromium, 960x540 viewport) | `npm run test:e2e` (builds, serves `dist/` on 4173) | The real browser build: boot, canvas size, key bindings in a browser, focus, replay of every shipped solution, iframe embed. |
 | **Manual / playtest** | this plan section 5; `docs/playtests/` | by hand | Feel, 60 fps, anything visual. |
 
-**E2E conventions.** Never sleep on wall-clock time. Every wait polls `window.__redshift` (`tests/e2e/helpers.ts`: `waitForHook`, `pollState`, 20 s poll timeout, 90 s per test) because a loaded machine or headless Chromium can run the game at a few frames per second. A shared auto-fixture fails any test that logs a console error or a page error. Replay tests use `?level=<id>&replay=1&speed=60`.
+**E2E conventions.** Never sleep on wall-clock time. Every wait polls `window.__redshift` (`tests/e2e/helpers.ts`: `waitForHook` 45 s boot timeout, `pollState` 20 s, 120 s per test via `test.describe.configure`) because a loaded machine or headless Chromium can run the game at a few frames per second. Each spec sets `test.use({ viewport: EMBED_VIEWPORT })` (960x540) itself, because the Chromium device preset overrides the config-level viewport (BUG-2). A shared auto-fixture fails any test that logs a console error or a page error. Replay tests use `?level=<id>&replay=1&speed=60`; `replay.done` is true on `won` or when the frames run out, never on `dead` (recordings include deaths).
+
+Reactive setup (walking to a spot) is lag-prone, so helpers detect deaths and retry (`walkIntoOpenPit`); timing-critical key presses are dispatched inside the page (`armAirPress`) and a jump is judged from per-frame samples recorded in the page (`startTracker`/`stopTracker`), not from Playwright round trips. Jumps cannot be tested at w0-02's spawn (0.5 tiles of headroom) or in the dev room (`w0-00` is used only when no level files exist; an unknown `?level=` falls back to w0-02), so jump tests drop through the blue bridge into the pit (x 8.5-12.5, floor y 12, 6 open tiles overhead).
 
 ## 2. M1 acceptance criteria in the five feature specs: where each is verified
 
@@ -60,7 +62,7 @@ Notation: **S** = `src/core/sim/<spec>Acceptance.test.ts`, **M** = `src/core/mot
 | 11 | 2-tile ledge reachable | S check 11 |
 | 12 | Fall cap 20 | S check 12 |
 
-(Browser smoke: e2e `Space, W and ArrowUp each jump` shows all three jump keys leave the ground and land back on the floor; the numbers stay in unit tests.)
+(Browser smoke: e2e `Space, W and ArrowUp each jump a full 3-tile arc` jumps in the open pit under w0-02's bridge (apex over 2 tiles, lands on the floor); the exact numbers stay in unit tests.)
 
 ### 2.3 air-drag.md (15 checks)
 
@@ -78,8 +80,8 @@ Notation: **S** = `src/core/sim/<spec>Acceptance.test.ts`, **M** = `src/core/mot
 | 10 | Counter resets on landing | S check 10; M |
 | 11 | Gear follows band at takeoff | S check 11; M |
 | 12 | Downshift kept | S check 12; M |
-| 13 | No mid-air shift | S check 13-14 |
-| 14 | Shift buffer (L-4 applies, L-10 does not) | S check 13-14 |
+| 13 | No mid-air shift | S check 13-14; **E** `keyboard.spec.ts` "KeyE / ShiftRight / KeyX pressed early in a jump does not change the gear" |
+| 14 | Shift buffer (L-4 applies, L-10 does not) | S check 13-14 (e2e covers only the early press; the late press is too timing-sensitive for a browser) |
 | 15 | Wall in the air | S check 15 |
 
 ### 2.4 color-gating.md (16 checks)
@@ -167,19 +169,41 @@ Notation: **S** = `src/core/sim/<spec>Acceptance.test.ts`, **M** = `src/core/mot
 ## 6. Gaps (known, with owner or milestone)
 
 - **G1:** Only one level exists (`w0-02`), so replay e2e covers one recording. The test globs `levels/*.solution.txt`, so new levels are picked up automatically.
-- **G2:** The e2e config sets `viewport` at top level, but the Chromium project preset (`devices['Desktop Chrome']`) overrides it with 1280x720. Specs work around it with `test.use`; the config should be fixed by tech-lead (BUG-2).
+- **G2:** The e2e config sets `viewport` at top level, but the Chromium project preset (`devices['Desktop Chrome']`) overrides it with 1280x720. Every spec now sets its own viewport with `test.use`, so this is only a polish fix for tech-lead (BUG-2).
 - **G3:** No automated "inputs shifted by +-3 steps still win" check (M1-21 acceptance, level-format fairness). Proposal: a Vitest in `tests/levels/` that shifts each input transition by +-3 steps and runs `verifySolution`. Needs tech-lead (owns `tests/levels/**`).
 - **G4:** Sticky Keys tip view, HUD gear meter, pause, results, level select and title do not exist in the scene yet, so no e2e for them until M2 (M2-28).
 - **G5:** Production-build hook policy is undecided (BUG-1); once decided, the e2e `replay` and `keyboard` specs may need to run against the dev server instead.
 - **G6:** No fps or performance measurement in e2e.
 - **G7:** No cross-browser run (Chromium only; Firefox and Safari left for M4 manual check on the itch embed).
 - **G8:** Packaging (`npm run package`) does not exist yet, so M1-18 is unverifiable.
+- **G10:** The iframe test frames the game from a routed same-origin host page (`/itch-host.html`). An `about:blank` host (what the test used before) is blocked by Chrome's Local Network Access check (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`, the frame becomes `chrome-error://`), and so is a different loopback origin, so the cross-origin case is not automated; check by hand on the real itch.io embed (M4).
+- **G11:** Default 4 workers is too many for a busy machine (BUG-3). An air shift from a fast jump at gear 3-4 is only unit-tested.
 - **G9:** The default Playwright web server build (`npm run build && vite preview`) can exceed its 120 s start-up timeout on a busy machine; CI should be fine.
 
 ## 7. Results
 
 See the bottom of this file, filled after each full run.
 
+### Run 2: 2026-11-03 (e2e batch: parked tests fixed, air-shift check added)
+
+Machine otherwise idle. Build: working tree (no commits yet; the scene lane's HUD gear meter and "Level complete" time banner were already in).
+
+| Check | Result |
+|---|---|
+| `npm test` (unit + arch) | 49 files, 1055 tests passed |
+| `npx vitest run tests/levels` (solvability) | 6 passed |
+| `npm run typecheck` | clean |
+| `npm run build` | ok (`dist/assets/index-*.js` 1,245.50 kB, gzip 337.29 kB) |
+| `npm run test:e2e` | **27 passed, 0 failed, 0 skipped**, twice in a row (2.0 and 2.1 min, 4 workers). The heavy specs also passed 32/32 with `--workers=2 --repeat-each=4` |
+
+What was wrong with the two parked tests:
+- **Jump test:** w0-02's spawn has a 0.5-tile ceiling, and the built-in dev room is only used when no level files exist (an unknown `?level=` falls back to w0-02). Fixed by dropping through the blue bridge into the pit (open overhead) and asserting the apex is over 2 tiles from per-frame samples, for Space, KeyW and ArrowUp.
+- **Iframe test:** a test bug, not a game bug. The host was `about:blank` + `setContent`; Chrome's Local Network Access check refuses to let it frame `http://localhost` (`net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`), so the frame was a `chrome-error://` page and `window.__redshift` never existed. Now hosted by a routed same-origin page; asserts the frame URL is the game, keys reach it, and the host `scrollY` stays 0.
+
+New or changed: air-shift e2e (3 tests; result: no bug, the selected gear never rises, see bugs.md "Checked, no bug"); replay spec asserts `done` stays true after `won` and `frames >= steps` and documents the `done`/`speed` semantics; smoke spec waits for the hook and uses the console-error fixture; per-spec `EMBED_VIEWPORT` and `TEST_TIMEOUT_MS`; `BOOT_TIMEOUT_MS` 45 s. Flakiness found and removed along the way: setup lag at low frame rates (a death and respawn missed by polling; landing on top of the divider wall at column 7).
+
+Open: BUG-1 (hook in the production build), BUG-2 (config viewport), BUG-3 (4 workers on a busy machine). A `vite preview --port 4199` that qa started for a header check is still running (stopping it was denied by the permission layer); it is harmless and ports 4173/5191/5192 are untouched.
+
 ### Run 1: 2026-11-02
 
-_(filled in below)_
+_(superseded by run 2 for e2e)_

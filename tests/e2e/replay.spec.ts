@@ -3,15 +3,17 @@
  * build). Needs the scene lane's replay mode:
  *   ?level=<id>&replay=1[&speed=<n>]  drives the sim from levels/<id>.solution.txt
  *   window.__redshift.replay = { active, done, frames }
- * `done` turns true when the frames run out or status is won/dead.
+ * `done` turns true when the frames run out or the status is `won`. It does NOT turn true on `dead`:
+ * recordings include the deaths and restarts before the winning run (level-format.md section 4).
+ * `speed=n` runs exactly n sim steps per rendered frame (clamped 1-60); R restarts the replay from frame 0.
  */
-import { TEST_TIMEOUT_MS, expect, listSolutions, pollState, snapshot, test, waitForHook } from './helpers';
+import { EMBED_VIEWPORT, TEST_TIMEOUT_MS, expect, listSolutions, pollState, snapshot, test, waitForHook } from './helpers';
 
 // The itch.io embed size. (A project's device preset would otherwise override the config-level viewport.)
-test.use({ viewport: { width: 960, height: 540 } });
+test.use({ viewport: EMBED_VIEWPORT });
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
-const REPLAY_TIMEOUT_MS = 90_000;
+const REPLAY_TIMEOUT_MS = 90_000; // wall clock for the replay to finish; speed=60 needs ~13 frames, slow machines far more
 const solutions = listSolutions();
 
 test('at least one level ships a solution recording', () => {
@@ -38,6 +40,10 @@ for (const { id, steps } of solutions) {
 
     await pollState(page, (s) => s.state.status, 'status after replay').toBe('won');
     await pollState(page, (s) => s.state.wonAtStep, 'wonAtStep after replay').toBe(steps);
+    // `done` came from the win (the recording's frames are not exhausted before it), and stays true.
+    const end = await snapshot(page);
+    expect(end?.replay?.done, 'replay stays done after the win').toBe(true);
+    expect(end?.replay?.frames ?? 0, 'recording is at least as long as the winning step').toBeGreaterThanOrEqual(steps);
   });
 }
 

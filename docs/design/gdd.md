@@ -414,7 +414,8 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 
 - Neon geometry on near-black. The world's tint slides smoothly along the spectrum with your actual speed, while gameplay rules use the discrete bands.
 - The player's body shows the band color **and** the band's pattern or glyph (color is never the only signal).
-- **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come.
+- **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come. Layout and checks: `docs/design/features/hud-gear-meter.md` (a five-cell white–red strip: lit cell = band, bracket = selected gear, speed needle, pending-shift bracket in the air). Pulled into M1 by the 2026-11-02 playtest.
+- **Level time** is shown as time, not steps: `wonAtStep / stepHz` as `M:SS.ss` (hundredths, truncated). Steps stay the stored and compared value (saves, replays, leaderboards).
 - A drag drop plays a short down-shift "clunk" and a color flash, because the speed change is instant.
 - Music pitch and filter follow your band: muffled and low when slow, bright and high at sprint.
 

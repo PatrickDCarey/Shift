@@ -3,7 +3,7 @@ import type { SimEvent } from '../core/types';
 import { cameraScroll } from '../entities/camera';
 import { debugText } from '../entities/debugText';
 import { FeedbackFx } from '../entities/FeedbackFx';
-import { GameHud } from '../entities/GameHud';
+import { GameHud, GEAR_METER_AREA } from '../entities/GameHud';
 import { InputSampler } from '../entities/inputSampler';
 import { embeddedMask } from '../entities/embedded';
 import { focusPromptVisible } from '../entities/focusPrompt';
@@ -17,7 +17,9 @@ import { chooseFrameSource, type FrameSource, type ReplayFeed } from '../entitie
 import { RunDriver, type FrameSupplier } from '../entities/runDriver';
 import { SOLUTION_FILES } from '../entities/solutionFiles';
 import { selectLevel } from '../entities/levelSelect';
-import { backgroundRgb, hexToNumber, mix, palette, rgbToHex, tintForSpeed } from '../fx';
+import { backgroundForSpeed, hexToNumber, rgbToHex } from '../fx';
+import { gearMeterModel } from '../ui';
+import { GearMeterView } from '../ui/GearMeterView';
 import { SCENE_KEYS } from './keys';
 
 /** The world tint follows actual speed, eased so it never flickers at a band edge (docs/art/style.md). */
@@ -51,6 +53,7 @@ export class GameScene extends Phaser.Scene {
   private playerView!: PlayerView;
   private fx!: FeedbackFx;
   private hud!: GameHud;
+  private gearMeter!: GearMeterView;
   private detachKeyboard: () => void = () => undefined;
   private debugOn = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
   private showDebug = false;
@@ -76,6 +79,8 @@ export class GameScene extends Phaser.Scene {
     const source = chooseFrameSource(window.location.search, selection.level, SOLUTION_FILES);
     this.replay = source.kind === 'replay' ? { feed: source.feed, speed: source.speed } : null;
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
+    this.gearMeter = new GearMeterView(this, GEAR_METER_AREA.x, GEAR_METER_AREA.y);
+    this.gearMeter.setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     this.detachKeyboard = attachKeyboard(this.sampler, {
       onToggleDebug: () => {
         if (this.debugOn) this.showDebug = !this.showDebug;
@@ -106,7 +111,8 @@ export class GameScene extends Phaser.Scene {
     this.followCamera(feetX, feetY - (this.cfg.tuning.playerHeightTiles * ts) / 2);
     this.applyTint(Math.abs(state.player.vx), delta);
     this.fx.update(delta);
-    this.hud.setWon(state.wonAtStep, state.status === 'won');
+    this.gearMeter.update(gearMeterModel(state.player, this.cfg.params));
+    this.hud.setWon(state.wonAtStep, state.status === 'won', this.cfg.params.stepHz);
     this.hud.setFocusPrompt(focusPromptVisible(document.hasFocus()));
     this.hud.setDebug(this.debugOn && this.showDebug ? debugText(state, this.game.loop.actualFps) : null);
   }
@@ -144,12 +150,11 @@ export class GameScene extends Phaser.Scene {
     cam.setScroll(s.x, s.y);
   }
 
-  /** A low-strength wash of the speed tint over the background only, never over tiles. */
+  /** Near-black standing, a dark hue of the band when moving; background only, never over tiles. */
   private applyTint(speed: number, deltaMs: number): void {
     this.tintSpeed = easeToward(this.tintSpeed, speed, deltaMs, TINT_EASE_MS);
     const top = Math.max(...this.cfg.tuning.gearSpeeds);
-    const wash = mix(backgroundRgb(), tintForSpeed(this.tintSpeed, top), palette.tint.strength);
-    const color = hexToNumber(rgbToHex(wash));
+    const color = hexToNumber(rgbToHex(backgroundForSpeed(this.tintSpeed, top)));
     if (color === this.lastBackground) return;
     this.lastBackground = color;
     this.cameras.main.setBackgroundColor(color);
@@ -177,6 +182,7 @@ export class GameScene extends Phaser.Scene {
     this.levelView.destroy();
     this.playerView.destroy();
     this.fx.destroy();
+    this.gearMeter.destroy();
     Reflect.deleteProperty(window, '__redshift');
   }
 }

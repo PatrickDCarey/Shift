@@ -102,3 +102,33 @@ All items accepted; no tuning change. Every acceptance number in `features/` is 
 - **GDD §5.4 −7 gear-4 row is 12.00 with the second drop on the landing step; marked knife-edge, not for levels** — a takeoff slightly under 12 lands yellow instead of green.
 - **Acceptance numbers are exact (steps exact, distances to printed precision) instead of ±2 steps / ±0.15 tiles** — the sim exists now, and exact numbers catch regressions the tolerances would hide.
 - **GDD §4.14 defers phase detail to architecture.md §3.1–3.2** — one source for implementation detail; the GDD keeps the player-facing order.
+
+## 2026-11-03 — M1-29: verdicts from the w0-02 greybox playtest (`docs/playtests/2026-11-02-greybox.md`)
+
+No `tuning.json` change in this pass: every issue found was missing information (HUD, art, room layout), not a wrong number. The formal M1-28 playtest (Nov 7) re-checks these with the HUD in.
+
+### Provisional decisions D-1 to D-3 (verdicts for the Nov 8 gate)
+- **D-1 no air control: KEEP** — the playtester called it fair and deliberate and blamed their own takeoff, never the game (pillar 1: the takeoff is the decision).
+- **D-2 release brakes at the shift-down rate: KEEP** — "controllable, easy to learn after one fall"; stopping 1 tile early on a colored bridge is the lesson w1-01/w1-04 teach, and the HUD needle now shows the braking.
+- **D-2 detail, gear remembered at rest: KEEP** — the HUD bracket shows the remembered gear, which removes the "stopped means reset" surprise without losing the cruise setting.
+- **D-3 stepwise air drag: KEEP** — the drop read as intended thanks to the ring and flash; its only cost is first-contact surprise, which the HUD drag meter, the flash and clunk (M2-15/16/17) and w2-02 "Coast" (teaches drag on its own) address.
+
+### HUD and readability
+- **HUD gear meter pulled into M1 (core: five-cell strip, lit band, selected-gear bracket, speed needle)** — the playtester's #1 fix and likely rage point ("which pace is red?"); without it pillar 2 fails. Spec: `features/hud-gear-meter.md`.
+- **Drag meter and pending-shift bracket are Should for M1, else M2** — they hint the two air surprises (drop, buffered shift) but the strip alone fixes the rage point.
+- **No runway hint in the HUD** — telling the player the distance still needed solves the runway puzzle for them (pillar 1).
+- **Air shift presses as observed are intended, not a bug** — `src/core/sim/input.ts`/`air.ts` buffer them and apply only within 6 steps of landing; the bonked start-area hops last about 12 steps, so a mid-air press there usually is within 6 steps of landing. qa-tester should confirm that a press 10 steps into a 48-step flight is dropped.
+- **Shift buffer stays (6 steps, applied on landing)** — forgiving early presses is pillar 3; the HUD pending bracket makes it visible.
+- **On-screen controls in w0-02: accept as is** — internal room; onboarding glyphs (w1-01, w1-02), the controls screen and the HUD key-cap hints cover shipped levels.
+
+### w0-02 and art
+- **Spawn under a 0.5-tile ceiling: change the room** — the first jump a new player makes bonks and misteaches the jump as "half a tile"; the first jump anywhere must show the full 3-tile apex (pillar 2). The ceiling over the bridge stays.
+- **Red crosshatch reads as a hazard: art tweak, no rule change** — the HUD answers "what is red"; colored tiles still need to read as ledges (flat lit top edge) and never as spikes or lava.
+- **Exit low contrast: art change** — the goal must be the most distinct object on screen; a grey box among grey-blue tiles fails pillar 2.
+- **Faint yellow ghosts: art change (ghost outlines ≥ 3:1 against the background for every color)** — a ghost must look "not solid", not "absent"; players plan routes over ghosts.
+- **Falling off the bridge end into the runway room, and the grey drop into the exit pocket, are unsignposted: accept for w0-02** — internal room; the playtester called the pocket a designed "aha", and w1-01 teaches let-go-to-drop on its own.
+
+### Results and the level
+- **Win banner shows time, not steps: `M:SS.ss` from `wonAtStep / stepHz`, truncated to hundredths** — a step count means nothing to players; steps stay the stored and compared value, so replays and leaderboards stay exact.
+- **The timer still runs from spawn, including idle time** — a deterministic run time needs no "first input" rule; revisit only for leaderboards (M3-02). The 76,900 was a real 21-minute run.
+- **Reported "red jump flies over the whole yellow pad": not a cheese** — from P3 (edge x = 26) a gear-4 jump flies 8.7 tiles and even the latest coyote takeoff (x ≈ 27.6) lands at x ≈ 36.3, on the pad (cols 33–36), short of P4; the playtester most likely landed on the pad's far end and rolled onto P4 between screenshots. A yellow takeoff still lands green and falls (level README sweep). Even if it were a cheese it would not matter in an internal room.

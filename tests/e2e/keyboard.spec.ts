@@ -3,10 +3,10 @@
  * Spec: movement-and-gears.md check 17 (alternate bindings), GDD section 3.
  * Right Shift / E / X shift up; Left Shift / Q / Z shift down; all active at once.
  */
-import { TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
+import { EMBED_VIEWPORT, armAirPress, TEST_TIMEOUT_MS, expect, pollState, snapshot, startTracker, stopTracker, test, waitForHook, walkIntoOpenPit } from './helpers';
 
 // The itch.io embed size. (A project's device preset would otherwise override the config-level viewport.)
-test.use({ viewport: { width: 960, height: 540 } });
+test.use({ viewport: EMBED_VIEWPORT });
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
 const LEVEL = 'w0-02';
@@ -99,20 +99,55 @@ test('D and A move the player like the arrows', async ({ page }) => {
   await page.keyboard.up('KeyA');
 });
 
-// FIXME(qa-tester): w0-02's spawn has a low ceiling (0.5 tiles of headroom); jump somewhere open. See requests.md 2026-11-03.
-test.fixme('Space, W and ArrowUp each jump', async ({ page }) => {
+// Jumps happen in the open pit (see walkIntoOpenPit): the spawn has only 0.5 tiles of headroom.
+test('Space, W and ArrowUp each jump a full 3-tile arc and land on the floor', async ({ page }) => {
+  const floorY = await walkIntoOpenPit(page);
   for (const key of ['Space', 'KeyW', 'ArrowUp']) {
-    await pollState(page, (s) => s.state.player.grounded, `grounded before ${key}`).toBe(true);
-    const floorY = (await snapshot(page))?.state.player.y ?? 0;
+    const before = (await snapshot(page))?.state.step ?? 0;
+    await startTracker(page);
     await page.keyboard.press(key);
-    await pollState(page, (s) => s.state.player.y < floorY - 0.5, `${key} lifted the player`).toBe(true);
-    await pollState(
-      page,
-      (s) => s.state.player.grounded && Math.abs(s.state.player.y - floorY) < 1e-6,
-      `landed after ${key}`,
-    ).toBe(true);
+    await pollState(page, (s) => s.state.step >= before + 60 && s.state.player.grounded, `${key} jumped and landed`).toBe(true);
+    const track = await stopTracker(page);
+    const apex = floorY - Math.min(...track.map((t) => t.y));
+    expect(track.some((t) => !t.grounded), `${key} left the ground`).toBe(true);
+    expect(apex, `${key} apex height in tiles (spec: 3.00)`).toBeGreaterThan(2);
+    expect((await snapshot(page))?.state.player.y, `${key} landed back on the floor`).toBeCloseTo(floorY, 6);
   }
 });
+
+// GDD 4.x / air-drag.md checks 13-14: gear is committed at takeoff. A shift pressed in the air only
+// applies if it falls in the shift buffer (4 steps = 100 ms before landing). Playtest 2026-11-02 said
+// shifts in the air still changed the gear. The press goes in on the first airborne frame, at least 10 steps
+// before touchdown (checked from the recorded frames), and the gear must stay.
+for (const key of ['KeyE', 'ShiftRight', 'KeyX'] as const) {
+  test(`${key} pressed early in a jump does not change the gear (shift buffer is 100 ms)`, async ({ page }) => {
+    const floorY = await walkIntoOpenPit(page);
+    // Standing is band 0, so the gear drops to 1 at takeoff anyway (air-drag.md check 11); stay at 1.
+    let proven = false;
+    for (let attempt = 0; attempt < 6 && !proven; attempt += 1) {
+      const s0 = (await snapshot(page))?.state.step ?? 0;
+      await startTracker(page);
+      const armed = armAirPress(page, key);
+      await page.keyboard.press('Space');
+      const { step: pressStep } = await armed;
+      await pollState(page, (s) => s.state.step >= s0 + 70 && s.state.player.grounded, 'landed').toBe(true);
+      const track = await stopTracker(page);
+      // The player was still airborne in a sample at lastAir, so landing is at least lastAir + 1: the press was
+      // at least 10 steps (twice the 4-step buffer, plus margin) before touchdown only if lastAir >= pressStep + 9.
+      const lastAir = Math.max(...track.filter((t) => !t.grounded).map((t) => t.step));
+      if (lastAir < pressStep + 9) continue; // frame rate too low for this attempt to prove anything: jump again
+      proven = true;
+      const gears = track.filter((t) => t.step >= pressStep).map((t) => t.gear);
+      expect(gears.length, 'tracker saw frames after the press').toBeGreaterThan(0);
+      expect(Math.max(...gears), `${key} in the air: selected gear never went up`).toBe(1);
+      expect((await snapshot(page))?.state.player.y).toBeCloseTo(floorY, 6);
+    }
+    expect(proven, 'got a press at least 10 steps before landing within 6 attempts').toBe(true);
+    const landed = (await snapshot(page))?.state.step ?? 0;
+    await pollState(page, (s) => s.state.step >= landed + 30, '30 steps after landing').toBe(true);
+    await pollState(page, (s) => s.state.player.gear, 'gear still 1 after landing (the early press was dropped, not stored)').toBe(1);
+  });
+}
 
 test('bound keys are captured: default prevented and the page does not scroll', async ({ page }) => {
   await page.evaluate(() => {

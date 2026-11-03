@@ -1,7 +1,8 @@
 // Menus, HUD, settings. Owner: ui-engineer.
 //
 // Pure modules only here: safe to import from tests and from src/core-adjacent
-// code. Phaser components are imported by file (e.g. './StickyKeysTipView').
+// code. Phaser components are imported by file (e.g. './StickyKeysTipView',
+// './GearMeterView').
 
 export {
   ACTIONS,
@@ -24,3 +25,5 @@ export {
   shouldShowStickyKeysTip,
 } from './stickyKeysTip';
 export type { PlatformInfo, StickyTipContext } from './stickyKeysTip';
+export { gearMeterModel } from './gearMeter';
+export type { GearMeterModel, GearMeterParams } from './gearMeter';
