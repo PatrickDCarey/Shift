@@ -202,3 +202,45 @@ Trigger: the studio owner played the build and judged the puzzles thin. No `tuni
 
 ### Art
 - **Art direction C (Pixel Dither, 480×270 logical, 16 px tiles, 12×24 px player) recorded in GDD §11** — owner decision; every gameplay element must read at that size by shape and pattern.
+
+## 2026-11-04 — GDD v1.5: menus, progression and onboarding (M2-34, M2-01)
+
+No `tuning.json` change. T-03 (deleting the four unused keys) waits for tech-lead's T-02 in Batch 2.
+
+### Owner decisions
+- **The first level of every world is unlocked from the start; Must stays 14 (owner decision)** — a 10-minute jam voter must be able to reach w3-01 Tandem (GDD §12.7).
+- **The pixel cutover (PX-4..PX-10) runs after the Nov 8 M1 gate and the `m1` tag (owner-confirmed)** — M1 keeps a known-good build; the specs here are written for 480×270 only.
+
+### Progression (`features/level-select.md`, `progress-save.md`)
+- **Unlock rule: a level is playable if it is first in its world, if the level before it in the same world is completed, or if it is itself completed** — the owner's rule plus "teach in order inside a world" (pillar 4); the third clause keeps cleared levels open if the level list changes.
+- **Unlocks are derived on every read, never stored** — no save migration when levels change, and the save cannot disagree with the rule.
+- **Title PLAY starts the first playable level not yet cleared, in level order** — one button that always does the sensible thing, including for voters who skipped ahead.
+- **Locked cells can be focused (the detail line says what to clear) but not started** — players can see what exists, which is the point of opening every world.
+- **Best times are keyed by level id and survive level `version` bumps** — grids freeze at M4 and only developers' saves see changes before that; leaderboards (M3-02) key by version.
+- **Replays and world 0 never write progress** — they are not the player's runs.
+- **Reset progress is Could (settings, M3-15)** — playtesters use a private window.
+
+### Menus (`features/menu-navigation.md`, `title-screen.md`, `pause.md`, `results.md`, `controls-screen.md`)
+- **A key already held when a screen opens does nothing there until released** — otherwise the Space that won the level chooses NEXT by itself (pillar 3).
+- **Menus never use Shift, Q, E, Z or X** — no menu can trigger Sticky Keys, and gear keys never surprise the player in a menu.
+- **Pause freezes the sim with no catch-up; keys pressed while paused are ignored until released; keys held through the pause stay held** — the run and its recording are identical to an unpaused run, and choosing RESUME with Space never jumps.
+- **Losing focus pauses the game and drops all held keys** — browsers lose key-up events while unfocused, so a stuck arrow would run the player off a ledge (pillar 3).
+- **Results record the run exactly once, before the panel, and replace the M1 banner; NEXT crosses worlds** — one write per win, and the level order stays the single source.
+- **The controls screen is generated from the binding table** — it can never list a key that doesn't work, and it survives a future remap screen unchanged.
+- **A level that fails to load shows an error screen, never a broken menu; CI stops it shipping** — `loadLevels` is all-or-nothing, so a partial menu would hide the bug.
+
+### Onboarding (`features/onboarding-hints.md`, `sticky-keys-tip.md`)
+- **Hint glyphs are `move`, `shiftUp`, `shiftDown` and `jump`, generated from the bindings, at most 3 per level, never solid** — icons, not text (pillar 2); a hint can never show a dead key.
+- **w1-02 also gets a shift-down glyph on its second pad** — the level asks you to shift down there and nothing else on screen says how (the HUD key caps are only Should).
+- **w2-01 gets a jump glyph** — it is the first level that needs a jump, and jump was hinted nowhere.
+- **w2-01 and w3-01 carry cold-start hints (Should)** — with every world's first level open, they may be the first levels a voter plays.
+- **The Sticky Keys tip is saved as shown when displayed, hides on Enter, Q, E, Z, X, 12 s, pause or leaving the level, and never hides on Shift** — a player still tapping Shift is the one who needs it, and the alternate keys still shift (not swallowed).
+- **The tip goes at the bottom unless it would cover the player, then just under the HUD** — at 480×270 a 240×44 panel can hide the spawn.
+- **The controls screen's "show the tip" item is Windows only and does not touch the saved flag** — it is a re-read, not a reset.
+
+### Art-director FYIs (requests 2026-11-03)
+- **Red's pattern changed from crosshatch to checker: accepted** — the lattice read as a hazard in the 2026-11-02 playtest; a checker on a ledge with a lit top edge reads as a block. "Crosshatch" in older docs is history. M2-14b checks checker vs green's dots in greyscale at 16 px.
+- **Palette deltas (safe fill `#5F6987`, ghost outlines blue `#4F86E8`, green `#40D88C`, red `#E11E3A`, HUD panel `#0F1220`, decor luminance cap 0.013): accepted** — by my estimate every ghost outline clears 3:1 even at the brightest background (red about 3.5:1); M2-14b must measure all five bands, yellow included, before it closes.
+- **Yellow background tint 9.5–17.7 ΔE from standing: accepted** — the tint is ambient; the HUD lit cell and the player's pattern carry the band.
+- **Twin silhouette (antenna, chamfered shoulders, wide stance, two square eyes): accepted; no extra marker above the head** — a different silhouette is what the rule asks for, and a filled body keeps the twin's band pattern readable (my hollow-outline proposal would have thinned it). The HUD strip glyph and the camera edge arrow use the same silhouette. The M3-34 playtest (GDD §12.8) is the trigger for a marker.
+- **Mechanic tiles: nothing new for Must** — worlds 1–3 use safe, colored (floors and walls) and exit only; gates and ice (world 4, Should) wait for the Nov 12 Tandem gate, or become Must only in the fallback.

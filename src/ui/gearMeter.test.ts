@@ -1,36 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Gear, PlayerState } from '../core/types';
-import { gearMeterModel, type GearMeterParams } from './gearMeter';
-
-const PARAMS: GearMeterParams = {
-  gearSpeeds: [0, 3, 6, 9, 12],
-  minGear: 1,
-  airDragTilesPerGear: 6,
-  airDragMinBand: 1,
-};
-
-const player = (over: Partial<PlayerState> = {}): PlayerState => ({
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  gear: 1,
-  band: 0,
-  facing: 1,
-  moveDir: 0,
-  dirPriority: 0,
-  grounded: true,
-  coyoteSteps: 0,
-  jumpBufferSteps: 0,
-  shiftBufferSteps: 0,
-  shiftBufferNet: 0,
-  graceSteps: 0,
-  graceBand: null,
-  airDistance: 0,
-  ...over,
-});
-
-const airborne = (over: Partial<PlayerState> = {}): PlayerState => player({ grounded: false, ...over });
+import type { Gear } from '../core/types';
+import { gearMeterModel, INITIAL_GEAR_METER_MODEL, type GearMeterParams } from './gearMeter';
+import { airborne, PARAMS, player } from './testkit';
 
 describe('gearMeterModel: lit band and selected gear', () => {
   it('initial state: white lit, gear 1, needle at 0, nothing else', () => {
@@ -40,7 +11,17 @@ describe('gearMeterModel: lit band and selected gear', () => {
       needle: 0,
       dragFill: null,
       pendingGear: null,
+      airborne: false,
     });
+  });
+
+  it('INITIAL_GEAR_METER_MODEL is the model of a fresh spawn', () => {
+    expect(INITIAL_GEAR_METER_MODEL).toEqual(gearMeterModel(player(), PARAMS));
+  });
+
+  it('airborne flag follows grounded', () => {
+    expect(gearMeterModel(player(), PARAMS).airborne).toBe(false);
+    expect(gearMeterModel(airborne(), PARAMS).airborne).toBe(true);
   });
 
   it.each([1, 2, 3, 4] as Gear[])('standing in gear %i: bracket on it, still white, needle 0', (gear) => {

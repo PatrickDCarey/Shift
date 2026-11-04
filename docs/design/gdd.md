@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -35,7 +35,8 @@ Theme link: you **shift** gears with the **Shift** keys, the world **red-shifts*
 - **Alternate gear keys are Must:** Q/E and Z/X do exactly what Left/Right Shift do (left key down, right key up), so WASD players use Q/E and arrow players use Z/X. All bindings are active at once.
 - **Sticky Keys tip (Must):** on Windows (detected by user agent), the first time a level starts, show a one-time, dismissable tip with the Q/E and Z/X key glyphs: pressing Shift five times opens the Windows Sticky Keys popup; these keys avoid it. Shown once ever (saved); never blocks input. Not gameplay; no tuning key. ui-engineer owns it.
 - A free key-remap screen is **Could** (cuttable).
-- Onboarding glyphs (icons, not text): an arrow-key glyph above the player at spawn in w1-01; a Shift/E/X glyph on the first white pad of w1-02.
+- Onboarding glyphs (icons, not text; `features/onboarding-hints.md`): an arrow-key glyph above the spawn in w1-01; a shift-up glyph (Right Shift/E/X) over the first pad of w1-02 and a shift-down glyph (Left Shift/Q/Z) over its second; a jump glyph in w2-01. Because every world's first level is open from the start, w2-01 and w3-01 also carry the glyphs a cold starter needs (Should).
+- Menus are keyboard only and never need Shift (`features/menu-navigation.md`). Pause is Esc or P; focus loss pauses automatically (`features/pause.md`).
 
 ## 4. Core rules (precise)
 
@@ -416,7 +417,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 
 ## 10. Scope and deliverables
 
-- **Must:** core rules §4 including **Tandem** (§4.15), worlds 1–3 (**14 levels**), HUD gear meter for one or two bodies, title + level select, color-blind patterns (including the twin's silhouette), **alternate gear bindings (Q/E, Z/X) and the one-time Sticky Keys tip**, web build on itch.io, **itch.io page copy**.
+- **Must:** core rules §4 including **Tandem** (§4.15), worlds 1–3 (**14 levels**), HUD gear meter for one or two bodies, title + level select (**the first level of every world unlocked from the start; the rest of a world unlocks in order**, owner decision 2026-11-04), pause and results, progress save, controls screen, color-blind patterns (including the twin's silhouette), **alternate gear bindings (Q/E, Z/X) and the one-time Sticky Keys tip**, web build on itch.io, **itch.io page copy**.
 - **Should:** world 4 Gates (4 levels: speed gates, gate floors, ice), per-level leaderboards, adaptive music that pitch-shifts with gear, mirrored twin.
 - **Could:** free key-remap screen, ghost replays of top runs, level timer medals, a hidden "ultraviolet" reverse gear; boost pads as a Tandem split tool (`core-twists.md` §1).
 - **Cut (2026-11-03):** mud, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`); the Paint and Clock twists (`core-twists.md`).
@@ -434,6 +435,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 | Core twist candidates | `docs/design/core-twists.md` | done 2026-11-03; owner picked Tandem |
 | Tandem spec | `docs/design/features/tandem.md` | done 2026-11-03 (sim Nov 9–13) |
 | Ice spec (Should) | `docs/design/features/ice.md` | before M3 (Nov 15) |
+| Menu, progression and onboarding specs (M2-34, M2-01) | `features/menu-navigation.md`, `title-screen.md`, `level-select.md`, `pause.md`, `results.md`, `progress-save.md`, `level-loading.md`, `sticky-keys-tip.md`, `controls-screen.md`, `onboarding-hints.md` | done 2026-11-04 |
 | itch.io page copy | `docs/design/itch-page.md` | M4 (Nov 28) |
 | Decision log | `docs/design/decisions.md` | ongoing |
 
@@ -449,7 +451,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 - **Art direction C, Pixel Dither (owner decision 2026-11-03):** 480×270 logical, scaled 2× to the 960×540 itch frame; 16 px tiles (the screen still shows 30 × 16.9 tiles); the player is 12×24 px. Every gameplay element must read at that size by shape and dither pattern, never by color alone. Rendering approach: tech-lead's pixel-rendering ADR (`docs/tech/`); look: `docs/art/`.
 - The world's tint slides along the spectrum with your actual speed, while gameplay rules use the discrete bands.
 - The player's body shows the band color **and** the band's pattern or glyph (color is never the only signal).
-- **The twin** (Tandem) differs from the runner **by shape** at 12×24 px (for example a hollow outline body where the runner is filled) and shows its own band pattern. A home body shows a parked pose or glyph and stops animating. Stacked lanes are separated by a solid safe divider.
+- **The twin** (Tandem) differs from the runner **by shape** at 12×24 px (art-director's design, adopted 2026-11-04: antenna, chamfered shoulders, wide stance, two square eyes; no extra head marker unless the M3 playtest asks for one) and shows its own band pattern. A home body shows a parked pose or glyph and stops animating. Stacked lanes are separated by a solid safe divider.
 - **Camera with a twin:** frames the midpoint of the non-home bodies. With one body home it frames the other; if both are moving and more than 28 tiles apart it follows the runner and shows an edge arrow with the twin's silhouette (`features/tandem.md`).
 - **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come. Layout and checks: `docs/design/features/hud-gear-meter.md` (a five-cell white–red strip: lit cell = band, bracket = selected gear, speed needle, pending-shift bracket in the air). Pulled into M1 by the 2026-11-02 playtest. **With a twin, the HUD shows two strips stacked** (top = runner, bottom = twin), each marked with its body's silhouette and showing that body's band, gear, needle, drag meter and pending shift; a home body's strip dims and shows the home glyph.
 - **Level time** is shown as time, not steps: `wonAtStep / stepHz` as `M:SS.ss` (hundredths, truncated). Steps stay the stored and compared value (saves, replays, leaderboards).
@@ -464,6 +466,6 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 4. ~~Crates push rules~~ closed 2026-11-03: crates cut.
 5. **Gate readability** (now Should): gates are solid *except* for their color, blocks only *for* their color. Mitigations in `features/speed-gates.md`; matters again only if world 4 or the fallback ships.
 6. **Ice at speed 0** (Should): a player who lands on ice standing still would be locked at 0. The ice spec rules on it before M3.
-7. **Tandem first appears at level 10** (after 5 + 4 single-runner levels). A jam voter plays about 10 minutes, so the twist may be missed. Option if the M2 playtest shows players stopping early: move Two Colors (w2-04) after the first Tandem level, or trim world 1 to four levels. Decide at M2-31.
+7. **Tandem first appears at level 10** (after 5 + 4 single-runner levels). A jam voter plays about 10 minutes, so the twist may be missed. **Mitigated 2026-11-04 (owner decision):** the first level of every world is open from the start, so w3-01 is one menu move away (`features/level-select.md`). Still open: whether voters *find* it, and whether level order should change too (move Two Colors after w3-01, or trim world 1). The M2-30 playtest checks it; decide at M2-31.
 8. **Two bodies at a glance** (pillar 2): can a new player tell which body is which, and which gear strip belongs to which, within a few seconds? Checked in the M3 playtest (M3-34); fallbacks are a stronger silhouette difference and lane-colored dividers (with a pattern).
 9. **Tandem decision gate (Nov 12):** if `features/tandem.md` checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world.

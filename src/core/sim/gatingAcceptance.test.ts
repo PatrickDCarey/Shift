@@ -103,7 +103,7 @@ describe('gating check 8: grace plus coyote', () => {
   const c = bandStep(runFrames(green, start, [frame('R+'), ...repeat(20, 'R')]), 3);
 
   it('J on c+11 launches', () => {
-    expect(at(pressJ(c + 11), c + 11).events).toContainEqual({ type: 'jump', coyote: true, buffered: false });
+    expect(at(pressJ(c + 11), c + 11).events).toContainEqual({ type: 'jump', body: 0, coyote: true, buffered: false });
   });
 
   it('J on c+14 (no earlier press) does not', () => {

@@ -7,10 +7,8 @@
  * recordings include the deaths and restarts before the winning run (level-format.md section 4).
  * `speed=n` runs exactly n sim steps per rendered frame (clamped 1-60); R restarts the replay from frame 0.
  */
-import { EMBED_VIEWPORT, TEST_TIMEOUT_MS, expect, listSolutions, pollState, snapshot, test, waitForHook } from './helpers';
+import { TEST_TIMEOUT_MS, expect, listSolutions, pollState, snapshot, test, waitForHook } from './helpers';
 
-// The itch.io embed size. (A project's device preset would otherwise override the config-level viewport.)
-test.use({ viewport: EMBED_VIEWPORT });
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
 const REPLAY_TIMEOUT_MS = 90_000; // wall clock for the replay to finish; speed=60 needs ~13 frames, slow machines far more

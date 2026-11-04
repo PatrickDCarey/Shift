@@ -70,6 +70,23 @@ function sequence(anim: string, poses: readonly Pose[]): FrameDef[] {
   return poses.map((p, i) => ({ name: `${anim}_${i}`, mode: 'normal' as const, build: pose(p) }));
 }
 
+/** The home mark above a parked body: a 5 x 4 house in the HUD text colour, centred on the body. */
+const HOME_MARK: readonly string[] = ['..#..', '.###.', '#####', '##.##'];
+
+/**
+ * Parked (home): the body crouches with its legs together and its eyes shut, and a small house
+ * hangs above it. One frame, no animation; the band pattern stays on the torso.
+ */
+function parkedBody(v: Variant, pat: PatternId): RoleGrid {
+  const g = addKeyline(buildBody(v, pat, { squash: 4, blink: true, legL: leg(2, 0), legR: leg(-2, 0) }));
+  const cells = Uint8Array.from(g.cells);
+  const x0 = BODY_X + 4;
+  HOME_MARK.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) if (row[x] === '#') cells[(y + 1) * FRAME_W + x0 + x] = ROLE.mark;
+  });
+  return { width: g.width, height: g.height, cells };
+}
+
 /** Death: flash, crack, four chunks, scattered and dithered debris. Chunks keep their pattern pixels. */
 function deathFrames(): FrameDef[] {
   const idle = (v: Variant, pat: PatternId): RoleGrid => buildBody(v, pat, {});
@@ -141,6 +158,7 @@ export const PLAYER_FRAMES: readonly FrameDef[] = [
     { lean: -3, squash: 2, legL: leg(3, 0), legR: leg(3, 1) },
   ]),
   ...deathFrames(),
+  { name: 'park_0', mode: 'normal', build: parkedBody },
   { name: 'shift_0', mode: 'flash', build: pose({}) },
   { name: 'shift_1', mode: 'halo', build: pose({}) },
 ];
@@ -154,6 +172,7 @@ export const PLAYER_ANIMS: readonly AnimMeta[] = [
   { name: 'land', frames: 2, fps: 12, loop: false },
   { name: 'skid', frames: 2, fps: 10, loop: false },
   { name: 'death', frames: 4, fps: 8, loop: false },
+  { name: 'park', frames: 1, fps: 1, loop: false },
   { name: 'shift', frames: 2, fps: 20, loop: false },
 ];
 
@@ -176,6 +195,7 @@ export function roleColors(band: BandColor, mode: FrameMode): Record<Role, Rgba>
     [ROLE.pupil]: rgba(standing && !flash ? white : bg),
     [ROLE.shade]: rgba(flash ? mix(white, fill, 0.35) : mix(fill, bg, palette.pixel.shadeMix)),
     [ROLE.light]: rgba(flash ? white : mix(fill, white, palette.pixel.lipMix)),
+    [ROLE.mark]: rgba(hexToRgb(palette.ui.text)),
   };
 }
 

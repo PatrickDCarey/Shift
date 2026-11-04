@@ -5,7 +5,7 @@
 import type { InputFrame, Level, SimParams, SimState } from '../types';
 import { bandPhase, dragPhase, landingPhase } from './air';
 import { gracePhase, timersPhase } from './grace';
-import { directionPhase, pressEdges, recordInput, shiftPhase } from './input';
+import { directionPhase, heldDir, nextPriority, pressEdges, recordInput, shiftPhase } from './input';
 import { gravityPhase, groundPhase, jumpPhase } from './jump';
 import { moveXPhase, moveYPhase } from './move';
 import { frozenStep, outcomePhase, restartState } from './status';
@@ -38,7 +38,9 @@ function playingStep(state: SimState, input: InputFrame, ctx: StepCtx): SimState
     wonAtStep: outcome === 'won' ? next : null,
     respawnInSteps: outcome === 'dead' ? ctx.params.deathFreezeSteps : 0,
     player: work.player,
+    twin: state.twin,
     prevInput: recordInput(input),
+    dirPriority: ctx.dirPriority,
     events: work.events,
   };
 }
@@ -48,6 +50,7 @@ export function step(state: SimState, input: InputFrame, level: Level, params: S
   if (state.status !== 'playing') return frozenStep(state, input, level, params);
   const pressed = pressEdges(input, state.prevInput);
   if (pressed.restart) return restartState(state, input);
+  const dirPriority = nextPriority(state.dirPriority, pressed);
   const ctx: StepCtx = {
     input,
     pressed,
@@ -55,6 +58,8 @@ export function step(state: SimState, input: InputFrame, level: Level, params: S
     params,
     startGrounded: state.player.grounded,
     startBand: state.player.band,
+    dirPriority,
+    moveDir: heldDir(input, dirPriority),
   };
   return playingStep(state, input, ctx);
 }

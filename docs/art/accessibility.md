@@ -170,3 +170,26 @@ The old weakest pair was 16.7% (dots vs plain). The patterns now differ in struc
 - The drag-downshift flash colours are defined here but the flash is not yet drawn by `src/fx` (the scene has its own).
 - Reduced-motion and reduced-effects: flash and screen shake must respect both (see `docs/art/style.md`).
 - Text drawn directly over geometry (as opposed to the tinted background): keep text on `ui.panel`.
+
+## 10. Tandem: runner and twin (2026-11-04, T-05)
+
+Two bodies share one input and sit in stacked lanes, so the player must tell them apart at 12 x 24 px at a glance, and never by colour alone. Image: `docs/art/pixel/tandem-vision.png` (runner and twin, every band, three poses each, plus the two edge arrows, under normal vision, greyscale, protanopia, deuteranopia and tritanopia, Machado 2009 at severity 1.0). Tests: `src/fx/pixel/tandem.test.ts`.
+
+**What tells them apart (colour-free).** The runner has a flat, wide head with one wide visor; the twin has a one-pixel antenna on a narrow head, chamfered shoulders, two square eyes and a wide stance. The difference is in the outline and silhouette, not in hue or brightness.
+
+| Check | Result | Rule |
+|---|---|---|
+| Pixels that differ between the *visible* runner and twin silhouettes (a pixel is visible when it is at least 3:1 against the field after the simulation), minimum over 5 bands and every pose including parked | normal 40, greyscale 40, protanopia 40, deuteranopia 40, tritanopia 40 (standing pose: 48 in all five) | at least 10 |
+| Top row of the head in greyscale at 1x | twin at most 2 px wide, runner at least 6 px wide, in every band | shape, not hue |
+| Band pattern on the torso, minimum pattern pixels in any normal-mode frame of either body (parked: 32) | at least 8 in every marked band | at least 8 |
+| Pattern ink against body fill (blue / green / yellow / red) | normal and greyscale 6.06 / 13.52 / 13.75 / 4.85; protanopia 6.77 / 14.58 / 12.77 / 3.23; deuteranopia 5.61 / 12.78 / 14.38 / 5.93; tritanopia 6.72 / 13.35 / 12.71 / 4.89 | at least 3:1 |
+
+The weakest cell is red under protanopia (3.23:1): the checker stays readable there, as it did for tiles (section 8). Standing (white) has no pattern by design; its dark visor and the antenna still separate the two bodies.
+
+**Home (parked).** The parked pose is a different shape from every moving pose (a crouch 4 rows shorter, legs together, closed eyes) plus a 5 x 4 house mark in `ui.text` (16.36:1 against the field). It differs from the standing pose on at least 15 pixels for each body and keeps the band pattern (at least 32 pattern pixels). A parked body does not depend on dimming; the HUD strip dims as well, but the strip also shows the house glyph.
+
+**HUD glyphs and the edge arrow.** The silhouette glyphs are 7 x 12 masks that differ on 31 of 84 cells (antenna and eye holes against a wide visor gap), so a strip says which body it belongs to without colour. The edge arrow adds a 1 px `ui.text` outline and a panel fill around the same silhouette; the band-coloured silhouette is at least 3:1 against the panel in every vision (normal 4.66, greyscale 4.66, protanopia 3.09, deuteranopia 5.40, tritanopia 4.69; the minimum is red). The two arrows differ on the silhouette pixels inside in every band.
+
+**Lane divider.** The divider is the ordinary safe tile (grey fill 3:1 or better against the field, section 8), at least one tile thick, so both lanes stand on the same plain ground; in `docs/art/pixel/tandem-scene.png` it is the one grey slab between the lanes, with a lit top lip and outlines on both faces.
+
+**Not covered.** The strips' own layout (band cells, bracket, needle) belongs to ui-engineer (T-06); it must reuse the glyphs above and keep the pattern in the lit cell (section 8).

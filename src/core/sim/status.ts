@@ -43,6 +43,6 @@ export interface OutcomeResult {
 export function outcomePhase(w: Work, level: Level, params: SimParams): OutcomeResult {
   const box = boxAt(w.player.x, w.player.y, params);
   if (overlapsTile(level, box, (t) => t.kind === 'exit')) return { work: emit(w, { type: 'won' }), outcome: 'won' };
-  if (box.top > level.height) return { work: emit(w, { type: 'died' }), outcome: 'dead' };
+  if (box.top > level.height) return { work: emit(w, { type: 'died', body: 0 }), outcome: 'dead' };
   return { work: w, outcome: null };
 }

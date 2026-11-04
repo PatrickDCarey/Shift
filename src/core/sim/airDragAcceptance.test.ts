@@ -144,7 +144,7 @@ describe('air-drag check 10: counter resets on landing', () => {
     const l = landStep(s);
     expect(l).toBe(48);
     const second = s.slice(l);
-    expect(second[0]?.events).toContainEqual({ type: 'jump', coyote: false, buffered: true });
+    expect(second[0]?.events).toContainEqual({ type: 'jump', body: 0, coyote: false, buffered: true });
     expect(Math.abs(second[0]!.player.vx)).toBe(9);
     expect(dropSteps(second)[0]).toBe(40);
   });
@@ -189,7 +189,7 @@ describe('air-drag check 13-14: shifts in the air', () => {
     const l = landStep(standingJump(30));
     expect(l).toBe(48);
     expect(at(standingJump(l - 4), l).player.gear).toBe(2);
-    expect(at(standingJump(l - 4), l).events).toContainEqual({ type: 'shift', from: 1, to: 2 });
+    expect(at(standingJump(l - 4), l).events).toContainEqual({ type: 'shift', body: 0, from: 1, to: 2 });
     expect(at(standingJump(l - 10), l).player.gear).toBe(1);
   });
 });

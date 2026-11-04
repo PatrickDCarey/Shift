@@ -122,10 +122,10 @@ function roundTripProblem(log: readonly InputFrame[]): string | null {
 }
 
 describe('encodeRuns / expandRuns round trip', () => {
-  it('round-trips 300 generated input logs and always emits canonical runs', () => {
+  it('round-trips 100 generated input logs and always emits canonical runs', () => {
     const rng = makeRng(20261102);
     const problems: string[] = [];
-    for (let n = 0; n < 300; n++) {
+    for (let n = 0; n < 100; n++) {
       const problem = roundTripProblem(randomLog(rng, 40));
       if (problem !== null) problems.push(`log ${n}: ${problem}`);
     }

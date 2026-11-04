@@ -52,6 +52,7 @@ export function gridLevel(rows: readonly string[], id = 'w0-99'): Level {
     height: rows.length,
     tiles,
     start: { col: rows[startRow]?.indexOf(PLAYER_START_CHAR) ?? 0, row: startRow },
+    twinStart: null,
   };
 }
 

@@ -5,13 +5,13 @@
  */
 import { EMBED_VIEWPORT, TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
 
-// The itch.io embed size. (A project's device preset would otherwise override the config-level viewport.)
-test.use({ viewport: EMBED_VIEWPORT });
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
 const LEVEL = 'w0-02';
 
 test('canvas is 960x540 logical and fills the 960x540 viewport', async ({ page }) => {
+  // The project's default viewport is the itch.io embed size (BUG-2 regression guard: no per-spec test.use).
+  expect(page.viewportSize()).toEqual(EMBED_VIEWPORT);
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
   const canvas = page.locator('#game canvas');
@@ -97,7 +97,11 @@ test('inside a 960x540 iframe: keys work and the host page does not scroll', asy
   await waitForHook(frame);
   await frame.locator('#game canvas').click();
   await expect(frame.locator('#game canvas')).toHaveAttribute('width', '960');
+  const step0 = (await snapshot(frame))?.state.step ?? 0;
   for (const key of ['Space', 'ArrowUp', 'ArrowLeft', 'ArrowRight']) await page.keyboard.press(key);
+  // The spawn pad has headroom since w0-02 v2, so Space is a full 48-step jump; a shift pressed in the air is
+  // dropped by design (shift buffer, 6 steps). Wait for the jump to be over (sim steps, not wall clock).
+  await pollState(frame, (s) => s.state.step >= step0 + 100 && s.state.player.grounded, 'back on the ground after the jump keys').toBe(true);
   await page.keyboard.press('ShiftRight');
   await pollState(frame, (s) => s.state.player.gear, 'gear after Right Shift in the iframe').toBe(2);
   expect(await page.evaluate(() => window.scrollY), 'host page scrollY').toBe(0);

@@ -19,7 +19,6 @@ export function spawnPlayer(level: Level, params: SimParams): PlayerState {
     band: 0,
     facing: 1,
     moveDir: 0,
-    dirPriority: 0,
     grounded: supported(level, params, x, y, gate),
     coyoteSteps: 0,
     jumpBufferSteps: 0,
@@ -28,6 +27,7 @@ export function spawnPlayer(level: Level, params: SimParams): PlayerState {
     graceSteps: 0,
     graceBand: null,
     airDistance: 0,
+    home: false,
   };
 }
 
@@ -38,7 +38,9 @@ export function createSim(level: Level, params: SimParams): SimState {
     wonAtStep: null,
     respawnInSteps: 0,
     player: spawnPlayer(level, params),
+    twin: null,
     prevInput: { ...EMPTY_INPUT },
+    dirPriority: 0,
     events: [],
   };
 }

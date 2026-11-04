@@ -32,7 +32,6 @@ function freshState(prevInput: InputFrame): SimState {
       band: 0,
       facing: 1,
       moveDir: 0,
-      dirPriority: 0,
       grounded: true,
       coyoteSteps: 0,
       jumpBufferSteps: 0,
@@ -41,8 +40,11 @@ function freshState(prevInput: InputFrame): SimState {
       graceSteps: 0,
       graceBand: null,
       airDistance: 0,
+      home: false,
     },
+    twin: null,
     prevInput,
+    dirPriority: 0,
     events: [],
   };
 }
@@ -83,6 +85,7 @@ const LEVEL: Level = {
   height: 1,
   tiles: Array.from({ length: 5 }, () => ({ kind: 'empty' as const })),
   start: { col: 0, row: 0 },
+  twinStart: null,
 };
 const PARAMS = {} as unknown as SimParams;
 const R: InputFrame = { ...EMPTY_INPUT, right: true };
@@ -261,15 +264,15 @@ describe('verifySolution', () => {
 });
 
 describe('verifySolution on long solutions (review L1)', () => {
-  const LONG = 200_000;
+  const LONG = MAX_REPLAY_STEPS;
   const NEVER_WINS: Level = { ...LEVEL, width: LONG * 2 };
-  const BALLAST_NUMBERS = 64;
+  const BALLAST_NUMBERS = 16;
 
   /** Heap in use, read through globalThis because browser-side tsconfig has no Node types (tests run in Node). */
   const heapUsed = (): number =>
     (globalThis as unknown as { process: { memoryUsage: () => { heapUsed: number } } }).process.memoryUsage().heapUsed;
 
-  /** A solution of `count` steps built directly as one run (solutionOf would compare 200,000 frames as JSON). */
+  /** A solution of `count` steps built directly as one run (solutionOf would compare a million frames as JSON). */
   const oneRun = (frame: InputFrame, count: number): Solution => ({
     levelId: 'w0-01',
     levelVersion: 1,
@@ -277,7 +280,7 @@ describe('verifySolution on long solutions (review L1)', () => {
     runs: [{ count, frame }],
   });
 
-  /** Fake sim whose every state carries ~0.7 KB, so retaining 200,000 of them would cost well over 100 MB. */
+  /** Fake sim whose every state carries ~0.3 KB, so retaining 1,000,000 of them would cost about 300 MB. */
   function makeHeavySim(onStep: (n: number) => void): SimApi {
     let n = 0;
     return {
@@ -292,15 +295,17 @@ describe('verifySolution on long solutions (review L1)', () => {
     };
   }
 
+  const EXTRA = 100_000;
+
   it('stops stepping at the first won state instead of replaying the whole recording', () => {
     const calls = { creates: 0, steps: 0 };
     const solution: Solution = {
       levelId: 'w0-01',
       levelVersion: 1,
-      steps: 5 + LONG,
+      steps: 5 + EXTRA,
       runs: [
         { count: 5, frame: R },
-        { count: LONG, frame: EMPTY_INPUT },
+        { count: EXTRA, frame: EMPTY_INPUT },
       ],
     };
     expect(verifySolution(makeFakeSim(calls), LEVEL, PARAMS, solution)).toEqual([]);
@@ -315,16 +320,16 @@ describe('verifySolution on long solutions (review L1)', () => {
     expect(e[0]).toContain(`status 'playing' after ${LONG} steps`);
   });
 
-  it('does not retain intermediate states while replaying a 200,000-step solution', () => {
+  it('does not retain intermediate states while replaying a 1,000,000-step solution', () => {
     let baseline = 0;
     let peakDelta = 0;
     const sim = makeHeavySim((n) => {
       if (n === 1) baseline = heapUsed();
-      if (n % 25_000 === 0) peakDelta = Math.max(peakDelta, heapUsed() - baseline);
+      if (n % 50_000 === 0) peakDelta = Math.max(peakDelta, heapUsed() - baseline);
     });
     const e = verifySolution(sim, NEVER_WINS, PARAMS, oneRun(R, LONG));
     expect(e).toHaveLength(1);
-    // Keeping every state would add over 100 MB; one state at a time stays far below this.
-    expect(peakDelta).toBeLessThan(40 * 1024 * 1024);
+    // Keeping every state would add about 300 MB; one state at a time stays far below this.
+    expect(peakDelta).toBeLessThan(60 * 1024 * 1024);
   });
 });

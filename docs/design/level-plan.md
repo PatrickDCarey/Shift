@@ -1,6 +1,6 @@
 # Redshift — Level plan
 
-_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 3.0 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`, `features/tandem.md`). World 3 becomes five Tandem levels; speed gates and ice move to a Should world 4. The v2.0 gates plan is kept below as the fallback._
+_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 3.1 (2026-11-04): first level of every world open from the start; hint glyph placements per level; title length cap. Version 3.0 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`, `features/tandem.md`). World 3 becomes five Tandem levels; speed gates and ice move to a Should world 4. The v2.0 gates plan is kept below as the fallback._
 
 18 levels in 4 worlds. Each level introduces **one** new idea (or combines known ones, marked COMBINE/TEST/TWIST). A level is rejected if:
 - it teaches two new ideas at once;
@@ -35,7 +35,13 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
   - every single-lane rule above applies to each lane.
 - **Prove the idea is needed:** for each level, record in `levels/README.md` that the level fails when the new piece is ignored (remove the wall, block or twin feature and show a non-intended line now wins, or show the intended line is the only one through).
 - Timing windows in intended solutions: at least 12 steps (0.2 s), or ≥ 3 tiles at sprint. Widen flight windows with lower landing pads (GDD §5.4) rather than shorter gaps.
-- World 1 levels should be solvable without reading anything. w1-01 shows an arrow-key glyph at spawn; w1-02 shows a Shift/E/X glyph on its first pad.
+- World 1 levels should be solvable without reading anything. Onboarding hint glyphs (`features/onboarding-hints.md`; placed by hint headers, at most 3 per level, anchor in an empty cell at least 3 rows above the floor, runner lane only in Tandem levels):
+  - w1-01: `move` above the spawn (Must);
+  - w1-02: `shiftUp` over the first pad and `shiftDown` over the second (Must);
+  - w2-01: `jump` over the start pad (Must) and `shiftUp` (Should);
+  - w3-01: `move` and `shiftUp` in the runner lane (Should).
+- **The first level of every world is open from the start** (owner decision 2026-11-04, `features/level-select.md`). w2-01 and w3-01 must therefore be playable by someone who skipped every earlier world: gentle, with the hints above, and with no skill the level itself doesn't show. Inside a world, levels still unlock in order.
+- Level `title`s: 20 characters at most (level select truncates at 24).
 - Every level ships a solution recording.
 
 ## World 1 — Gears (Must, M2)
@@ -100,7 +106,7 @@ World 3 reverts to the v2.0 Gates world (speed gates become Must again; `feature
 - **World 3** is Tandem: Two Lanes, Out of Step, Gear Split, Clamp, Redshift (finale).
 - **World 4** is Gates (Should): Gate, Trapdoor, Two Gates, Ice. Green Roof, Brake Budget, Black Ice dropped.
 - **Must** stays 14 (5 + 4 + 5); M2 ships 9 levels.
-- **Open (GDD §12.7):** Tandem first appears at level 10. If the M2 playtest shows voters stopping early, Two Colors moves after w3-01 or world 1 trims to four levels.
+- **Open (GDD §12.7):** Tandem first appears at level 10. Partly mitigated in v3.1: w3-01 is open from the start. If the M2 playtest shows voters still stopping early, Two Colors moves after w3-01 or world 1 trims to four levels.
 
 ## Changes in v2.0 (puzzle depth review)
 

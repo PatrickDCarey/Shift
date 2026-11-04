@@ -25,5 +25,13 @@ export {
   shouldShowStickyKeysTip,
 } from './stickyKeysTip';
 export type { PlatformInfo, StickyTipContext } from './stickyKeysTip';
-export { gearMeterModel } from './gearMeter';
+export { INITIAL_GEAR_METER_MODEL, gearMeterModel } from './gearMeter';
 export type { GearMeterModel, GearMeterParams } from './gearMeter';
+export { isDragDrop, updateDropPulse } from './dropPulse';
+export type { DropPulse, DropPulseOptions } from './dropPulse';
+export { SHIFT_GLYPH, gearKeyCaps } from './gearKeyCaps';
+export type { GearKeyCaps } from './gearKeyCaps';
+export { GEAR_METER_LAYOUT } from './gearMeterLayout';
+export type { GearMeterLayout } from './gearMeterLayout';
+export { gearMeterPlan } from './gearMeterPlan';
+export type { GearMeterPlan, PlanCell, PlanDigit, PlanHint, PlanKeyCap, PlanNeedle, Rect } from './gearMeterPlan';

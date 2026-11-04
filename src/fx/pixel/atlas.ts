@@ -5,8 +5,10 @@
  */
 import { BANDS, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, type AnimMeta } from './player';
 import { FEET_Y, FRAME_H, FRAME_W, VARIANTS } from './playerBody';
+import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, GLYPH_HOME_SIZE, bakeBodyGlyph, bakeEdgeArrow, bakeHomeGlyph } from './hud';
 import { blit, createRaster, hashRaster, type Raster } from './raster';
 import { RIDGES, bakeHorizon, bakeRidge, bakeStars } from './scenery';
+import { COLORED_BANDS, TILESET_COLUMNS, TILESET_COUNT, TILESET_ROWS, bakeTileset, tilesetIndex } from './tileset';
 import {
   EXIT_FRAMES,
   NEIGHBOUR_MASKS,
@@ -108,6 +110,16 @@ export function packAtlas(image: string, items: readonly PackItem[], maxWidth: n
   };
 }
 
+/** Phaser texture / font keys for the committed files in assets/art/pixel/ (`pixel-<key>.png` plus `.json`, or `.xml` for the font). */
+export const PIXEL_KEYS = {
+  player: 'pixel-player',
+  tiles: 'pixel-tiles',
+  scenery: 'pixel-scenery',
+  hud: 'pixel-hud',
+  tileset: 'pixel-tileset',
+  font: 'pixel-font',
+} as const;
+
 export const PLAYER_PIVOT = { x: 0.5, y: FEET_Y / FRAME_H } as const;
 
 export function playerFrameName(variant: string, band: string, frame: string): string {
@@ -164,10 +176,60 @@ function sceneryItems(): PackItem[] {
   ];
 }
 
+export function hudFrameNames(): { glyph: (body: string) => string; home: string; edge: (body: string, band: string) => string } {
+  return { glyph: (body) => `glyph/${body}`, home: 'glyph/home', edge: (body, band) => `hud/edge/${body}/${band}` };
+}
+
+function hudItems(): PackItem[] {
+  const names = hudFrameNames();
+  const items: PackItem[] = [];
+  for (const body of VARIANTS) items.push({ name: names.glyph(body), raster: bakeBodyGlyph(body) });
+  items.push({ name: names.home, raster: bakeHomeGlyph() });
+  for (const body of VARIANTS) {
+    for (const band of BANDS) items.push({ name: names.edge(body, band), raster: bakeEdgeArrow(body, band), pivot: { x: 0, y: 0.5 } });
+  }
+  return items;
+}
+
+/** The Tilemap grid sheet: not an atlas (Phaser tilemaps need a uniform grid), so its JSON is documentation plus a content hash. */
+export interface PackedTileset {
+  readonly sheet: Raster;
+  readonly json: {
+    readonly tileSize: number;
+    readonly columns: number;
+    readonly rows: number;
+    readonly count: number;
+    readonly firstIndex: Record<string, number>;
+    readonly hash: string;
+  };
+}
+
+function packTileset(): PackedTileset {
+  const sheet = bakeTileset();
+  return {
+    sheet,
+    json: {
+      tileSize: 16,
+      columns: TILESET_COLUMNS,
+      rows: TILESET_ROWS,
+      count: TILESET_COUNT,
+      firstIndex: {
+        safe: tilesetIndex.safe(0, 0),
+        ...Object.fromEntries(COLORED_BANDS.map((b) => [`solid/${b}`, tilesetIndex.solid(b, 0)])),
+        ...Object.fromEntries(COLORED_BANDS.map((b) => [`ghost/${b}`, tilesetIndex.ghost(b)])),
+        exit: tilesetIndex.exit(0),
+      },
+      hash: hashRaster(sheet),
+    },
+  };
+}
+
 export interface PixelAssets {
   readonly player: PackedAtlas;
   readonly tiles: PackedAtlas;
   readonly scenery: PackedAtlas;
+  readonly hud: PackedAtlas;
+  readonly tileset: PackedTileset;
 }
 
 /** Bake every pixel asset. File names are `pixel-player`, `pixel-tiles`, `pixel-scenery` (.png / .json). */
@@ -191,5 +253,10 @@ export function buildPixelAssets(): PixelAssets {
       note: 'White masks, tint at runtime with sceneryColors(). ridge placement is RIDGES[layer].top in the 480x270 view; ridges repeat every 480 px.',
       ridges: RIDGES,
     }),
+    hud: packAtlas('pixel-hud.png', hudItems(), 256, {
+      naming: 'glyph/<runner|twin> (7x12 white mask), glyph/home (7x7 white mask), hud/edge/<runner|twin>/<band> (22x16, points right, pivot (0, 0.5); flipX at the left edge)',
+      sizes: { body: [GLYPH_BODY_W, GLYPH_BODY_H], home: [GLYPH_HOME_SIZE, GLYPH_HOME_SIZE], edge: [EDGE_ARROW_W, EDGE_ARROW_H] },
+    }),
+    tileset: packTileset(),
   };
 }

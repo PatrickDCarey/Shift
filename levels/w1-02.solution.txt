@@ -1,0 +1,12 @@
+level: w1-02
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand at the spawn (reading the Shift glyph)
+# 1+    shift up once while standing: gear 2 (cruise green)
+# 75R   walk right: green 0.6 tiles later, cross the green bridge onto P2
+# 1R-   shift down on P2 while still holding right: blue 0.78 tiles later, before the blue bridge
+# 214R  cross the blue bridge into the exit
+# Fairness: shift-up 20/21 steps earlier/later, shift-down 21/21 (the whole window is 43 steps).
+steps: 311
+---
+20. 1+ 75R 1R- 214R

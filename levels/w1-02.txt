@@ -1,0 +1,29 @@
+# World 1, level 2. Teach: Shift changes your cruise gear, and with it your color.
+# Target first-time solve: 30-60 s.
+# Same room as w1-01 on purpose, with the first bridge painted green: spot the difference.
+# Layout (23 x 13): spawn pad P1 (3 tiles) -> green bridge (5 tiles) -> safe pad P2 (3 tiles)
+#   -> blue bridge (6 tiles) -> exit pad. Bridges sit over death pits under a 2-tile tunnel roof.
+# Shift up once on P1 (green 0.6 tiles from standing); shift down on P2 (blue 0.78 tiles later),
+# or let go on P2, then shift down and walk on. Two presses up makes you yellow: you fall through green.
+# Hints (add when M2-03/M2-04 land; no header key yet): `shiftUp` anchored at col 1, row 6 (above P1)
+#   and `shiftDown` at col 9, row 6 (above P2). Both 3x2 boxes (cols 0-2 / 8-10, rows 5-6) are empty sky,
+#   3 rows above the floor row 9.
+id: w1-02
+title: Shift
+world: 1
+teaches: Shift changes your cruise gear, and with it your color
+version: 1
+---
+...#####...######......
+...#####...######......
+...#####...######......
+...#####...######......
+...#####...######......
+...#####...######......
+...#####...######......
+.......................
+.@..................E..
+###GGGGG###BBBBBB######
+###.....###......######
+###.....###......######
+###.....###......######

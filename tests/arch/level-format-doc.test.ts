@@ -5,7 +5,15 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { INPUT_BUTTONS, INPUT_LETTERS, PLAYER_START_CHAR, RESERVED_CHARS, TILE_LEGEND } from '../../src/core/types';
+import {
+  HINT_GLYPHS,
+  INPUT_BUTTONS,
+  INPUT_LETTERS,
+  PLAYER_START_CHAR,
+  RESERVED_CHARS,
+  TILE_LEGEND,
+  TWIN_START_CHAR,
+} from '../../src/core/types';
 
 const DOC = readFileSync(resolve(import.meta.dirname, '..', '..', 'docs', 'tech', 'level-format.md'), 'utf8');
 
@@ -18,12 +26,21 @@ function legendCharsInDoc(): Set<string> {
 
 const TOKEN_RE = /^[1-9][0-9]*(\.|(?=[LRJ+!-])L?R?J?\+?-?!?)$/;
 
+/** First-cell ids of the indented hint-glyph table rows, e.g. "  | `shiftUp` | ...". */
+const GLYPH_ROW_RE = /^\s*\| `([A-Za-z-]+)` \| /;
+
 describe('level-format.md', () => {
-  it('documents every legend character and the start marker', () => {
+  it('documents every legend character and both start markers', () => {
     const documented = legendCharsInDoc();
-    for (const c of [...Object.keys(TILE_LEGEND), PLAYER_START_CHAR]) {
+    for (const c of [...Object.keys(TILE_LEGEND), PLAYER_START_CHAR, TWIN_START_CHAR]) {
       expect(documented, `char "${c}" missing from the legend table`).toContain(c);
     }
+  });
+
+  it('documents the hint header and every hint glyph id', () => {
+    expect(DOC).toContain('| `hint` | `<glyph> <col> <row>` |');
+    const documented = DOC.split('\n').map((line) => GLYPH_ROW_RE.exec(line)?.[1]);
+    for (const g of HINT_GLYPHS) expect(documented, `hint glyph "${g}" missing from the table`).toContain(g);
   });
 
   it('mentions each reserved character', () => {

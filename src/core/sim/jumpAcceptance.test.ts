@@ -88,7 +88,7 @@ describe('jump check 6-7: coyote', () => {
     const before = k > 1 ? at(states, k - 1) : states[0]!;
     const s = runFrames(ledge, before, [...repeat(4, 'R'), frame('RJ')]);
     expect(at(s, 1).player.grounded).toBe(false);
-    expect(at(s, 5).events).toContainEqual({ type: 'jump', coyote: true, buffered: false });
+    expect(at(s, 5).events).toContainEqual({ type: 'jump', body: 0, coyote: true, buffered: false });
   });
 
   it('J on the 8th airborne step (and not before): no jump', () => {
@@ -106,7 +106,7 @@ describe('jump check 8-9: jump buffer', () => {
   it('J on flight step 44 (landing 48): a new jump launches within 1 step after landing', () => {
     const s = withPress(44);
     expect(landStep(s)).toBe(48);
-    expect(at(s, 49).events).toContainEqual({ type: 'jump', coyote: false, buffered: true });
+    expect(at(s, 49).events).toContainEqual({ type: 'jump', body: 0, coyote: false, buffered: true });
   });
 
   it('J on flight step 38 only: no second jump', () => {

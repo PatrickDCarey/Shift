@@ -1,6 +1,6 @@
 # Redshift — Technical Architecture
 
-_Owner: tech-lead. Keep in sync with the code; update when setup changes. Matches GDD v1.1 (hold-to-move)._
+_Owner: tech-lead. Keep in sync with the code; update when setup changes. Matches GDD v1.4 (hold-to-move; Tandem, `docs/design/features/tandem.md`)._
 
 ## 1. Stack
 
@@ -13,12 +13,13 @@ _Owner: tech-lead. Keep in sync with the code; update when setup changes. Matche
 | Playwright | 1.64.1, Chromium only | Runs against `vite build` (with `VITE_QA_HOOK=1`, §11) + `vite preview` on port 4173. 960×540 viewport, 2 workers. |
 | Node | ≥ 22.12 (`.nvmrc` = 22) | |
 
-**Rendering resolution:** decided in [`adr-pixel-rendering.md`](adr-pixel-rendering.md) (2026-11-03): 480 x 270 logical, `Scale.NONE` + integer `MAX_ZOOM`, 16 px tiles, bitmap font, textures built at boot from `palette.json`. The game still runs at 960 x 540 with 32 px tiles until the migration (PX-1 to PX-11) lands.
+**Rendering resolution:** decided in [`adr-pixel-rendering.md`](adr-pixel-rendering.md) (2026-11-03): 480 x 270 logical, `Scale.NONE` + integer `MAX_ZOOM`, 16 px tiles, bitmap font, atlases baked from `src/fx/pixel` + `palette.json` by `npm run art:build` and loaded at boot. The game still runs at 960 x 540 with 32 px tiles until the migration (PX-1 to PX-11) lands.
 
 ## 2. Module layout and owners
 
 ```
-index.html, src/main.ts   Phaser.Game config (960x540, pixelArt, FIT scaling)   tech-lead
+index.html, src/main.ts   Phaser.Game config (960x540, pixelArt, FIT), SaveStore  tech-lead
+src/scenes/keys.ts, Boot  scene + registry keys, BootScene                     tech-lead
 src/core/                 PURE deterministic simulation (no Phaser), 3 lanes    see §3.5
   sim/ motion/ level/     lanes, each with a public index.ts                    gameplay-engineer (one sitting per lane)
   types.ts, contracts/    shared types + lane contracts                         tech-lead
@@ -64,7 +65,8 @@ step(state: SimState, input: InputFrame, level: Level, params: SimParams): SimSt
 - `SimState` is immutable; `step` returns a new object. It contains everything needed to continue (including `prevInput` for press edges). If randomness is ever needed, a seeded PRNG state lives inside `SimState`.
 - **Units** (header of `src/core/types.ts`): distances in tiles, **speeds in tiles/second everywhere** (tuning, params and state), time in whole steps, `dt = 1 / stepHz`. Snapped speeds are therefore exact (`vx === 3`, `vx === 12`), as the acceptance tests require. Pixels and milliseconds never enter the sim except through `Tuning`, converted once in `deriveParams` (`steps = round(ms × stepHz / 1000)`).
 - **Gear vs band.** `Gear` (1–4) is the selected cruise gear; `Band` (0–4) is the colour of the actual speed `|vx|`. They differ while ramping, braking, standing and after drag. Coloured tiles and cameras test the **band**, never the gear.
-- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `won`, `died`, `restart`). Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`.
+- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `home`, `won`, `died`, `restart`). Every event about one body carries `body: 0 | 1` (`BodyId`; 0 = runner, 1 = twin; `BodyEvent` in `types.ts`); `won` and `restart` are run-level. Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`.
+- **Bodies (Tandem).** `SimState.player` is body 0, the runner (spawn `@`). `SimState.twin` is body 1 (spawn `&`, `Level.twinStart`), or `null` in a level without `&`; then the sim behaves exactly as before Tandem (same states, same events, all with `body: 0`). Renderers, HUD and audio handle one or two bodies the same way: a list of `[player, twin]` without the nulls.
 - **Renderer** (Phaser scenes and entities) reads `SimState` and draws it; it never decides game rules. Tiles → pixels (`× tileSize`) happens only there.
 
 ### 3.1 Step order (normative: GDD §4.14)
@@ -89,6 +91,25 @@ The sim lane implements exactly this order; acceptance numbers in `docs/design/f
 | 13 | **Timers** | Decrement `coyoteSteps`, `jumpBufferSteps`, `shiftBufferSteps` if > 0 (a shift buffer reaching 0 clears `shiftBufferNet`). |
 | 14 | **Exit, then death** | Box overlaps an exit tile → `won`, `wonAtStep = step + 1`, `won` event. Else box top below the grid bottom → `dead`, `respawnInSteps = deathFreezeSteps`, `died` event. Exit wins on the same step. |
 | 15 | **Bookkeeping** | `step + 1` (playing steps only, §3.4), `prevInput = input`, `events` = this step's list. |
+
+### 3.1.1 Tandem: two bodies, one input (normative: `features/tandem.md` "Step order")
+
+With a twin (`SimState.twin !== null`) the table above runs as follows. Without a twin it is exactly the table above.
+
+| # | Phase | Runs |
+|---|---|---|
+| 0 | Status gate | **once** (run-level status) |
+| 1 | Input | **once**: press edges from the shared `SimState.prevInput`; a `restart` press ends the step for both bodies |
+| 3 | Direction | **once, before any body's phase 2** (it reads only the input, so moving it ahead of phase 2 changes nothing): one shared `dirPriority`, one `d` for both bodies. `moveDir = d` and `facing = d` (when `d ≠ 0`) are written per body |
+| 2, 4–13 | Shift, ground speed, jump, gravity, move X, move Y, air drag, band, landing, grace, timers | **per body: body 0 (runner) first, then body 1 (twin).** Each body uses its own "grounded at start", band at start, buffers and timers. A body that is **home is skipped** (state unchanged, no events) |
+| 14 | Exit, then death | **once:** (a) home check for each non-home body, runner first: its box overlaps an exit tile → `home = true`, `home { body }` event; (b) if every body is now home → `won`, `wonAtStep = step + 1`, `won` event; (c) else if any non-home body's box top is below the grid bottom → `dead`, `respawnInSteps = deathFreezeSteps`, one `died { body }` event (the body that fell; **both on one step → body 0**). Home is decided before death, so a body that gets home on the step its partner falls still dies with the run (`tandem.md` check 14), and a run whose last body gets home is won even if it was also below the grid (check 13) |
+| 15 | Bookkeeping | **once:** `step + 1`, `prevInput = input`, `events` = runner's events, then twin's, then the run-level phase 14 events in the order (a)–(c) |
+
+- **Bodies never interact.** Tiles never treat a body as solid; bodies may overlap. Order (runner first) changes no position or speed, only the event order.
+- **Shared, per run:** `prevInput`, `dirPriority`, `step`, `status`, `wonAtStep`, `respawnInSteps`. **Per body:** everything in `PlayerState`, including `home`.
+- **Home is frozen:** from the step after a body got home, phases 2–13 skip it; it emits nothing, is never checked for death and is ignored for camera framing. Exits are shared: either body may use any exit tile.
+- **`home` events exist only with a twin.** Without one the win step emits `won` alone, as today (`tandem.md` check 1).
+- **Contract status (T-01, 2026-11-04).** In `src/core/contracts/`: `BodyId`, `RUNNER`, `TWIN`, `body` on every body event, `home { body }`, `died { body }`, `BodyEvent`, `SimState.twin`, `Level.twinStart`, `TWIN_START_CHAR`. The sim emits `body: 0` and `twin: null` until T-10. **Stage 2 is pending** a one-line fixture update by ui-engineer (`src/ui/testkit.ts`): `PlayerState.home` is added and `dirPriority` moves from `PlayerState` to `SimState`. Build T-10 against the stage-2 shape described here.
 
 ### 3.2 Conventions the GDD leaves implicit (tech-lead rulings)
 
@@ -119,6 +140,7 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
 - **Restart** (a `restart` press on step r, any status except `won`) sets `status = 'restarting'`, `respawnInSteps = 0` and emits `restart`; nothing else runs on step r. Step r+1 is the respawn step. During a death freeze this skips the rest of the freeze.
 - **The respawn step** returns `{ ...createSim(level, params), prevInput: input }`: exactly the fresh-load state except `prevInput`, so buttons held through the respawn are not new presses. The new run's step 1 is the step after. This satisfies `safe-tiles-and-reset.md` checks 6, 10 and 11 literally (the state on the respawn step equals the fresh-load state).
 - `won` is terminal in the sim (R on the exit step is ignored); the scene starts a new run with `createSim`.
+- **Tandem.** Either body falling out kills the whole run (phase 14, §3.1.1); the freeze, restart and respawn rules above are run-level and unchanged. The respawn step returns `createSim(level, params)` with `prevInput` held through, so **both** bodies are back at their spawns, `home` false, `twin` rebuilt from `Level.twinStart` (`tandem.md` checks 12 and 15). There is no partial respawn.
 - **`SimState.step` counts playing steps of the current run only** (ruling 2026-11-02). Frozen death steps, the restart step and `won` steps leave it unchanged; the respawn step resets it to 0. So `step` (and `wonAtStep`) is the run time; the number of recorded frames is the solution's `steps`, which also counts deaths, freezes and restarts.
 
 ### 3.5 Lanes inside `src/core` (M1-41)
@@ -200,6 +222,14 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 ## 9. Saves (`src/save`)
 
 `localStorage` can throw inside a sandboxed iframe or private window. Wrap every access in `try/catch`, version the save blob, and fall back to in-memory state. The game must be fully playable with storage blocked.
+
+**One store per page session, shared through the Phaser registry (M2-40).**
+- `src/main.ts` calls `createSaveStore()` once at module load and installs it with `setSaveStore(game.registry, store)` in the game config's `callbacks.preBoot`, which Phaser runs before any scene boots. `createSaveStore()` never throws: with storage blocked it keeps the save in memory and `isPersistent()` is false.
+- Scenes read it with `getSaveStore(this.registry)` (`src/scenes/keys.ts`, key `REGISTRY_KEYS.saveStore`). Never call `createSaveStore()` anywhere else: a second store would hold a second copy of the save and the two would overwrite each other.
+- `getSaveStore` throws if nothing is installed (a wiring bug, not a storage problem); `BootScene` calls it so that shows up at boot.
+- Consumers: Sticky Keys tip (`showStickyKeysTipIfDue({ scene, store, ... })`, M2-39), `store.recordLevelComplete(levelId, wonAtStep)` on a win (M2-06, from the `RunResult`, `level-format.md` §4), level select and settings (ui-engineer).
+- `src/scenes/keys.test.ts` checks the shared instance and the blocked-storage boot path (a `localStorage` whose every call throws).
+- New game-wide services go the same way: a key in `REGISTRY_KEYS`, a typed getter in `keys.ts`, installed in `preBoot`.
 
 ## 10. Where each team plugs in
 

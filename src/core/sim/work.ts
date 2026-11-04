@@ -8,6 +8,7 @@ import {
   type Gear,
   type InputFrame,
   type Level,
+  type MoveDir,
   type PlayerState,
   type SimEvent,
   type SimParams,
@@ -24,6 +25,10 @@ export interface StepCtx {
   readonly startGrounded: boolean;
   /** Band at the start of the step: decides collisions in phases 7-8. */
   readonly startBand: Band;
+  /** Phase 3, computed once per step for every body: the run-level priority after this step's presses. */
+  readonly dirPriority: MoveDir;
+  /** Phase 3: the shared direction d. */
+  readonly moveDir: MoveDir;
 }
 
 export interface Work {

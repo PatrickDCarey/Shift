@@ -1,6 +1,6 @@
 # ADR: rendering at 480 x 270 for art direction C (Pixel Dither)
 
-_Owner: tech-lead. Status: **Accepted**, 2026-11-03. Migration not started (tasks PX-1 to PX-11 below)._
+_Owner: tech-lead. Status: **Accepted**, 2026-11-03. Updated 2026-11-04: sprite format matched to `docs/art/style.md` (art-director owns it), atlases are loaded rather than baked at boot, Tandem view and camera rules from `docs/design/features/tandem.md`. Migration: batch 1 (art) in progress._
 
 ## Context
 
@@ -69,28 +69,31 @@ We choose **(a): game config 480 x 270, `Scale.NONE` + `zoom: MAX_ZOOM`, re-zoom
 - **Tile size: 16 art px.** That is 32 screen px at 2x, the same on-screen size as today. The view stays 30 x 16.875 tiles, so **no level changes**.
 - The player is 0.75 x 1.5 tiles = 12 x 24 px, matching the art.
 - `tuning.tileSize` is render-only and stays where it is. design-lead changes 32 to 16 in the cutover batch. Moving it to art data is not worth a contract change now.
-- **Sprites are a Phaser JSON-hash atlas** (`assets/art/player.png` + `player.json`, loaded with `load.atlas`). Rules for the sheet:
-  - no trimming and no rotation;
-  - 1 px transparent gap between frames;
-  - even frame widths, so `origin (0.5, 1)` lands on a pixel boundary.
-- **Colors stay in `palette.json` (hard rule).** The atlas is drawn in a few *key colors*, such as body fill, shade, keyline and visor, each mapped to a palette role in `palette.json`.
-- **Patterns stay in `palette.json` too**, as small repeating 1-bit cells.
-- At boot, `src/fx` builds the textures from palette and patterns:
-  - one player texture per band (5 bands x 7 frames);
-  - a 16 x 16 tileset (per band: solid top with lip, solid inner, ghost; plus safe top, safe inner, exit).
-- **No final color is baked into a PNG.** A palette change needs no re-export.
-- `LevelView` moves from per-frame `Graphics` to **Tilemap layers** built on the generated tileset (static layer, plus a colored layer whose tile indices are swapped when the hold mode changes). Redrawing pixel patterns rect by rect would cost tens of thousands of rect commands on every band change.
+- **Sprite format: owned by art-director, defined in `docs/art/style.md`** ("Assets", "Player", "Tiles"). This ADR only records what the renderer relies on:
+  - Six files in `assets/art/pixel/`, Phaser keys in `PIXEL_KEYS` (`src/fx`): `pixel-player`, `pixel-tiles`, `pixel-scenery`, `pixel-hud` (JSON-hash atlases, `load.atlas`), `pixel-tileset` (a 16 x 10 grid of 16 px tiles, `load.image` then `tilemap.addTilesetImage`) and `pixel-font` (BMFont XML, `load.bitmapFont`). No trimming, no rotation, 1 px gutter.
+  - **Player frames 20 x 28**, the 12 x 24 body at x 4..15, feet at y = 26. The pivot (0.5, 26/28) is stored per frame in the JSON, so the frame origin is the integer point (10, 26) = the sim's feet. Frames face right; flip for left. The even width keeps the snapping invariant below.
+  - Frame names: `player/<runner|twin>/<band>/<anim>_<n>` (2 bodies x 5 bands x 29 frames; anims and fps in `PLAYER_ANIMS`: `idle`, `run`, `sprint`, `jump`, `fall`, `land`, `skid`, `death`, `park`, `shift`), `tile/...` (`tileFrameNames()`), `glyph/runner`, `glyph/twin`, `glyph/home`, `hud/edge/<runner|twin>/<band>` (`hudFrameNames()`), `bg/*`. Use the helpers `playerFrameName(body, band, frame)`, `tileFrameNames`, `tilesetIndex`, `hudFrameNames` from `src/fx`, never hand-built strings.
+  - Tiles are 16 x 16 (exit glow 32 x 32, centred on the door tile). The mask is the same-kind neighbour mask (bit 0 up, 1 right, 2 down, 3 left; `neighbourMask`); safe depth is the number of safe tiles above, capped at 4. The renderer computes both from the `Level` grid once per level.
+- **Colors and patterns: `palette.json` stays the only source (hard rule).** The art is code in `src/fx/pixel/` reading `palette.json`; `npm run art:build` (`node assets/art/pixel/build.mjs`) bakes it into the committed sheets. The sheets are generated artifacts, like `dist/`: never edit them by hand, and a unit test fails when they drift from the code. **After any change to `src/fx/pixel/**` or `palette.json`, run `npm run art:build` and commit the sheets in the same change.**
+- **Decision (2026-11-04): load the files, do not bake at boot** (also the art-director's recommendation in `style.md`). `BootScene.preload` loads the six files with the loaders above. PNGs are imported as `?url` (Vite copies them to `dist/assets` with relative paths, so they work from the itch zip; `assetsInlineLimit: 0`); atlas JSON is imported as a module and passed to `load.atlas` as data (inlined, typed, no extra request); the font XML is imported `?url`.
+  - Measured: `buildPixelAssets()` (player, tiles, scenery only) takes **0.55 to 0.87 s** in Node 22 on the dev machine (warm, 5 runs) and would block the main thread; a low-end laptop would be slower. The PNGs are about 30 KB together and decode off the main thread.
+  - Loading keeps the baker code out of the game bundle and uses Phaser's normal atlas path (pivots read from the JSON).
+  - What we give up: a palette change needs `art:build` before it shows (the drift test stops a stale sheet from merging). If runtime recoloring is ever needed (for example an alternative colour-vision palette), bake only the affected frames at that moment; the bakers stay pure and exported for that.
+- `LevelView` moves from per-frame `Graphics` to **Tilemap layers** on `pixel-tileset` (indices from `tilesetIndex`, empty = -1): a static layer (safe tiles) and a colored layer whose indices swap between `solid(band, mask)` and `ghost(band)` when the hold mode changes. The exit door (`tile/exit/door_0..3`, animated) and its 32 x 32 glow are sprites from `pixel-tiles`. No per-frame redraw; redrawing pixel patterns rect by rect would cost tens of thousands of rect commands on every band change.
 
-### Tandem (owner's pick, 2026-11-03; spec pending in `docs/design/features/tandem.md`)
+### Tandem (spec: `docs/design/features/tandem.md`; contracts: `architecture.md` §3.1.1)
 
-A second player body runs on the same input, with its own speed, gear and color, in a stacked lane (`docs/design/core-twists.md` §1). The contract and `SimState` change is a separate tech-lead task once design-lead's request arrives; nothing here depends on its final shape. The rendering pipeline must allow for it from the start:
+A second body, the twin, runs on the same input with its own speed, gear and color, in a stacked lane. `SimState.twin` is the twin's `PlayerState` or `null`; events carry `body` (0 runner, 1 twin). The rendering pipeline handles one or two bodies the same way:
 
-- **Player views are per body.** `PlayerView` is an instance per body with no module-level state. The atlas carries a second silhouette for the twin (`twin-stand`, `twin-run-0`..`3`, `twin-jump`, `twin-fall`: hollow outline, same band pattern, same 12 x 24 box and cell size). `buildPixelTextures` builds both sets per band (2 x 5 x 7 frames, still tiny).
-- **The camera frames both bodies.** It takes a list of snapped body positions (one or two) and returns an integer scroll.
-  - Horizontally, it centres the integer midpoint `floor((P1 + P2) / 2)`.
-  - Vertically, it keeps the bounding box of both bodies in view.
-  - When the two cannot both fit, the spec has to say which body wins (proposal: the body that is not home). The pure helper lives in `src/entities/camera.ts` with unit tests, as today.
-- **Vertical budget at 480 x 270.** The view is 270 px = 16.875 tiles. Two lanes of up to 8 tiles plus the divider take nearly all of it, and the HUD sits on top. So the HUD for two bodies must be **compact**: two gear strips of about 110 x 14 px each, not two 110 x 32 meters, or else placed over the lane divider. **Design-lead and level-designer should cap the two lanes plus divider at 15 tiles** so the HUD never covers play.
+- **The second player view.** `PlayerView` is an instance per body with no module-level state. The scene creates one for `state.player` and, when `state.twin !== null`, one for `state.twin`, each drawing from `player/<runner|twin>/<band>/...`; a home body shows `park_0`. The two differ **by silhouette**, not colour (twin: antenna, chamfered shoulders, two square eyes, wide stance; `style.md` "Two bodies"), and each shows its own band and pattern. **Draw the twin behind the runner** (lower depth) when they overlap, and both bodies after the tiles (the feet keyline overlaps the floor's top row by design). A home body stops animating.
+- **Camera (pure helper in `src/entities/camera.ts`, unit-tested).** Input: the snapped integer feet positions of the bodies, with their `home` flags.
+  - Both non-home and at most **28 tiles** apart: the x target is the integer midpoint `floor((P0 + P1) / 2)`, clamped to the level bounds and eased as today.
+  - One body home: frame the body that is not home, exactly like the one-body camera.
+  - Both non-home and more than 28 tiles apart: follow the runner, and draw the **edge arrow** `hud/edge/twin/<twin's band>` (pivot (0, 0.5), `flipX` at the left edge) at the screen edge nearest the twin, at the twin's height clamped to the play area.
+  - Both home: the run is won; keep the last scroll.
+  - Vertically: keep the non-home bodies in view. Tandem levels cap two lanes plus the divider at **15 rows** (`tandem.md`, level rules), which fits under the HUD in 16.875 rows, so in practice Tandem levels do not scroll vertically.
+  - Intended solutions keep the bodies within 26 tiles (design level rule), so the 28-tile fallback only covers mistakes.
+- **Vertical budget at 480 x 270.** The HUD for two bodies is **compact**: two stacked gear strips of about 110 x 14 px (top runner, bottom twin), each marked with `glyph/runner` or `glyph/twin`; a home body's strip dims and shows `glyph/home` (T-06, ui-engineer).
 - **Events carry a body id.** `FeedbackFx` (drag flash, ring) and later audio use it to place effects on the right body.
 - **Order.** The pixel cutover (batch 2) lands first, and the Tandem scene work (about 1.5 days, after the contract change) builds on it. That way the player view, camera and HUD are only reworked once. PX-7 and PX-9 are written so a second body or strip is a second instance, not a rewrite.
 
@@ -123,7 +126,7 @@ A second player body runs on the same input, with its own speed, gear and color,
   | 4 | 5.8 to 6.0 | 16.7 to 17.5 |
 
 - Real GPUs have fill rate to spare, but low-end laptops, software fallback and CI all benefit.
-- Assets are small: the atlas and font are expected to be well under 50 KB. Static layers are baked once (tileset, Tilemap).
+- Assets are small: the PNG sheets are about 30 KB together (about 2.6 MB of GPU textures, `style.md`). Tilemap layers are built once per level.
 - **Side finding (fixed in PX-4).** Phaser clamps each frame's delta to one 60 Hz step for the first 120 frames after boot or resume (`fps.panicMax`, default 120) and while the window is unfocused. Below 60 fps the game therefore runs in slow motion for the first seconds: about 6 s at 20 fps, where the spike saw 20 sim steps/s at 20 fps.
   - This is render-side only, not determinism. Our accumulator already caps catch-up at `MAX_STEPS_PER_FRAME` (5), and Phaser's `minFps` clamp handles tab-resume spikes.
   - PX-4 sets `fps: { panicMax: 0 }`.
@@ -136,18 +139,18 @@ Owners follow the `CLAUDE.md` roster. Hours are rough agent hours.
 
 | ID | Owner | Task | h |
 |---|---|---|---|
-| PX-1 | art-director | Pixel data in `palette.json`: 1-bit pattern cells per pattern id, lip and shade rows, dither densities, key-color-to-role map. Texture builders in `src/fx` with unit tests. Proposed API, to be confirmed in requests.md: `buildPixelTextures(scene)` creates the 16 x 16 tileset (`tileFrame(kind, band, mode, top)` returns the frame index) and one player texture per band (`playerTextureKey(band)`, same frame names as the atlas). | 8 |
-| PX-2 | art-director | `assets/art/player.png` + `player.json`. Frames: `stand`, `run-0`..`run-3`, `jump`, `fall`, the same seven as `twin-*` (Tandem silhouette), plus `exit`. Format as in "Tile size and sprites". | 6 |
-| PX-3 | art-director | 5 x 7 bitmap font (BMFont XML + PNG), character set as in "HUD and text". If third-party: CC0 only, and send a CREDITS.md line to tech-lead. | 2 |
+| PX-1 | art-director | Pixel data in `palette.json` (pattern cells, role palettes per band, dither) and the pure bakers in `src/fx/pixel/` with unit tests, plus `PIXEL_KEYS` and the name helpers `playerFrameName`, `tileFrameNames`, `tilesetIndex`, `neighbourMask`, `hudFrameNames`. Final API: `docs/art/style.md` "Names and API". | 8 |
+| PX-2 | art-director | The baked sheets in `assets/art/pixel/` (`pixel-player`, `-tiles`, `-tileset`, `-scenery`, `-hud`) from `npm run art:build`, with the drift tests. Format, frame names and pivot as in `docs/art/style.md` and "Tile size and sprites" above (player 20 x 28, pivot (0.5, 26/28), runner and twin, 5 bands, 29 frames each). | 6 |
+| PX-3 | art-director | `pixel-font`: 5 x 7 bitmap font (BMFont XML + PNG, drawn from code, advance 6, line height 8), printable ASCII plus the `FONT_ICONS` set in `style.md` (covers `—` and `⇧`). Own drawing, so no CREDITS.md line. | 2 |
 
 **Batch 2: cutover. All tasks run in parallel (no shared files) and land as one commit, because the game and the e2e suite are inconsistent in between.**
 
 | ID | Owner | Task | h |
 |---|---|---|---|
-| PX-4 | tech-lead | `src/main.ts`: 480 x 270, `Scale.NONE` + `MAX_ZOOM` + centre, re-zoom on resize, `fps.panicMax: 0`. `BootScene`: preload atlas and font, call `buildPixelTextures` (BootScene has no owner in the roster; tech-lead takes it). `index.html` letterbox colour. `architecture.md`. | 3 |
+| PX-4 | tech-lead | `src/main.ts`: 480 x 270, `Scale.NONE` + `MAX_ZOOM` + centre, re-zoom on resize, `fps.panicMax: 0`; keep the shared SaveStore (M2-40). `BootScene` (tech-lead): load the six `PIXEL_KEYS` files as in "Tile size and sprites". `index.html` letterbox colour. `architecture.md`. | 3 |
 | PX-5 | design-lead | `tuning.json` `tileSize` 32 to 16. No level or feel change. Note the 480 x 270 base in the GDD if it states a resolution. | 0.25 |
-| PX-6 | scene | `LevelView` on Tilemap layers over the generated tileset (top/inner variant from the neighbour above; swap colored indices on mode change); exit as a sprite. | 4 |
-| PX-7 | scene | `PlayerView` becomes a sprite, one instance per body (band texture; frame from a pure, tested `playerFrame(player, params)`). Camera helper takes a list of snapped body positions, with the snapping invariant and unit tests. `FeedbackFx` sizes. `GameScene` wiring. | 5 |
+| PX-6 | scene | `LevelView` on Tilemap layers over `pixel-tileset` (`tilesetIndex`; mask and safe depth computed once per level; swap colored indices `solid` and `ghost` on mode change); exit door and glow as sprites. | 4 |
+| PX-7 | scene | `PlayerView` becomes a sprite, one instance per body (frame name from a pure, tested `playerFrame(player, body, params)` built on `playerFrameName`). Camera helper takes a list of snapped body positions, with the snapping invariant and unit tests. `FeedbackFx` sizes. `GameScene` wiring. | 5 |
 | PX-8 | scene | `GameHud` on BitmapText at 480 x 270: title, banner at 2x, debug overlay, focus prompt, messages, halved constants. | 2 |
 | PX-9 | ui-engineer | `GearMeterView` at 110 x 32 with the bitmap font, plus a compact strip variant (about 110 x 14) for Tandem's two bodies; `StickyKeysTipView` rebuilt for 480 x 270; tests. Build M2 menus at 480 x 270. | 7 |
 | PX-10 | qa-tester | e2e changes as in "e2e" above; update the `EMBED_VIEWPORT` comment; a 2x screenshot check. | 3 |

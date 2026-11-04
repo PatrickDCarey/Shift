@@ -36,8 +36,33 @@ levels/
 | `world` | integer 0–5 | yes | World from the GDD toolbox; 0 = test. |
 | `teaches` | string | yes | One short phrase: what the level teaches. |
 | `version` | integer ≥ 1 | yes | Bump on **every** grid change. Solutions name the version they solve. |
+| `hint` | `<glyph> <col> <row>` | no, up to 3 | Onboarding glyph anchored on a grid cell (below). The only key that may appear more than once. |
 
-Unknown keys are an error (catches typos). New keys need a tech-lead change to this doc and `LevelMeta`.
+Unknown keys are an error (catches typos). Every key except `hint` appears at most once. New keys need a tech-lead change to this doc and `LevelMeta`.
+
+### Hint headers (M2-03)
+
+Onboarding glyphs are key-cap icons, never text (GDD §3). Design, art and placement rules: `docs/design/features/onboarding-hints.md`. A level places them with `hint:` lines:
+
+```
+hint: move 1 0
+hint: shiftUp 6 0
+```
+
+- **Value:** exactly three whitespace-separated tokens: a glyph id, then the anchor cell's column and row (zero-based integers, same grid coordinates as the legend; row 0 is the first grid row after `---`).
+- **Glyph ids** (`HINT_GLYPHS` in `src/core/types.ts`; they match the `InputButton` names):
+
+  | Id | Shows |
+  |---|---|
+  | `move` | left/right keys |
+  | `shiftUp` | shift-up keys |
+  | `shiftDown` | shift-down keys |
+  | `jump` | jump keys |
+
+- **Anchor:** the glyph's box is centred horizontally on the anchor cell's centre (col + 0.5) and its bottom edge sits on the cell's bottom edge (row + 1). The glyph never collides.
+- **Parsed into** `LevelMeta.hints` in file order, as `{ glyph, anchor: { col, row } }`. The field is **absent** when the file has no `hint:` line (never an empty array).
+- **Render-only:** the sim never reads hints, so adding, moving or removing a hint needs **no** `version` bump and keeps the solution valid.
+- **Status:** format fixed 2026-11-04. Parser support is M2-04 (level lane); until it lands the parser rejects `hint` as an unknown key, so do not add hint lines to `levels/` before M2-04. The scene draws them in M2-41 (glyph art: M2-36).
 
 ### Grid
 
@@ -66,6 +91,7 @@ Everything after the `---` line, until end of file. One character per tile.
 | `w` `b` `g` `y` `r` | speed camera for band 0 / 1 / 2 / 3 / 4 | unless band matches | World 3. Gate: solid unless your band equals its band. Lower-case colour initial = the band it admits. |
 | `E` | exit | no | Touching it wins. At least one per level. |
 | `@` | player start | no | Exactly one. Parses as empty; the player spawns standing on the bottom edge of this cell (feet x = col + 0.5, y = row + 1), facing right, in `startGear`. |
+| `&` | twin start (Tandem, world 3) | no | At most one. Parses as empty; spawn rule exactly as `@` (feet x = col + 0.5, y = row + 1, facing right, `startGear`). `Level.twinStart`, null without one. See `docs/design/features/tandem.md`. |
 
 Mnemonic: **upper-case colour initial = solid coloured block, lower-case = camera of that colour.**
 
@@ -76,6 +102,11 @@ Reserved for later worlds (currently a parse error): `X` crate, `M` moving platf
 - Missing/unknown header key, `id` ≠ file stem, non-integer `world`/`version`.
 - Unknown or reserved character.
 - Ragged rows; zero or more than one `@`; no `E`.
+- More than one `&`: the error names the row and column of the second one.
+- `&` with an `E` directly above it (the spawn box overlaps that cell, so the twin would be home on step 1) or directly below it (an exit is not solid, so the twin would drop into it): an error naming the `&`'s row and column. Tech-lead ruling 2026-11-04 on `tandem.md` "Edge cases". `&` can never sit inside a solid tile or on an exit, because the character itself fills the cell.
+- `hint`: not three tokens; an unknown glyph id; a non-integer or negative column or row; an anchor outside the grid; an anchor cell that is not `.` in the file; more than 3 `hint:` lines (`MAX_LEVEL_HINTS`). The message names the file, the header line (its row) and the column where the bad token starts. The other placement rules in `onboarding-hints.md` (the glyph's 3 x 2-tile box over empty cells, at least 3 rows above the floor) are checked by level review, not the parser.
+
+**Parser status (2026-11-04):** `&` (T-04) and `hint` (M2-04) are defined here but not parsed yet; until then the parser rejects them as an unknown character / unknown key, and `Level.twinStart` is always null.
 
 ## 3. Example level
 
@@ -142,6 +173,8 @@ Adjacent tokens with identical buttons should be merged; the encoder always emit
 ### Pass criteria (replay test)
 
 Replay all frames from `createSim(level, params)`. The solution passes if `status === 'won'` and `wonAtStep <= steps`.
+
+**In the game** a finished run becomes a `RunResult` (`src/core/types.ts`): `wonAtStep` (the run time that best times and leaderboards rank) plus the recording as a `Solution` (`levelId`, `levelVersion`, `steps` = frames recorded). Saving it with `formatSolution` gives exactly this file; `verifySolution` accepts it against its level by construction, which is how the leaderboard server checks a submission.
 
 A recording covers **every frame since the level was loaded**, including deaths and restarts (`!`) before the winning run, and ends on the winning step. It is never trimmed to the last run, because the first frame of a run is not independent of the frame before it (buttons held through a respawn are not new presses). `wonAtStep` counts steps of the winning run only, so it equals `steps` when the recording has no death or restart, and is smaller otherwise.
 

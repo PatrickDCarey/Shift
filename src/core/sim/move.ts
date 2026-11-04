@@ -19,7 +19,7 @@ export function moveXPhase(w: Work, ctx: StepCtx): Work {
   const stopped = withPlayer(moved, { vx: 0 });
   // Once per contact (architecture.md 3.2): pushing into a wall the box already touches is silent.
   const contact = w.vxOld !== 0 || res.x !== p.x;
-  return contact ? emit(stopped, { type: 'wallStop', speed: Math.abs(p.vx) }) : stopped;
+  return contact ? emit(stopped, { type: 'wallStop', body: 0, speed: Math.abs(p.vx) }) : stopped;
 }
 
 /** Phase 8: floors, ceilings, then the supported test; walk-offs start coyote time. */
@@ -30,7 +30,7 @@ export function moveYPhase(w: Work, ctx: StepCtx): Work {
   const res = sweepY(ctx.level, ctx.params, p.x, p.y, w.dy, gate);
   const bonked = res.hit === 'ceiling';
   const moved = withPlayer(w, { y: res.y, vy: res.hit === null ? p.vy : 0 });
-  const afterHit = bonked ? emit(moved, { type: 'ceiling' }) : moved;
+  const afterHit = bonked ? emit(moved, { type: 'ceiling', body: 0 }) : moved;
   const vy = afterHit.player.vy;
   const grounded = vy >= 0 && supported(ctx.level, ctx.params, p.x, res.y, gate);
   const landed = grounded ? withPlayer(afterHit, { grounded, y: Math.round(res.y), vy: 0 }) : withPlayer(afterHit, { grounded });

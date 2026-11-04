@@ -1,0 +1,19 @@
+{
+ "tileSize": 16,
+ "columns": 16,
+ "rows": 10,
+ "count": 152,
+ "firstIndex": {
+  "safe": 0,
+  "solid/blue": 80,
+  "solid/green": 96,
+  "solid/yellow": 112,
+  "solid/red": 128,
+  "ghost/blue": 144,
+  "ghost/green": 145,
+  "ghost/yellow": 146,
+  "ghost/red": 147,
+  "exit": 148
+ },
+ "hash": "1a068357"
+}

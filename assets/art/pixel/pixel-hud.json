@@ -1,0 +1,347 @@
+{
+ "frames": {
+  "glyph/runner": {
+   "frame": {
+    "x": 1,
+    "y": 1,
+    "w": 7,
+    "h": 12
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 7,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 7,
+    "h": 12
+   }
+  },
+  "glyph/twin": {
+   "frame": {
+    "x": 9,
+    "y": 1,
+    "w": 7,
+    "h": 12
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 7,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 7,
+    "h": 12
+   }
+  },
+  "glyph/home": {
+   "frame": {
+    "x": 17,
+    "y": 1,
+    "w": 7,
+    "h": 7
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 7,
+    "h": 7
+   },
+   "sourceSize": {
+    "w": 7,
+    "h": 7
+   }
+  },
+  "hud/edge/runner/white": {
+   "frame": {
+    "x": 25,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/runner/blue": {
+   "frame": {
+    "x": 48,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/runner/green": {
+   "frame": {
+    "x": 71,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/runner/yellow": {
+   "frame": {
+    "x": 94,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/runner/red": {
+   "frame": {
+    "x": 117,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/twin/white": {
+   "frame": {
+    "x": 140,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/twin/blue": {
+   "frame": {
+    "x": 163,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/twin/green": {
+   "frame": {
+    "x": 186,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/twin/yellow": {
+   "frame": {
+    "x": 209,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  },
+  "hud/edge/twin/red": {
+   "frame": {
+    "x": 232,
+    "y": 1,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
+  }
+ },
+ "meta": {
+  "app": "redshift art-director",
+  "version": "1",
+  "image": "pixel-hud.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 255,
+   "h": 18
+  },
+  "scale": "1"
+ },
+ "redshift": {
+  "hashes": {
+   "glyph/runner": "0930b4da",
+   "glyph/twin": "275dfc1e",
+   "glyph/home": "23ce657d",
+   "hud/edge/runner/white": "6d02538b",
+   "hud/edge/runner/blue": "119feb4e",
+   "hud/edge/runner/green": "5f7bfe3f",
+   "hud/edge/runner/yellow": "cb43e409",
+   "hud/edge/runner/red": "ed91b983",
+   "hud/edge/twin/white": "44de7093",
+   "hud/edge/twin/blue": "c936159f",
+   "hud/edge/twin/green": "933e7773",
+   "hud/edge/twin/yellow": "0a92f8f7",
+   "hud/edge/twin/red": "dcb29aa3"
+  },
+  "naming": "glyph/<runner|twin> (7x12 white mask), glyph/home (7x7 white mask), hud/edge/<runner|twin>/<band> (22x16, points right, pivot (0, 0.5); flipX at the left edge)",
+  "sizes": {
+   "body": [
+    7,
+    12
+   ],
+   "home": [
+    7,
+    7
+   ],
+   "edge": [
+    22,
+    16
+   ]
+  }
+ }
+}

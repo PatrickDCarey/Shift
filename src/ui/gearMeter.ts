@@ -29,7 +29,19 @@ export interface GearMeterModel {
   readonly dragFill: number | null;
   /** Gear a buffered air shift will apply on landing; null when none or it cannot change the gear. */
   readonly pendingGear: Gear | null;
+  /** Not grounded. The drop pulse only reads band changes made in the air. */
+  readonly airborne: boolean;
 }
+
+/** What the meter shows at spawn and after a reset: white lit, bracket on gear 1, nothing else. */
+export const INITIAL_GEAR_METER_MODEL: GearMeterModel = Object.freeze({
+  litBand: 0,
+  selectedGear: 1,
+  needle: 0,
+  dragFill: null,
+  pendingGear: null,
+  airborne: false,
+});
 
 const MAX_GEAR = 4;
 
@@ -55,5 +67,6 @@ export function gearMeterModel(player: PlayerState, params: GearMeterParams): Ge
     needle: walkSpeed > 0 ? clamp(Math.abs(player.vx) / walkSpeed, 0, MAX_GEAR) : 0,
     dragFill: dragFill(player, params),
     pendingGear: pendingGear(player, params),
+    airborne: !player.grounded,
   };
 }

@@ -15,7 +15,7 @@ export function gracePhase(w: Work, ctx: StepCtx): Work {
   const steps = ctx.params.colorGraceSteps;
   if (ctx.startGrounded && p.band !== ctx.startBand && ctx.startBand >= 1 && steps > 0) {
     const band = ctx.startBand as ColoredBand;
-    return emit(withPlayer(w, { graceBand: band, graceSteps: steps }), { type: 'graceStart', band });
+    return emit(withPlayer(w, { graceBand: band, graceSteps: steps }), { type: 'graceStart', body: 0, band });
   }
   if (p.graceSteps === 0) return w;
   const graceSteps = p.graceSteps - 1;

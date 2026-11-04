@@ -22,15 +22,15 @@ export function shiftPhase(w: Work, ctx: StepCtx): Work {
   const p = w.player;
   if (ctx.startGrounded) {
     const gear = clampGear(p.gear + net, ctx.params);
-    return gear === p.gear ? w : emit(withPlayer(w, { gear }), { type: 'shift', from: p.gear, to: gear });
+    return gear === p.gear ? w : emit(withPlayer(w, { gear }), { type: 'shift', body: 0, from: p.gear, to: gear });
   }
   const shiftBufferNet = p.shiftBufferNet + net;
   const buffered = withPlayer(w, { shiftBufferNet, shiftBufferSteps: ctx.params.shiftBufferSteps });
-  return emit(buffered, { type: 'shiftBuffered', net: shiftBufferNet });
+  return emit(buffered, { type: 'shiftBuffered', body: 0, net: shiftBufferNet });
 }
 
 /** Only L pressed -> -1, only R -> +1, both on one step -> 0, none -> unchanged. */
-function nextPriority(prev: MoveDir, pressed: InputFrame): MoveDir {
+export function nextPriority(prev: MoveDir, pressed: InputFrame): MoveDir {
   if (pressed.left && pressed.right) return 0;
   if (pressed.left) return -1;
   if (pressed.right) return 1;
@@ -38,16 +38,15 @@ function nextPriority(prev: MoveDir, pressed: InputFrame): MoveDir {
 }
 
 /** One held -> it; none -> 0; both -> the priority winner. */
-function heldDir(input: InputFrame, priority: MoveDir): MoveDir {
+export function heldDir(input: InputFrame, priority: MoveDir): MoveDir {
   if (input.left && input.right) return priority;
   if (input.left) return -1;
   if (input.right) return 1;
   return 0;
 }
 
-/** Phase 3: direction priority, move direction d, facing. */
+/** Phase 3, per-body part: the shared d (computed once in `step`) sets this body's moveDir and facing. */
 export function directionPhase(w: Work, ctx: StepCtx): Work {
-  const dirPriority = nextPriority(w.player.dirPriority, ctx.pressed);
-  const moveDir = heldDir(ctx.input, dirPriority);
-  return withPlayer(w, { dirPriority, moveDir, facing: moveDir === 0 ? w.player.facing : moveDir });
+  const moveDir = ctx.moveDir;
+  return withPlayer(w, { moveDir, facing: moveDir === 0 ? w.player.facing : moveDir });
 }

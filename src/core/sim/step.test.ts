@@ -27,10 +27,12 @@ describe('createSim', () => {
       wonAtStep: null,
       respawnInSteps: 0,
       prevInput: EMPTY_INPUT,
+      dirPriority: 0,
       events: [],
+      twin: null,
       player: {
-        x: 2.5, y: 10, vx: 0, vy: 0, gear: 1, band: 0, facing: 1, moveDir: 0, dirPriority: 0, grounded: true,
-        coyoteSteps: 0, jumpBufferSteps: 0, shiftBufferSteps: 0, shiftBufferNet: 0, graceSteps: 0, graceBand: null, airDistance: 0,
+        x: 2.5, y: 10, vx: 0, vy: 0, gear: 1, band: 0, facing: 1, moveDir: 0, grounded: true,
+        coyoteSteps: 0, jumpBufferSteps: 0, shiftBufferSteps: 0, shiftBufferNet: 0, graceSteps: 0, graceBand: null, airDistance: 0, home: false,
       },
     });
   });
@@ -113,11 +115,12 @@ describe('input edges', () => {
 
   it('direction priority: the more recent press wins; same-step press ties at 0', () => {
     const s = runFromSpawn(level, [frame('R'), frame('LR'), frame('LR'), frame('L'), frame('LR')]);
-    expect(s.map((t) => t.player.dirPriority)).toEqual([1, -1, -1, -1, 1]);
+    expect(s.map((t) => t.dirPriority)).toEqual([1, -1, -1, -1, 1]);
     expect(s.map((t) => t.player.moveDir)).toEqual([1, -1, -1, -1, 1]);
     expect(s.map((t) => t.player.facing)).toEqual([1, -1, -1, -1, 1]);
     const tie = runFromSpawn(level, [frame('LR'), frame('')]);
-    expect(at(tie, 1).player).toMatchObject({ dirPriority: 0, moveDir: 0, facing: 1 });
+    expect(at(tie, 1).dirPriority).toBe(0);
+    expect(at(tie, 1).player).toMatchObject({ moveDir: 0, facing: 1 });
   });
 
   it('facing follows held directions in the air', () => {
@@ -130,21 +133,21 @@ describe('events', () => {
   it('shift and bandChange on the step they happen', () => {
     const s = runFromSpawn(level, [frame('R+')]);
     expect(at(s, 1).events).toEqual([
-      { type: 'shift', from: 1, to: 2 },
-      { type: 'bandChange', from: 0, to: 1 },
+      { type: 'shift', body: 0, from: 1, to: 2 },
+      { type: 'bandChange', body: 0, from: 0, to: 1 },
     ]);
   });
 
   it('jump, shiftBuffered, land with a buffered shift in step order', () => {
     const s = runFromSpawn(level, [frame('J'), ...repeat(43, ''), frame('+'), ...repeat(10, '')]);
-    expect(at(s, 1).events).toEqual([{ type: 'jump', coyote: false, buffered: false }]);
-    expect(at(s, 45).events).toEqual([{ type: 'shiftBuffered', net: 1 }]);
-    expect(at(s, 48).events).toEqual([{ type: 'shift', from: 1, to: 2 }, { type: 'land' }]);
+    expect(at(s, 1).events).toEqual([{ type: 'jump', body: 0, coyote: false, buffered: false }]);
+    expect(at(s, 45).events).toEqual([{ type: 'shiftBuffered', body: 0, net: 1 }]);
+    expect(at(s, 48).events).toEqual([{ type: 'shift', body: 0, from: 1, to: 2 }, { type: 'land', body: 0 }]);
   });
 
   it('shift buffer sums presses and clamps on landing', () => {
     const s = runFromSpawn(level, [frame('J'), ...repeat(40, ''), frame('-'), frame(''), frame('+'), frame(''), frame('+'), ...repeat(10, '')]);
-    expect(at(s, 46).events).toEqual([{ type: 'shiftBuffered', net: 1 }]);
+    expect(at(s, 46).events).toEqual([{ type: 'shiftBuffered', body: 0, net: 1 }]);
     expect(at(s, 48).player.gear).toBe(2);
     const down = runFromSpawn(level, [frame('J'), ...repeat(44, ''), frame('-'), ...repeat(10, '')]);
     expect(at(down, 48).player.gear).toBe(1);
@@ -154,18 +157,18 @@ describe('events', () => {
   it('airDrag then bandChange on the drop step', () => {
     const s = runFrames(level, cruise(level, 4), [frame('RJ'), ...repeat(40, 'R')]);
     expect(at(s, 30).events).toEqual([
-      { type: 'airDrag', from: 4, to: 3 },
-      { type: 'bandChange', from: 4, to: 3 },
+      { type: 'airDrag', body: 0, from: 4, to: 3 },
+      { type: 'bandChange', body: 0, from: 4, to: 3 },
     ]);
   });
 
   it('wallStop carries |vx| before the stop; ceiling on contact', () => {
     const walled = room(240, 2, [7, 8, 9].map((r) => ({ row: r, col: 40, chars: '#' })));
     const { event } = firstEvent(runFrames(walled, cruise(walled, 4), repeat(400, 'R')), 'wallStop');
-    expect(event).toEqual({ type: 'wallStop', speed: 12 });
+    expect(event).toEqual({ type: 'wallStop', body: 0, speed: 12 });
     const roofed = room(40, 2, [{ row: 6, col: 0, chars: '#'.repeat(40) }]);
     const c = firstEvent(runFromSpawn(roofed, [frame('J'), ...repeat(30, '')]), 'ceiling');
-    expect(c.event).toEqual({ type: 'ceiling' });
+    expect(c.event).toEqual({ type: 'ceiling', body: 0 });
     expect(at(runFromSpawn(roofed, [frame('J'), ...repeat(30, '')]), c.n).player.y).toBe(8.5);
   });
 
@@ -200,12 +203,12 @@ describe('events', () => {
   it('graceStart names the previous band; a second change replaces the grace colour', () => {
     const s = runFrames(level, cruise(level, 2), [frame('R+'), ...repeat(3, 'R'), frame('R'), frame('R+'), ...repeat(10, 'R')]);
     const starts = s.flatMap((t) => t.events.filter((e) => e.type === 'graceStart'));
-    expect(starts).toEqual([{ type: 'graceStart', band: 2 }, { type: 'graceStart', band: 3 }]);
+    expect(starts).toEqual([{ type: 'graceStart', body: 0, band: 2 }, { type: 'graceStart', body: 0, band: 3 }]);
   });
 
   it('died, restart and won', () => {
     const cliff = room(240, 2, [{ row: 10, col: 0, chars: '#'.repeat(10) }], '.');
-    expect(firstEvent(runFromSpawn(cliff, repeat(400, 'R')), 'died').event).toEqual({ type: 'died' });
+    expect(firstEvent(runFromSpawn(cliff, repeat(400, 'R')), 'died').event).toEqual({ type: 'died', body: 0 });
     expect(at(runFromSpawn(level, [frame('!')]), 1).events).toEqual([{ type: 'restart' }]);
     const exit = room(40, 2, [{ row: 9, col: 5, chars: 'E' }]);
     expect(firstEvent(runFromSpawn(exit, repeat(60, 'R')), 'won').event).toEqual({ type: 'won' });
@@ -216,7 +219,7 @@ describe('events', () => {
     const s = runFromSpawn(ledge, repeat(400, 'R'));
     const k = firstStep(s, (t) => !t.player.grounded);
     const c = advance(ledge, at(s, k), [frame('RJ')]);
-    expect(c.events).toContainEqual({ type: 'jump', coyote: true, buffered: false });
+    expect(c.events).toContainEqual({ type: 'jump', body: 0, coyote: true, buffered: false });
   });
 });
 

@@ -40,7 +40,7 @@ jobs:
       # The e2e job's build sets VITE_QA_HOOK=1 through playwright.config.ts.
       - name: No QA hook in the release build
         run: |
-          if grep -rq "__redshift" dist/; then
+          if grep -rqw "__redshift" dist/; then
             echo "::error::window.__redshift found in dist/ (was VITE_QA_HOOK set?)"
             exit 1
           fi

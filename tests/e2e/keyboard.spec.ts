@@ -3,10 +3,8 @@
  * Spec: movement-and-gears.md check 17 (alternate bindings), GDD section 3.
  * Right Shift / E / X shift up; Left Shift / Q / Z shift down; all active at once.
  */
-import { EMBED_VIEWPORT, armAirPress, TEST_TIMEOUT_MS, expect, pollState, snapshot, startTracker, stopTracker, test, waitForHook, walkIntoOpenPit } from './helpers';
+import { armAirPress, jumpAndPressInAir, TEST_TIMEOUT_MS, expect, pollState, snapshot, startTracker, stopTracker, test, waitForHook, walkIntoOpenPit } from './helpers';
 
-// The itch.io embed size. (A project's device preset would otherwise override the config-level viewport.)
-test.use({ viewport: EMBED_VIEWPORT });
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
 const LEVEL = 'w0-02';
@@ -127,9 +125,9 @@ for (const key of ['KeyE', 'ShiftRight', 'KeyX'] as const) {
     for (let attempt = 0; attempt < 6 && !proven; attempt += 1) {
       const s0 = (await snapshot(page))?.state.step ?? 0;
       await startTracker(page);
-      const armed = armAirPress(page, key);
+      const armed = await armAirPress(page, key);
       await page.keyboard.press('Space');
-      const { step: pressStep } = await armed;
+      const { step: pressStep } = await armed.result();
       await pollState(page, (s) => s.state.step >= s0 + 70 && s.state.player.grounded, 'landed').toBe(true);
       const track = await stopTracker(page);
       // The player was still airborne in a sample at lastAir, so landing is at least lastAir + 1: the press was
@@ -148,6 +146,55 @@ for (const key of ['KeyE', 'ShiftRight', 'KeyX'] as const) {
     await pollState(page, (s) => s.state.player.gear, 'gear still 1 after landing (the early press was dropped, not stored)').toBe(1);
   });
 }
+
+// Shift buffer through the scene (air-drag.md checks 13-14, hud-gear-meter.md check 7; design ruling 2026-11-03).
+// A standing jump in the pit is a 48-step flight at gear 1. The buffer is 6 steps (100 ms): a press on flight
+// step 10 is long expired at touchdown and is dropped; a press within 6 steps of touchdown is applied on landing.
+// Press steps are exact in the page (armAirPress); whether an attempt proves anything is judged from the
+// per-frame samples, and an attempt a slow frame rate spoiled is repeated.
+const SHIFT_BUFFER_STEPS = 6;
+const AIR_PRESS_ATTEMPTS = 14;
+
+test('KeyE pressed on flight step 10 of a 48-step jump is dropped: gear 1 in the air and after landing', async ({ page }) => {
+  await walkIntoOpenPit(page);
+  let proven = false;
+  for (let attempt = 0; attempt < AIR_PRESS_ATTEMPTS && !proven; attempt += 1) {
+    const run = await jumpAndPressInAir(page, 'KeyE', { afterSteps: 10 });
+    if (!run) continue;
+    // Applied from pressStep + 1, expired after 6 steps; touchdown is at least lastAirStep + 1. A margin of 3 steps.
+    if (run.lastAirStep < run.pressStep + SHIFT_BUFFER_STEPS + 3) continue;
+    proven = true;
+    const after = run.track.filter((t) => t.step >= run.pressStep);
+    expect(Math.max(...after.map((t) => t.gear)), 'selected gear never rises in the air or on landing').toBe(1);
+    const landed = (await snapshot(page))?.state.step ?? 0;
+    await pollState(page, (s) => s.state.step >= landed + 30, '30 steps after landing').toBe(true);
+    await pollState(page, (s) => s.state.player.gear, 'gear 1 after landing: the early press was dropped, not stored').toBe(1);
+  }
+  expect(proven, 'got a press at least 9 steps before landing').toBe(true);
+});
+
+test('KeyE pressed within 6 steps of landing is buffered in the air (gear 1) and applied on landing (gear 2)', async ({ page }) => {
+  await walkIntoOpenPit(page);
+  let proven = false;
+  for (let attempt = 0; attempt < AIR_PRESS_ATTEMPTS && !proven; attempt += 1) {
+    // Only the last five steps of the 48-step flight qualify and headless frames carry ~3 steps each: press on the
+    // first frame falling at 11.5 tiles/s or more (flight step 43+) and let the samples decide (more attempts).
+    const run = await jumpAndPressInAir(page, 'KeyE', { minVy: 11.5 });
+    if (!run) continue;
+    // Press applied on pressStep + 1 at the earliest; landing happened at or before landedByStep. Within the
+    // window (touchdown no later than pressStep + 5) the buffered shift must apply, whatever the frame rate.
+    if (run.landedByStep - run.pressStep > SHIFT_BUFFER_STEPS - 1) continue;
+    proven = true;
+    const air = run.track.filter((t) => !t.grounded && t.step >= run.pressStep);
+    expect(Math.max(...air.map((t) => t.gear)), 'gear is not shifted while still in the air').toBe(1);
+    // The HUD pending-shift bracket reads these two fields (hud-gear-meter.md): when sampled in the air after the press, net is +1.
+    const buffered = air.filter((t) => t.shiftBufferSteps > 0);
+    for (const t of buffered) expect(t.shiftBufferNet, `buffered press at step ${t.step}`).toBe(1);
+    await pollState(page, (s) => s.state.player.gear, 'gear 2 after landing: the late press was applied').toBe(2);
+    expect((await snapshot(page))?.state.player.grounded).toBe(true);
+  }
+  expect(proven, 'got a press within 5 steps of landing').toBe(true);
+});
 
 test('bound keys are captured: default prevented and the page does not scroll', async ({ page }) => {
   await page.evaluate(() => {

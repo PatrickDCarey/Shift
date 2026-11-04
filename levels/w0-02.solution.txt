@@ -1,5 +1,7 @@
 level: w0-02
-levelVersion: 1
+levelVersion: 2
+# Re-recorded for version 2 (M1-21: open ceiling over the start pad). The route never jumps on the
+# start pad, so the inputs and the winning step (775) are unchanged.
 # Found and checked by replaying candidate logs through the real sim (createSim/step), not hand-tuned.
 # 226R  walk right in gear 1 across the blue bridge, drop into the runway room (lands at step 226)
 # 90L   walk back to the room's left wall
@@ -10,6 +12,8 @@ levelVersion: 1
 # 167R 20.  walk onto the blue floor, let go above the pocket: grace runs out, you drop through
 # 51R   walk into the exit
 # Every key input still wins when moved by at least 6 steps either way (fairness: +-3).
+# Version 2 sweep (2026-11-04): turn 12/12, shift-up cluster 6/7, jump 8/9, release on P4 10/9,
+# shift-down cluster 12/12, let-go 12/12, final walk 12/12 (earlier/later, capped at 12).
 steps: 775
 ---
 226R 90L 1+ 1. 1+ 1. 1+ 102R 1RJ 74R 36. 1- 1. 1- 167R 20. 51R

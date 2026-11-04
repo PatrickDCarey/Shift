@@ -169,7 +169,7 @@ function gridChecks(file: string, scan: GridScan, firstLine: number): readonly s
 
 function buildLevel(meta: LevelMeta, scan: GridScan): Level {
   const start = scan.starts[0];
-  return { meta, width: scan.width, height: scan.rows, tiles: scan.tiles, start: { col: start?.col ?? 0, row: start?.row ?? 0 } };
+  return { meta, width: scan.width, height: scan.rows, tiles: scan.tiles, start: { col: start?.col ?? 0, row: start?.row ?? 0 }, twinStart: null };
 }
 
 export const parseLevel: ParseLevelFn = (text, fileStem) => {

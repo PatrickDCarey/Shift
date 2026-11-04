@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENE_KEYS } from './keys';
+import { SCENE_KEYS, getSaveStore } from './keys';
 
 /** Loads shared assets, then hands off. Placeholder until assets exist. */
 export class BootScene extends Phaser.Scene {
@@ -8,6 +8,8 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Fail at boot, not at the first level complete, if main.ts did not share the store.
+    getSaveStore(this.registry);
     this.scene.start(SCENE_KEYS.game);
   }
 }

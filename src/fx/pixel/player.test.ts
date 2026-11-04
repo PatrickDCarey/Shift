@@ -13,6 +13,7 @@ import tilesJson from '../../../assets/art/pixel/pixel-tiles.json';
 import { buildPixelAssets, playerFrameName } from './atlas';
 import { BANDS, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, bakeRoles, roleColors } from './player';
 import { FEET_Y, FRAME_H, FRAME_W, ROLE, VARIANTS, buildBody, type RoleGrid, type Variant } from './playerBody';
+import { committedPngNames } from './pngFixture';
 import { getPixel } from './raster';
 
 const MARKED: readonly BandColor[] = ['blue', 'green', 'yellow', 'red'];
@@ -155,8 +156,7 @@ describe('committed sheets match the code', () => {
     expect(scenery.redshift.hashes).toEqual(built.scenery.json.redshift.hashes);
   });
 
-  it('the three PNG sheets are committed', () => {
-    const pngs = Object.keys(import.meta.glob('/assets/art/pixel/*.png')).sort();
-    expect(pngs).toEqual(['/assets/art/pixel/pixel-player.png', '/assets/art/pixel/pixel-scenery.png', '/assets/art/pixel/pixel-tiles.png']);
+  it('every PNG sheet is committed', () => {
+    expect(committedPngNames()).toEqual(['pixel-font.png', 'pixel-hud.png', 'pixel-player.png', 'pixel-scenery.png', 'pixel-tiles.png', 'pixel-tileset.png']);
   });
 });

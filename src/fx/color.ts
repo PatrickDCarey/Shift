@@ -212,3 +212,19 @@ export function spectrumTint(stops: readonly TintStop[], t: number): Rgb {
   }
   return hexToRgb(last.color);
 }
+
+/** Colour-blind simulations plus plain luminance ("gray") and normal vision, for checks and previews. */
+export type Vision = CvdType | 'normal' | 'gray';
+export const VISIONS: readonly Vision[] = ['normal', 'gray', 'protanopia', 'deuteranopia', 'tritanopia'];
+
+/** The colour with all hue removed, at the same relative luminance. */
+export function toGrayscale(rgb: Rgb): Rgb {
+  const v = linearToSrgb(relativeLuminance(rgb));
+  return { r: v, g: v, b: v };
+}
+
+export function simulateVision(rgb: Rgb, vision: Vision): Rgb {
+  if (vision === 'normal') return rgb;
+  if (vision === 'gray') return toGrayscale(rgb);
+  return simulateCvd(rgb, vision);
+}

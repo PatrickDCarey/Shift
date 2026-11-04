@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "package": "node scripts/package.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "test": "vitest run",
@@ -17,6 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
+    "art:build": "node assets/art/pixel/build.mjs",
     "check": "npm run typecheck && npm run test:coverage && npm run build"
   },
   "dependencies": {

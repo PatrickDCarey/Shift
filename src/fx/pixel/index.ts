@@ -5,3 +5,6 @@ export * from './player';
 export * from './tiles';
 export * from './scenery';
 export * from './atlas';
+export * from './font';
+export * from './hud';
+export * from './tileset';

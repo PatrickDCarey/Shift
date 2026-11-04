@@ -90,5 +90,6 @@ Node ≥ 22.12 (`.nvmrc`). Run from the project root.
 | `npm run test:e2e:install` | One-time: download Playwright's Chromium. |
 | `npm run test:e2e` | Playwright against a fresh build (with `VITE_QA_HOOK=1`, so `window.__redshift` exists) + preview server; port 4173 must be free. |
 | `npm run check` | typecheck + coverage + build: run before calling a task done. |
+| `npm run art:build` | Re-bake the pixel sheets in `assets/art/pixel/` from `src/fx/pixel` + `palette.json` (and the previews in `docs/art/pixel/`). Run after any change to either and commit the sheets with it; a unit test fails if they drift. |
 
 Single test file: `npx vitest run src/core/types.test.ts`. Level solvability only (every `levels/*.txt` replayed with its solution): `npx vitest run tests/levels`. Tech docs: `docs/tech/architecture.md`, `docs/tech/level-format.md`.

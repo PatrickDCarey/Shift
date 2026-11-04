@@ -68,6 +68,13 @@ export const TILE_LEGEND: Readonly<Record<string, Tile>> = {
 /** Player start marker. The cell parses as `empty`. Exactly one per level. */
 export const PLAYER_START_CHAR = '@';
 
+/**
+ * Twin start marker (Tandem, features/tandem.md). The cell parses as `empty`.
+ * At most one per level; spawn rule as `@`. Rejected when the cell directly
+ * above or below it is an exit (level-format.md, Validation).
+ */
+export const TWIN_START_CHAR = '&';
+
 /** Reserved for later worlds (parse error for now): X = crate, M = moving platform. */
 export const RESERVED_CHARS: readonly string[] = ['X', 'M'];
 
@@ -75,6 +82,30 @@ export const RESERVED_CHARS: readonly string[] = ['X', 'M'];
 export interface TilePos {
   readonly col: number;
   readonly row: number;
+}
+
+/**
+ * Onboarding hint glyph ids (GDD §3, docs/design/features/onboarding-hints.md):
+ * key-cap icons for one logical action, never text. `move` = left/right,
+ * `shiftUp`, `shiftDown`, `jump`; the ids match the `InputButton` names.
+ */
+export type HintGlyph = 'move' | 'shiftUp' | 'shiftDown' | 'jump';
+
+/** Every hint glyph id, in the order level-format.md lists them. */
+export const HINT_GLYPHS: readonly HintGlyph[] = ['move', 'shiftUp', 'shiftDown', 'jump'];
+
+/** At most this many `hint:` lines per level (onboarding-hints.md). */
+export const MAX_LEVEL_HINTS = 3;
+
+/** One `hint:` header line (level-format.md §2, "Hint headers"). Render-only: the sim never reads it. */
+export interface LevelHint {
+  readonly glyph: HintGlyph;
+  /**
+   * Anchor cell: inside the grid, a `.` in the file. The glyph's box is centred
+   * horizontally on the cell's centre (col + 0.5) and its bottom edge sits on
+   * the cell's bottom edge (row + 1).
+   */
+  readonly anchor: TilePos;
 }
 
 /** Header block of a level file. */
@@ -88,6 +119,12 @@ export interface LevelMeta {
   readonly teaches: string;
   /** Bumped on every grid change; solutions record the version they solve. */
   readonly version: number;
+  /**
+   * Onboarding hints in file order. Absent when the file has no `hint:` line
+   * (never an empty array), so hint-free levels compare equal to older parses.
+   * Render-only: the sim never reads it, and changing hints needs no `version` bump.
+   */
+  readonly hints?: readonly LevelHint[];
 }
 
 /** A parsed, validated level. Immutable; shared by sim and renderer. */
@@ -101,4 +138,6 @@ export interface Level {
   readonly tiles: readonly Tile[];
   /** Cell marked `@`. Spawn: x = col + 0.5, feet y = row + 1, facing right. */
   readonly start: TilePos;
+  /** Cell marked `&` (the Tandem twin), same spawn rule as `start`; null when the level has none. */
+  readonly twinStart: TilePos | null;
 }

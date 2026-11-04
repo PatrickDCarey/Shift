@@ -66,3 +66,24 @@ export interface Solution {
   readonly steps: number;
   readonly runs: readonly InputRun[];
 }
+
+/**
+ * A won run, as the scene hands it to progress (`SaveStore.recordLevelComplete`),
+ * the results screen and the leaderboard. Built by the scene on the step the
+ * sim reports `won`; never produced for a lost or abandoned run.
+ */
+export interface RunResult {
+  /**
+   * Run time in steps: `SimState.wonAtStep` of the winning run (deaths,
+   * freezes and restarts before it excluded). Best times and leaderboards rank
+   * this; seconds = wonAtStep / stepHz, for display only.
+   */
+  readonly wonAtStep: number;
+  /**
+   * The recording: every frame since the level was loaded, in solution form
+   * (`levelId`, `levelVersion`, `steps` = frames recorded, `steps >= wonAtStep`).
+   * `verifySolution` accepts it against its level, so it can be saved as a
+   * solution file or re-run by the leaderboard server.
+   */
+  readonly solution: Solution;
+}

@@ -17,7 +17,7 @@ export const FEET_Y = 26;
 /** Left edge of the 12 px wide body box inside a frame. */
 export const BODY_X = 4;
 
-export const ROLE = { none: 0, key: 1, outline: 2, fill: 3, ink: 4, visor: 5, pupil: 6, shade: 7, light: 8 } as const;
+export const ROLE = { none: 0, key: 1, outline: 2, fill: 3, ink: 4, visor: 5, pupil: 6, shade: 7, light: 8, mark: 9 } as const;
 export type Role = (typeof ROLE)[keyof typeof ROLE];
 
 /** The two Tandem bodies: the runner (body 0) and the twin (body 1). */
