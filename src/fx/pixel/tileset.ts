@@ -9,13 +9,13 @@
  * when the player's band changes.
  */
 import type { BandColor } from '../../core/types';
-import { BANDS } from './player';
+import { BAND_COLOR_LIST } from './player';
 import { blit, createRaster, type Raster } from './raster';
 import { EXIT_FRAMES, NEIGHBOUR_MASKS, SAFE_DEPTHS, TILE, bakeExitDoor, bakeGhostTile, bakeSafeTile, bakeSolidTile, neighboursOf } from './tiles';
 
 export const TILESET_COLUMNS = 16;
-export type ColoredBand = Exclude<BandColor, 'white'>;
-export const COLORED_BANDS: readonly ColoredBand[] = BANDS.filter((b): b is ColoredBand => b !== 'white');
+export type ColoredBandColor = Exclude<BandColor, 'white'>;
+export const COLORED_BANDS: readonly ColoredBandColor[] = BAND_COLOR_LIST.filter((b): b is ColoredBandColor => b !== 'white');
 
 const SAFE_COUNT = NEIGHBOUR_MASKS * SAFE_DEPTHS;
 const SOLID_BASE = SAFE_COUNT;
@@ -24,13 +24,13 @@ const EXIT_BASE = GHOST_BASE + COLORED_BANDS.length;
 export const TILESET_COUNT = EXIT_BASE + EXIT_FRAMES;
 export const TILESET_ROWS = Math.ceil(TILESET_COUNT / TILESET_COLUMNS);
 
-const bandIndex = (band: ColoredBand): number => COLORED_BANDS.indexOf(band);
+const bandIndex = (band: ColoredBandColor): number => COLORED_BANDS.indexOf(band);
 
 /** Tile index for each kind. `mask` bits: 0 up, 1 right, 2 down, 3 left = that neighbour is the same kind. `depth` 0 to 4 is the number of safe tiles above, capped. */
 export const tilesetIndex = {
   safe: (mask: number, depth: number): number => mask * SAFE_DEPTHS + Math.min(Math.max(depth, 0), SAFE_DEPTHS - 1),
-  solid: (band: ColoredBand, mask: number): number => SOLID_BASE + bandIndex(band) * NEIGHBOUR_MASKS + mask,
-  ghost: (band: ColoredBand): number => GHOST_BASE + bandIndex(band),
+  solid: (band: ColoredBandColor, mask: number): number => SOLID_BASE + bandIndex(band) * NEIGHBOUR_MASKS + mask,
+  ghost: (band: ColoredBandColor): number => GHOST_BASE + bandIndex(band),
   /** One door frame; the exit is normally a sprite (`tile/exit/door_<n>` in `pixel-tiles`), this is for static use. */
   exit: (frame: number): number => EXIT_BASE + (frame % EXIT_FRAMES),
 } as const;

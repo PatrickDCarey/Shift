@@ -3,9 +3,22 @@
  * "JSON hash" atlases (frames + meta) with a per-frame content hash so a test
  * can prove the committed PNGs match this code. Pure; no Phaser. Owner: art-director.
  */
-import { BANDS, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, type AnimMeta } from './player';
+import { BAND_COLOR_LIST, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, type AnimMeta } from './player';
 import { FEET_Y, FRAME_H, FRAME_W, VARIANTS } from './playerBody';
 import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, GLYPH_HOME_SIZE, bakeBodyGlyph, bakeEdgeArrow, bakeHomeGlyph } from './hud';
+import {
+  DUST_FRAMES,
+  DUST_H,
+  DUST_W,
+  RING_FRAMES,
+  RING_SIZE,
+  SPEED_LENGTHS,
+  SPEED_PHASES,
+  bakeDustFrame,
+  bakeRingFrame,
+  bakeSpeedLine,
+  effectFrameNames,
+} from './effects';
 import { blit, createRaster, hashRaster, type Raster } from './raster';
 import { RIDGES, bakeHorizon, bakeRidge, bakeStars } from './scenery';
 import { COLORED_BANDS, TILESET_COLUMNS, TILESET_COUNT, TILESET_ROWS, bakeTileset, tilesetIndex } from './tileset';
@@ -117,6 +130,7 @@ export const PIXEL_KEYS = {
   scenery: 'pixel-scenery',
   hud: 'pixel-hud',
   tileset: 'pixel-tileset',
+  fx: 'pixel-fx',
   font: 'pixel-font',
 } as const;
 
@@ -137,7 +151,7 @@ export function tileFrameNames(): { safe: (mask: number, depth: number) => strin
 function playerItems(): PackItem[] {
   const items: PackItem[] = [];
   for (const variant of VARIANTS) {
-    for (const band of BANDS) {
+    for (const band of BAND_COLOR_LIST) {
       for (const def of PLAYER_FRAMES) {
         items.push({ name: playerFrameName(variant, band, def.name), raster: bakePlayerFrame(variant, band, def), pivot: PLAYER_PIVOT });
       }
@@ -154,7 +168,7 @@ function tileItems(): PackItem[] {
       items.push({ name: names.safe(mask, depth), raster: bakeSafeTile(neighboursOf(mask), depth) });
     }
   }
-  for (const band of BANDS.filter((b) => b !== 'white')) {
+  for (const band of BAND_COLOR_LIST.filter((b) => b !== 'white')) {
     for (let mask = 0; mask < NEIGHBOUR_MASKS; mask++) {
       items.push({ name: names.solid(band, mask), raster: bakeSolidTile(band, neighboursOf(mask)) });
     }
@@ -186,7 +200,18 @@ function hudItems(): PackItem[] {
   for (const body of VARIANTS) items.push({ name: names.glyph(body), raster: bakeBodyGlyph(body) });
   items.push({ name: names.home, raster: bakeHomeGlyph() });
   for (const body of VARIANTS) {
-    for (const band of BANDS) items.push({ name: names.edge(body, band), raster: bakeEdgeArrow(body, band), pivot: { x: 0, y: 0.5 } });
+    for (const band of BAND_COLOR_LIST) items.push({ name: names.edge(body, band), raster: bakeEdgeArrow(body, band), pivot: { x: 0, y: 0.5 } });
+  }
+  return items;
+}
+
+function fxItems(): PackItem[] {
+  const names = effectFrameNames();
+  const items: PackItem[] = [];
+  for (let n = 0; n < DUST_FRAMES; n++) items.push({ name: names.dust(n), raster: bakeDustFrame(n), pivot: { x: 0.5, y: 1 } });
+  for (let n = 0; n < RING_FRAMES; n++) items.push({ name: names.ring(n), raster: bakeRingFrame(n), pivot: { x: 0.5, y: 0.5 } });
+  for (const length of SPEED_LENGTHS) {
+    SPEED_PHASES.forEach((_, phase) => items.push({ name: names.speed(length, phase), raster: bakeSpeedLine(length, phase), pivot: { x: 1, y: 0 } }));
   }
   return items;
 }
@@ -230,6 +255,7 @@ export interface PixelAssets {
   readonly scenery: PackedAtlas;
   readonly hud: PackedAtlas;
   readonly tileset: PackedTileset;
+  readonly fx: PackedAtlas;
 }
 
 /** Bake every pixel asset. File names are `pixel-player`, `pixel-tiles`, `pixel-scenery` (.png / .json). */
@@ -240,7 +266,7 @@ export function buildPixelAssets(): PixelAssets {
       frameSize: { w: FRAME_W, h: FRAME_H },
       origin: PLAYER_PIVOT,
       bodies: [...VARIANTS],
-      bands: [...BANDS],
+      bands: [...BAND_COLOR_LIST],
       anims,
       naming: 'player/<runner|twin>/<band>/<anim>_<n>',
     }),
@@ -258,5 +284,20 @@ export function buildPixelAssets(): PixelAssets {
       sizes: { body: [GLYPH_BODY_W, GLYPH_BODY_H], home: [GLYPH_HOME_SIZE, GLYPH_HOME_SIZE], edge: [EDGE_ARROW_W, EDGE_ARROW_H] },
     }),
     tileset: packTileset(),
+    fx: packAtlas('pixel-fx.png', fxItems(), 256, {
+      naming: 'fx/dust/land_<0-3> (24x8, origin (0.5, 1) at the feet), fx/ring/<0-3> (48x48, origin (0.5, 0.5) on the body), fx/speed/<12|20|32>_<a|b> (Wx1, lead end at the right, origin (1, 0); flipX when moving left)',
+      sizes: { dust: [DUST_W, DUST_H], ring: [RING_SIZE, RING_SIZE], speed: [...SPEED_LENGTHS] },
+      note: 'White masks (pure #FFFFFF, fully opaque), tint at runtime: dust ui.textMuted, ring the new band solid.outline, speed lines the current band solid.outline.',
+      anims: {
+        dustLand: { frames: ['fx/dust/land_0', 'fx/dust/land_1', 'fx/dust/land_2', 'fx/dust/land_3'], fps: 20, repeat: 0, trigger: 'land event' },
+        ringBurst: { frames: ['fx/ring/0', 'fx/ring/1', 'fx/ring/2', 'fx/ring/3'], fps: 25, repeat: 0, trigger: 'bandChange' },
+      },
+      reducedMotion: {
+        dustLand: 'show fx/dust/land_1 only, for 4 sim steps, no spread',
+        ringBurst: 'off (palette swap only)',
+        speedLines: 'off',
+      },
+      reducedEffects: { speedLines: 'off', ringBurst: 'on unless reduced motion', dustLand: 'on' },
+    }),
   };
 }

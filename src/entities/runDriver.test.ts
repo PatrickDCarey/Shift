@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EMPTY_INPUT, type InputFrame } from '../core';
+import { createSim, EMPTY_INPUT, expandRuns, runInputLog, step, type InputFrame } from '../core';
 import { loadGameParams } from './params';
 import { RunDriver } from './runDriver';
 import { gridLevel } from './testkit';
@@ -119,5 +119,76 @@ describe('RunDriver', () => {
     driver.advance(STEP_MS, constant(EMPTY_INPUT));
     expect(driver.state.status).toBe('playing');
     expect(driver.state.step).toBe(0);
+  });
+});
+
+describe('RunDriver pause support', () => {
+  it('resetClock drops the leftover time, so a long pause never catches up', () => {
+    const driver = new RunDriver(level, params);
+    driver.advance(STEP_MS * 1.9, constant(right));
+    expect(driver.state.step).toBe(1);
+    driver.resetClock();
+    driver.advance(STEP_MS, constant(right));
+    expect(driver.state.step).toBe(2);
+    expect(driver.alpha).toBeLessThan(0.1);
+  });
+
+  it('a stalled first frame after the clock reset runs no more than the normal cap', () => {
+    const driver = new RunDriver(level, params);
+    driver.resetClock();
+    driver.advance(5 * 60_000, constant(right));
+    expect(driver.state.step).toBeLessThanOrEqual(5);
+  });
+});
+
+describe('RunDriver wins', () => {
+  it('reports exactly one RunResult per win, built at the win step', () => {
+    const driver = new RunDriver(level, params);
+    for (let i = 0; i < 100; i += 1) driver.advance(STEP_MS, constant(right)); // keeps stepping after the win
+    const wins = driver.takeWins();
+    expect(wins).toHaveLength(1);
+    expect(driver.takeWins()).toHaveLength(0);
+    const [win] = wins;
+    expect(win?.wonAtStep).toBe(driver.state.wonAtStep);
+    expect(win?.solution.levelId).toBe(level.meta.id);
+    expect(win?.solution.levelVersion).toBe(level.meta.version);
+    expect(win?.solution.steps).toBe(win?.wonAtStep); // frames up to and including the win step
+  });
+
+  it('the recorded solution replays to the same wonAtStep', () => {
+    const driver = new RunDriver(level, params);
+    for (let i = 0; i < 100; i += 1) driver.advance(STEP_MS, constant(right));
+    const [win] = driver.takeWins();
+    const frames = expandRuns(win?.solution.runs ?? []);
+    const { final } = runInputLog({ createSim, step }, level, params, frames);
+    expect(final.status).toBe('won');
+    expect(final.wonAtStep).toBe(win?.wonAtStep);
+  });
+
+  it('catches a win and its restart inside one render frame', () => {
+    const probe = new RunDriver(level, params);
+    playUntilWon(probe);
+    const winStep = probe.state.step;
+    const driver = new RunDriver(level, params);
+    driver.advanceFixed(winStep - 1, constant(right));
+    let n = 0;
+    driver.advanceFixed(3, () => {
+      n += 1;
+      return n === 1 ? right : n === 2 ? EMPTY_INPUT : restart;
+    });
+    expect(driver.state.status).toBe('playing'); // already restarted
+    expect(driver.takeWins()).toHaveLength(1);
+  });
+
+  it('reports a second win after a restart, with its own recording', () => {
+    const driver = new RunDriver(level, params);
+    playUntilWon(driver);
+    driver.advance(STEP_MS, constant(EMPTY_INPUT));
+    driver.advance(STEP_MS, constant(restart));
+    expect(driver.takeWins()).toHaveLength(1);
+    playUntilWon(driver);
+    const wins = driver.takeWins();
+    expect(wins).toHaveLength(1);
+    expect(wins[0]?.solution.steps).toBe(wins[0]?.wonAtStep);
   });
 });

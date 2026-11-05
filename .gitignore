@@ -4,6 +4,8 @@ node_modules/
 # Build output
 dist/
 *.zip
+# npm run package output (zip plus .sha256 sidecar)
+release/
 
 # Test output
 coverage/
@@ -12,10 +14,14 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
-# Environment (commit .env.example only)
+# Environment and secrets (commit .env.example only)
 .env
 .env.*
+*.env
 !.env.example
+*.pem
+*.key
+supabase/.temp/
 
 # Editors / OS
 .DS_Store

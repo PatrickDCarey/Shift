@@ -9,7 +9,7 @@ import type { BandColor } from '../../core/types';
 import { VISIONS, contrastRatio, hexToRgb, simulateVision, type Rgb, type Vision } from '../color';
 import { backgroundForSpeed, palette, patternOf } from '../palette';
 import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, bakeBodyGlyph, bakeEdgeArrow, bakeHomeGlyph } from './hud';
-import { BANDS, PLAYER_FRAMES, bakePlayerFrame, roleColors } from './player';
+import { BAND_COLOR_LIST, PLAYER_FRAMES, bakePlayerFrame, roleColors } from './player';
 import { FRAME_W, ROLE, VARIANTS, buildBody } from './playerBody';
 import { getPixel, type Raster } from './raster';
 
@@ -41,7 +41,7 @@ describe('runner vs twin by shape, in every vision', () => {
   const poses = PLAYER_FRAMES.filter((f) => !f.name.startsWith('death') && !f.name.startsWith('shift'));
 
   it.each(SIMS)('%s: the visible silhouettes differ on at least 10 pixels in every pose and band', (vision) => {
-    for (const band of BANDS) {
+    for (const band of BAND_COLOR_LIST) {
       for (const def of poses) {
         const a = visibleMask(bakePlayerFrame('runner', band, def), vision);
         const b = visibleMask(bakePlayerFrame('twin', band, def), vision);
@@ -52,7 +52,7 @@ describe('runner vs twin by shape, in every vision', () => {
   });
 
   it('the twin head is a narrow antenna and the runner head a wide flat top, visible in greyscale at 1x', () => {
-    for (const band of BANDS) {
+    for (const band of BAND_COLOR_LIST) {
       const rows = (name: 'runner' | 'twin'): number[] => {
         const m = visibleMask(bakePlayerFrame(name, band, frameOf('idle_0')), 'gray');
         const first = Math.floor(m.indexOf(true) / FRAME_W);
@@ -157,12 +157,12 @@ describe('HUD silhouette glyphs and the edge arrow', () => {
 
   it.each(VISIONS)('%s: the glyph colour of every band is at least 3:1 against the panel, and the outline at least 4.5:1 against the field', (vision) => {
     const panel = simulateVision(hexToRgb(palette.ui.panel), vision);
-    for (const band of BANDS) expect(contrastRatio(simulateVision(hexToRgb(palette.gears[band].solid.fill), vision), panel), `${vision} ${band}`).toBeGreaterThanOrEqual(3);
+    for (const band of BAND_COLOR_LIST) expect(contrastRatio(simulateVision(hexToRgb(palette.gears[band].solid.fill), vision), panel), `${vision} ${band}`).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(simulateVision(hexToRgb(palette.ui.text), vision), simulateVision(FIELD, vision))).toBeGreaterThanOrEqual(4.5);
   });
 
   it('the silhouettes inside the arrow differ between the two bodies in every band', () => {
-    for (const band of BANDS) {
+    for (const band of BAND_COLOR_LIST) {
       const a = mask(bakeEdgeArrow('runner', band));
       const b = mask(bakeEdgeArrow('twin', band));
       expect(a).toEqual(b); // the outline is the same; the shape inside is what differs

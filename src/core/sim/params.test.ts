@@ -31,7 +31,6 @@ describe('deriveParams', () => {
       shiftBufferSteps: 6,
       colorGraceSteps: 6,
       deathFreezeSteps: 24,
-      ghostLifetimeSteps: 180,
       playerWidth: 0.75,
       playerHeight: 1.5,
     });

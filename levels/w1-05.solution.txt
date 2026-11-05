@@ -1,0 +1,13 @@
+level: w1-05
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand at the spawn
+# 1+ 1. 1+   shift up to gear 3 (cruise yellow: the red wall lets yellow through)
+# 64R   run: yellow at x = 3.4, into the wall column
+# 1R+   third press inside the wall at x = 9.62: red 0.66 tiles later, past the wall, before the bridge
+# 51R   sprint across the red bridge into the exit
+# Fairness (earlier/later, capped at 30): gear-3 presses 9/9, run start >= 3/9, the third press 9/9
+#   (the whole window is 19 steps, press at x 8.12-10.82).
+steps: 139
+---
+20. 1+ 1. 1+ 64R 1R+ 51R

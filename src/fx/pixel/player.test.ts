@@ -11,7 +11,7 @@ import playerJson from '../../../assets/art/pixel/pixel-player.json';
 import scenery from '../../../assets/art/pixel/pixel-scenery.json';
 import tilesJson from '../../../assets/art/pixel/pixel-tiles.json';
 import { buildPixelAssets, playerFrameName } from './atlas';
-import { BANDS, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, bakeRoles, roleColors } from './player';
+import { BAND_COLOR_LIST, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, bakeRoles, roleColors } from './player';
 import { FEET_Y, FRAME_H, FRAME_W, ROLE, VARIANTS, buildBody, type RoleGrid, type Variant } from './playerBody';
 import { committedPngNames } from './pngFixture';
 import { getPixel } from './raster';
@@ -118,7 +118,7 @@ describe('the two bodies differ in silhouette, not colour', () => {
 
 describe('palette swap', () => {
   it('maps every role to an opaque colour except none, per band and mode', () => {
-    for (const band of BANDS) {
+    for (const band of BAND_COLOR_LIST) {
       for (const mode of ['normal', 'flash', 'halo'] as const) {
         const colors = roleColors(band, mode);
         for (const role of Object.values(ROLE)) expect(colors[role][3], `${band} ${mode} ${role}`).toBe(role === ROLE.none ? 0 : 255);
@@ -145,7 +145,7 @@ describe('committed sheets match the code', () => {
   it('player atlas: every frame name, rectangle and content hash', () => {
     expect(playerJson.frames).toEqual(built.player.json.frames);
     expect(playerJson.redshift.hashes).toEqual(built.player.json.redshift.hashes);
-    expect(Object.keys(playerJson.frames)).toHaveLength(VARIANTS.length * BANDS.length * PLAYER_FRAMES.length);
+    expect(Object.keys(playerJson.frames)).toHaveLength(VARIANTS.length * BAND_COLOR_LIST.length * PLAYER_FRAMES.length);
     expect(playerJson.frames[playerFrameName('twin', 'red', 'sprint_3') as keyof typeof playerJson.frames]).toBeDefined();
   });
 
@@ -157,6 +157,6 @@ describe('committed sheets match the code', () => {
   });
 
   it('every PNG sheet is committed', () => {
-    expect(committedPngNames()).toEqual(['pixel-font.png', 'pixel-hud.png', 'pixel-player.png', 'pixel-scenery.png', 'pixel-tiles.png', 'pixel-tileset.png']);
+    expect(committedPngNames()).toEqual(['pixel-font.png', 'pixel-fx.png', 'pixel-hud.png', 'pixel-player.png', 'pixel-scenery.png', 'pixel-tiles.png', 'pixel-tileset.png']);
   });
 });

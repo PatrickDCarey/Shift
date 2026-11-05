@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -338,6 +338,7 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 - Every 6 tiles of flight costs one color, down to blue. Sprint jumps always land yellow or lower.
 - Recommended max gap: 2 × gear tiles.
 - Corridors: the player is 1.5 tiles tall; 2-tile-tall corridors are fine.
+- **World 1 roofs (v1.6):** a world-1 colored bridge may sit under a low safe roof (exactly 2 tiles of headroom) so no jump can skip the lesson. The roof is safe tiles only; its end faces sit over safe ground or exactly at the bridge's first and last columns; every spawn and stop pad stays open (at least 5 tiles of clear headroom, so a standing jump shows the full 3-tile apex). Worlds 2 and 4 do not use roofs over a level's lesson: jumping is part of it there. Tandem lanes have their own ceilings (the divider).
 - Keep intended drag drops at least 3 steps away from the intended landing. (Exception: a sprint walk-off off a 4-tile drop lands red one step before its drop would come; that is safe because sprint is the top speed.)
 - A sprint walk-off keeps red down to a 4-tile drop; 5 tiles or more lands yellow.
 - Never hang a colored tile less than 1.5 tiles above a floor of the same color (no-embed is per color, §4.7). Same for gate tiles over a gate floor of the same band.
@@ -408,12 +409,8 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 | `playerWidthTiles` | 0.75 | tiles | Player collision box width. |
 | `playerHeightTiles` | 1.5 | tiles | Player collision box height. |
 | `deathFreezeMs` | 400 | ms | Pause between falling out and respawning. |
-| `mudMaxGear` | 2 | gear | **Unused** (mud cut 2026-11-03). Removed together with the schema entry. |
-| `boostPadGear` | 4 | gear | **Unused** (boost pads cut). Removed together with the schema entry. |
-| `ghostSpacingTiles` | 1 | tiles | **Unused** (afterimage cut). Removed together with the schema entry. |
-| `ghostLifetimeMs` | 3000 | ms | **Unused** (afterimage cut). Removed together with the schema entry. |
 
-Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity, jump launch speed. Removed in v1.1: `pivotMaxBand` (replaced by `instantMaxGear`). Speed gates and colored walls need no keys. The four unused keys stay in `tuning.json` until tech-lead drops them from `Tuning`/`TUNING_SCHEMA`; design-lead deletes them from the JSON in the same batch so `tests/arch` never breaks.
+Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity, jump launch speed. Removed in v1.1: `pivotMaxBand` (replaced by `instantMaxGear`). Removed in v1.6 (T-03, same batch as tech-lead's T-02): `mudMaxGear`, `boostPadGear`, `ghostSpacingTiles`, `ghostLifetimeMs` (their mechanics were cut 2026-11-03). Speed gates, colored walls and Tandem need no keys. Audio, effect and leaderboard constants are not gameplay numbers: they live with their owners (`src/audio`, `src/fx`, `backend/`) as named constants, sized by `features/adaptive-audio.md`, `pixel-effects.md` and `leaderboards.md`.
 
 ## 10. Scope and deliverables
 
@@ -436,6 +433,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 | Tandem spec | `docs/design/features/tandem.md` | done 2026-11-03 (sim Nov 9–13) |
 | Ice spec (Should) | `docs/design/features/ice.md` | before M3 (Nov 15) |
 | Menu, progression and onboarding specs (M2-34, M2-01) | `features/menu-navigation.md`, `title-screen.md`, `level-select.md`, `pause.md`, `results.md`, `progress-save.md`, `level-loading.md`, `sticky-keys-tip.md`, `controls-screen.md`, `onboarding-hints.md` | done 2026-11-04 |
+| M3 specs (M3-02): leaderboard UX, adaptive audio, pixel effects | `features/leaderboards.md`, `adaptive-audio.md`, `pixel-effects.md` | done 2026-11-04 (due Nov 11) |
 | itch.io page copy | `docs/design/itch-page.md` | M4 (Nov 28) |
 | Decision log | `docs/design/decisions.md` | ongoing |
 
@@ -455,8 +453,10 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 - **Camera with a twin:** frames the midpoint of the non-home bodies. With one body home it frames the other; if both are moving and more than 28 tiles apart it follows the runner and shows an edge arrow with the twin's silhouette (`features/tandem.md`).
 - **HUD gear meter** shows the **selected cruise gear (1–4)** and the **current band (white–red)** side by side. They differ while ramping, braking, standing still (gear 2 selected, white band) and after drag. In the air, a small drag meter fills toward the next 6-tile drop; it is hidden while the band is at or below `airDragMinBand` (blue or white), since no drop can come. Layout and checks: `docs/design/features/hud-gear-meter.md` (a five-cell white–red strip: lit cell = band, bracket = selected gear, speed needle, pending-shift bracket in the air). Pulled into M1 by the 2026-11-02 playtest. **With a twin, the HUD shows two strips stacked** (top = runner, bottom = twin), each marked with its body's silhouette and showing that body's band, gear, needle, drag meter and pending shift; a home body's strip dims and shows the home glyph.
 - **Level time** is shown as time, not steps: `wonAtStep / stepHz` as `M:SS.ss` (hundredths, truncated). Steps stay the stored and compared value (saves, replays, leaderboards).
-- A drag drop plays a short down-shift "clunk" and a color flash, because the speed change is instant.
-- Music pitch and filter follow your band: muffled and low when slow, bright and high at sprint.
+- A drag drop plays a short down-shift "clunk" and a color flash, because the speed change is instant. The clunk must not sound like a shift down: one is the game taking a gear, the other is you choosing to (`features/adaptive-audio.md`). The drop cue survives every accessibility setting in some form (`features/pixel-effects.md`).
+- Music pitch and filter follow your band: muffled and low when slow, bright and high at sprint (`features/adaptive-audio.md`). With a twin, the music and the world tint follow the faster body that is not home.
+- Effects are render-only and come in three modes: full, reduced effects (decoration off) and reduced motion (no flashes, wipes or parallax); there is no screen shake anywhere (`features/pixel-effects.md`).
+- Leaderboards (Should) rank by steps and show time; a run is posted only after the player has chosen a name (`features/leaderboards.md`).
 
 ## 12. Open questions
 

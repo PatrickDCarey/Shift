@@ -3,7 +3,7 @@
  * and a cell is exactly the baked tile.
  */
 import { describe, expect, it } from 'vitest';
-import { BANDS } from './player';
+import { BAND_COLOR_LIST } from './player';
 import { getPixel } from './raster';
 import { NEIGHBOUR_MASKS, SAFE_DEPTHS, TILE, bakeGhostTile, bakeSafeTile, bakeSolidTile, neighboursOf } from './tiles';
 import { COLORED_BANDS, TILESET_COLUMNS, TILESET_COUNT, TILESET_ROWS, bakeTileset, tilesetCells, tilesetIndex } from './tileset';
@@ -23,7 +23,7 @@ describe('tileset indices', () => {
   });
 
   it('colored bands are blue, green, yellow and red (white has no tile)', () => {
-    expect(COLORED_BANDS).toEqual(BANDS.filter((b) => b !== 'white'));
+    expect(COLORED_BANDS).toEqual(BAND_COLOR_LIST.filter((b) => b !== 'white'));
   });
 
   it('clamp the safe depth', () => {

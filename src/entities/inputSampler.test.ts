@@ -85,3 +85,88 @@ describe('InputSampler', () => {
     expect(s.sample()).toMatchObject({ right: true, left: false });
   });
 });
+
+describe('InputSampler while paused (pause.md)', () => {
+  it('keeps a key held through the pause held after resume, with no new press', () => {
+    const s = new InputSampler();
+    s.keyDown('ArrowRight');
+    s.sample();
+    s.setPaused(true);
+    s.keyDown('ArrowRight'); // browser key repeat during the pause
+    s.setPaused(false);
+    expect(s.sample().right).toBe(true);
+    expect(s.sample().right).toBe(true);
+  });
+
+  it('ignores a key pressed while paused until it is released, even if still held at resume', () => {
+    const s = new InputSampler();
+    s.setPaused(true);
+    s.keyDown('Space');
+    s.setPaused(false);
+    expect(s.sample().jump).toBe(false);
+    expect(s.sample().jump).toBe(false);
+    s.keyUp('Space');
+    s.keyDown('Space');
+    expect(s.sample().jump).toBe(true);
+  });
+
+  it('masks a gear key tapped in the menu (no latch survives the resume)', () => {
+    const s = new InputSampler();
+    s.setPaused(true);
+    s.keyDown('KeyQ');
+    s.keyUp('KeyQ');
+    s.setPaused(false);
+    expect(s.sample().shiftDown).toBe(false);
+  });
+
+  it('drops latches made just before the pause so they do not fire on resume', () => {
+    const s = new InputSampler();
+    s.keyDown('Space');
+    s.keyUp('Space');
+    s.setPaused(true);
+    s.setPaused(false);
+    expect(s.sample().jump).toBe(false);
+  });
+
+  it('a key held through the pause that is released and pressed again during it is masked', () => {
+    const s = new InputSampler();
+    s.keyDown('ArrowRight');
+    s.setPaused(true);
+    s.keyUp('ArrowRight');
+    s.keyDown('ArrowRight');
+    s.setPaused(false);
+    expect(s.sample().right).toBe(false);
+  });
+
+  it('clear() (focus loss) drops held keys and masks, so nothing sticks', () => {
+    const s = new InputSampler();
+    s.keyDown('ArrowRight');
+    s.setPaused(true);
+    s.keyDown('Space');
+    s.clear();
+    s.setPaused(false);
+    expect(s.sample()).toEqual(EMPTY_INPUT);
+    s.keyDown('Space');
+    expect(s.sample().jump).toBe(true);
+  });
+
+  it('counts pause and restart presses as edges, once each, and not on key repeat', () => {
+    const s = new InputSampler();
+    s.keyDown('Escape');
+    s.keyDown('Escape');
+    expect(s.takePausePress()).toBe(true);
+    expect(s.takePausePress()).toBe(false);
+    s.keyUp('Escape');
+    s.keyDown('KeyP');
+    expect(s.takePausePress()).toBe(true);
+    s.keyDown('KeyR');
+    expect(s.takeRestartPress()).toBe(true);
+    expect(s.takeRestartPress()).toBe(false);
+  });
+
+  it('never puts the pause key into the sim frame', () => {
+    const s = new InputSampler();
+    s.keyDown('Escape');
+    expect(s.sample()).toEqual(EMPTY_INPUT);
+  });
+});

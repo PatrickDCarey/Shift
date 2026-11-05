@@ -134,7 +134,7 @@ const SMOOTHING_SECONDS = 0.01;
 const GESTURE_EVENTS = ['pointerdown', 'mousedown', 'touchend', 'keydown', 'keyup'] as const;
 const WAVES: readonly WaveType[] = ['sine', 'square', 'sawtooth', 'triangle'];
 
-const DEFAULTS: AudioSettingsState = { master: 0.8, music: 0.7, sfx: 0.8, muted: false };
+const DEFAULTS: AudioSettingsState = { master: 0.8, music: 0.6, sfx: 0.8, muted: false };
 
 // ---- Helpers ----
 
@@ -193,6 +193,8 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
   let unsupported = false;
   let closed = false;
   let voices = 0;
+  /** SFX voices, oldest first. At the voice cap the oldest is stopped, never a music voice. */
+  const sfxVoices: { osc: OscillatorNodeLike; env: GainNodeLike }[] = [];
   let removeListeners: (() => void) | null = null;
 
   const effectiveMaster = (): number => (settings.muted ? 0 : settings.master);
@@ -272,12 +274,39 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
     return !settings.muted && settings.master > 0 && settings[bus] > 0;
   }
 
+  function releaseVoice(osc: OscillatorNodeLike, env: GainNodeLike): void {
+    const i = sfxVoices.findIndex((v) => v.osc === osc);
+    if (i >= 0) sfxVoices.splice(i, 1);
+    try {
+      osc.disconnect();
+      env.disconnect();
+    } catch {
+      // Already disconnected.
+    }
+  }
+
+  /** Cut the oldest SFX voice to make room. Returns false when no SFX voice is playing. */
+  function stealOldestSfx(): boolean {
+    const oldest = sfxVoices[0];
+    if (!oldest) return false;
+    oldest.osc.onended = null;
+    try {
+      oldest.osc.stop(0);
+    } catch {
+      // Never started or already stopped.
+    }
+    releaseVoice(oldest.osc, oldest.env);
+    voices = Math.max(0, voices - 1);
+    return true;
+  }
+
   function tone(opts: ToneOptions): boolean {
     const g = graph;
     if (!g || getState() !== 'running') return false;
     if (!isPositive(opts.freq) || !isPositive(opts.duration)) return false;
     const busName: BusName = opts.bus ?? 'sfx';
-    if (!audible(busName) || voices >= MAX_VOICES) return false;
+    if (!audible(busName)) return false;
+    if (voices >= MAX_VOICES && !(busName === 'sfx' && stealOldestSfx())) return false;
 
     const duration = Math.min(opts.duration, MAX_TONE_SECONDS);
     const delay = typeof opts.delay === 'number' && Number.isFinite(opts.delay) ? Math.min(MAX_DELAY_SECONDS, Math.max(0, opts.delay)) : 0;
@@ -302,15 +331,11 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
       const o = osc;
       const e = env;
       voices += 1;
+      if (busName === 'sfx') sfxVoices.push({ osc: o, env: e });
       o.onended = () => {
         o.onended = null;
         voices = Math.max(0, voices - 1);
-        try {
-          o.disconnect();
-          e.disconnect();
-        } catch {
-          // Already disconnected.
-        }
+        releaseVoice(o, e);
       };
       o.start(t0);
       o.stop(t1 + ATTACK_SECONDS);
@@ -355,6 +380,7 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
       const g = graph;
       graph = null;
       voices = 0;
+      sfxVoices.length = 0;
       if (g) void g.ctx.close().catch(() => {});
     },
   };

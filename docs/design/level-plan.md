@@ -1,6 +1,6 @@
 # Redshift — Level plan
 
-_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 3.1 (2026-11-04): first level of every world open from the start; hint glyph placements per level; title length cap. Version 3.0 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`, `features/tandem.md`). World 3 becomes five Tandem levels; speed gates and ice move to a Should world 4. The v2.0 gates plan is kept below as the fallback._
+_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 3.2 (2026-11-04, batch 2): world-1 low roofs adopted with conditions; "fastest known" step count per level for the leaderboard floor; w1-01 and w1-02 approved. Version 3.1 (2026-11-04): first level of every world open from the start; hint glyph placements per level; title length cap. Version 3.0 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`, `features/tandem.md`). World 3 becomes five Tandem levels; speed gates and ice move to a Should world 4. The v2.0 gates plan is kept below as the fallback._
 
 18 levels in 4 worlds. Each level introduces **one** new idea (or combines known ones, marked COMBINE/TEST/TWIST). A level is rejected if:
 - it teaches two new ideas at once;
@@ -43,6 +43,8 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
 - **The first level of every world is open from the start** (owner decision 2026-11-04, `features/level-select.md`). w2-01 and w3-01 must therefore be playable by someone who skipped every earlier world: gentle, with the hints above, and with no skill the level itself doesn't show. Inside a world, levels still unlock in order.
 - Level `title`s: 20 characters at most (level select truncates at 24).
 - Every level ships a solution recording.
+- **World 1 roofs (v3.2):** a colored bridge in world 1 may sit under a low safe roof so no jump skips the lesson. Exactly 2 tiles of headroom over the bridge floor; roof made of safe tiles only (never colored); the roof's end faces sit over safe ground or exactly at the bridge's first and last columns (so a jump that hits a face drops back onto safe ground, never onto the bridge in the wrong color); every spawn and stop pad has at least 5 tiles of clear headroom (a standing jump reaches the full 3-tile apex with no ceiling event). In w1-05 the red wall column runs from the floor to the roof. Worlds 2 and 4 put no roof over the lesson (jumping is part of it); Tandem lanes are already capped by the divider.
+- **Fastest known steps (for the leaderboard floor, `features/leaderboards.md`):** record in `levels/README.md`, per level, the lowest winning step count seen in your sweeps (`Fastest known: N steps`). Backend sets the floor at 85% of it.
 
 ## World 1 — Gears (Must, M2)
 

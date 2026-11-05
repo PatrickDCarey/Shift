@@ -29,6 +29,8 @@ export interface HeaderEntry {
 
 export interface HeaderResult {
   readonly entries: ReadonlyMap<string, HeaderEntry>;
+  /** Every line of each repeatable key, in file order (empty list when the key never appears). */
+  readonly repeated: ReadonlyMap<string, readonly HeaderEntry[]>;
   readonly errors: readonly string[];
 }
 
@@ -94,12 +96,26 @@ function unknownKeyMessage(key: string, allowed: readonly string[]): string {
   return `unknown header key '${key}'${did}; allowed keys: ${allowed.join(', ')}`;
 }
 
+function headerEntry(line: SourceLine, colon: number): HeaderEntry {
+  const rest = line.text.slice(colon + 1);
+  const lead = rest.length - rest.trimStart().length;
+  return { value: rest.trim(), line: line.no, valueCol: colon + 1 + lead + 1 };
+}
+
 /**
  * Reads `key: value` lines. Blank lines and lines starting with `#` are
  * skipped. Reports lines that are not `key: value`, unknown keys and repeats.
+ * Keys in `repeatable` (which must also be in `allowed`) may appear many times
+ * and are collected in `repeated` instead of `entries`.
  */
-export function readHeader(file: string, lines: readonly SourceLine[], allowed: readonly string[]): HeaderResult {
+export function readHeader(
+  file: string,
+  lines: readonly SourceLine[],
+  allowed: readonly string[],
+  repeatable: readonly string[] = [],
+): HeaderResult {
   const entries = new Map<string, HeaderEntry>();
+  const repeated = new Map<string, HeaderEntry[]>(repeatable.map((k) => [k, []]));
   const errors: string[] = [];
   for (const line of lines) {
     const trimmed = line.text.trim();
@@ -110,16 +126,16 @@ export function readHeader(file: string, lines: readonly SourceLine[], allowed: 
       errors.push(atPos(file, line.no, 1, `expected 'key: value' but found '${trimmed}'`));
     } else if (!allowed.includes(key)) {
       errors.push(atPos(file, line.no, 1, unknownKeyMessage(key, allowed)));
+    } else if (repeated.has(key)) {
+      repeated.get(key)?.push(headerEntry(line, colon));
     } else if (entries.has(key)) {
       const first = entries.get(key)?.line ?? 0;
       errors.push(atPos(file, line.no, 1, `header key '${key}' is repeated (first set on line ${first})`));
     } else {
-      const rest = line.text.slice(colon + 1);
-      const lead = rest.length - rest.trimStart().length;
-      entries.set(key, { value: rest.trim(), line: line.no, valueCol: colon + 1 + lead + 1 });
+      entries.set(key, headerEntry(line, colon));
     }
   }
-  return { entries, errors };
+  return { entries, repeated, errors };
 }
 
 /** One error per required key that the header does not contain, placed at `line`. */

@@ -1,0 +1,12 @@
+level: w1-03
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand at the spawn (the red bridge is right there, 2 tiles out)
+# 150L  walk back to the wall in gear 1 (blue, instant turn), x = 1.38 against the wall
+# 1+ 1. 1+ 1. 1+   shift up to gear 4 while standing at the wall
+# 108R  sprint right: red at x = 4.6, 6.4 tiles before the bridge, across it into the exit
+# Fairness (earlier/later, capped at 30): walk-back 20/30, turn + shifts 30/30, run start >= 3/30
+#   (holding right through the shift presses also wins). Any standing start at x <= 8.3 wins.
+steps: 283
+---
+20. 150L 1+ 1. 1+ 1. 1+ 108R

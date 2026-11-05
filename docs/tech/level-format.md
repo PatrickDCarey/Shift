@@ -83,19 +83,15 @@ Everything after the `---` line, until end of file. One character per tile.
 | `G` | colored, band 2 (green) | when band = 2 | |
 | `Y` | colored, band 3 (yellow) | when band = 3 | |
 | `R` | colored, band 4 (red) | when band = 4 | |
-| `~` | mud | always | World 3. Caps the gear at `mudMaxGear`. |
-| `=` | ice | always | World 3. Locks speed and gear. |
-| `<` | conveyor, moving left | always | World 4. Speed: tuning key TBD. |
-| `>` | conveyor, moving right | always | World 4. |
-| `*` | boost pad | always | World 3. Sets `boostPadGear` and its speed instantly. |
-| `w` `b` `g` `y` `r` | speed camera for band 0 / 1 / 2 / 3 / 4 | unless band matches | World 3. Gate: solid unless your band equals its band. Lower-case colour initial = the band it admits. |
+| `=` | ice | always | World 3 (Should; rules need a design-lead spec). Locks speed and gear. |
+| `w` `b` `g` `y` `r` | speed gate for band 0 / 1 / 2 / 3 / 4 | unless band matches | World 3. Solid unless your band equals its band. Lower-case colour initial = the band it admits. (The contract kind is still `camera` until G-1 renames it.) |
 | `E` | exit | no | Touching it wins. At least one per level. |
 | `@` | player start | no | Exactly one. Parses as empty; the player spawns standing on the bottom edge of this cell (feet x = col + 0.5, y = row + 1), facing right, in `startGear`. |
 | `&` | twin start (Tandem, world 3) | no | At most one. Parses as empty; spawn rule exactly as `@` (feet x = col + 0.5, y = row + 1, facing right, `startGear`). `Level.twinStart`, null without one. See `docs/design/features/tandem.md`. |
 
-Mnemonic: **upper-case colour initial = solid coloured block, lower-case = camera of that colour.**
+Mnemonic: **upper-case colour initial = solid coloured block, lower-case = speed gate of that colour.**
 
-Reserved for later worlds (currently a parse error): `X` crate, `M` moving platform. World 4/5 pieces that need parameters (platform paths) will get an optional section after a second `---`; that format is defined when design-lead specs those pieces. Afterimage ghost platforms (world 5) are created at runtime and have no character.
+Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X` crate and `M` moving platform (later worlds); `~` mud, `*` boost pad, `<` `>` conveyors (cut 2026-11-04, T-02: their tuning keys are gone; boost pads may return as a Could). A reserved character is never reused for another piece. World 4/5 pieces that need parameters (platform paths) will get an optional section after a second `---`; that format is defined when design-lead specs those pieces. Afterimage ghost platforms (world 5) are created at runtime and have no character.
 
 ### Validation (parser must reject with a message naming file, row and column)
 

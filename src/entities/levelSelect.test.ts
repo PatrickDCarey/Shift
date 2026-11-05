@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEV_LEVEL_ID, DEV_LEVEL_TEXT, devLevel } from './devLevel';
-import { chooseLevel, DEFAULT_LEVEL_ID, loadLevelSet, requestedLevelId, selectLevel } from './levelSelect';
+import type { Level } from '../core';
+import { chooseLevel, DEFAULT_LEVEL_ID, loadLevelSet, nextLevelId, requestedLevelId, selectLevel } from './levelSelect';
 
 function levelText(id: string, world = 0): string {
   return [`id: ${id}`, 'title: T', `world: ${world}`, 'teaches: t', 'version: 1', '---', '.@.E', '####'].join('\n');
@@ -95,5 +96,21 @@ describe('loadLevelSet', () => {
     const r = loadLevelSet({ ...files, '/levels/w0-02.solution.txt': 'not a level' });
     expect(r.errors).toEqual([]);
     expect(r.levels).toHaveLength(3);
+  });
+});
+
+describe('nextLevelId (stand-in until the ui progress model lands)', () => {
+  const lv = (id: string, world: number): Level => ({ ...devLevel(), meta: { ...devLevel().meta, id, world } });
+  const order = [lv('w0-02', 0), lv('w1-01', 1), lv('w1-02', 1), lv('w2-01', 2)];
+
+  it('goes to the next world 1+ level, crossing worlds', () => {
+    expect(nextLevelId(order, 'w1-01')).toBe('w1-02');
+    expect(nextLevelId(order, 'w1-02')).toBe('w2-01');
+  });
+
+  it('is null after the last level, for world 0 and for unknown ids', () => {
+    expect(nextLevelId(order, 'w2-01')).toBeNull();
+    expect(nextLevelId(order, 'w0-02')).toBeNull();
+    expect(nextLevelId(order, 'nope')).toBeNull();
   });
 });

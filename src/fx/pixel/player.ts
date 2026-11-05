@@ -27,7 +27,7 @@ import { hexToRgb, mix } from '../color';
 import { palette, patternOf } from '../palette';
 import type { PatternId } from '../patterns';
 
-export const BANDS: readonly BandColor[] = ['white', 'blue', 'green', 'yellow', 'red'];
+export const BAND_COLOR_LIST: readonly BandColor[] = ['white', 'blue', 'green', 'yellow', 'red'];
 
 /** How a frame is coloured: normal, the white flash of a band change or death, or a white outline halo. */
 export type FrameMode = 'normal' | 'flash' | 'halo';

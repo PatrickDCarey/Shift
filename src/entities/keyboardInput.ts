@@ -42,6 +42,8 @@ export function handleKeyUp(sampler: InputSampler, bound: ReadonlySet<string>, e
 export interface KeyboardOptions {
   /** Called on each backtick press (not on key repeat). */
   readonly onToggleDebug?: () => void;
+  /** Called when the page loses focus (window blur, tab hidden), after held keys were dropped. */
+  readonly onFocusLost?: () => void;
 }
 
 /** Listen on the window; returns a function that removes every listener. */
@@ -52,9 +54,13 @@ export function attachKeyboard(sampler: InputSampler, options: KeyboardOptions =
     handleKeyDown(sampler, bound, e);
   };
   const onUp = (e: KeyboardEvent): void => handleKeyUp(sampler, bound, e);
-  const onBlur = (): void => sampler.clear();
+  const onFocusLost = (): void => {
+    sampler.clear();
+    options.onFocusLost?.();
+  };
+  const onBlur = (): void => onFocusLost();
   const onVisibility = (): void => {
-    if (document.hidden) sampler.clear();
+    if (document.hidden) onFocusLost();
   };
   window.addEventListener('keydown', onDown);
   window.addEventListener('keyup', onUp);

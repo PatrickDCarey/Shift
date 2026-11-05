@@ -17,12 +17,15 @@
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    // vite.config.ts imports ./config/envGuard.ts with its extension (Vite native config loader).
+    "allowImportingTsExtensions": true
   },
   "include": [
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",
+    "config/**/*.ts",
     "tests/**/*.ts",
     "src/core/**/*.ts",
     "src/data/**/*.json"

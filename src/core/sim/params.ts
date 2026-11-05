@@ -49,9 +49,5 @@ export function deriveParams(tuning: Tuning): SimParams {
     deathFreezeSteps: steps(tuning.deathFreezeMs),
     playerWidth: tuning.playerWidthTiles,
     playerHeight: tuning.playerHeightTiles,
-    mudMaxGear: tuning.mudMaxGear,
-    boostPadGear: tuning.boostPadGear,
-    ghostSpacingTiles: tuning.ghostSpacingTiles,
-    ghostLifetimeSteps: steps(tuning.ghostLifetimeMs),
   };
 }

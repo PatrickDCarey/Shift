@@ -46,7 +46,7 @@ describe('parseSave', () => {
   it('round-trips a valid save', () => {
     const save = {
       version: SAVE_VERSION,
-      settings: { musicVolume: 0.2, sfxVolume: 1, reducedEffects: true, reducedMotion: true, stickyKeysTipShown: true },
+      settings: { musicVolume: 0.2, sfxVolume: 1, reducedEffects: true, reducedMotion: true, muted: true, stickyKeysTipShown: true },
       progress: { completedLevels: ['w1-01', 'w1-02'], bestSteps: { 'w1-01': 612, 'w1-02': 1200 } },
     };
     expect(parseSave(serializeSave(save))).toEqual(save);

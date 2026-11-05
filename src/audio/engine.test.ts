@@ -395,9 +395,31 @@ describe('audio engine: tone helper', () => {
     for (let i = 0; i < MAX_VOICES; i += 1) {
       expect(engine.tone({ freq: 300 + i, duration: 1 })).toBe(true);
     }
-    expect(engine.tone({ freq: 999, duration: 1 })).toBe(false);
-    ctx.oscs[0]?.end();
+    // At the cap a new SFX voice steals the oldest SFX voice instead of failing.
     expect(engine.tone({ freq: 999, duration: 1 })).toBe(true);
+    expect(engine.activeVoices()).toBe(MAX_VOICES);
+    expect(ctx.oscs[0]?.disconnected).toBe(true);
+    expect(ctx.oscs[0]?.stopped).toBe(0);
+    ctx.oscs[1]?.end();
+    expect(engine.activeVoices()).toBe(MAX_VOICES - 1);
+  });
+
+  it('never steals a music voice and never exceeds the cap', async () => {
+    const { engine, ctx } = await running();
+    for (let i = 0; i < MAX_VOICES; i += 1) {
+      expect(engine.tone({ freq: 300 + i, duration: 1, bus: 'music' })).toBe(true);
+    }
+    expect(engine.tone({ freq: 999, duration: 1 })).toBe(false);
+    expect(engine.tone({ freq: 999, duration: 1, bus: 'music' })).toBe(false);
+    expect(ctx.oscs.every((o) => !o.disconnected)).toBe(true);
+    expect(engine.activeVoices()).toBe(MAX_VOICES);
+  });
+
+  it('30 SFX in one frame stay within the cap', async () => {
+    const { engine, ctx } = await running();
+    for (let i = 0; i < 30; i += 1) engine.tone({ freq: 300 + i, duration: 1 });
+    expect(engine.activeVoices()).toBe(MAX_VOICES);
+    expect(ctx.oscs.filter((o) => o.disconnected)).toHaveLength(6);
   });
 
   it('swallows errors thrown by the graph', async () => {

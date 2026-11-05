@@ -244,3 +244,47 @@ No `tuning.json` change. T-03 (deleting the four unused keys) waits for tech-lea
 - **Yellow background tint 9.5–17.7 ΔE from standing: accepted** — the tint is ambient; the HUD lit cell and the player's pattern carry the band.
 - **Twin silhouette (antenna, chamfered shoulders, wide stance, two square eyes): accepted; no extra marker above the head** — a different silhouette is what the rule asks for, and a filled body keeps the twin's band pattern readable (my hollow-outline proposal would have thinned it). The HUD strip glyph and the camera edge arrow use the same silhouette. The M3-34 playtest (GDD §12.8) is the trigger for a marker.
 - **Mechanic tiles: nothing new for Must** — worlds 1–3 use safe, colored (floors and walls) and exit only; gates and ice (world 4, Should) wait for the Nov 12 Tandem gate, or become Must only in the fallback.
+
+## 2026-11-04 (batch 2) — GDD v1.6: level verdicts, check 6, T-03, M3 specs
+
+### Level verdicts (M1-25, M2-23)
+- **M1-25 w0-02 Grey Box v2: APPROVED** — the spawn pad is open to the top (8 tiles), so the first jump shows the full 3.0 apex with no ceiling event (pillar 2, the 2026-11-03 ruling); route, solution (775 steps) and every cheese sweep are unchanged; the bridge ceiling starts exactly at the bridge's first column, so a jump into its face drops back on the pad.
+- **w1-01 First Steps: APPROVED** — one idea (hold to walk; blue holds you only while you walk), taught on bridge 1 and tested on bridge 2 (pillar 4); fairness windows 20–30 steps each way (pillar 3); the removal test and 42,832-run cheese sweep show no line skips a bridge.
+- **w1-02 Shift: APPROVED** — one idea (Shift sets the cruise gear and so the color), in a room the player already knows with one tile color changed (pillar 2); shift-up window about 28 steps and shift-down window 43 steps (pillar 3); with no shift press 0 of 3,208 lines win, so the idea can't be ignored (pillar 4).
+
+### World 1 roofs (level-designer's call)
+- **Low safe roofs over world-1 bridges: ACCEPTED with conditions** — they make "can't be solved by ignoring the idea" hold against jumps (pillar 4) and keep world 1 about pace, not jumps (pillar 1). Conditions, now in GDD §6 and level-plan v3.2: exactly 2 tiles of headroom; safe tiles only; end faces over safe ground or flush with the bridge ends (a jump into a face must drop you on safe ground, never on the bridge in the wrong color, pillar 3); every spawn and stop pad keeps ≥ 5 tiles clear so a standing jump shows the full apex (pillar 2); w1-05's red wall runs floor to roof; worlds 2 and 4 put no roof over the lesson.
+- **Cost accepted: world 1 never asks for a jump** — w2-01 is the first jump level and carries the `jump` glyph (2026-11-04 ruling), and it is open from the start.
+
+### Colored-walls check 6 (sim lane, M2-47)
+- **Restated at 4 tiles: ceiling bottom 4 tiles above the floor (2.5 tiles head room), contact on flight step 15 (head 4.078; 3.979 on step 14)** — 3.5 was off the grid; 4 tiles has the wider margin either side of contact (0.021 / 0.078 vs 0.005 at 3 tiles, step 7 head 2.995) and bonks near the top of the arc, which is how a level would use it. The 3-tile assertion may stay as an extra regression test.
+
+### T-03
+- **`mudMaxGear`, `boostPadGear`, `ghostSpacingTiles`, `ghostLifetimeMs` deleted from `tuning.json`** — mechanics cut 2026-11-03; done in the same batch as tech-lead's T-02 schema change, as planned.
+
+### Leaderboards (`features/leaderboards.md`, M3-02)
+- **Rank by steps, show time** — steps are exact; at 60 Hz distinct steps never display the same hundredths, so the shown order never looks wrong.
+- **Clock from spawn, idle included, winning attempt only** — confirms the 2026-11-03 ruling for boards: any "first input" rule must be reproducible by replay, and idling only costs the idler.
+- **Post only after the player picks a name, and only first clears and new bests; no retry queue** — opt-in by action (privacy line in `progress-save.md`), low traffic, nothing to retry offline (offline first).
+- **Names: 1–12 characters, A–Z 0–9 space hyphen, upper case, server blocklist with leetspeak normalising; not unique** — 12 fits a 1× row at 480×270; upper case means typing never needs Shift; no accounts in a jam.
+- **Board shows the top 5 with each name once at its best, plus the player's row if outside** — the most a 160×140 panel can show readably.
+- **Offline is quiet: no board when unconfigured, one muted `BOARD OFFLINE` line on errors, never a dialog or a retry button** — CLAUDE.md offline first.
+- **Floor time = 85% of the level's fastest known steps (recorded by level-designer)** — the only cheat guard until server replay (v2); 15% leaves room for players to beat the sweeps.
+
+### Audio (`features/adaptive-audio.md`, M3-02)
+- **Music follows the band (discrete), with a 150 ms glide and a 30 ms snap on a drag drop** — bands are what the rules use; the snap sells the clunk.
+- **Clunk vs shift down: an octave lower, one hard attack with grit, and it darkens the music** — the game taking a gear must not sound like the player choosing to.
+- **No SFX on `bandChange` or `graceStart`** — the music already carries pace; a blip at every band edge is noise.
+- **Fall-through has no sim event; it is a pure derived helper (grounded → airborne, no jump, colored tile under the footprint)** — no sim change for a render-only need; tech-lead places the helper.
+- **Tandem: each body's event once; the twin's voice is a fourth lower and 3 dB softer; same event on the same step plays as one unison** — two voices make "out of step" audible without doubling volume.
+- **`home` chime per body, suppressed on the win step** — one sting for the win, not three sounds.
+- **Audio, effect and leaderboard constants are not `tuning.json` keys** — tuning is for gameplay numbers; these live with their owners.
+
+### Effects (`features/pixel-effects.md`, M3-02)
+- **Two independent settings: reduced effects (decoration off) and reduced motion (no flashes, wipes, parallax, pulses; defaults to the OS preference)** — they serve different players; board M3-18's "reduced mode" is reduced effects.
+- **The drag-drop cue is never removed; under reduced motion it becomes a held outline frame plus the HUD snap** — it is gameplay information (GDD §12.1), not decoration.
+- **The drop cue triggers on `airDrag` only, not on any airborne band drop** — an air wall stop also drops the band and must not look like drag.
+- **No screen wipe in Tandem levels; the drop shows on the body and its HUD strip** — a wipe can't say which body dropped (pillar 2).
+- **World tint and music follow the faster non-home body** — one ambient pace; each body's own color stays on the body and its strip.
+- **No screen shake anywhere** — simplest accessible answer; nothing in the game needs it.
+- **Flash cap: 3 per second for the whole screen** — photosensitivity guideline, both bodies counted together.

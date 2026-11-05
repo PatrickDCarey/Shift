@@ -7,9 +7,11 @@
  */
 import {
   createSim,
+  encodeRuns,
   step,
   type InputFrame,
   type Level,
+  type RunResult,
   type SimEvent,
   type SimParams,
   type SimState,
@@ -29,6 +31,8 @@ export class RunDriver {
   /** Every frame played since the level loaded (or since the last win), deaths and restarts included. */
   private frames: InputFrame[] = [];
   private acc = 0;
+  /** Wins not yet taken by the scene, oldest first. */
+  private wins: RunResult[] = [];
   private readonly stepMs: number;
 
   constructor(
@@ -43,6 +47,25 @@ export class RunDriver {
   /** A copy of the recorded input frames (encode with `encodeRuns` to save a solution). */
   get recording(): readonly InputFrame[] {
     return [...this.frames];
+  }
+
+  /**
+   * Forget the leftover render time. The scene calls this on resume so a long
+   * pause never turns into catch-up steps (pause.md, "No catch-up").
+   */
+  resetClock(): void {
+    this.acc = 0;
+    this.alpha = 0;
+  }
+
+  /**
+   * The wins since the last call, each a `RunResult` built at its win step (so
+   * a win and a restart inside one render frame are both seen). Empties the queue.
+   */
+  takeWins(): readonly RunResult[] {
+    const wins = this.wins;
+    this.wins = [];
+    return wins;
   }
 
   /**
@@ -83,7 +106,19 @@ export class RunDriver {
     }
     this.frames.push(frame);
     this.state = step(this.state, frame, this.level, this.params);
+    if (this.prev.status !== 'won' && this.state.status === 'won') this.queueWin();
     return this.state.events;
+  }
+
+  /** The recording so far, in solution form, with the run time the sim reports. */
+  private queueWin(): void {
+    const { wonAtStep } = this.state;
+    if (wonAtStep === null) return;
+    const { id, version } = this.level.meta;
+    this.wins.push({
+      wonAtStep,
+      solution: { levelId: id, levelVersion: version, steps: this.frames.length, runs: encodeRuns(this.frames) },
+    });
   }
 
   /** After a win the sim is terminal; the scene starts a fresh run (architecture.md section 3.4). */

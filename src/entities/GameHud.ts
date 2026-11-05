@@ -8,6 +8,7 @@
 import type Phaser from 'phaser';
 import { palette } from '../fx';
 import { FOCUS_PROMPT_TEXT } from './focusPrompt';
+import { PAUSE_TEXT } from './pauseState';
 
 const DEPTH_HUD = 200;
 const MARGIN = 10;
@@ -48,6 +49,8 @@ export class GameHud {
   private readonly banner: Phaser.GameObjects.Text;
   private readonly debug: Phaser.GameObjects.Text;
   private readonly focusPrompt: Phaser.GameObjects.Text;
+  private readonly pauseLabel: Phaser.GameObjects.Text;
+  private readonly nextHint: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, title: string, messages: readonly string[]) {
     const { width, height } = scene.scale;
@@ -79,6 +82,20 @@ export class GameHud {
         .setOrigin(0.5, 1)
         .setVisible(false),
     );
+    // M1 stand-in for the results NEXT item (ui-engineer, M2-12).
+    this.nextHint = fixed(
+      scene.add
+        .text(width / 2, height / 2 + 40, 'Enter: next level', { ...base, ...panel, fontSize: '14px', color: palette.ui.textMuted })
+        .setOrigin(0.5, 0)
+        .setVisible(false),
+    );
+    // M1 stand-in for the pause overlay (ui-engineer, M2-12); plain text, no input handling.
+    this.pauseLabel = fixed(
+      scene.add
+        .text(width / 2, height / 2, PAUSE_TEXT, { ...base, ...panel, fontSize: '22px', align: 'center', padding: { x: 20, y: 12 } })
+        .setOrigin(0.5)
+        .setVisible(false),
+    );
     if (messages.length > 0) {
       fixed(
         scene.add.text(layout.messages.x, layout.messages.y, messages.join('\n'), {
@@ -95,6 +112,21 @@ export class GameHud {
   setWon(steps: number | null, won: boolean, stepHz: number): void {
     if (won) this.banner.setText(winText(steps, stepHz));
     this.banner.setVisible(won);
+  }
+
+  /** The win banner text while it is showing, else null (read by the QA hook). */
+  get bannerText(): string | null {
+    return this.banner.visible ? this.banner.text : null;
+  }
+
+  /** Show the "Enter: next level" hint under the win banner. */
+  setNextHint(visible: boolean): void {
+    this.nextHint.setVisible(visible);
+  }
+
+  /** Show or hide the pause stand-in. */
+  setPaused(paused: boolean): void {
+    this.pauseLabel.setVisible(paused);
   }
 
   /** Show the "click to focus" prompt (the page has no keyboard focus yet) or hide it. */

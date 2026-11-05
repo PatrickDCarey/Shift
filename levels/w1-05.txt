@@ -1,0 +1,30 @@
+# World 1, level 5. Teach: a colored wall stops only its own color.
+# Target first-time solve: 60-120 s.
+# Layout (23 x 13): safe runway (cols 0-8, open sky) -> red wall column (col 9, floor to top, on safe
+#   floor) -> 1 safe tile (col 10) -> red bridge (cols 11-16) -> exit pad. A 2-tile safe roof runs over
+#   cols 10-16, flush against the wall, so the wall runs from the floor to the roof line and above.
+# Not red at the wall, red 2 tiles later. Arrive red and the wall stops you dead (gear kept): from the
+#   wall face red needs 3.23 tiles but only 2.75 remain, so you reach the bridge yellow and fall.
+# Intended: cruise yellow (gear 3), press up once with the player at x 8.12-10.82 (0.88 tiles before the
+#   wall face to 0.18 before the bridge; red 0.66 tiles after the press): 19 steps. Also works: cruise green and
+#   press twice (29 steps), or stand 0.7-3.6 tiles before the wall in gear 4 and run (2.9 tiles of spots).
+# No hint glyph.
+id: w1-05
+title: Red Wall
+world: 1
+teaches: a colored wall stops only its own color
+version: 1
+---
+.........R#######......
+.........R#######......
+.........R#######......
+.........R#######......
+.........R#######......
+.........R#######......
+.........R#######......
+.........R.............
+.@.......R..........E..
+###########RRRRRR######
+###########......######
+###########......######
+###########......######

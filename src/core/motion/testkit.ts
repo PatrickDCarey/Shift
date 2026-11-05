@@ -45,10 +45,6 @@ export function paramsForTests(t: Tuning): SimParams {
     deathFreezeSteps: msToSteps(t.deathFreezeMs, t.stepHz),
     playerWidth: t.playerWidthTiles,
     playerHeight: t.playerHeightTiles,
-    mudMaxGear: t.mudMaxGear,
-    boostPadGear: t.boostPadGear,
-    ghostSpacingTiles: t.ghostSpacingTiles,
-    ghostLifetimeSteps: msToSteps(t.ghostLifetimeMs, t.stepHz),
   };
 }
 

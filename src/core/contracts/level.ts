@@ -14,15 +14,9 @@ export type Tile =
   | { readonly kind: 'safe' }
   /** Solid on all faces only while the player's band equals `band` (no-embed, grace). */
   | { readonly kind: 'colored'; readonly band: ColoredBand }
-  /** RESERVED (world 3). Always solid; caps the gear at mudMaxGear while supported only by mud. */
-  | { readonly kind: 'mud' }
-  /** RESERVED (world 3). Always solid; locks speed and gear while supported only by ice. */
+  /** RESERVED (world 3, Should). Always solid; locks speed and gear while supported only by ice. */
   | { readonly kind: 'ice' }
-  /** RESERVED (world 4). Always solid; carries what stands on it. dir -1 = left, 1 = right. */
-  | { readonly kind: 'conveyor'; readonly dir: -1 | 1 }
-  /** RESERVED (world 3). Always solid; touching its top sets boostPadGear and its speed. */
-  | { readonly kind: 'boost' }
-  /** RESERVED (world 3). Speed camera gate: solid unless the player's band equals `band`. */
+  /** RESERVED (world 3). Speed gate: solid unless the player's band equals `band` (G-1 renames the kind). */
   | { readonly kind: 'camera'; readonly band: Band }
   /** Never solid. Overlapping it completes the level. */
   | { readonly kind: 'exit' };
@@ -33,10 +27,7 @@ export const TILE_KINDS: readonly TileKind[] = [
   'empty',
   'safe',
   'colored',
-  'mud',
   'ice',
-  'conveyor',
-  'boost',
   'camera',
   'exit',
 ];
@@ -52,11 +43,7 @@ export const TILE_LEGEND: Readonly<Record<string, Tile>> = {
   G: { kind: 'colored', band: 2 },
   Y: { kind: 'colored', band: 3 },
   R: { kind: 'colored', band: 4 },
-  '~': { kind: 'mud' },
   '=': { kind: 'ice' },
-  '<': { kind: 'conveyor', dir: -1 },
-  '>': { kind: 'conveyor', dir: 1 },
-  '*': { kind: 'boost' },
   w: { kind: 'camera', band: 0 },
   b: { kind: 'camera', band: 1 },
   g: { kind: 'camera', band: 2 },
@@ -75,8 +62,12 @@ export const PLAYER_START_CHAR = '@';
  */
 export const TWIN_START_CHAR = '&';
 
-/** Reserved for later worlds (parse error for now): X = crate, M = moving platform. */
-export const RESERVED_CHARS: readonly string[] = ['X', 'M'];
+/**
+ * Parse errors with a "reserved" message: X = crate, M = moving platform (later
+ * worlds); ~ mud, * boost pad, < > conveyors (cut 2026-11-04, T-02; boost pads
+ * may return as a Could, gdd.md). Never reuse these characters for something else.
+ */
+export const RESERVED_CHARS: readonly string[] = ['X', 'M', '~', '*', '<', '>'];
 
 /** Integer grid position. */
 export interface TilePos {

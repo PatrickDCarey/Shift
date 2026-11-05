@@ -5,12 +5,17 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | Id | Title | World | Teaches | Target first-time solve | Status |
 |---|---|---|---|---|---|
 | w0-02 | Grey Box | 0 (test) | combine (M1 test room): hold to move, runway to red, air drag, letting go to drop through | 60–90 s | M1 playtest room (M1-20, M1-21), version 2 |
-| w1-01 | First Steps | 1 | NEW: hold a direction to walk; blue floors hold you only while you walk | 15–30 s | built (M2-19), awaiting design-lead approval |
-| w1-02 | Shift | 1 | NEW: Shift changes your cruise gear, and with it your color | 30–60 s | built (M2-19), awaiting design-lead approval |
+| w1-01 | First Steps | 1 | NEW: hold a direction to walk; blue floors hold you only while you walk | 15–30 s | approved (M2-19); `move` hint header added |
+| w1-02 | Shift | 1 | NEW: Shift changes your cruise gear, and with it your color | 30–60 s | approved (M2-19); `shiftUp`/`shiftDown` hint headers added |
+| w1-03 | Runway | 1 | NEW: running speed takes distance to build | 30–60 s | built (M2-20), awaiting design-lead approval |
+| w1-04 | Brake | 1 | NEW: slowing down takes distance too | 45–90 s | built (M2-20), awaiting design-lead approval |
+| w1-05 | Red Wall | 1 | NEW: a colored wall stops only its own color | 60–120 s | built (M2-45), awaiting design-lead approval |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
 
-How the checks below were made: candidate input logs replayed through the real sim (`createSim`/`step` from `src/core`), not hand-tuned. "Fairness" moves each key input earlier and later, one step at a time, until the run stops winning (capped at the number shown); the pillar needs at least 3 each way.
+How the checks below were made: candidate input logs replayed through the real sim (`createSim`/`step` from `src/core`), not hand-tuned. "Fairness" moves each key input earlier and later, one step at a time, until the run stops winning (capped at the number shown); the pillar needs at least 3 each way (`tests/levels/robustness.test.ts` now also checks ±3 on every transition). "Fastest known" is the lowest winning step count seen in the sweeps (level plan v3.2; the leaderboard floor is 85% of it).
+
+**World 1 roofs** (GDD §6, level plan v3.2): world-1 colored bridges sit under safe roofs with exactly 2 tiles of headroom, end faces flush with the bridge's first and last columns (w1-05: over its safe tile, flush against the wall), and every spawn and stop pad has at least 5 clear tiles above it. The one exception is w1-04's blue bridge, which has no roof on purpose (see w1-04).
 
 ## w0-02 Grey Box
 
@@ -24,6 +29,8 @@ The M1 playtest room (54 × 17, a short scroll). It is not a shipped level. It u
 Mechanics covered: gears up and down, acceleration over distance, color-gated floors, color grace, air drag, safe tiles, walls, death and respawn.
 
 **Version 2 (M1-21, 2026-11-04):** rows 4–5 over cols 0–2 opened. Spawn jump: apex 3.0 tiles on flight step 24, lands on step 48, no ceiling event; the same from anywhere on the pad up to x = 2.6 (where the box starts to pass under the bridge ceiling). The pit, the blue bridge (cols 3–10), the divider at col 7, the runway-room floor (row 12) and everything to the right are unchanged, so the e2e pit walk still works.
+
+**Fastest known:** 775 steps (the solution; world 0 is not in level select and has no leaderboard).
 
 **Solution:** 775 steps (12.9 s), unchanged by version 2 (the route never jumps on the start pad). Fairness (earlier/later, capped at 12): turn 12/12, shift-up cluster 6/7, jump 8/9, release on P4 10/9, shift-down cluster 12/12, let-go 12/12, final walk 12/12.
 
@@ -46,7 +53,9 @@ One screen (23 × 13): spawn pad P1 (3 tiles, open sky) → blue bridge 1 (5 til
 - **Removing the new piece breaks it:** the only lines through stand on both blue bridges while walking (0 of 21,226 winning sweep runs skip a bridge). Paint the bridges white and the level has no lesson (letting go stops nothing from working); remove them and there is no way across.
 - **Cheese check:** 42,832 runs (all four gears, every takeoff point, coyote and double jumps, random input logs): 0 wins that skip a bridge. The tunnel roofs stop every jump (the bonked flight is too short for any gear). The spawn pad is 3 tiles so it can't build red (3.23 tiles): with a 5-tile spawn pad a red coyote jump under the roof did skip a 4-tile bridge 1, which is why bridge 1 is 5 tiles and P1 is 3.
 - **Safe spots:** P1 (spawn) and P2.
-- **Hint (to add when M2-03/M2-04 land):** `move` anchored at col 1, row 6, above the spawn. Its 3 × 2 box (cols 0–2, rows 5–6) is empty sky, 3 rows above the floor row 9. Noted as a comment in the level file for now.
+- **Hint:** `hint: move 1 6`, above the spawn. Its 3 × 2 box (cols 0–2, rows 5–6) is empty sky, 3 rows above the floor row 9. Render-only, so no version bump; the solution replays unchanged.
+
+**Fastest known:** 364 steps (hold right from the first step).
 
 **Solution:** 414 steps. Stand 20 steps, walk to P2, let go there for 30 steps (safe), walk on to the exit. Fairness: start 20/30, let-go on P2 30/30, walk-on 30/30 (earlier/later, capped). Holding right from the first step wins at step 364.
 
@@ -61,6 +70,54 @@ The same room as w1-01 on purpose, with bridge 1 painted green: the player recog
 - **Removing the new piece breaks it:** with no shift presses, 0 of 3,208 lines win (walks, jumps, double jumps, walking back first). Two presses up and walking on (yellow onto green) also never wins; only a later press back down to gear 2 before the bridge saves it.
 - **Cheese check:** 39,632 runs (all gears, every takeoff point, mid-run shifts both ways, random logs): 359 wins, 0 that skip a bridge. Jumping over either bridge at any gear is stopped by the tunnel roofs.
 - **Safe spots:** P1 (spawn) and P2.
-- **Hints (to add when M2-03/M2-04 land):** `shiftUp` anchored at col 1, row 6 (over P1), and `shiftDown` at col 9, row 6 (over P2). Both 3 × 2 boxes (cols 0–2 and 8–10, rows 5–6) are empty sky, 3 rows above the floor row 9.
+- **Hints:** `hint: shiftUp 1 6` (over P1) and `hint: shiftDown 9 6` (over P2). Both 3 × 2 boxes (cols 0–2 and 8–10, rows 5–6) are empty sky, 3 rows above the floor row 9. Render-only; the solution replays unchanged.
+
+**Fastest known:** 268 steps (shift up on the first step while walking, shift down at the last moment on P2).
 
 **Solution:** 311 steps. Stand 20 steps, shift up once, walk right, shift down on P2 while walking, walk to the exit. Fairness: shift-up 20/21, shift-down 21/21 (earlier/later).
+
+## w1-03 Runway
+
+**Teaches:** running speed takes distance to build. Solvable without reading anything.
+
+One screen (23 × 13): a walled safe room (cols 1–10, open sky) → red bridge (cols 11–16) over a death pit under a 2-tile safe roof → exit pad. The spawn (col 8, x = 8.5) is 2 tiles from the bridge, with 8 tiles of room behind it (cols 1–8).
+
+- **The decision (where to start running):** red needs 3.23 tiles from standing; the spawn has 2.5. Shift up to gear 4 at the spawn and run, and you reach the bridge yellow and fall: a cheap first death next to the spawn. Walk back to the wall (turning at walking pace is instant), shift up, and come in from the far end: red at x = 4.6, 6.4 tiles before the bridge. Any standing start at x ≤ 8.3 works, so the room is generous; the lesson is "back up", not a precise spot.
+- **Removing the new piece breaks it:** with a wall right behind the spawn (no room to back up), 0 of 24,840 sweep runs win (every gear, every shift timing, jumps, coyote jumps, random logs). In the real level, every line that never steps back from the spawn loses: 0 of 5,680 (all gears, shifting while running, jumps).
+- **Cheese check:** 42,864 runs, 1,643 wins, 0 that skip the bridge. **The roof is needed:** with it removed, 518 of 22,864 runs jump the bridge from near the spawn in green or yellow (e.g. `1+ 1. 32R 1R+ 1RJ`).
+- **Safe spots:** the whole room (spawn included) and the exit pad.
+
+**Fastest known:** 77 steps (`4L 1R+ 1R 1R+ 1R 1R+ 300R`: back up 0.2 tiles, shift while starting the run).
+
+**Solution:** 283 steps. Stand 20, walk back to the wall (150L), shift up three times, sprint across. Fairness (earlier/later, capped at 30): walk-back 20/30, turn + shifts 30/30, run start ≥ 3/30.
+
+## w1-04 Brake
+
+**Teaches:** slowing down takes distance too. Solvable without reading anything.
+
+35 × 13, a short scroll: safe runway (cols 0–6; 5.9 tiles from the spawn) → red bridge (cols 7–12) under a 2-tile safe roof → 6-tile safe pad (cols 13–18, open sky) → 12-tile blue bridge (cols 19–30, no roof) → exit pad. Death pits under both bridges.
+
+- **The decision (where to start slowing):** you must sprint across the red bridge and be blue by the blue bridge, and blue comes 3.24 tiles after you shift down (or let go) from sprint. Slow down too early and you turn yellow on the red bridge and fall; too late and you are still green on the blue bridge and fall. Window for the three shift-down presses while running: press at x 11.1–16.3, **27 steps** (it opens 1.9 tiles before the pad because red-floor grace holds you for 6 steps after you turn yellow). Letting go on the pad, stopping, shifting down to gear 1 and walking on also works (let-go window 24 steps). The plan estimated about 3.5 tiles (≥ 17 steps); measured is wider.
+- **Why the blue bridge has no roof (deviation from the world-1 roof pattern, flagged for design-lead):** a roof face at the far end of the pad would let a sprint jump hit it, wall-stop in the air, and drop to gear 1 instantly, skipping the brake. Measured on a 6-tile roofed blue bridge: 156 of 486 "sprint, jump, never shift down or let go" lines win. With the open 12-tile bridge: 0 of 486. It is 12 tiles so no takeoff from the pad clears it (any non-blue landing on it falls through); a 6-tile open bridge is jumped in 88 of 7,820 sweep runs.
+- **Removing the new piece breaks it:** paint the red bridge safe and walking in gear 1 wins with no braking at all (step 644); in the real level it never does. And the brake needs the pad: with no pad (blue bridge right after red), 0 of 564 brake lines win; with 1–2 tiles, only a few frame-exact lines do (2 and 11 of 564).
+- **Cheese check:** 41,004 runs, 97 wins, 0 that skip a bridge. A second sweep tracked speed: in 25,728 runs (60 wins), every win drops from red to green on the ground (a real brake), never in the air. Known alternate, not cheese: brake (let go) on the pad until blue, then jump: in the air the gear follows the color, so you land on the blue bridge in gear 1 without pressing shift down. It still needs the braking distance.
+- **Safe spots:** the runway (spawn) and the 6-tile pad.
+
+**Fastest known:** 378 steps (shift up while starting the run, two presses down at the last moment (x ≈ 16.3), the third at x ≈ 18.8).
+
+**Solution:** 444 steps. Stand 20, shift up to gear 4, sprint 76 steps (x = 13.7, first pad tile), shift down three times while still holding right, walk the blue bridge. Fairness (earlier/later, capped at 30): shift-up cluster 13/13, run start ≥ 3/13, shift-down cluster 13/13.
+
+## w1-05 Red Wall
+
+**Teaches:** a colored wall stops only its own color (and it keeps your gear). Solvable without reading anything.
+
+One screen (23 × 13): safe runway (cols 0–8, open sky) → red wall column (col 9, from the safe floor to the top of the level) → 1 safe tile (col 10) → red bridge (cols 11–16) over a death pit → exit pad. A 2-tile safe roof runs over cols 10–16, flush against the wall, so the wall runs from the floor up past the roof line (level plan v3.2) and nothing can be jumped.
+
+- **The tension: not red at the wall, red 2 tiles later.** Arrive red and the wall stops you dead, gear kept; keep holding and you restart at blue, pass the wall and ramp, but red needs 3.23 tiles from the wall face and only 2.75 remain, so you reach the bridge yellow and fall. Intended: cruise yellow (gear 3; the wall lets yellow through) and press up once with the player at x 8.12–10.82 (0.88 tiles before the wall face to 0.18 before the bridge; red 0.66 tiles later): **19 steps**, matching the plan's 2.75 tiles ≈ 18. Also works, same idea: cruise green and press twice (29 steps), or stand in gear 4 0.7–3.6 tiles before the wall face and run (red comes just past the wall).
+- **Removing the new piece breaks it:** with the wall removed, sprinting from the spawn wins (step 132) and 299 of 453 "hold right, reach gear 4 at some point" lines win; with the wall, the plain sprint never wins and only 107 of those 453 do, all of them lines whose last press lands in the window (not red at the wall, red before the bridge).
+- **Cheese check:** 39,016 runs, 121 wins, 0 that skip the bridge. Arriving red and jumping into the wall wall-stops you in the air (gear 1) and drops you on the safe floor in front of it. **The roof is needed:** without it, 115 of 7,820 runs jump the bridge in yellow after passing the wall.
+- **Safe spots:** the runway (spawn). The 1 safe tile behind the wall is not a stop spot (it is under the roof, and stopping there leaves 0.75 tiles to the bridge).
+
+**Fastest known:** 114 steps (`1R+ 1R 1R+ 52R 1R+ 400R`: shift to gear 3 while starting, third press in the window).
+
+**Solution:** 139 steps. Stand 20, shift up to gear 3, run 64 steps, press up once inside the wall (x = 9.62), sprint across. Fairness (earlier/later, capped at 30): gear-3 presses 9/9, run start ≥ 3/9, third press 9/9.

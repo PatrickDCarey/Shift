@@ -83,8 +83,9 @@ Node ≥ 22.12 (`.nvmrc`). Run from the project root.
 | `npm run dev` | Dev server with hot reload at http://localhost:5173. |
 | `npm run build` | Production build to `dist/` (relative paths; zip the folder's contents for itch.io). |
 | `npm run preview` | Serve `dist/` at http://localhost:4173. |
+| `npm run package` | Production build, checked and zipped to `release/redshift-<version>.zip` plus `.sha256` (the itch.io upload). Builds in a temp folder, never `dist/`; refuses the QA hook, unknown `VITE_` variables, secret keys, source maps and `.env` files. Options: `-- --out <file.zip>`, `-- --build-dir <empty dir>`. |
 | `npm run typecheck` | `tsc` on browser code (`tsconfig.json`) and configs/tests (`tsconfig.node.json`). |
-| `npm test` | All unit + architecture tests once (Vitest). |
+| `npm test` | All unit, architecture, level and `scripts/` tests once (Vitest). |
 | `npm run test:watch` | Vitest in watch mode. |
 | `npm run test:coverage` | Tests with v8 coverage; fails if `src/core` < 80%. HTML report in `coverage/`. |
 | `npm run test:e2e:install` | One-time: download Playwright's Chromium. |
@@ -92,4 +93,4 @@ Node ≥ 22.12 (`.nvmrc`). Run from the project root.
 | `npm run check` | typecheck + coverage + build: run before calling a task done. |
 | `npm run art:build` | Re-bake the pixel sheets in `assets/art/pixel/` from `src/fx/pixel` + `palette.json` (and the previews in `docs/art/pixel/`). Run after any change to either and commit the sheets with it; a unit test fails if they drift. |
 
-Single test file: `npx vitest run src/core/types.test.ts`. Level solvability only (every `levels/*.txt` replayed with its solution): `npx vitest run tests/levels`. Tech docs: `docs/tech/architecture.md`, `docs/tech/level-format.md`.
+Single test file: `npx vitest run src/core/types.test.ts`. Level checks only (every `levels/*.txt` replayed with its solution, and still won with each input transition shifted up to ±3 steps): `npx vitest run tests/levels`. Every `vite` build, dev and preview start runs the client-env guard (`config/envGuard.ts`): it fails on any `VITE_` variable other than the Supabase URL, the public key and `VITE_QA_HOOK`, or on a secret key. Tech docs: `docs/tech/architecture.md`, `docs/tech/level-format.md`.

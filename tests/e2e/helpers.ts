@@ -39,10 +39,25 @@ export interface HookReplay {
   readonly frames: number;
 }
 
+/** The HUD gear meter model (`gearMeterModel` in src/ui/gearMeter.ts): litBand 0 white .. 4 red, selectedGear 1..4. */
+export interface HookMeter {
+  readonly litBand: number;
+  readonly selectedGear: number;
+  readonly needle: number;
+  readonly dragFill: number | null;
+  readonly pendingGear: number | null;
+}
+
 export interface RedshiftHook {
   readonly levelId: string;
   readonly state: HookState;
   readonly replay?: HookReplay;
+  /** Read-only, QA hook builds only. */
+  readonly meter?: HookMeter;
+  /** The win banner text while it is showing, else null. */
+  readonly banner?: string | null;
+  /** True while the pause is on (Esc, P or focus loss). */
+  readonly paused?: boolean;
 }
 
 declare global {
@@ -56,6 +71,9 @@ export interface HookSnapshot {
   readonly levelId: string;
   readonly state: HookState;
   readonly replay: HookReplay | null;
+  readonly meter: HookMeter | null;
+  readonly banner: string | null;
+  readonly paused: boolean;
 }
 
 function readHook(): HookSnapshot | null {
@@ -82,6 +100,11 @@ function readHook(): HookSnapshot | null {
       },
     },
     replay: r ? { active: r.active, done: r.done, frames: r.frames } : null,
+    meter: h.meter
+      ? { litBand: h.meter.litBand, selectedGear: h.meter.selectedGear, needle: h.meter.needle, dragFill: h.meter.dragFill, pendingGear: h.meter.pendingGear }
+      : null,
+    banner: h.banner ?? null,
+    paused: h.paused === true,
   };
 }
 
@@ -169,7 +192,7 @@ export function listSolutions(): readonly SolutionFile[] {
  * by a Playwright poll arrives a few hundred ms late, which on a loaded machine is a tile or more of extra
  * walking at gear 1; in the page it costs at most one frame.
  */
-async function holdRightUntilPastX(page: Page, x: number): Promise<void> {
+export async function holdRightUntilPastX(page: Page, x: number): Promise<void> {
   await page.evaluate(
     (limit) =>
       new Promise<void>((resolve) => {
@@ -198,7 +221,7 @@ async function holdRightUntilPastX(page: Page, x: number): Promise<void> {
  * past x = 9 and drop through it (letting go of blue: grace runs out, then you fall), landing on the
  * safe floor four tiles down at row 12. The bridge sits 6 tiles under a safe ceiling and the player is
  * white while standing, so there are 6 open tiles overhead: room for a full 3-tile jump. (The spawn
- * itself has only 0.5 tiles of headroom.) Resolves to the floor y, standing there.
+ * itself had only 0.5 tiles of headroom before w0-02 v2; since then a jump at the spawn pad works too, the pit is kept because the walk-in tests depend on it.) Resolves to the floor y, standing there.
  *
  * The release is reactive, so on a loaded machine (a few frames per second) input lag can carry the
  * player past the drop zone: off the safe floor (death) or onto the 1.5-tile ceiling at column 13. Both
@@ -302,8 +325,11 @@ export async function armAirPress(page: Page, code: string, trigger: AirTrigger 
 /** One per-frame sample recorded in the page by {@link startTracker}. */
 export interface TrackSample {
   readonly step: number;
+  readonly x: number;
   readonly y: number;
+  readonly vx: number;
   readonly gear: number;
+  readonly paused: boolean;
   readonly grounded: boolean;
   readonly shiftBufferSteps: number;
   readonly shiftBufferNet: number;
@@ -322,8 +348,11 @@ export function startTracker(page: Page): Promise<void> {
         if (!last || last.step !== s.step) {
           w.__track.push({
             step: s.step,
+            x: s.player.x,
             y: s.player.y,
+            vx: s.player.vx,
             gear: s.player.gear,
+            paused: window.__redshift?.paused === true,
             grounded: s.player.grounded,
             shiftBufferSteps: s.player.shiftBufferSteps,
             shiftBufferNet: s.player.shiftBufferNet,

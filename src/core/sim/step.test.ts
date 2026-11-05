@@ -224,8 +224,8 @@ describe('events', () => {
 });
 
 describe('reserved tiles (solidity only)', () => {
-  it('mud, ice, conveyors and boost pads are floors; a camera admits only its band', () => {
-    for (const ch of ['~', '=', '<', '>', '*']) {
+  it('ice is a floor; a speed gate admits only its band', () => {
+    for (const ch of ['=']) {
       expect(at(runFromSpawn(room(40, 2, [], ch), repeat(30, 'R')), 30).player.grounded).toBe(true);
     }
     const gate = room(60, 2, [7, 8, 9].map((r) => ({ row: r, col: 20, chars: 'b' })));

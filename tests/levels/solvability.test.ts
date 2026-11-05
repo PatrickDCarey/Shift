@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 /**
  * Solvability (CLAUDE.md hard rule "every level ships with a solution
  * recording", architecture.md §6): every `levels/<id>.txt` has a
@@ -6,62 +5,30 @@
  *
  * Levels are loaded exactly as the game bundles them (architecture.md §7:
  * the same `import.meta.glob` raw-text map, passed to `loadLevels`), and
- * everything comes through the public `src/core` barrel. Pairing level <->
- * solution is a repo policy, so it lives here, per level (one test case each).
+ * everything comes through the public `src/core` barrel (shared loading in
+ * `shipped.ts`). Pairing level <-> solution is a repo policy, so it lives
+ * here, per level (one test case each).
  * Passes with zero levels. Owner: tech-lead.
  */
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { loadLevels, parseSolution, verifySolution, type Level } from '../../src/core';
 import {
-  createSim,
-  deriveParams,
-  isTuning,
-  loadLevels,
-  parseSolution,
-  step,
-  tuningErrors,
-  verifySolution,
-  type Level,
-  type SimApi,
-  type SimParams,
-} from '../../src/core';
-import tuningJson from '../../src/data/tuning.json';
-
-/** Same call as the game (architecture.md §7): level files only, raw text. */
-const LEVEL_FILES = import.meta.glob(['/levels/*.txt', '!/levels/*.solution.txt'], {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
-
-const SOLUTION_FILES = import.meta.glob('/levels/*.solution.txt', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
+  LEVEL_FILES,
+  SOLUTION_FILES,
+  SOLUTION_SUFFIX,
+  TXT_SUFFIX,
+  baseName,
+  byStem,
+  levels,
+  loaded,
+  params,
+  sim,
+  solutions,
+} from './shipped';
 
 const LEVELS_DIR = resolve(import.meta.dirname, '..', '..', 'levels');
-const SOLUTION_SUFFIX = '.solution.txt';
-const TXT_SUFFIX = '.txt';
-
-const baseName = (path: string): string => path.split(/[\\/]/).pop() ?? path;
-
-/** id -> text, keyed by file name minus `suffix`. */
-function byStem(files: Readonly<Record<string, string>>, suffix: string): ReadonlyMap<string, string> {
-  return new Map(Object.entries(files).map(([path, text]) => [baseName(path).slice(0, -suffix.length), text]));
-}
-
-function shippedParams(): SimParams {
-  if (!isTuning(tuningJson)) throw new Error(`src/data/tuning.json is invalid:\n${tuningErrors(tuningJson).join('\n')}`);
-  return deriveParams(tuningJson);
-}
-
-const sim: SimApi = { createSim, step };
-const params = shippedParams();
-const loaded = loadLevels(LEVEL_FILES);
-const levels: readonly Level[] = loaded.ok ? loaded.value : [];
-const solutions = byStem(SOLUTION_FILES, SOLUTION_SUFFIX);
 const levelStems = new Set(byStem(LEVEL_FILES, TXT_SUFFIX).keys());
 
 /** Everything wrong with one level's recording (`recordings`: id -> text); [] when the real sim wins with it. */

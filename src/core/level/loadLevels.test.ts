@@ -97,3 +97,26 @@ describe('loadLevels', () => {
     expect(e).toEqual(["w1-01.txt: found twice (/levels/w1-01.txt and /more/w1-01.txt); level ids must be unique"]);
   });
 });
+
+describe('loadLevels: hint headers and twin start', () => {
+  const withExtras = (id: string, header: readonly string[], grid: readonly string[]): string =>
+    [`id: ${id}`, 'title: T', 'world: 1', 'teaches: t', 'version: 1', ...header, '---', ...grid, ''].join('\n');
+
+  it('loads a level with hint headers', () => {
+    const text = withExtras('w1-01', ['hint: move 1 0'], ['....', '.@.E']);
+    const [level] = levels(loadLevels({ '/levels/w1-01.txt': text }));
+    expect(level?.meta.hints).toEqual([{ glyph: 'move', anchor: { col: 1, row: 0 } }]);
+  });
+
+  it('names the file, row and column of a bad hint', () => {
+    const text = withExtras('w1-01', ['hint: move 9 0'], ['....', '.@.E']);
+    expect(errors(loadLevels({ '/levels/w1-01.txt': text }))).toEqual([
+      'w1-01.txt:6:12: hint column 9 is outside the grid (columns 0 to 3)',
+    ]);
+  });
+
+  it('loads a level with a twin start', () => {
+    const text = withExtras('w1-01', [], ['.&.E', '.@..']);
+    expect(levels(loadLevels({ '/levels/w1-01.txt': text }))[0]?.twinStart).toEqual({ col: 1, row: 0 });
+  });
+});

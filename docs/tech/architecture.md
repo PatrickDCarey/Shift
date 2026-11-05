@@ -36,7 +36,9 @@ levels/                   *.txt levels + *.solution.txt recordings              
 backend/                  Supabase schema, edge functions                       backend-engineer
 assets/art, assets/audio  source and exported assets                            art-director / audio-designer
 tests/arch/               architecture guards (purity, lanes, tuning, docs, case) tech-lead
-tests/levels/             solvability test: real sim replays every level's solution tech-lead
+tests/levels/             solvability + ±3-step robustness: real sim, every recording tech-lead
+config/envGuard.ts        Vite plugin: only safe VITE_ vars reach the client    tech-lead
+scripts/                  npm run package (itch.io zip)                         backend-engineer
 tests/e2e/                Playwright                                            qa-tester
 src/**/*.test.ts          unit tests, co-located with the code they test        owner of that code
 ```
@@ -64,7 +66,7 @@ step(state: SimState, input: InputFrame, level: Level, params: SimParams): SimSt
 
 - `SimState` is immutable; `step` returns a new object. It contains everything needed to continue (including `prevInput` for press edges). If randomness is ever needed, a seeded PRNG state lives inside `SimState`.
 - **Units** (header of `src/core/types.ts`): distances in tiles, **speeds in tiles/second everywhere** (tuning, params and state), time in whole steps, `dt = 1 / stepHz`. Snapped speeds are therefore exact (`vx === 3`, `vx === 12`), as the acceptance tests require. Pixels and milliseconds never enter the sim except through `Tuning`, converted once in `deriveParams` (`steps = round(ms × stepHz / 1000)`).
-- **Gear vs band.** `Gear` (1–4) is the selected cruise gear; `Band` (0–4) is the colour of the actual speed `|vx|`. They differ while ramping, braking, standing and after drag. Coloured tiles and cameras test the **band**, never the gear.
+- **Gear vs band.** `Gear` (1–4) is the selected cruise gear; `Band` (0–4) is the colour of the actual speed `|vx|`. They differ while ramping, braking, standing and after drag. Coloured tiles and speed gates test the **band**, never the gear.
 - `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `home`, `won`, `died`, `restart`). Every event about one body carries `body: 0 | 1` (`BodyId`; 0 = runner, 1 = twin; `BodyEvent` in `types.ts`); `won` and `restart` are run-level. Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`.
 - **Bodies (Tandem).** `SimState.player` is body 0, the runner (spawn `@`). `SimState.twin` is body 1 (spawn `&`, `Level.twinStart`), or `null` in a level without `&`; then the sim behaves exactly as before Tandem (same states, same events, all with `body: 0`). Renderers, HUD and audio handle one or two bodies the same way: a list of `[player, twin]` without the nulls.
 - **Renderer** (Phaser scenes and entities) reads `SimState` and draws it; it never decides game rules. Tiles → pixels (`× tileSize`) happens only there.
@@ -197,7 +199,9 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 
 - **Replay** = `createSim` + `step` over the decoded frames. No Phaser needed, so it runs in Vitest (Node), in the browser, and in a server function.
 - **Solvability test** (`tests/levels/solvability.test.ts`, tech-lead, part of `npm test`). It loads levels exactly as the game bundles them (the §7 `import.meta.glob` raw map → `loadLevels`) plus a second glob for `levels/*.solution.txt`, derives params from the shipped `tuning.json`, and gets the real sim from the `src/core` barrel. One test case per level: the solution exists, parses (`parseSolution`), and `verifySolution` passes (`levelVersion` matches, `status === 'won'`, `wonAtStep <= steps`; `wonAtStep` counts the winning run only). Separate cases fail on an unparsable level, an orphaned solution (no level of that id) and a glob that disagrees with the files on disk. It passes with zero levels; a harness self-check proves each failure is reported.
-- **Pairing is test policy, not lane API** (ruling 2026-11-02). Matching `<id>.txt` to `<id>.solution.txt` is done by file name inside the solvability test, per level, so each level reports its own failure. `LevelLaneApi` does not gain a pairing function; the game never loads solutions.
+- **Pairing is test policy, not lane API** (ruling 2026-11-02). Matching `<id>.txt` to `<id>.solution.txt` is done by file name inside the solvability test, per level, so each level reports its own failure. `LevelLaneApi` does not gain a pairing function. Both tests load through `tests/levels/shipped.ts`.
+- **Timing robustness** (`tests/levels/robustness.test.ts`, M1-44, GDD §1 "Fair"). Every recording must still win with any single input transition moved 1–3 steps earlier or later (a neighbouring transition it would cross is pushed along, so a 1-step tap moves as a whole; the last run is held 1 s longer so ending a few steps short of the exit is not a loss). A recording that only wins at exact timing fails; the self-check proves it on an in-memory fixture. Trials replay from the cached state at their first changed frame.
+- **Solutions do not ship in the release build** (M1-33 ruling 2026-11-04). `?replay=1` is a QA and dev tool, not a player feature: the solution glob (`src/entities/solutionFiles.ts`) is bundled only when `QA_HOOK` is true (dev server, `VITE_QA_HOOK=1` e2e build), behind the same compile-time constant as the hook, so a plain build tree-shakes the `?raw` modules; there `?replay=1` is ignored (live play, no message). Reasons: no spoilers and no ready-made leaderboard inputs in the zip, a leaner bundle, and ghosts (Could) would come from leaderboard runs anyway. The recordings stay public in the repo, which is fine. `npm run package` and CI fail on a recording header (`level:` then `levelVersion:`) in a plain build. Until the scene change lands, the plain build still contains them (request 2026-11-04).
 - **Golden determinism test.** Replaying the same solution twice must give deep-equal final states; a hash of the final state per level can be snapshotted to catch accidental rule changes.
 - **Ghosts (Could).** A ghost is just a replay drawn with a translucent player.
 - **Leaderboard validation.** Submissions carry the RLE input, not a time. The server can re-run `src/core` (pure TS, bundles for Deno edge functions) to verify `wonAtStep` (the run time) before accepting it.
@@ -217,7 +221,8 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 
 - `src/net` is loaded with a **dynamic `import()`** only when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are both set, so offline builds don't ship the client code.
 - Every call has a short timeout and resolves to a result value (`{ ok: false, reason }`) rather than throwing into game code. Nothing on the play path `await`s the network: submit after the win screen is shown, fetch boards in the background, and render "offline" if they never arrive.
-- Only the URL and the anon key reach the client. Row Level Security on the Supabase side; the service-role key lives only in backend secrets.
+- Only the URL and the anon key reach the client. Row Level Security on the Supabase side; the service-role key lives only in backend secrets (the edge function reads the injected `SUPABASE_SERVICE_ROLE_KEY`; nobody pastes it anywhere).
+- **Env guard** (`config/envGuard.ts`, a Vite plugin in `vite.config.ts`): every `vite build`, dev and preview start fails if the client env has a `VITE_` variable other than `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `VITE_QA_HOOK`, a key that is not `sb_publishable_…` or a JWT with role `anon`, a secret key or non-anon JWT in any value, only one of the two Supabase values, a non-https URL (loopback http allowed for a local Supabase), or a widened `envPrefix`. Messages never echo values. `npm run package` builds through the same config and adds its release-only checks (no QA hook, output scan).
 
 ## 9. Saves (`src/save`)
 
@@ -247,6 +252,7 @@ Adding a scene: create it in the owner's folder, add its key to `src/scenes/keys
 
 ## 11. Quality gates
 
-- CI (`.github/workflows/ci.yml`): `npm ci` → typecheck → unit tests with coverage (thresholds enforced) → build; then a Playwright smoke job.
+- CI (`.github/workflows/ci.yml`): `npm ci` → typecheck → unit tests with coverage (thresholds enforced; `src/`, `tests/` and `scripts/` tests) → build (env guard runs) → no `__redshift` in `dist/`; then a Playwright smoke job.
+- `tests/levels`: solvability and ±3-step robustness of every level (§6).
 - Review checklist: `.claude/agents/tech-lead.md`.
-- **QA hook.** `window.__redshift` (read-only `{ levelId, state, replay }`, used by every e2e spec) is installed only when `import.meta.env.DEV` or `VITE_QA_HOOK=1` at build time. Playwright's `webServer` sets `VITE_QA_HOOK=1` for its build (locally and in CI); a plain `npm run build` (the itch.io zip) has no hook and no `__redshift` string in `dist/`. Replay mode (`?replay=1`) is not gated. `tests/arch/qa-hook.test.ts` requires every `'__redshift'` use in `src/` to sit on an `if (QA_HOOK)` line. Never set `VITE_QA_HOOK` in `.env` or a release build.
+- **QA hook.** `window.__redshift` (read-only `{ levelId, state, replay }`, used by every e2e spec) is installed only when `import.meta.env.DEV` or `VITE_QA_HOOK=1` at build time. Playwright's `webServer` sets `VITE_QA_HOOK=1` for its build (locally and in CI); a plain `npm run build` (the itch.io zip) has no hook and no `__redshift` string in `dist/`. Replay mode (`?replay=1`) and the bundled solutions follow the same gate (§6 ruling; scene change pending). `tests/arch/qa-hook.test.ts` requires every `'__redshift'` use in `src/` to sit on an `if (QA_HOOK)` line. Never set `VITE_QA_HOOK` in `.env` or a release build.

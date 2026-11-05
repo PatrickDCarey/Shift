@@ -17,6 +17,7 @@ const sheets = [
   ['pixel-scenery.png', built.scenery.sheet],
   ['pixel-hud.png', built.hud.sheet],
   ['pixel-tileset.png', built.tileset.sheet],
+  ['pixel-fx.png', built.fx.sheet],
 ] as const;
 
 describe('committed sheets', () => {
@@ -45,6 +46,7 @@ describe('atlas frames', () => {
     ['tiles', built.tiles],
     ['scenery', built.scenery],
     ['hud', built.hud],
+    ['fx', built.fx],
   ];
 
   it.each(atlases)('%s: frames are untrimmed, unrotated, inside the sheet and 1 px apart', (_name, atlas) => {

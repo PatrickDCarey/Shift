@@ -52,14 +52,6 @@ export interface Tuning {
   readonly playerHeightTiles: number;
   /** Freeze between falling out and respawning, ms. */
   readonly deathFreezeMs: number;
-  /** World 3 (provisional): gear cap on mud. */
-  readonly mudMaxGear: Gear;
-  /** World 3 (provisional): gear set by a boost pad. */
-  readonly boostPadGear: Gear;
-  /** World 5 (provisional): distance between afterimage ghosts, tiles. */
-  readonly ghostSpacingTiles: number;
-  /** World 5 (provisional): ghost lifetime, ms. */
-  readonly ghostLifetimeMs: number;
 }
 
 /** Runtime check applied to one tuning value. */
@@ -106,10 +98,6 @@ export const TUNING_SCHEMA: { readonly [K in keyof Tuning]-?: KindFor<Tuning[K]>
   playerWidthTiles: 'positiveNumber',
   playerHeightTiles: 'positiveNumber',
   deathFreezeMs: 'ms',
-  mudMaxGear: 'gear',
-  boostPadGear: 'gear',
-  ghostSpacingTiles: 'positiveNumber',
-  ghostLifetimeMs: 'ms',
 };
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -191,8 +179,4 @@ export interface SimParams {
   readonly deathFreezeSteps: number;
   readonly playerWidth: number;
   readonly playerHeight: number;
-  readonly mudMaxGear: Gear;
-  readonly boostPadGear: Gear;
-  readonly ghostSpacingTiles: number;
-  readonly ghostLifetimeSteps: number;
 }

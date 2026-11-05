@@ -18,6 +18,8 @@ export interface Settings {
   readonly reducedEffects: boolean;
   /** No screen shake, tweens and similar motion. */
   readonly reducedMotion: boolean;
+  /** Audio mute. Added after v1 shipped: saves without it read as false (field-by-field defaults). */
+  readonly muted: boolean;
   /** The one-time Windows Sticky Keys tip has been displayed. */
   readonly stickyKeysTipShown: boolean;
 }
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   sfxVolume: 0.8,
   reducedEffects: false,
   reducedMotion: false,
+  muted: false,
   stickyKeysTipShown: false,
 });
 
@@ -89,6 +92,7 @@ export function sanitizeSettings(raw: unknown, fallback: Settings = DEFAULT_SETT
     sfxVolume: volume(pick('sfxVolume'), fallback.sfxVolume),
     reducedEffects: flag(pick('reducedEffects'), fallback.reducedEffects),
     reducedMotion: flag(pick('reducedMotion'), fallback.reducedMotion),
+    muted: flag(pick('muted'), fallback.muted),
     stickyKeysTipShown: flag(pick('stickyKeysTipShown'), fallback.stickyKeysTipShown),
   };
 }

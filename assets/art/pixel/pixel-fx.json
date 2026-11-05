@@ -1,0 +1,420 @@
+{
+ "frames": {
+  "fx/dust/land_0": {
+   "frame": {
+    "x": 1,
+    "y": 1,
+    "w": 24,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 8
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "fx/dust/land_1": {
+   "frame": {
+    "x": 26,
+    "y": 1,
+    "w": 24,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 8
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "fx/dust/land_2": {
+   "frame": {
+    "x": 51,
+    "y": 1,
+    "w": 24,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 8
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "fx/dust/land_3": {
+   "frame": {
+    "x": 76,
+    "y": 1,
+    "w": 24,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 8
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "fx/ring/0": {
+   "frame": {
+    "x": 101,
+    "y": 1,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "fx/ring/1": {
+   "frame": {
+    "x": 150,
+    "y": 1,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "fx/ring/2": {
+   "frame": {
+    "x": 199,
+    "y": 1,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "fx/ring/3": {
+   "frame": {
+    "x": 1,
+    "y": 50,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "fx/speed/12_a": {
+   "frame": {
+    "x": 50,
+    "y": 50,
+    "w": 12,
+    "h": 1
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 1
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 1
+   },
+   "pivot": {
+    "x": 1,
+    "y": 0
+   }
+  },
+  "fx/speed/12_b": {
+   "frame": {
+    "x": 63,
+    "y": 50,
+    "w": 12,
+    "h": 1
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 1
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 1
+   },
+   "pivot": {
+    "x": 1,
+    "y": 0
+   }
+  },
+  "fx/speed/20_a": {
+   "frame": {
+    "x": 76,
+    "y": 50,
+    "w": 20,
+    "h": 1
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 1
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 1
+   },
+   "pivot": {
+    "x": 1,
+    "y": 0
+   }
+  },
+  "fx/speed/20_b": {
+   "frame": {
+    "x": 97,
+    "y": 50,
+    "w": 20,
+    "h": 1
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 1
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 1
+   },
+   "pivot": {
+    "x": 1,
+    "y": 0
+   }
+  },
+  "fx/speed/32_a": {
+   "frame": {
+    "x": 118,
+    "y": 50,
+    "w": 32,
+    "h": 1
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 1
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 1
+   },
+   "pivot": {
+    "x": 1,
+    "y": 0
+   }
+  },
+  "fx/speed/32_b": {
+   "frame": {
+    "x": 151,
+    "y": 50,
+    "w": 32,
+    "h": 1
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 1
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 1
+   },
+   "pivot": {
+    "x": 1,
+    "y": 0
+   }
+  }
+ },
+ "meta": {
+  "app": "redshift art-director",
+  "version": "1",
+  "image": "pixel-fx.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 248,
+   "h": 99
+  },
+  "scale": "1"
+ },
+ "redshift": {
+  "hashes": {
+   "fx/dust/land_0": "0421ba1d",
+   "fx/dust/land_1": "f2efdd0d",
+   "fx/dust/land_2": "eac0cdd5",
+   "fx/dust/land_3": "2d213b1d",
+   "fx/ring/0": "74ddfe05",
+   "fx/ring/1": "be990ddd",
+   "fx/ring/2": "8258246d",
+   "fx/ring/3": "b79c4d59",
+   "fx/speed/12_a": "8cd8d308",
+   "fx/speed/12_b": "3cc78a10",
+   "fx/speed/20_a": "7f8edab8",
+   "fx/speed/20_b": "b15318c0",
+   "fx/speed/32_a": "2823d188",
+   "fx/speed/32_b": "3fb98574"
+  },
+  "naming": "fx/dust/land_<0-3> (24x8, origin (0.5, 1) at the feet), fx/ring/<0-3> (48x48, origin (0.5, 0.5) on the body), fx/speed/<12|20|32>_<a|b> (Wx1, lead end at the right, origin (1, 0); flipX when moving left)",
+  "sizes": {
+   "dust": [
+    24,
+    8
+   ],
+   "ring": [
+    48,
+    48
+   ],
+   "speed": [
+    12,
+    20,
+    32
+   ]
+  },
+  "note": "White masks (pure #FFFFFF, fully opaque), tint at runtime: dust ui.textMuted, ring the new band solid.outline, speed lines the current band solid.outline.",
+  "anims": {
+   "dustLand": {
+    "frames": [
+     "fx/dust/land_0",
+     "fx/dust/land_1",
+     "fx/dust/land_2",
+     "fx/dust/land_3"
+    ],
+    "fps": 20,
+    "repeat": 0,
+    "trigger": "land event"
+   },
+   "ringBurst": {
+    "frames": [
+     "fx/ring/0",
+     "fx/ring/1",
+     "fx/ring/2",
+     "fx/ring/3"
+    ],
+    "fps": 25,
+    "repeat": 0,
+    "trigger": "bandChange"
+   }
+  },
+  "reducedMotion": {
+   "dustLand": "show fx/dust/land_1 only, for 4 sim steps, no spread",
+   "ringBurst": "off (palette swap only)",
+   "speedLines": "off"
+  },
+  "reducedEffects": {
+   "speedLines": "off",
+   "ringBurst": "on unless reduced motion",
+   "dustLand": "on"
+  }
+ }
+}

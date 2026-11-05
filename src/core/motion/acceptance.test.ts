@@ -2,8 +2,8 @@
  * Multi-step acceptance numbers from docs/design/features/movement-and-gears.md,
  * air-drag.md and GDD §5, reproduced by iterating the motion functions with
  * the test-only kit (flat floor, no walls, flight length given by the spec).
- * Step numbers are asserted exactly and distances to the spec's printed
- * precision, tighter than the spec tolerance (steps ±2, distances ±0.15).
+ * Step numbers are asserted exactly and distances to the precision the
+ * GDD v1.2 tables print them.
  */
 import { describe, expect, it } from 'vitest';
 import tuningJson from '../../data/tuning.json';
@@ -84,15 +84,11 @@ describe('movement-and-gears check 4 and GDD §5.1: one gear up from cruise', ()
     expect(vxStep(trace, 12).x).toBeCloseTo(1.42, 2);
   });
 
-  // 6 -> 9: speed lands exactly on the 7.5 edge on step 5 (6 + 5 * 0.3), which is yellow
-  // per the contract (edge <= speed + SIM_EPSILON). GDD §5.1 prints 6 steps / 0.69, the
-  // value without the epsilon; within spec tolerance, flagged to design-lead in requests.md.
-  it('6 -> 9: band 3 on step 5 (0.5625; GDD §5.1 prints 6 / 0.69, within tolerance)', () => {
+  // 6 -> 9: speed lands exactly on the 7.5 edge on step 5 (6 + 5 * 0.3), which is yellow.
+  it('6 -> 9: yellow on step 5 (0.56)', () => {
     const yellow = bandStep(runGround(params, 6, 20, hold(9)), 3);
     expect(yellow.step).toBe(5);
-    expect(yellow.x).toBeCloseTo(0.5625, 9);
-    expect(Math.abs(yellow.step - 6)).toBeLessThanOrEqual(2);
-    expect(Math.abs(yellow.x - 0.69)).toBeLessThanOrEqual(0.15);
+    expect(yellow.x).toBeCloseTo(0.56, 2);
   });
 
   it.each([
@@ -125,13 +121,11 @@ describe('movement-and-gears checks 5-6 and GDD §5.2: letting go', () => {
     expect(trace.slice(34).every((s) => s.vx === 0)).toBe(true);
   });
 
-  // Step 5 ends exactly on the 7.5 edge (9 - 5 * 0.3), still yellow per the contract, so
-  // green is step 6 (0.81). GDD §5.2 prints step 5 / 0.69 (no epsilon); within tolerance.
-  it('from run (gear 3): green 6 (0.81; GDD 5 / 0.69), blue 19 (2.03), white 28 (2.54)', () => {
+  // Step 5 ends exactly on the 7.5 edge (9 - 5 * 0.3), still yellow, so green is step 6.
+  it('from run (gear 3): green 6 (0.81), blue 19 (2.03), white 28 (2.54)', () => {
     const trace = runGround(params, 9, 60, hold(0));
     expect([2, 1, 0].map((b) => bandStep(trace, b).step)).toEqual([6, 19, 28]);
     expect(bandStep(trace, 2).x).toBeCloseTo(0.81, 2);
-    expect(Math.abs(bandStep(trace, 2).x - 0.69)).toBeLessThanOrEqual(0.15);
     expect(bandStep(trace, 1).x).toBeCloseTo(2.03, 2);
     expect(bandStep(trace, 0).x).toBeCloseTo(2.54, 2);
   });
@@ -245,11 +239,11 @@ describe('air-drag checks 1-3 and GDD §5.3: flat jumps (48 flight steps, from t
     expect(flight[FLAT - 1]?.x).toBeCloseTo(6.8, 1);
   });
 
-  it('red mid-ramp (10.5): drops on step 35 to 9, lands 8.1 out yellow', () => {
+  it('red mid-ramp (10.5): drops on step 35 to 9, lands 8.075 out yellow', () => {
     const flight = runFlight(params, 10.5, 4, FLAT);
     expect(firstWhere(flight, (s) => s.dropped)).toMatchObject({ step: 35, vx: 9 });
     expect(flight[FLAT - 1]).toMatchObject({ band: 3 });
-    expect(flight[FLAT - 1]?.x).toBeCloseTo(8.1, 1);
+    expect(flight[FLAT - 1]?.x).toBeCloseTo(8.075, 3);
   });
 
   it('gear 1: lands 2.4 out, blue', () => {

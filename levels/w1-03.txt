@@ -1,0 +1,30 @@
+# World 1, level 3. Teach: running speed takes distance to build.
+# Target first-time solve: 30-60 s (one fall from the spawn, then the walk back).
+# Layout (23 x 13): a walled safe room (cols 1-10, open sky) -> red bridge (cols 11-16) under a
+#   2-tile safe roof -> exit pad. The spawn (col 8) is 2 tiles from the bridge, with 8 tiles of room behind it.
+# From the spawn red is out of reach (red needs 3.23 tiles from standing; the spawn has 2.5), so shifting
+# up to gear 4 and running from there drops you in the pit. Walk back to the wall (turning at walking pace
+# is instant), shift up to gear 4 and come in from the far end: red at x = 4.6, 6.4 tiles before the bridge.
+# Any standing start at x <= 8.3 works (about 0.2 tiles behind the spawn), so this is a lesson, not a test.
+# The roof (end faces flush with the bridge's first and last columns) stops green and yellow jumps
+# from skipping the bridge: without it, 518 sweep runs jump it from the spawn.
+# No hint glyph (the plan places none here; shift up was taught by w1-02's glyph).
+id: w1-03
+title: Runway
+world: 1
+teaches: running speed takes distance to build
+version: 1
+---
+#..........######......
+#..........######......
+#..........######......
+#..........######......
+#..........######......
+#..........######......
+#..........######......
+#......................
+#.......@...........E..
+###########RRRRRR######
+###########......######
+###########......######
+###########......######

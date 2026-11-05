@@ -19,9 +19,5 @@
   "colorGraceMs": 100,
   "playerWidthTiles": 0.75,
   "playerHeightTiles": 1.5,
-  "deathFreezeMs": 400,
-  "mudMaxGear": 2,
-  "boostPadGear": 4,
-  "ghostSpacingTiles": 1,
-  "ghostLifetimeMs": 3000
+  "deathFreezeMs": 400
 }

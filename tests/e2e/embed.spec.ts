@@ -54,14 +54,26 @@ test('keys work after clicking the canvas', async ({ page }) => {
   await page.keyboard.up('ArrowRight');
 });
 
-test('losing window focus releases held keys (nothing sticks)', async ({ page }) => {
+// pause.md: losing focus pauses the game and drops every held key (the browser loses the key-up events), so
+// nothing sticks. The sim freezes; after resuming, Right counts as held only if it is pressed again.
+// More pause checks are in pause.spec.ts.
+test('losing window focus pauses the game and drops held keys (nothing sticks)', async ({ page }) => {
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
   await page.locator('#game canvas').click();
   await page.keyboard.down('ArrowRight');
-  await pollState(page, (s) => s.state.player.vx > 0, 'moving').toBe(true);
+  await pollState(page, (s) => s.state.player.vx > 0 && s.state.player.x > 1, 'moving').toBe(true);
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
-  await pollState(page, (s) => s.state.player.vx === 0, 'stopped after blur with the key still down').toBe(true);
+  await pollState(page, (s) => s.paused, 'paused after blur').toBe(true);
+  const frozen = (await snapshot(page))?.state.step ?? 0;
+  await page.evaluate(() => new Promise<void>((done) => { let n = 0; const t = (): void => { n += 1; if (n >= 30) done(); else requestAnimationFrame(t); }; requestAnimationFrame(t); }));
+  expect((await snapshot(page))?.state.step, 'step count frozen while paused').toBe(frozen);
+  await page.keyboard.press('Escape'); // resume; Right is still physically down in the test keyboard
+  await pollState(page, (s) => !s.paused && s.state.step >= frozen + 20, 'resumed and stepping').toBe(true);
+  await pollState(page, (s) => s.state.player.vx, 'the dropped key is not held again').toBe(0);
+  await page.keyboard.up('ArrowRight');
+  await page.keyboard.down('ArrowRight');
+  await pollState(page, (s) => s.state.player.vx > 0, 'pressed again: moving').toBe(true);
   await page.keyboard.up('ArrowRight');
 });
 

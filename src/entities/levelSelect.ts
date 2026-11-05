@@ -71,3 +71,15 @@ export function selectLevel(files: Readonly<Record<string, string>>, search: str
   const parseNotes = errors.length > 0 ? ['Level files failed to parse:', ...errors] : [];
   return { level: choice.level, messages: [...parseNotes, ...choice.messages] };
 }
+
+/**
+ * The level after `currentId` in play order (world 1+ levels in loader order),
+ * crossing worlds; null after the last one, for world 0 and for unknown ids.
+ * Stand-in for ui-engineer's `nextLevel` (level-select.md): swap it in when it lands.
+ */
+export function nextLevelId(levels: readonly Level[], currentId: string): string | null {
+  const order = levels.filter((l) => l.meta.world >= 1);
+  const at = order.findIndex((l) => l.meta.id === currentId);
+  if (at < 0) return null;
+  return order[at + 1]?.meta.id ?? null;
+}

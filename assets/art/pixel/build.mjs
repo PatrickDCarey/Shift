@@ -270,6 +270,28 @@ try {
     });
   });
   writeFileSync(path.join(previewDir, 'tandem-vision.png'), encodePng(px.upscale(sheetAll, 2)));
+
+  // ---- effects preview: dust on land, ring burst, speed lines (tinted as the scene would), on the red and yellow fields ----
+  const fxPreview = (speed, band) => {
+    const out = px.createRaster(330, 70);
+    px.fillRect(out, 0, 0, out.width, out.height, px.rgba(fx.backgroundForSpeed(speed, 12)));
+    const outline = fx.palette.gears[band].solid.outline;
+    for (let n = 0; n < px.DUST_FRAMES; n++) {
+      px.blit(out, px.bakePlayerFrame('runner', band, px.PLAYER_FRAMES.find((f) => f.name === 'land_0')), 6 + n * 30 + 2, 6);
+      tintBlit(out, px.bakeDustFrame(n), 6 + n * 30, 6 + 26, ui.textMuted);
+    }
+    for (let n = 0; n < px.RING_FRAMES; n++) tintBlit(out, px.bakeRingFrame(n), 130 + n * 50, 0, outline);
+    let y = 44;
+    for (const len of px.SPEED_LENGTHS) {
+      px.SPEED_PHASES.forEach((_, ph) => {
+        tintBlit(out, px.bakeSpeedLine(len, ph), 8 + ph * 40 + (len === 32 ? 70 : len === 20 ? 35 : 0), y + (ph * 6), outline);
+      });
+      y += 2;
+    }
+    return out;
+  };
+  writeFileSync(path.join(previewDir, 'effects-yellow.png'), encodePng(px.upscale(fxPreview(9, 'yellow'), 4)));
+  writeFileSync(path.join(previewDir, 'effects-red.png'), encodePng(px.upscale(fxPreview(12, 'red'), 4)));
 } finally {
   await server.close();
 }

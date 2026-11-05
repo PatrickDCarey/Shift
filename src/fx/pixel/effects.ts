@@ -1,0 +1,97 @@
+/**
+ * Effect frames for the cutover, baked as white masks that the scene tints at runtime: the dust
+ * puff on landing, the ring burst on a band change, and the speed lines at red. Pure; no Phaser;
+ * render-only (they never feed the sim). Every pixel is pure white at full alpha, so a tint is a
+ * single colour swap, and every fade is Bayer dither (never alpha), so the frames stay 1-bit pixel
+ * art. Owner: art-director.
+ *
+ * Names (atlas `pixel-fx`): `fx/dust/land_<0-3>`, `fx/ring/<0-3>`, `fx/speed/<12|20|32>_<a|b>`.
+ */
+import { bayer, createRaster, setPixel, type Raster, type Rgba } from './raster';
+
+const WHITE: Rgba = [255, 255, 255, 255];
+
+export const DUST_W = 24;
+export const DUST_H = 8;
+export const DUST_FRAMES = 4;
+/** Lit fraction of each dust frame (Bayer threshold): the puff thins as it spreads. */
+export const DUST_DENSITY: readonly number[] = [1, 1, 0.8, 0.6];
+
+export const RING_SIZE = 48;
+export const RING_FRAMES = 4;
+/** Ring radii in pixels and lit fractions: the ring grows and thins out. */
+export const RING_RADII: readonly number[] = [8, 13, 18, 22];
+export const RING_DENSITY: readonly number[] = [1, 0.75, 0.5, 0.3];
+
+export const SPEED_LENGTHS: readonly number[] = [12, 20, 32];
+export const SPEED_PHASES: readonly string[] = ['a', 'b'];
+/** Lit fraction at the leading end and at the tail of a speed line. */
+export const SPEED_LEAD_DENSITY = 1;
+export const SPEED_TAIL_DENSITY = 0.15;
+
+/** The specks of a landing puff: 4 per side, flying out and up from the feet. */
+const DUST_SPECKS_PER_SIDE = 4;
+
+/** One frame of the landing dust, 24 x 8, feet on the bottom row, centred: use origin (0.5, 1). */
+export function bakeDustFrame(frame: number): Raster {
+  const t = Math.min(Math.max(frame, 0), DUST_FRAMES - 1);
+  const r = createRaster(DUST_W, DUST_H);
+  const size = t < 2 ? 2 : 1;
+  const density = DUST_DENSITY[t] ?? 1;
+  for (const side of [-1, 1]) {
+    for (let k = 0; k < DUST_SPECKS_PER_SIDE; k++) {
+      const dx = Math.round((1 + k * 0.6) * (t + 1) * 0.9) + 1;
+      const rise = Math.round(0.8 * (t + 1) * (k % 2 === 1 ? 1 : 0.6));
+      const x = side < 0 ? DUST_W / 2 - dx - size + 1 : DUST_W / 2 + dx - 1;
+      const y = DUST_H - 1 - rise - (size - 1);
+      for (let j = 0; j < size; j++) {
+        for (let i = 0; i < size; i++) if (bayer(x + i, y + j) < density) setPixel(r, x + i, y + j, WHITE);
+      }
+    }
+  }
+  return r;
+}
+
+/** One step of the band-change ring, 48 x 48, centred (origin (0.5, 0.5)): a 2 px ring that grows and thins. */
+export function bakeRingFrame(step: number): Raster {
+  const s = Math.min(Math.max(step, 0), RING_FRAMES - 1);
+  const r = createRaster(RING_SIZE, RING_SIZE);
+  const c = (RING_SIZE - 1) / 2;
+  const radius = RING_RADII[s] ?? 8;
+  const density = RING_DENSITY[s] ?? 1;
+  for (let y = 0; y < RING_SIZE; y++) {
+    for (let x = 0; x < RING_SIZE; x++) {
+      const d = Math.hypot(x - c, y - c);
+      if (Math.abs(d - radius) < 1 && bayer(x, y) < density) setPixel(r, x, y, WHITE);
+    }
+  }
+  return r;
+}
+
+/**
+ * A 1 px speed line, `length` px wide, brightest (always lit) at its right end and dithered out
+ * towards the left tail: draw it trailing behind a body moving right (flipX when moving left). Phase
+ * `a` and `b` use different Bayer rows, so two lines side by side do not share holes. Origin (1, 0).
+ */
+export function bakeSpeedLine(length: number, phase: number): Raster {
+  const r = createRaster(length, 1);
+  const row = phase === 0 ? 0 : 2;
+  for (let x = 0; x < length; x++) {
+    const along = length === 1 ? 1 : x / (length - 1);
+    const density = SPEED_TAIL_DENSITY + (SPEED_LEAD_DENSITY - SPEED_TAIL_DENSITY) * along;
+    if (x === length - 1 || bayer(x, row) < density) setPixel(r, x, 0, WHITE);
+  }
+  return r;
+}
+
+export function effectFrameNames(): {
+  dust: (n: number) => string;
+  ring: (n: number) => string;
+  speed: (length: number, phase: number) => string;
+} {
+  return {
+    dust: (n) => `fx/dust/land_${n}`,
+    ring: (n) => `fx/ring/${n}`,
+    speed: (length, phase) => `fx/speed/${length}_${SPEED_PHASES[phase] ?? 'a'}`,
+  };
+}

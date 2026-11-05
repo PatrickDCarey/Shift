@@ -1,6 +1,6 @@
 # Redshift: M1 test plan (grey-box)
 
-_Owner: qa-tester. Tasks M1-26 and M1-50. Written 2026-11-02 against GDD v1.2 and the five M1 feature specs in `docs/design/features/`; HUD gear meter, time banner and shift-buffer scene checks added 2026-11-04 (sections 2.6 to 2.8). Results for the last run are in section 7._
+_Owner: qa-tester. Tasks M1-26, M1-50, M1-35 and M1-36. Written 2026-11-02 against GDD v1.2 and the five M1 feature specs in `docs/design/features/`; HUD gear meter, time banner and shift-buffer scene checks added 2026-11-04 (sections 2.6 to 2.8); pause, win recording, hint and Sticky Keys mounting checks added 2026-11-04, batch 2 (sections 2.9 to 2.12). Results for the last run are in section 7._
 
 ## 1. Layers and how to run them
 
@@ -115,11 +115,11 @@ Notation: **S** = `src/core/sim/<spec>Acceptance.test.ts`, **M** = `src/core/mot
 
 ### 2.6 hud-gear-meter.md (13 checks, added 2026-11-04, M1-50)
 
-The meter model is the pure function `gearMeterModel` in `src/ui/gearMeter.ts`; the Phaser drawing is `src/ui/GearMeterView.ts`, mounted by the scene (`GameScene.update` calls `gearMeterModel(state.player, params)`). **U** = `src/ui/gearMeter.test.ts` (model fed hand-built player states). **SIM** = `src/ui/gearMeter.sim.test.ts` (ui-engineer, written this batch: one `describe` per spec check 1-9, stepping the real sim through `step` and reading the model each step; in the working tree, not yet committed; `npx vitest run src/ui` passed 7 files / 157 tests on 2026-11-04). The scene does **not** expose the model or the drawn objects on `window.__redshift` (the hook is `levelId`, `state`, `replay` only), so there is no e2e on the meter itself yet: gap G12.
+The meter model is the pure function `gearMeterModel` in `src/ui/gearMeter.ts`; the Phaser drawing is `src/ui/GearMeterView.ts`, mounted by the scene (`GameScene.update` calls `gearMeterModel(state.player, params)`). **U** = `src/ui/gearMeter.test.ts` (model fed hand-built player states). **SIM** = `src/ui/gearMeter.sim.test.ts` (ui-engineer, written this batch: one `describe` per spec check 1-9, stepping the real sim through `step` and reading the model each step; in the working tree, not yet committed; `npx vitest run src/ui` passed 7 files / 157 tests on 2026-11-04). Since batch 2 the hook exposes the model as read-only `meter` (and `banner`, `paused`), so checks 1, 2, 3 and 9 are also asserted in the browser by `tests/e2e/win.spec.ts` "gear meter in the scene" (gap G12 closed): the model equals `{litBand 0, selectedGear 1, needle 0, dragFill null, pendingGear null}` at load and again after R; three up-presses read gear 4 with lit 0; and on every sampled frame of a gear-4 run `litBand` equals the sim band, `selectedGear` the sim gear and `needle` `min(4, |vx| / 3)`. The drawn objects are still canvas-only.
 
 | # | Criterion | Verified by |
 |---|---|---|
-| 1 | Initial state: lit 0, gear 1, needle 0, no drag fill, no pending | SIM check 1; U "initial state" (exact `toEqual`) |
+| 1 | Initial state: lit 0, gear 1, needle 0, no drag fill, no pending | SIM check 1; U "initial state" (exact `toEqual`); **E `win.spec.ts` "check 1: initial model"** |
 | 2 | Standing, three up-presses: gear 4, lit 0, needle 0 | SIM check 2; U "standing in gear 1..4"; the presses reaching gear 4 through keys: e2e `keyboard.spec.ts` "raises the selected gear" and "gear clamps at 1 and 4"; S movement 11-12 |
 | 3 | Gear 4 from rest: lit = `state.band` every step (2 on 10, 3 on 23, 4 on 32), needle non-decreasing, 4 from step 36 | SIM check 3 (real sim, every step); S movement 1-2; U "lit band is the sim band" and the needle table (vx 0..12 to 0..4, `abs(vx)`, clamp) |
 | 4 | Let go at full sprint: needle reaches 0, gear stays 4 | SIM check 4; S movement 5-6; U needle table and "holding into a wall" (speed 0) |
@@ -143,7 +143,7 @@ Replaced by the results panel in M2 (`results.md`), so only the format is held t
 | B2 | Hundredths truncate, never round (119 steps is `0:01.98`) | U `hud.test.ts` "truncates hundredths" |
 | B3 | A missing step count never prints `null` | U `hud.test.ts` "does not print null" |
 | B4 | The title clears the gear meter area; messages sit below it | U `hud.test.ts` `hudLayout` (2 checks) |
-| B5 | The banner time equals the run time (win step) in the real build | The banner is a canvas text object, not readable through the hook (G12). Indirect: e2e `replay.spec.ts` asserts `wonAtStep` equals the recording's `steps` header, and B1 proves the text function. Eyeball once at the gate |
+| B5 | The banner time equals the run time (win step) in the real build | **E `win.spec.ts` "a live w1-01 win stores ..."**: the hook's `banner` equals `Level complete — M:SS.hh — press R` computed independently from `wonAtStep` for each live win; B1 proves the text function; `replay.spec.ts` asserts `wonAtStep` equals the recording's `steps` header |
 | B6 | `99:59.99` display cap (level-select.md check 8) | **Not covered** for the banner: `formatRunTime` has no cap test. Only matters from 100 minutes; the M2 `formatTime` carries it |
 
 ### 2.8 Shift buffer through the scene (design ruling 2026-11-03, `decisions.md`)
@@ -157,6 +157,43 @@ A standing jump in the pit is a 48-step flight at gear 1; the buffer is 6 steps 
 | SB3 | Press on the first airborne step: dropped | e2e "pressed early in a jump does not change the gear" (KeyE, ShiftRight, KeyX) |
 | SB4 | Same rules from a fast jump at gear 3-4 | Unit only (S airDrag 13-14): no level has a runway for it yet (G11) |
 | SB5 | Any early press that applies is a bug (design-lead's rule) | SB1 and SB3 would fail; neither has |
+
+### 2.9 pause.md (12 checks; spec M2-34, scene lane M2-06; the M1 stand-in label, the menu is M2-12)
+
+Read through the hook's `paused`, `state` and per-frame samples (`startTracker` also records `x`, `vx`, `paused`). **E** = `tests/e2e/pause.spec.ts` unless noted.
+
+| # | Criterion | Verified by |
+|---|---|---|
+| 1 | Esc (and P) freezes the sim for 120 rendered frames; pressing again resumes from the same state | E "Escape / KeyP pauses ..." (step and whole player state equal after 120 frames; first live frame at most 5 steps and 5 steps of travel on) |
+| 2 | No catch-up after 3 s paused | E "no catch-up" (largest step jump in one rendered frame after resume at most `MAX_STEPS_PER_FRAME` 5). `advanceClock` also clamps at 5, so the browser cannot tell an emptied accumulator from a clamped one; the reset itself is unit-tested in `runDriver.test.ts` |
+| 3 | Recorder gets no frames while paused; a paused run's recording replays to the same `wonAtStep` | Sim frozen: E check 1. Recording equality: unit `runDriver.test.ts` (the e2e cannot read the recording) |
+| 4 | Right held through pause and resume keeps running, no stop or skid | E "a key held through the pause ..." (vx never 0 on any live sample after resume) |
+| 5 | Space held while paused (and the P that closes the pause) does not jump until released and pressed again | E "Space held while paused ..." (40 steps grounded with Space still down, then a fresh press jumps) |
+| 6 | Q and other keys pressed while paused do not act | E "keys tapped while paused ..." (Q, both Shifts, ArrowRight, Space tapped while paused: gear, x and grounded unchanged) |
+| 7 | R while paused restarts (step 0, gear 1, spawn) and closes the pause | E "R while paused ..." and "input works normally after a restart from the pause" |
+| 8 | LEVELS: level select opens on this level, save unchanged | **Not testable yet**: the pause menu is M2-12 (the M1 stand-in has only Esc, P and R) |
+| 9 | CONTROLS then Esc returns to the pause menu | **Not testable yet** (M2-12) |
+| 10 | Blur pauses and drops held keys; Right must be pressed again | E "window blur pauses ..."; `embed.spec.ts` "losing window focus pauses ..."; E "tab hidden (visibilitychange) pauses like blur". Not automated: browser auto-repeat after refocus (bugs.md, "Checked, no bug") |
+| 11 | Pause during the death freeze respawns on the same step | Unit only (the freeze is 24 steps, too short to hit reliably in a browser) |
+| 12 | Esc on the results screen does not open pause | Unit `pauseState.test.ts` (`canPause` false after the win). The results screen is M2-12; browser not covered |
+
+### 2.10 Win recording (progress-save.md, results.md; `recordRun` in `src/save/progress.ts`)
+
+| # | Criterion | Verified by |
+|---|---|---|
+| W1 | A live win of w1-01 (hold ArrowRight all the way) stores the level once in `completedLevels` and its win step in `bestSteps` under `redshift.save` | E `win.spec.ts` "a live w1-01 win stores ..." |
+| W2 | A faster later win replaces the best; a slower one leaves it; `completedLevels` stays one entry; the save survives a reload | same test (three wins: 60 steps standing first, straight, 90 steps standing first) |
+| W3 | Replay mode (`?replay=1`) writes nothing | E "a replayed win writes nothing to localStorage" (w1-01 replay wins on 414; no completed level, no best) |
+| W4 | Nothing is stored before the first win | E "nothing is stored before the first win" |
+| W5 | World 0 writes nothing | Unit `progress.test.ts` (`recordRun` skips world < 1). Browser: not covered (a live w0-02 win needs 775 steps of exact input) |
+
+### 2.11 Onboarding hints (onboarding-hints.md checks 5 and 6, level review)
+
+Node-side spec `tests/e2e/levels-hints.spec.ts` (no browser; it parses the real files through the `src/core` barrel). Check 5: w1-01 wins on 414 and w1-02 on 311 with and without their `hint:` lines. Check 6: every shipped level's hints are empty cells at least 3 rows above the floor under the anchor, at most 3 per level; w1-01 has `move`; w1-02 has `shiftUp` over columns 0-2 and `shiftDown` over columns 8-10. No level has `jump` yet, so the w2-01 parts of checks 5, 6 and 8 wait for that level. Checks 1-4 are unit (builders); check 7 is a screenshot (manual).
+
+### 2.12 Sticky Keys tip mounting (sticky-keys-tip.md, M2-39)
+
+E `sticky-keys.spec.ts`: on a Windows user agent the first level start sets `settings.stickyKeysTipShown` and keys still move the runner while the tip is up (non-blocking); the flag persists across a reload; replay mode never shows it; a macOS user agent never sets it. The panel is a canvas object: see `docs/qa/evidence/package-zip-subfolder-load.png` (taken from the packaged zip). Auto-hide, Enter dismissal and pause-hides-it are not automated.
 
 ## 3. M1 board tasks: how each acceptance line will be verified (M1-35 to M1-37)
 
@@ -180,7 +217,7 @@ A standing jump in the pit is a 48-step flight at gear 1; the buffer is 6 steps 
 | M1-15 | Debug overlay values equal state; hook absent from production build | Overlay: `debugText.test.ts` plus manual F3. Hook: gated to dev or `VITE_QA_HOOK=1` (BUG-1 closed 2026-11-04): a plain `vite build` has no `__redshift`, a `VITE_QA_HOOK=1` build has it; guarded by `tests/arch/qa-hook.test.ts` and the CI step "No QA hook in the release build" |
 | M1-16 / M1-40 | Storage never throws; every action bound; no key on two actions; Shift told apart by code; Sticky Keys logic | `src/save/save.test.ts`, `src/ui/bindings.test.ts`, `src/ui/stickyKeysTip.test.ts` |
 | M1-17 | Game starts with no console errors; keys do not scroll | e2e (auto console-error fixture; default-prevented and scroll checks; iframe host scroll) |
-| M1-18 | Zip loads from a subfolder, no secrets | Manual: `npm run package` (not yet present), unzip, serve, play; grep zip for `.env` |
+| M1-18 | Zip loads from a subfolder, no secrets | `npm run package`; unzip into `sub/game/`; serve and load (960x540, no console errors, no hook); grep the bundle for `.env`, keys, `__redshift`; package twice and compare sha256; run it with `VITE_QA_HOOK=1`, a stray `VITE_` variable and an `sb_secret_` key set (all refused). Results in section 7, run 4; BUG-4 for the shipped solutions |
 | M1-19 | RLS denies anon writes | Review by security-reviewer; SQL read-through (not run against a DB in M1) |
 | M1-20 / M1-21 | Room parses; solution wins; still wins with key inputs shifted +-3 | `tests/levels/solvability.test.ts` plus e2e replay (`replay.spec.ts`). The +-3 robustness check is **not automated**: see gap G3 |
 | M1-22 / M1-23 | Palette contrast, patterns distinct, mapping tested | `src/fx/*.test.ts`; `docs/art/` numbers; patterns screenshot reviewed by eye |
@@ -201,7 +238,7 @@ A standing jump in the pit is a 48-step flight at gear 1; the buffer is 6 steps 
 | Ctrl+E (browser shortcut) is not a gear shift | e2e `embed.spec.ts` |
 | No key maps to two actions; Left and Right Shift told apart by `e.code` | unit `bindings.test.ts` |
 | Sticky Keys tip logic: true on Windows UA when unseen, false after dismissal, false on mac/Linux/mobile, blocked storage safe | unit `stickyKeysTip.test.ts` |
-| Sticky Keys tip **shown in the game**, once, non-blocking | **Not testable yet**: mounting is M2-39. E2E is M2-28 (emulate a Windows user agent). Manual: pressing Shift five times in Windows to see the OS dialog is the thing the tip prevents; cannot be automated |
+| Sticky Keys tip **shown in the game**, once, non-blocking | e2e `sticky-keys.spec.ts` (section 2.12). Manual: pressing Shift five times in Windows to see the OS dialog is the thing the tip prevents; cannot be automated |
 
 ## 5. Manual and playtest checks (cannot be automated in M1)
 
@@ -214,17 +251,17 @@ A standing jump in the pit is a 48-step flight at gear 1; the buffer is 6 steps 
 
 ## 6. Gaps (known, with owner or milestone)
 
-- **G1:** Only one level exists (`w0-02`), so replay e2e covers one recording. The test globs `levels/*.solution.txt`, so new levels are picked up automatically.
+- **G1:** Closed: six levels ship (`w0-02`, `w1-01` to `w1-05`); the replay spec globs `levels/*.solution.txt`, so new levels are picked up automatically (2026-11-04: 283, 444 and 139 steps for w1-03 to w1-05 pass).
 - **G2:** Closed 2026-11-04 (BUG-2): the viewport is on the chromium project after the device spread; specs have no `test.use`.
 - **G3:** No automated "inputs shifted by +-3 steps still win" check (M1-21 acceptance, level-format fairness). Proposal: a Vitest in `tests/levels/` that shifts each input transition by +-3 steps and runs `verifySolution`. Needs tech-lead (owns `tests/levels/**`).
-- **G4:** Sticky Keys tip view, pause, results, level select and title do not exist in the scene yet, so no e2e for them until M2 (M2-28). The HUD gear meter exists but is only partly reachable: see G12.
+- **G4:** The pause menu, results, level select and title do not exist yet (only the M1 stand-ins), so no e2e for them until M2 (M2-28). Pause (Esc, P, R, blur), the win recording and the Sticky Keys mounting are covered since batch 2 (sections 2.9 to 2.12).
 - **G5:** Closed 2026-11-04 (BUG-1): the hook is a build flag; e2e runs against the production build with `VITE_QA_HOOK=1`.
 - **G6:** No fps or performance measurement in e2e.
 - **G7:** No cross-browser run (Chromium only; Firefox and Safari left for M4 manual check on the itch embed).
-- **G8:** Packaging (`npm run package`) does not exist yet, so M1-18 is unverifiable.
+- **G8:** Closed 2026-11-04: `npm run package` exists and was verified (section 7, run 4). Open: BUG-4 (solutions ship), the package script has no recording-header check yet.
 - **G10:** The iframe test frames the game from a routed same-origin host page (`/itch-host.html`). An `about:blank` host (what the test used before) is blocked by Chrome's Local Network Access check (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`, the frame becomes `chrome-error://`), and so is a different loopback origin, so the cross-origin case is not automated; check by hand on the real itch.io embed (M4).
 - **G11:** An air shift from a fast jump at gear 3-4 is only unit-tested (no level has a runway). The 4-worker flakiness (BUG-3) is closed by `workers: 2`; a machine shared with several other jobs can still push 2 workers past the 120 s per-test timeout (seen 2026-11-04, see section 7).
-- **G12:** The scene exposes no HUD to the hook: no `meter` model (the `gearMeterModel` output) and no banner text, so HUD checks 1-10 and B5 cannot be asserted in the browser. Requested from gameplay-engineer [scene] on 2026-11-04 (`requests.md`). Once it lands, e2e: standing gear 1 to 4 reads lit 0, bracket 4; hold right in gear 4 reads lit 2, 3, 4 on the printed steps; a death or R returns to the check 1 model; the banner text on a win equals `winText(wonAtStep)`.
+- **G12:** Closed 2026-11-04 (batch 2): the hook exposes read-only `meter`, `banner` and `paused`. Remaining: the lit cell on the exact printed steps (2 on 10, 3 on 23, 4 on 32) is not asserted in the browser (no level has a safe 3.2-tile runway for a gear-4 start; the e2e checks every sampled frame against the sim instead); the pending bracket (check 7) and drag fill (check 5) are not read through the hook in the browser (unit and SIM only); a death (as opposed to R) returning to the check 1 model is not asserted.
 - **G9:** The default Playwright web server build (`npm run build && vite preview`) can exceed its 120 s start-up timeout on a busy machine; CI should be fine.
 
 ## 7. Results

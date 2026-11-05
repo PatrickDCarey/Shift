@@ -8,3 +8,4 @@ export * from './atlas';
 export * from './font';
 export * from './hud';
 export * from './tileset';
+export * from './effects';

@@ -5,8 +5,9 @@
 # Both bridges sit over death pits under a 2-tile tunnel roof, so no gear can jump over them;
 # the pads are open to the sky so a jump there reaches the full 3-tile apex.
 # Spawn pad is 3 tiles: too short to build red (3.23 tiles), which would let a coyote jump skip bridge 1.
-# Hint (add when M2-03/M2-04 land; no header key yet): `move` anchored at col 1, row 6 (above the spawn;
-#   3x2 box cols 0-2, rows 5-6, all empty; 3 rows above the floor row 9).
+# Hint: `move` anchored at col 1, row 6 (above the spawn; 3x2 box cols 0-2, rows 5-6, all empty;
+#   3 rows above the floor row 9). Render-only: no version bump, the solution is unchanged.
+hint: move 1 6
 id: w1-01
 title: First Steps
 world: 1

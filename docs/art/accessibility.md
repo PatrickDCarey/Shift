@@ -21,7 +21,7 @@ Safe tile (`#`, always solid, drawn grey, no pattern): fill `#5F6987` (3.57:1; w
 UI colors: text `#E8ECF8`, muted text `#A3AECB`, panel `#0F1220` (was `#141826`; red band color as HUD text is 4.66 on it, 4.42 on the old one), panel border `#5A6590`, focus ring `#FFFFFF`. Drag-downshift flash: `#FFFFFF` at 0.35 alpha for 120 ms.
 
 ### Colors changed on 2026-11-03 (direction C pick)
-- **Safe fill** `#7E88A6` to `#5F6987`. **Ghost outlines** blue `#3F73D0` to `#4F86E8`, green `#4CC480` to `#40D88C`, red `#D02536` to `#E11E3A` (ink follows). The old red ghost was 2.58:1 against the standing background under protanopia (reds go dark) and the old blue 2.94:1 under deuteranopia on a tinted background. The new set keeps every pair of ghost outlines at least 27.8 delta-E apart under every vision (it was found by search: a lighter red collapsed into green under deuteranopia). Residual: protanopia, red ghost against the tinted backgrounds is 2.46:1, below 3 but above the old 2.30 (a floor of 2.4 is tested); the checker pattern, the dashes and the corners carry it.
+- **Safe fill** `#7E88A6` to `#5F6987`. **Ghost outlines** blue `#3F73D0` to `#4F86E8`, green `#4CC480` to `#40D88C`, red `#D02536` to `#E11E3A` (ink follows). The old red ghost was 2.58:1 against the standing background under protanopia (reds go dark) and the old blue 2.94:1 under deuteranopia on a tinted background. The new set keeps every pair of ghost outlines at least 27.8 delta-E apart under every vision (it was found by search: a lighter red collapsed into green under deuteranopia). Residual: protanopia, red ghost against the tinted backgrounds is 2.46:1, below 3 but above the old 2.30 (a floor of 2.4 is tested); the checker pattern, the dashes and the corners carry it. Against every pixel decor colour including ridges and stars it is 2.20 to 2.31 (section 11: the one documented exception).
 - **Red pattern** crosshatch to checker (design-lead: a lattice reads as grating or a hazard).
 - **HUD panel** `#141826` to `#0F1220`. **Decor luminance cap** 0.0055 to 0.013 (section 7).
 - All of the above are in `src/data/palette.json` and covered by `src/fx` tests.
@@ -193,3 +193,37 @@ The weakest cell is red under protanopia (3.23:1): the checker stays readable th
 **Lane divider.** The divider is the ordinary safe tile (grey fill 3:1 or better against the field, section 8), at least one tile thick, so both lanes stand on the same plain ground; in `docs/art/pixel/tandem-scene.png` it is the one grey slab between the lanes, with a lit top lip and outlines on both faces.
 
 **Not covered.** The strips' own layout (band cells, bracket, needle) belongs to ui-engineer (T-06); it must reuse the glyphs above and keep the pattern in the lit cell (section 8).
+
+## 11. M2-14b: ghost outlines against the brightest background, and the 16 px patterns (2026-11-04)
+
+Tests: `src/fx/ghostContrast.test.ts` and `src/fx/pixel/readability16.test.ts`.
+
+**Ghost outline vs the brightest decor, 49 speeds (0 to 12 in quarter steps, yellow at speed 9 included).** "Brightest" is every pixel-scenery colour that can sit behind a ghost tile (flat field, pace hue at the luminance cap, both ridges, stars; per speed and per vision, worst case taken). Contrast ratio, worst case with stars / without stars:
+
+| Band (ghost outline) | normal and greyscale | protanopia | deuteranopia | tritanopia |
+|---|---|---|---|---|
+| white `#C4C6D0` | 8.88 / 9.79 | 9.06 / 9.55 | 8.78 / 9.24 | 8.93 / 9.52 |
+| blue `#4F86E8` | 4.25 / 4.69 | 4.80 / 5.06 | 3.93 / 4.14 | 4.61 / 4.92 |
+| green `#40D88C` | 8.22 / 9.06 | 9.06 / 9.55 | 7.67 / 8.07 | 8.27 / 8.81 |
+| yellow `#CEAE0C` | 6.97 / 7.69 | 6.62 / 6.98 | 7.20 / 7.57 | 6.89 / 7.34 |
+| red `#E11E3A` | 3.20 / 3.53 | **2.20 / 2.31** | 3.86 / 4.06 | 3.63 / 3.87 |
+
+Every cell is at least 3:1 except **red under protanopia**. The worst point is the star pixel (a single pixel) at speed 9, or the pace hue at speed 3 without stars. The tests also read the baked 16 px ghost tiles (dash pixels on the corners and edges, in all five visions) and hold the same floors.
+
+**Why red under protanopia is a documented exception and not fixed.** A search over the red region of sRGB (red 200 to 255, green 0 to 150, blue 0 to 170, steps of 3) for an outline that reaches 3:1 under protanopia, 3:1 in every other vision, stays darker than the solid outline and keeps the existing 25 delta-E separation from the other four ghost outlines found **none**. Relaxing the separation to 15 delta-E also found none; accepting only 2.4:1 under protanopia leaves magenta (`#C81BA8`) with 9.8 delta-E to the nearest other ghost outline, and the only colours that reach 6:1 under protanopia are pale pinks that collapse onto the white band's grey. Reds go dark under protanopia, so a red that stays red cannot also be bright. Lowering the field instead is not an option (the yellow tint was raised on 2026-11-03 because it read as grey). So the outline stays `#E11E3A`, the tested floor is 2.15:1 (measured 2.20), and a test asserts that this is the **only** cell under 3:1. What carries a red ghost under protanopia: the checker rim inside the tile (4 px marks), the 1 px dash with solid corners, no fill and no lit lip (it still reads as an empty frame next to the solid tile), and the red solid fill (4.85 normal, 3.23 under protanopia, section 8). The previous batch's 2.46 was measured against only the 13 flat backgrounds of `backgroundForSpeed`; this batch includes the ridges and stars. **Design-lead: please confirm you accept this exception** (the request of 2026-11-04 asked for accept or fix; a fix is not possible inside the rules above).
+
+**Checker (red) vs dots (green) in greyscale at 16 px.** Read back from the baked solid tile (pattern cell 12 x 10 at (2, 4)): a pixel counts as ink when its grey level differs from the tile's fill grey by more than 25 of 255. The recovered mask is exactly the pixel pattern for all four bands, so greyscale loses nothing.
+
+| Measure | Result | Rule |
+|---|---|---|
+| Checker vs dots, cells that differ, 1x | 51.7% | at least 40% |
+| Checker vs dots, mean difference after 2x2 averaging (half scale) | 0.517 | at least 0.40 |
+| Longest ink run along a row, checker / dots | 4 px / 2 px | exactly 4 / 2 (size differs, not only density) |
+| Every pair of the four bands: minimum at 1x / half scale (blue vs yellow) | 40.0% / 0.333 | 35% / 0.30 |
+| Ghost checker vs ghost dots, 1x / half scale | 46.7% / 0.467 | at least 40% |
+| Every pair of ghost tiles, minimum | at least 35% | 35% |
+| Whole tile, red fill vs green fill, contrast against the field | 4.85 vs 13.52 (2.8x) | more than 2x |
+
+Under greyscale the two tiles also differ in lightness (green is much brighter than red) before any pattern is looked at, so dots against checker is a two-cue difference: fill grey and mark size.
+
+**Effect frames (cutover).** The dust, ring and speed-line masks (`src/fx/pixel/effects.ts`, atlas `pixel-fx`) are white and fully opaque and are tinted at runtime from palette colours (dust `ui.textMuted`, 8.4:1 on the panel; ring and speed lines the band's solid outline, 7.47:1 or better against the field). None is a flash: the ring covers under 15% of its frame and the dust under 25%, and nothing is drawn over a whole screen. Reduced motion: ring off, speed lines off, dust held on one static frame (`docs/art/style.md`, Effects).

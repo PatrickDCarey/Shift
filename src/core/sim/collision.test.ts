@@ -40,8 +40,7 @@ describe('gating', () => {
   });
 
   it('safe and reserved always-solid tiles are solid; empty and exit never', () => {
-    for (const kind of ['safe', 'mud', 'ice', 'boost'] as const) expect(solidAll({ kind }, gate(0))).toBe(true);
-    expect(solidAll({ kind: 'conveyor', dir: 1 }, gate(0))).toBe(true);
+    for (const kind of ['safe', 'ice'] as const) expect(solidAll({ kind }, gate(0))).toBe(true);
     expect(solidAll({ kind: 'empty' }, gate(3))).toBe(false);
     expect(solidAll({ kind: 'exit' }, gate(3))).toBe(false);
   });
