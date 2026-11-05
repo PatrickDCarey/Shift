@@ -19,7 +19,7 @@ import { PauseState, type PauseChange } from '../entities/pauseState';
 import { PlayerView } from '../entities/PlayerView';
 import { chooseFrameSource, parseReplayRequest, type FrameSource, type ReplayFeed } from '../entities/replay';
 import { RunDriver, type FrameSupplier } from '../entities/runDriver';
-import { SOLUTION_FILES } from '../entities/solutionFiles';
+import { REPLAY_AVAILABLE, SOLUTION_FILES } from '../entities/solutionFiles';
 import { loadLevelSet, nextLevelId, selectLevel } from '../entities/levelSelect';
 import { LEVEL_COMPLETE_EVENT, recordWin, type LevelCompleteEvent } from '../entities/winFlow';
 import { backgroundForSpeed, hexToNumber, rgbToHex } from '../fx';
@@ -120,7 +120,7 @@ export class GameScene extends Phaser.Scene {
     this.nextId = null;
     this.meter = INITIAL_GEAR_METER_MODEL;
     const search = this.requestedLevelId === null ? window.location.search : `?level=${encodeURIComponent(this.requestedLevelId)}`;
-    this.replayRequested = parseReplayRequest(search).active;
+    this.replayRequested = REPLAY_AVAILABLE && parseReplayRequest(search).active;
     const selection = selectLevel(LEVEL_FILES, search);
     const { tuning, params } = this.cfg;
     this.driver = new RunDriver(selection.level, params);
@@ -129,7 +129,7 @@ export class GameScene extends Phaser.Scene {
     this.playerView = new PlayerView(this, tuning.tileSize, tuning.playerWidthTiles, tuning.playerHeightTiles);
     this.fx = new FeedbackFx(this);
     const { id, title } = selection.level.meta;
-    const source = chooseFrameSource(search, selection.level, SOLUTION_FILES);
+    const source = chooseFrameSource(search, selection.level, SOLUTION_FILES, REPLAY_AVAILABLE);
     this.replay = source.kind === 'replay' ? { feed: source.feed, speed: source.speed } : null;
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
     this.gearMeter = new GearMeterView(this, GEAR_METER_AREA.x, GEAR_METER_AREA.y);

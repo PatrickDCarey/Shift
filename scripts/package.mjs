@@ -18,22 +18,10 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { build, loadEnv } from 'vite';
+import { PackageError, checkEnv, scanFile } from './lib/checks.mjs';
 import { createZip, readZip } from './lib/zip.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const ALLOWED_VITE_VARS = new Set(['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY']);
-const TEXT_EXT = /\.(?:js|mjs|css|html|json|svg|txt|xml|webmanifest)$/i;
-// `__redshift` as a whole word: the QA hook, not `__redshift_probe__` (save-storage probe key).
-const HOOK = /__redshift(?![A-Za-z0-9_])/;
-const SECRET_PATTERNS = [
-  [/sb_secret_/, 'a Supabase secret key (sb_secret_...)'],
-  [/service_role/i, 'the string "service_role"'],
-  [/SUPABASE_SERVICE/i, 'a SUPABASE_SERVICE... variable name'],
-  [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'a private key block'],
-];
-const FORBIDDEN_NAME = /(?:^|\/)(?:\.env[^/]*|\.DS_Store|Thumbs\.db)$|\.map$/i;
-
-class PackageError extends Error {}
 
 function out(text) {
   process.stdout.write(`${text}\n`);
@@ -55,44 +43,11 @@ function parseArgs(argv) {
   return opts;
 }
 
-function jwtRole(token) {
-  const parts = token.split('.');
-  if (parts.length !== 3) return undefined;
-  try {
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-    return typeof payload?.role === 'string' ? payload.role : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/** Fail before building if the environment would put anything unsafe in the client. */
+/** Collect the VITE_ variables Vite would expose, then run the pure checks. */
 function checkEnvironment() {
   const fromFiles = loadEnv('production', ROOT, 'VITE_');
   const fromShell = Object.fromEntries(Object.entries(process.env).filter(([k]) => k.startsWith('VITE_')));
-  const env = { ...fromFiles, ...fromShell };
-
-  if (env.VITE_QA_HOOK !== undefined) {
-    throw new PackageError('VITE_QA_HOOK is set (shell or .env). The itch.io build must not install window.__redshift; unset it.');
-  }
-  const unknown = Object.keys(env).filter((k) => !ALLOWED_VITE_VARS.has(k));
-  if (unknown.length > 0) {
-    throw new PackageError(
-      `Vite would expose ${unknown.join(', ')} to the browser. Only ${[...ALLOWED_VITE_VARS].join(' and ')} may reach the client; remove the others from .env and the shell.`,
-    );
-  }
-  const url = env.VITE_SUPABASE_URL ?? '';
-  const key = env.VITE_SUPABASE_ANON_KEY ?? '';
-  if ((url === '') !== (key === '')) {
-    throw new PackageError('Set both VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, or neither (offline build).');
-  }
-  if (url !== '' && !url.startsWith('https://')) {
-    throw new PackageError('VITE_SUPABASE_URL must start with https:// in a release build.');
-  }
-  if (key.startsWith('sb_secret_') || jwtRole(key) === 'service_role') {
-    throw new PackageError('VITE_SUPABASE_ANON_KEY holds a service-role/secret key. Use the public anon (publishable) key. Rotate the exposed key.');
-  }
-  return { leaderboards: url !== '' };
+  return checkEnv({ ...fromFiles, ...fromShell });
 }
 
 function listFiles(dir) {
@@ -110,16 +65,7 @@ function collectAndCheck(buildDir) {
     const name = relative(buildDir, file).split(sep).join('/');
     const data = readFileSync(file);
     entries.push({ name, data });
-    if (FORBIDDEN_NAME.test(name)) problems.push(`${name}: must not ship (env file, source map or OS junk)`);
-    if (!TEXT_EXT.test(name)) continue;
-    const text = data.toString('utf8');
-    if (HOOK.test(text)) problems.push(`${name}: contains the QA hook name "__redshift"`);
-    for (const [pattern, what] of SECRET_PATTERNS) {
-      if (pattern.test(text)) problems.push(`${name}: contains ${what}`);
-    }
-    if (name === 'index.html' && /(?:src|href)=["']\/(?!\/)/.test(text)) {
-      problems.push('index.html: has an absolute asset path (needs ./ so it runs from a subfolder)');
-    }
+    problems.push(...scanFile(name, data));
   }
   if (!entries.some((e) => e.name === 'index.html')) problems.push('index.html is not at the build root');
   if (problems.length > 0) throw new PackageError(`package check failed:\n  - ${problems.join('\n  - ')}`);

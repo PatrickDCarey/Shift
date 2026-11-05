@@ -5,6 +5,8 @@ export class MockParam {
   value: number;
   sets: number[] = [];
   ramps: number[] = [];
+  /** Every ramp as (target, end time), linear or exponential, in call order. */
+  rampLog: { value: number; time: number }[] = [];
   constructor(initial: number) {
     this.value = initial;
   }
@@ -15,12 +17,14 @@ export class MockParam {
   setTargetAtTime(v: number): void {
     this.value = v;
   }
-  linearRampToValueAtTime(v: number): void {
+  linearRampToValueAtTime(v: number, t = 0): void {
     this.value = v;
+    this.rampLog.push({ value: v, time: t });
   }
-  exponentialRampToValueAtTime(v: number): void {
+  exponentialRampToValueAtTime(v: number, t = 0): void {
     this.value = v;
     this.ramps.push(v);
+    this.rampLog.push({ value: v, time: t });
   }
   cancelScheduledValues(): void {}
 }
@@ -34,6 +38,12 @@ export class MockNode {
 
 export class MockGain extends MockNode {
   gain = new MockParam(1);
+}
+
+export class MockFilter extends MockNode {
+  type = 'lowpass';
+  frequency = new MockParam(350);
+  Q = new MockParam(1);
 }
 
 export class MockOsc extends MockNode {
@@ -56,6 +66,7 @@ export class MockContext {
   destination = new MockNode();
   oscs: MockOsc[] = [];
   gains: MockGain[] = [];
+  filters: MockFilter[] = [];
   resume(): Promise<void> {
     this.state = 'running';
     return Promise.resolve();
@@ -68,6 +79,11 @@ export class MockContext {
     const g = new MockGain();
     this.gains.push(g);
     return g;
+  }
+  createBiquadFilter(): MockFilter {
+    const f = new MockFilter();
+    this.filters.push(f);
+    return f;
   }
   createOscillator(): MockOsc {
     const o = new MockOsc();

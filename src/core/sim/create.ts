@@ -2,13 +2,13 @@
  * Fresh-load state (GDD §4.12): standing on the bottom edge of the `@` cell,
  * startGear, band white, facing right, every timer and buffer cleared.
  */
-import { EMPTY_INPUT, type Level, type PlayerState, type SimParams, type SimState } from '../types';
+import { EMPTY_INPUT, type Level, type PlayerState, type SimParams, type SimState, type TilePos } from '../types';
 import { supported } from './collision';
 import { gateFor } from './gating';
 
-export function spawnPlayer(level: Level, params: SimParams): PlayerState {
-  const x = level.start.col + 0.5;
-  const y = level.start.row + 1;
+export function spawnBody(cell: TilePos, level: Level, params: SimParams): PlayerState {
+  const x = cell.col + 0.5;
+  const y = cell.row + 1;
   const gate = gateFor(level, params, x, y, 0, null);
   return {
     x,
@@ -31,6 +31,8 @@ export function spawnPlayer(level: Level, params: SimParams): PlayerState {
   };
 }
 
+export const spawnPlayer = (level: Level, params: SimParams): PlayerState => spawnBody(level.start, level, params);
+
 export function createSim(level: Level, params: SimParams): SimState {
   return {
     step: 0,
@@ -38,7 +40,7 @@ export function createSim(level: Level, params: SimParams): SimState {
     wonAtStep: null,
     respawnInSteps: 0,
     player: spawnPlayer(level, params),
-    twin: null,
+    twin: level.twinStart ? spawnBody(level.twinStart, level, params) : null,
     prevInput: { ...EMPTY_INPUT },
     dirPriority: 0,
     events: [],

@@ -49,16 +49,24 @@ describe('fetchTopRuns: request', () => {
     expect(u.searchParams.get('select')).not.toContain('*');
   });
 
-  it('sends the anon key as apikey and bearer, GET only, no credentials, no redirects', async () => {
+  it('sends the anon key as apikey, GET only, no credentials, no redirects', async () => {
     const { fetchMock, client } = setup(async () => json([]));
     await client.fetchTopRuns('w0-01', 1, 5);
     const init = (fetchMock.mock.calls[0] as [string, RequestInit])[1];
     expect(init.method).toBe('GET');
-    expect(init.headers).toMatchObject({ apikey: 'anon-key-value', Authorization: 'Bearer anon-key-value' });
+    expect(init.headers).toEqual({ apikey: 'anon-key-value', Accept: 'application/json' });
     expect(init.credentials).toBe('omit');
     expect(init.redirect).toBe('error');
     expect(init.signal).toBeInstanceOf(AbortSignal);
     expect(init.body).toBeUndefined();
+  });
+
+  it('also sends a JWT-shaped anon key as the Bearer token', async () => {
+    const fetchMock = vi.fn(async () => json([]));
+    const client = createNetClient({ config: { ...config, anonKey: 'a.b.c' }, fetch: fetchMock, isOnline: () => true });
+    await client.fetchTopRuns('w0-01', 1, 5);
+    const init = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1];
+    expect(init.headers).toMatchObject({ apikey: 'a.b.c', Authorization: 'Bearer a.b.c' });
   });
 
   it('clamps limit and offset into sane ranges', async () => {

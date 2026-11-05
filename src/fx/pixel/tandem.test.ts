@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import type { BandColor } from '../../core/types';
 import { VISIONS, contrastRatio, hexToRgb, simulateVision, type Rgb, type Vision } from '../color';
 import { backgroundForSpeed, palette, patternOf } from '../palette';
-import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, bakeBodyGlyph, bakeEdgeArrow, bakeHomeGlyph } from './hud';
+import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, bakeBodyGlyph, EDGE_ARROW_SWATCH, bakeEdgeArrow, bakeExitArrow, bakeHomeGlyph } from './hud';
 import { BAND_COLOR_LIST, PLAYER_FRAMES, bakePlayerFrame, roleColors } from './player';
 import { FRAME_W, ROLE, VARIANTS, buildBody } from './playerBody';
 import { getPixel, type Raster } from './raster';
@@ -171,4 +171,42 @@ describe('HUD silhouette glyphs and the edge arrow', () => {
       expect(pa.filter((v, i) => v !== pb[i]).length).toBeGreaterThanOrEqual(10);
     }
   });
+
+  it('the band shows in the arrow by pattern: the swatch ink masks of the five bands differ pairwise by at least 25%, in luminance only', () => {
+    const sw = EDGE_ARROW_SWATCH;
+    const inkMask = (band: BandColor): boolean[] => {
+      const a = bakeEdgeArrow('runner', band);
+      const fill = Array.from(hexToRgbArr(palette.gears[band].solid.fill));
+      const out: boolean[] = [];
+      for (let j = 0; j < sw.h; j++) for (let i = 0; i < sw.w; i++) out.push(!getPixel(a, sw.x + i, sw.y + j).slice(0, 3).every((v, k) => v === fill[k]));
+      return out;
+    };
+    const masks = BAND_COLOR_LIST.map(inkMask);
+    for (let a = 0; a < masks.length; a++) {
+      for (let b = a + 1; b < masks.length; b++) {
+        const diff = masks[a]!.filter((v, i) => v !== masks[b]![i]).length / masks[a]!.length;
+        expect(diff, `${BAND_COLOR_LIST[a]} vs ${BAND_COLOR_LIST[b]}`).toBeGreaterThanOrEqual(0.25);
+      }
+    }
+  });
+
+  it('the exit arrow has the same outline as the body arrows, a dark doorway, and no band swatch', () => {
+    const exit = bakeExitArrow();
+    expect([exit.width, exit.height]).toEqual([EDGE_ARROW_W, EDGE_ARROW_H]);
+    expect(mask(exit)).toEqual(mask(bakeEdgeArrow('runner', 'blue')));
+    const door = hexToRgbArr(palette.pixel.exit.doorway);
+    expect(getPixel(exit, 8, 11).slice(0, 3)).toEqual(door);
+    expect(getPixel(exit, 10, 9).slice(0, 3)).toEqual(hexToRgbArr(palette.pixel.exit.frame));
+    const frame = hexToRgb(palette.pixel.exit.frame);
+    expect(contrastRatio(frame, hexToRgb(palette.pixel.exit.doorway))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(frame, hexToRgb(palette.ui.panel))).toBeGreaterThanOrEqual(4.5);
+    for (const body of VARIANTS) for (const band of BAND_COLOR_LIST) {
+      expect(Array.from(exit.data)).not.toEqual(Array.from(bakeEdgeArrow(body, band).data));
+    }
+  });
 });
+
+function hexToRgbArr(hex: string): number[] {
+  const c = hexToRgb(hex);
+  return [Math.round(c.r), Math.round(c.g), Math.round(c.b)];
+}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isStickyTipDismissCode, isWindows, readPlatform, shouldShowStickyKeysTip } from './stickyKeysTip';
+import { DEFAULT_BINDINGS } from './bindings';
+import { STICKY_TIP_DISMISS_CODES, isStickyTipDismissCode, isWindows, readPlatform, shouldShowStickyKeysTip } from './stickyKeysTip';
 import type { PlatformInfo } from './stickyKeysTip';
 
 const WIN_CHROME: PlatformInfo = {
@@ -17,6 +18,13 @@ const MAC: PlatformInfo = {
 };
 const LINUX: PlatformInfo = { userAgent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0', platform: 'Linux x86_64', uaDataPlatform: 'Linux' };
 const WIN_PHONE: PlatformInfo = { userAgent: 'Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1) Edge/15', platform: 'Win32' };
+
+describe('dismiss codes derive from the default bindings', () => {
+  it('are Enter plus every non-Shift gear key', () => {
+    const gear = [...DEFAULT_BINDINGS.shiftUp, ...DEFAULT_BINDINGS.shiftDown].filter((c) => !c.startsWith('Shift'));
+    expect([...STICKY_TIP_DISMISS_CODES].sort()).toEqual(['Enter', ...gear].sort());
+  });
+});
 
 describe('isWindows', () => {
   it.each([

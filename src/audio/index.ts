@@ -2,6 +2,7 @@
 // Audio reads simulation state and never changes it. Phaser-independent.
 
 import { createAudioEngine } from './engine';
+import { createMusic } from './music';
 import { createSfx } from './sfx';
 
 export {
@@ -29,6 +30,19 @@ export const audio = createAudioEngine();
 /** The ten sound effects on the shared engine, plus `sfx.playEvents(events, ctx)` for the scene. */
 export const sfx = createSfx(audio);
 
+/** The adaptive music on the shared engine: call `music.update(frame)` once per rendered frame. */
+export const music = createMusic(audio);
+
+export { createMusic, type Music, type MusicFrame, type MusicMode, type MusicSnapshot } from './music';
+export {
+  BAND_TARGETS,
+  DARK_CUTOFF_HZ,
+  GLIDE_SECONDS,
+  SNAP_SECONDS,
+  drivingBand,
+  type BodyBand,
+  type MusicLayerId,
+} from './musicSpec';
 export { createSfx, playCue, type Sfx } from './sfx';
 export {
   sfxForEvent,

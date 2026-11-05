@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Gear } from '../core/types';
-import { gearMeterModel, INITIAL_GEAR_METER_MODEL, type GearMeterParams } from './gearMeter';
+import { gearMeterModel, INITIAL_GEAR_METER_MODEL, needlePosition, type GearMeterParams } from './gearMeter';
+import { GEAR_METER_LAYOUT } from './gearMeterLayout';
+import { gearMeterPlan } from './gearMeterPlan';
 import { airborne, PARAMS, player } from './testkit';
 
 describe('gearMeterModel: lit band and selected gear', () => {
@@ -84,14 +86,72 @@ describe('gearMeterModel: needle', () => {
     expect(brake.needle).toBeGreaterThan(brake.selectedGear);
   });
 
-  it('divides by gearSpeeds[1], not a hard-coded 3', () => {
-    const doctored: GearMeterParams = { ...PARAMS, gearSpeeds: [0, 4, 8, 12, 16] };
+  it('scaled tuning keeps cruise speeds on cell centres', () => {
+    const doctored: GearMeterParams = {
+      ...PARAMS,
+      gearSpeeds: [0, 4, 8, 12, 16],
+      colorBandEdges: [2, 6, 10, 14],
+    };
     expect(gearMeterModel(player({ vx: 8 }), doctored).needle).toBeCloseTo(2, 9);
   });
 
-  it('degenerate walking speed of 0 does not produce NaN', () => {
-    const m = gearMeterModel(player({ vx: 5 }), { ...PARAMS, gearSpeeds: [0, 0, 0, 0, 0] });
+  it('uneven speeds: gear speeds land on cell centres and band edges on boundaries', () => {
+    const uneven: GearMeterParams = {
+      ...PARAMS,
+      gearSpeeds: [0, 2, 5, 9, 20],
+      colorBandEdges: [1, 3, 7, 12],
+    };
+    const at = (vx: number): number => needlePosition(vx, uneven);
+    expect([2, 5, 9, 20].map(at)).toEqual([1, 2, 3, 4]);
+    expect([1, 3, 7, 12].map(at)).toEqual([0.5, 1.5, 2.5, 3.5]);
+    expect(at(4)).toBeCloseTo(1.75, 9);
+    expect(at(16)).toBeCloseTo(3.5 + (4 / 8) * 0.5, 9);
+    const samples = Array.from({ length: 81 }, (_, i) => at(i * 0.25));
+    for (let i = 1; i < samples.length; i++) expect(samples[i] ?? 0).toBeGreaterThanOrEqual(samples[i - 1] ?? 0);
+  });
+
+  it('needle is in the lit cell exactly when the band says so (uneven speeds)', () => {
+    const uneven: GearMeterParams = { ...PARAMS, gearSpeeds: [0, 2, 5, 9, 20], colorBandEdges: [1, 3, 7, 12] };
+    const bandOf = (vx: number): number => [1, 3, 7, 12].filter((e) => vx >= e).length;
+    for (let vx = 0; vx <= 22; vx += 0.5) {
+      expect(Math.round(needlePosition(vx, uneven))).toBe(bandOf(vx));
+    }
+  });
+
+  it('degenerate tuning (all speeds 0) does not produce NaN', () => {
+    const m = gearMeterModel(player({ vx: 5 }), { ...PARAMS, gearSpeeds: [0, 0, 0, 0, 0], colorBandEdges: [0, 0, 0, 0] });
     expect(m.needle).toBe(0);
+  });
+
+  it('non-finite speed gives needle 0', () => {
+    expect(needlePosition(Number.NaN, PARAMS)).toBe(0);
+  });
+
+  it('MAX_GEAR from core types bounds pendingGear', () => {
+    expect(gearMeterModel(airborne({ gear: 4, shiftBufferSteps: 3, shiftBufferNet: 2 }), PARAMS).pendingGear).toBeNull();
+  });
+});
+
+describe('PT-5: slot 4 lit while the player is still yellow (w1-03 run-up)', () => {
+  // Intended behaviour: the bracket and bright digit show the SELECTED gear (4),
+  // the lit cell shows the BAND of actual speed (yellow, 3). Ramping from 9 to
+  // 12 tiles/s takes 13 steps in gear 4; the needle sits between the two.
+  it('gear 4 selected at speed 9 (yellow): lit cell 3, bracket 4, needle at 3', () => {
+    const m = gearMeterModel(player({ vx: 9, gear: 4, band: 3, moveDir: 1 }), PARAMS);
+    expect(m.litBand).toBe(3);
+    expect(m.selectedGear).toBe(4);
+    expect(m.needle).toBeCloseTo(3, 9);
+  });
+
+  it('the plan lights cell 3 solid and brackets cell 4 with a bright digit 4', () => {
+    const m = gearMeterModel(player({ vx: 9, gear: 4, band: 3, moveDir: 1 }), PARAMS);
+    const plan = gearMeterPlan(m, GEAR_METER_LAYOUT, { down: [], up: [] }, null);
+    expect(plan.cells.filter((c) => c.lit).map((c) => c.band)).toEqual([3]);
+    const cell4 = plan.cells[4];
+    expect(cell4).toBeDefined();
+    expect(plan.bracket.x).toBeLessThan(cell4?.x ?? 0);
+    expect(plan.bracket.x + plan.bracket.w).toBeGreaterThan((cell4?.x ?? 0) + (cell4?.size ?? 0));
+    expect(plan.digits.find((d) => d.bright)?.gear).toBe(4);
   });
 });
 

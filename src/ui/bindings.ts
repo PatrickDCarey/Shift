@@ -114,6 +114,8 @@ export function withBinding(bindings: Bindings, action: Action, codes: readonly 
 }
 
 /** `KeyboardEvent.code` values look like "KeyQ", "ShiftLeft", "Digit1", "NumpadEnter". */
+/** More codes than this for one action is corrupt data; the rest is never looked at. */
+const MAX_CODES_PER_ACTION = 16;
 const CODE_PATTERN = /^[A-Za-z][A-Za-z0-9]{0,31}$/;
 
 /**
@@ -127,7 +129,7 @@ export function sanitizeBindings(raw: unknown, fallback: Bindings = DEFAULT_BIND
   for (const action of ACTIONS) {
     const value = Object.prototype.hasOwnProperty.call(source, action) ? source[action] : undefined;
     const codes = Array.isArray(value)
-      ? [...new Set(value.filter((c): c is string => typeof c === 'string' && CODE_PATTERN.test(c)))]
+      ? [...new Set(value.slice(0, MAX_CODES_PER_ACTION).filter((c): c is string => typeof c === 'string' && CODE_PATTERN.test(c)))]
       : [];
     result[action] = codes.length > 0 ? codes : fallback[action];
   }

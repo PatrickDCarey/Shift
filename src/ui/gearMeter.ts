@@ -9,10 +9,13 @@
  *
  * Owner: ui-engineer. Spec: docs/design/features/hud-gear-meter.md.
  */
-import type { Band, Gear, PlayerState, SimParams } from '../core/types';
+import { MAX_GEAR, type Band, type Gear, type PlayerState, type SimParams } from '../core/types';
 
 /** Only the tuning-derived numbers the meter reads, so tests can pass a small object. */
-export type GearMeterParams = Pick<SimParams, 'gearSpeeds' | 'minGear' | 'airDragTilesPerGear' | 'airDragMinBand'>;
+export type GearMeterParams = Pick<
+  SimParams,
+  'gearSpeeds' | 'colorBandEdges' | 'minGear' | 'airDragTilesPerGear' | 'airDragMinBand'
+>;
 
 export interface GearMeterModel {
   /** Band of actual speed (0 white .. 4 red): the lit cell. */
@@ -21,8 +24,10 @@ export interface GearMeterModel {
   readonly selectedGear: Gear;
   /**
    * Speed needle position in cell widths from the centre of cell 0:
-   * `|vx| / gearSpeeds[1]` clamped to 0..4. Cruise speeds sit on cell centres,
-   * band edges on cell boundaries.
+   * piecewise-linear through the knots (0 -> 0, edge 1 -> 0.5, gear 1 -> 1,
+   * edge 2 -> 1.5, ..., gear 4 -> 4), clamped to 0..4. Cruise speeds sit on cell
+   * centres and band edges on cell boundaries whatever the tuning, so the needle
+   * is inside the lit cell exactly when the band says so.
    */
   readonly needle: number;
   /** Drag meter fill 0..1 while airborne above `airDragMinBand`; null (hidden) otherwise. */
@@ -43,8 +48,6 @@ export const INITIAL_GEAR_METER_MODEL: GearMeterModel = Object.freeze({
   airborne: false,
 });
 
-const MAX_GEAR = 4;
-
 const clamp = (v: number, lo: number, hi: number): number => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo);
 
 function dragFill(player: PlayerState, params: GearMeterParams): number | null {
@@ -59,12 +62,36 @@ function pendingGear(player: PlayerState, params: GearMeterParams): Gear | null 
   return target === player.gear ? null : target;
 }
 
+/**
+ * Needle position for a speed. Knots interleave the speeds (cell centres, index
+ * i) with the band edges (cell boundaries, i - 0.5). Non-increasing knots from
+ * doctored tuning are skipped, so the result is always finite and monotonic.
+ */
+export function needlePosition(speed: number, params: GearMeterParams): number {
+  const v = Math.abs(speed);
+  if (!Number.isFinite(v)) return 0;
+  let prevS = params.gearSpeeds[0] ?? 0;
+  let prevP = 0;
+  for (let i = 1; i <= MAX_GEAR; i++) {
+    const knots: readonly (readonly [number, number])[] = [
+      [params.colorBandEdges[i - 1] ?? Number.NaN, i - 0.5],
+      [params.gearSpeeds[i] ?? Number.NaN, i],
+    ];
+    for (const [s, p] of knots) {
+      if (!(s > prevS)) continue;
+      if (v <= s) return prevP + ((v - prevS) / (s - prevS)) * (p - prevP);
+      prevS = s;
+      prevP = p;
+    }
+  }
+  return prevP === 0 ? 0 : MAX_GEAR;
+}
+
 export function gearMeterModel(player: PlayerState, params: GearMeterParams): GearMeterModel {
-  const walkSpeed = params.gearSpeeds[1];
   return {
     litBand: player.band,
     selectedGear: player.gear,
-    needle: walkSpeed > 0 ? clamp(Math.abs(player.vx) / walkSpeed, 0, MAX_GEAR) : 0,
+    needle: needlePosition(player.vx, params),
     dragFill: dragFill(player, params),
     pendingGear: pendingGear(player, params),
     airborne: !player.grounded,

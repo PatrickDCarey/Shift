@@ -11,6 +11,7 @@ import {
   serializeSave,
 } from './index';
 import type { KeyValueStorage } from './index';
+import { MAX_SAVE_BYTES } from './schema';
 
 /** A working fake of Web Storage. */
 function fakeStorage(initial: Record<string, string> = {}): KeyValueStorage & { data: Map<string, string> } {
@@ -282,5 +283,34 @@ describe('createSaveStore', () => {
       expect(store.getBestSteps('w2-01')).toBe(321);
       expect(store.isPersistent()).toBe(false);
     });
+  });
+});
+
+describe('parseSave hardening (M1-58)', () => {
+  it('stored text above 64 KiB gets defaults without parsing', () => {
+    const big = JSON.stringify({ version: 1, settings: { muted: true }, progress: { completedLevels: ['a'] }, pad: 'x'.repeat(70_000) });
+    expect(big.length).toBeGreaterThan(MAX_SAVE_BYTES);
+    expect(parseSave(big)).toEqual(defaultSave());
+  });
+
+  it('text just under the limit still parses', () => {
+    const text = JSON.stringify({ version: 1, settings: { muted: true }, progress: {}, pad: 'x'.repeat(60_000) });
+    expect(text.length).toBeLessThan(MAX_SAVE_BYTES);
+    expect(parseSave(text).settings.muted).toBe(true);
+  });
+
+  it('bestSteps has no prototype and survives hostile ids', () => {
+    const text = JSON.stringify({ version: 1, progress: { bestSteps: { 'w1-01': 100 } } }).replace('"w1-01"', '"__proto__":7,"w1-01"');
+    const { bestSteps } = parseSave(text).progress;
+    expect(Object.getPrototypeOf(bestSteps)).toBeNull();
+    expect(Object.keys(bestSteps)).toEqual(['w1-01']);
+    expect(Object.keys(bestSteps)).not.toContain('__proto__');
+    expect((bestSteps as Record<string, number>)['toString']).toBeUndefined();
+  });
+
+  it('completedLevels is cut before filtering (junk past the cap is never looked at)', () => {
+    const junk = Array.from({ length: 300 }, () => '!!bad');
+    const text = JSON.stringify({ version: 1, progress: { completedLevels: [...junk, 'w1-01'] } });
+    expect(parseSave(text).progress.completedLevels).toEqual([]);
   });
 });

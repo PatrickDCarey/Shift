@@ -8,48 +8,28 @@
 //    failing node graph degrades to silence, never to an exception.
 //  - Settings (volumes, mute) set before the context exists are stored and applied on creation.
 
-// ---- Minimal structural types (keeps tests free of real Web Audio) ----
+import {
+  buildGraph,
+  clamp01,
+  isPositive,
+  releaseNodes,
+  setGain,
+  startVoice,
+  type Graph,
+  type Voice,
+} from './toneVoice';
+import type { AudioBuses, AudioContextLike, EventTargetLike } from './webAudioTypes';
 
-export interface AudioParamLike {
-  value: number;
-  setValueAtTime(value: number, time: number): unknown;
-  setTargetAtTime(target: number, startTime: number, timeConstant: number): unknown;
-  linearRampToValueAtTime(value: number, time: number): unknown;
-  exponentialRampToValueAtTime(value: number, time: number): unknown;
-  cancelScheduledValues(time: number): unknown;
-}
-
-export interface AudioNodeLike {
-  connect(destination: unknown): unknown;
-  disconnect(): void;
-}
-
-export interface GainNodeLike extends AudioNodeLike {
-  readonly gain: AudioParamLike;
-}
-
-export interface OscillatorNodeLike extends AudioNodeLike {
-  type: string;
-  readonly frequency: AudioParamLike;
-  onended: (() => void) | null;
-  start(when?: number): void;
-  stop(when?: number): void;
-}
-
-export interface AudioContextLike {
-  readonly state: string;
-  readonly currentTime: number;
-  readonly destination: unknown;
-  resume(): Promise<void>;
-  close(): Promise<void>;
-  createGain(): GainNodeLike;
-  createOscillator(): OscillatorNodeLike;
-}
-
-export interface EventTargetLike {
-  addEventListener(type: string, listener: () => void, capture?: boolean): void;
-  removeEventListener(type: string, listener: () => void, capture?: boolean): void;
-}
+export type {
+  AudioBuses,
+  AudioContextLike,
+  AudioNodeLike,
+  AudioParamLike,
+  BiquadFilterNodeLike,
+  EventTargetLike,
+  GainNodeLike,
+  OscillatorNodeLike,
+} from './webAudioTypes';
 
 // ---- Public types ----
 
@@ -84,13 +64,6 @@ export interface SaveAudioSettings {
   readonly musicVolume: number;
   readonly sfxVolume: number;
   readonly muted?: boolean;
-}
-
-export interface AudioBuses {
-  readonly context: AudioContext;
-  readonly master: GainNode;
-  readonly music: GainNode;
-  readonly sfx: GainNode;
 }
 
 export interface AudioEngine {
@@ -128,24 +101,12 @@ export const MAX_VOICES = 24;
 export const MAX_TONE_SECONDS = 4;
 const MAX_DELAY_SECONDS = 5;
 const DEFAULT_TONE_GAIN = 0.25;
-const ATTACK_SECONDS = 0.005;
-const SILENCE = 0.0001;
-const SMOOTHING_SECONDS = 0.01;
 const GESTURE_EVENTS = ['pointerdown', 'mousedown', 'touchend', 'keydown', 'keyup'] as const;
 const WAVES: readonly WaveType[] = ['sine', 'square', 'sawtooth', 'triangle'];
 
 const DEFAULTS: AudioSettingsState = { master: 0.8, music: 0.6, sfx: 0.8, muted: false };
 
 // ---- Helpers ----
-
-function clamp01(value: unknown, fallback: number): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
-  return Math.min(1, Math.max(0, value));
-}
-
-function isPositive(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0;
-}
 
 function defaultContextFactory(): AudioContextLike | null {
   const g = globalThis as unknown as {
@@ -161,29 +122,6 @@ function defaultTarget(): EventTargetLike | null {
   return g.window ?? g.document ?? null;
 }
 
-interface Graph {
-  readonly ctx: AudioContextLike;
-  readonly master: GainNodeLike;
-  readonly music: GainNodeLike;
-  readonly sfx: GainNodeLike;
-}
-
-function buildGraph(ctx: AudioContextLike): Graph {
-  const master = ctx.createGain();
-  const music = ctx.createGain();
-  const sfx = ctx.createGain();
-  master.connect(ctx.destination);
-  music.connect(master);
-  sfx.connect(master);
-  return { ctx, master, music, sfx };
-}
-
-function setGain(ctx: AudioContextLike, node: GainNodeLike, value: number): void {
-  const now = ctx.currentTime;
-  node.gain.cancelScheduledValues(now);
-  node.gain.setTargetAtTime(value, now, SMOOTHING_SECONDS);
-}
-
 // ---- Engine ----
 
 export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine {
@@ -194,7 +132,7 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
   let closed = false;
   let voices = 0;
   /** SFX voices, oldest first. At the voice cap the oldest is stopped, never a music voice. */
-  const sfxVoices: { osc: OscillatorNodeLike; env: GainNodeLike }[] = [];
+  const sfxVoices: Voice[] = [];
   let removeListeners: (() => void) | null = null;
 
   const effectiveMaster = (): number => (settings.muted ? 0 : settings.master);
@@ -274,15 +212,10 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
     return !settings.muted && settings.master > 0 && settings[bus] > 0;
   }
 
-  function releaseVoice(osc: OscillatorNodeLike, env: GainNodeLike): void {
-    const i = sfxVoices.findIndex((v) => v.osc === osc);
+  function releaseVoice(voice: Voice): void {
+    const i = sfxVoices.findIndex((v) => v.osc === voice.osc);
     if (i >= 0) sfxVoices.splice(i, 1);
-    try {
-      osc.disconnect();
-      env.disconnect();
-    } catch {
-      // Already disconnected.
-    }
+    releaseNodes(voice);
   }
 
   /** Cut the oldest SFX voice to make room. Returns false when no SFX voice is playing. */
@@ -295,7 +228,7 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
     } catch {
       // Never started or already stopped.
     }
-    releaseVoice(oldest.osc, oldest.env);
+    releaseVoice(oldest);
     voices = Math.max(0, voices - 1);
     return true;
   }
@@ -310,39 +243,29 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
 
     const duration = Math.min(opts.duration, MAX_TONE_SECONDS);
     const delay = typeof opts.delay === 'number' && Number.isFinite(opts.delay) ? Math.min(MAX_DELAY_SECONDS, Math.max(0, opts.delay)) : 0;
-    const peak = clamp01(opts.gain, DEFAULT_TONE_GAIN);
-    const wave = opts.type && WAVES.includes(opts.type) ? opts.type : 'square';
-
-    let osc: OscillatorNodeLike | null = null;
-    let env: GainNodeLike | null = null;
+    const start = g.ctx.currentTime + delay;
+    let voice: Voice;
     try {
-      osc = g.ctx.createOscillator();
-      env = g.ctx.createGain();
-      const t0 = g.ctx.currentTime + delay;
-      const t1 = t0 + duration;
-      osc.type = wave;
-      osc.frequency.setValueAtTime(opts.freq, t0);
-      if (isPositive(opts.endFreq)) osc.frequency.exponentialRampToValueAtTime(opts.endFreq, t1);
-      env.gain.setValueAtTime(SILENCE, t0);
-      env.gain.linearRampToValueAtTime(Math.max(peak, SILENCE), t0 + Math.min(ATTACK_SECONDS, duration / 2));
-      env.gain.exponentialRampToValueAtTime(SILENCE, t1);
-      osc.connect(env);
-      env.connect(busName === 'music' ? g.music : g.sfx);
-      const o = osc;
-      const e = env;
-      voices += 1;
-      if (busName === 'sfx') sfxVoices.push({ osc: o, env: e });
-      o.onended = () => {
-        o.onended = null;
-        voices = Math.max(0, voices - 1);
-        releaseVoice(o, e);
-      };
-      o.start(t0);
-      o.stop(t1 + ATTACK_SECONDS);
-      return true;
+      voice = startVoice(g.ctx, busName === 'music' ? g.music : g.sfx, {
+        wave: opts.type && WAVES.includes(opts.type) ? opts.type : 'square',
+        freq: opts.freq,
+        endFreq: opts.endFreq,
+        peak: clamp01(opts.gain, DEFAULT_TONE_GAIN),
+        start,
+        end: start + duration,
+      });
     } catch {
-      return false;
+      return false; // startVoice released its nodes; nothing was counted.
     }
+    // Count the voice only once it is really playing, so a failure above can never leak a slot.
+    voices += 1;
+    if (busName === 'sfx') sfxVoices.push(voice);
+    voice.osc.onended = () => {
+      voice.osc.onended = null;
+      voices = Math.max(0, voices - 1);
+      releaseVoice(voice);
+    };
+    return true;
   }
 
   return {
@@ -364,15 +287,7 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
     getSettings: () => settings,
     tone,
     activeVoices: () => voices,
-    getBuses: () =>
-      graph
-        ? ({
-            context: graph.ctx,
-            master: graph.master,
-            music: graph.music,
-            sfx: graph.sfx,
-          } as unknown as AudioBuses)
-        : null,
+    getBuses: () => (graph ? { context: graph.ctx, master: graph.master, music: graph.music, sfx: graph.sfx } : null),
     dispose: () => {
       removeListeners?.();
       removeListeners = null;

@@ -25,6 +25,7 @@ Each level has one public board per level version. Runs are **ranked by steps** 
 - **1 to 12 characters**, after trimming. The table allows 24; 12 keeps a board row inside the panel at 1× (rank, name, time = 23 glyphs = 138 px).
 - **Characters:** `A`–`Z`, `0`–`9`, space and `-`. Letters are upper case only: the pixel font's menus are upper case, and typing needs no Shift (menus never use Shift, `menu-navigation.md`). Lower-case key presses type the upper-case letter.
 - No leading or trailing space, no two spaces in a row (the entry field refuses the key).
+- **The allow-list as one pattern (SEC-2, 2026-11-05):** a name is valid if it matches `^[A-Z0-9-]+( [A-Z0-9-]+)*$` and is 1 to 12 characters long. The client, the SQL check and the edge function all use this pattern (shared constant via M3-04). The server never trims or upper-cases: it rejects anything that doesn't match, with code `name`.
 - **Blocked names:** the server checks a short blocklist after normalising (`0→O`, `1→I`, `3→E`, `4→A`, `5→S`, `7→T`, spaces and `-` removed), and rejects a match with code `name`. The client does not ship the list.
 - Names are not unique and not owned. Two players may both be `ACE`. Accepted for a jam; there are no accounts.
 - **Stored locally** as `settings.leaderboardName` (string or absent). Clearing it in settings stops posting.

@@ -10,6 +10,7 @@
  *
  * Owner: ui-engineer.
  */
+import { DEFAULT_BINDINGS } from './bindings';
 
 export interface PlatformInfo {
   /** `navigator.userAgent` */
@@ -45,7 +46,10 @@ export function shouldShowStickyKeysTip(ctx: StickyTipContext): boolean {
 }
 
 /** Key codes that dismiss a visible tip: Enter, or using an alternate gear key (they got the message). */
-export const STICKY_TIP_DISMISS_CODES: readonly string[] = ['Enter', 'KeyQ', 'KeyE', 'KeyZ', 'KeyX'];
+export const STICKY_TIP_DISMISS_CODES: readonly string[] = Object.freeze([
+  'Enter',
+  ...[...DEFAULT_BINDINGS.shiftUp, ...DEFAULT_BINDINGS.shiftDown].filter((code) => !code.startsWith('Shift')),
+]);
 
 export function isStickyTipDismissCode(code: string): boolean {
   return STICKY_TIP_DISMISS_CODES.includes(code);

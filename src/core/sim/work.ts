@@ -5,6 +5,7 @@
 import {
   MAX_GEAR,
   type Band,
+  type BodyId,
   type Gear,
   type InputFrame,
   type Level,
@@ -16,6 +17,8 @@ import {
 
 /** Read-only facts about the step, fixed before phase 2. */
 export interface StepCtx {
+  /** Which body this per-body pass is for (0 runner, 1 twin). */
+  readonly body: BodyId;
   readonly input: InputFrame;
   /** Press edges: held now and not held in prevInput. */
   readonly pressed: InputFrame;

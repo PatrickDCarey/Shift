@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSim, EMPTY_INPUT, expandRuns, runInputLog, step, type InputFrame } from '../core';
+import { createSim, EMPTY_INPUT, expandRuns, INPUT_BUTTONS, runInputLog, step, type InputFrame } from '../core';
 import { loadGameParams } from './params';
 import { RunDriver } from './runDriver';
 import { gridLevel } from './testkit';
@@ -190,5 +190,25 @@ describe('RunDriver wins', () => {
     const wins = driver.takeWins();
     expect(wins).toHaveLength(1);
     expect(wins[0]?.solution.steps).toBe(wins[0]?.wonAtStep);
+  });
+});
+
+describe('RunDriver after a win (review F2, F3)', () => {
+  it('stops recording at the win step', () => {
+    const driver = new RunDriver(level, params);
+    playUntilWon(driver);
+    const atWin = driver.recording.length;
+    expect(atWin).toBe(driver.state.step);
+    driver.advance(STEP_MS * 3, constant(right));
+    expect(driver.recording).toHaveLength(atWin);
+  });
+
+  it('a new run stores only the six buttons as prevInput', () => {
+    const driver = new RunDriver(level, params);
+    playUntilWon(driver);
+    const extra = { ...restart, mouseX: 12 } as InputFrame;
+    driver.advance(STEP_MS, constant(extra));
+    expect(driver.state.status).not.toBe('won');
+    expect(Object.keys(driver.state.prevInput).sort()).toEqual([...INPUT_BUTTONS].sort());
   });
 });

@@ -10,7 +10,7 @@
  *
  * Owner: ui-engineer. Spec: docs/design/features/hud-gear-meter.md.
  */
-import type { Band, BandColor, Gear } from '../core/types';
+import { BAND_COLORS, BANDS, GEARS, type Band, type BandColor, type Gear } from '../core/types';
 import { palette } from '../fx/palette';
 import type { GearKeyCaps } from './gearKeyCaps';
 import type { GearMeterModel } from './gearMeter';
@@ -80,9 +80,6 @@ export interface GearMeterPlan {
   readonly hints: readonly PlanHint[];
 }
 
-const BANDS: readonly BandColor[] = ['white', 'blue', 'green', 'yellow', 'red'];
-const GEARS: readonly Gear[] = [1, 2, 3, 4];
-
 const cellX = (l: GearMeterLayout, i: number): number => l.cellsX + i * l.pitch;
 const cellRect = (l: GearMeterLayout, i: number): Rect => ({ x: cellX(l, i), y: l.cellY, w: l.cell, h: l.cell });
 
@@ -132,11 +129,11 @@ export function gearMeterPlan(
 ): GearMeterPlan {
   return {
     panel: { x: 0, y: 0, w: l.panelW, h: l.panelH },
-    cells: BANDS.map((color, i) => ({
-      band: i as Band,
-      color,
-      pattern: palette.gears[color].pattern,
-      lit: i === model.litBand,
+    cells: BANDS.map((band, i) => ({
+      band,
+      color: BAND_COLORS[band],
+      pattern: palette.gears[BAND_COLORS[band]].pattern,
+      lit: band === model.litBand,
       x: cellX(l, i),
       y: l.cellY,
       size: l.cell,

@@ -97,7 +97,7 @@ test('D and A move the player like the arrows', async ({ page }) => {
   await page.keyboard.up('KeyA');
 });
 
-// Jumps happen in the open pit (see walkIntoOpenPit); since w0-02 v2 the spawn pad has full headroom too (pause.spec.ts jumps there).
+// Jumps happen in the open pit (see walkIntoOpenPit); a jump at the spawn pad is a full arc too since w0-02 v2 (m2-additions.spec.ts).
 test('Space, W and ArrowUp each jump a full 3-tile arc and land on the floor', async ({ page }) => {
   const floorY = await walkIntoOpenPit(page);
   for (const key of ['Space', 'KeyW', 'ArrowUp']) {

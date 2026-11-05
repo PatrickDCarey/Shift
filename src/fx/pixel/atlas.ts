@@ -5,7 +5,7 @@
  */
 import { BAND_COLOR_LIST, PLAYER_ANIMS, PLAYER_FRAMES, bakePlayerFrame, type AnimMeta } from './player';
 import { FEET_Y, FRAME_H, FRAME_W, VARIANTS } from './playerBody';
-import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, GLYPH_HOME_SIZE, bakeBodyGlyph, bakeEdgeArrow, bakeHomeGlyph } from './hud';
+import { EDGE_ARROW_H, EDGE_ARROW_W, GLYPH_BODY_H, GLYPH_BODY_W, GLYPH_HOME_SIZE, bakeBodyGlyph, bakeEdgeArrow, bakeExitArrow, bakeHomeGlyph } from './hud';
 import {
   DUST_FRAMES,
   DUST_H,
@@ -190,8 +190,8 @@ function sceneryItems(): PackItem[] {
   ];
 }
 
-export function hudFrameNames(): { glyph: (body: string) => string; home: string; edge: (body: string, band: string) => string } {
-  return { glyph: (body) => `glyph/${body}`, home: 'glyph/home', edge: (body, band) => `hud/edge/${body}/${band}` };
+export function hudFrameNames(): { glyph: (body: string) => string; home: string; edge: (body: string, band: string) => string; exitEdge: string } {
+  return { glyph: (body) => `glyph/${body}`, home: 'glyph/home', edge: (body, band) => `hud/edge/${body}/${band}`, exitEdge: 'hud/edge/exit' };
 }
 
 function hudItems(): PackItem[] {
@@ -202,6 +202,7 @@ function hudItems(): PackItem[] {
   for (const body of VARIANTS) {
     for (const band of BAND_COLOR_LIST) items.push({ name: names.edge(body, band), raster: bakeEdgeArrow(body, band), pivot: { x: 0, y: 0.5 } });
   }
+  items.push({ name: names.exitEdge, raster: bakeExitArrow(), pivot: { x: 0, y: 0.5 } });
   return items;
 }
 
@@ -280,7 +281,7 @@ export function buildPixelAssets(): PixelAssets {
       ridges: RIDGES,
     }),
     hud: packAtlas('pixel-hud.png', hudItems(), 256, {
-      naming: 'glyph/<runner|twin> (7x12 white mask), glyph/home (7x7 white mask), hud/edge/<runner|twin>/<band> (22x16, points right, pivot (0, 0.5); flipX at the left edge)',
+      naming: 'glyph/<runner|twin> (7x12 white mask), glyph/home (7x7 white mask), hud/edge/<runner|twin>/<band> (22x16, points right, pivot (0, 0.5); flipX at the left edge; band pattern swatch), hud/edge/exit (22x16, doorway, no band)',
       sizes: { body: [GLYPH_BODY_W, GLYPH_BODY_H], home: [GLYPH_HOME_SIZE, GLYPH_HOME_SIZE], edge: [EDGE_ARROW_W, EDGE_ARROW_H] },
     }),
     tileset: packTileset(),

@@ -55,6 +55,12 @@ export interface NetClient {
   submitRun(run: RunResult): Promise<NetResult<SubmitReceipt>>;
 }
 
+/** A `sb_publishable_` key is not a JWT and may be refused as a Bearer token; send it as `apikey` only. */
+function requestHeaders(anonKey: string): Record<string, string> {
+  const base = { apikey: anonKey, Accept: 'application/json' };
+  return anonKey.split('.').length === 3 ? { ...base, Authorization: `Bearer ${anonKey}` } : base;
+}
+
 const fail = (reason: NetFailureReason, status?: number): NetFailure =>
   status === undefined ? { ok: false, reason } : { ok: false, reason, status };
 
@@ -94,11 +100,7 @@ async function getJson(
     try {
       const res = await fetchFn(url, {
         method: 'GET',
-        headers: {
-          apikey: config.anonKey,
-          Authorization: `Bearer ${config.anonKey}`,
-          Accept: 'application/json',
-        },
+        headers: requestHeaders(config.anonKey),
         credentials: 'omit',
         redirect: 'error', // never forward the key to another host
         cache: 'no-store',

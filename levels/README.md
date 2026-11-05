@@ -10,6 +10,8 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w1-03 | Runway | 1 | NEW: running speed takes distance to build | 30–60 s | built (M2-20), awaiting design-lead approval |
 | w1-04 | Brake | 1 | NEW: slowing down takes distance too | 45–90 s | built (M2-20), awaiting design-lead approval |
 | w1-05 | Red Wall | 1 | NEW: a colored wall stops only its own color | 60–120 s | built (M2-45), awaiting design-lead approval |
+| w2-01 | Commit | 2 | NEW: in the air nothing you press changes your speed; you land in the color you took off in | 30–60 s | built (M2-21), awaiting design-lead approval; `shiftUp` and `jump` hint headers |
+| w2-02 | Coast | 2 | NEW: air drag: every 6 tiles of flight costs one color | 45–90 s | built (M2-21), awaiting design-lead approval |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
 
@@ -121,3 +123,43 @@ One screen (23 × 13): safe runway (cols 0–8, open sky) → red wall column (c
 **Fastest known:** 114 steps (`1R+ 1R 1R+ 52R 1R+ 400R`: shift to gear 3 while starting, third press in the window).
 
 **Solution:** 139 steps. Stand 20, shift up to gear 3, run 64 steps, press up once inside the wall (x = 9.62), sprint across. Fairness (earlier/later, capped at 30): gear-3 presses 9/9, run start ≥ 3/9, third press 9/9.
+
+## w2-01 Commit
+
+**Teaches:** in the air nothing you press changes your speed, so you land in the color you took off in. First level of world 2, open from the start, so it must work cold: the `shiftUp` and `jump` glyphs name the keys.
+
+One screen (24 × 13): left wall, safe pad P1 (cols 1–3, open to the top of the level) → green runway (cols 4–10, 7 tiles) over a pit → 4-tile gap (cols 11–14) → green landing pad (cols 15–16) → safe exit pad (cols 17–23, exit 2 tiles tall at col 20 so it reads as a door).
+
+- **The decision (where to jump):** shift up once on P1 (green 0.6 tiles from standing) and jump near the end of the runway. A green jump flies 4.8 tiles and lands green. Window: takeoff at x 9.81–11.81, **21 steps** (0.35 s, the playtest asked for at least 0.3 s in an opening level). Jump earlier and you land in the gap, or back on the runway if very early; nothing helps once you are up: 0 of 783 early jumps win with any air input (left, right, either shift, jump again).
+- **Teach → test:** the cheap failures are by the spawn: walking on in gear 1 (blue) or with two presses (yellow) drops you through the runway's first tile. Then the jump, one decision.
+- **Removing the new piece breaks it:** fill the gap with green and holding right in gear 2 wins at step 189 with no jump. In the real level no line without a jump wins (0 of 80, every gear and shift timing).
+- **No drag rescue before w2-02 (level plan constraint):** a yellow flight is 6.0–7.3 tiles and drags to green, so it must never reach green ground. Two choices make that true. P1 is 3 tiles, so a gear-3/4 player turns yellow on P1 and meets the runway as a hole (coyote only). On a 2-tile pad they turned yellow on the runway itself, grace held them, and a yellow jump landed green. The runway is 7 tiles, so every yellow takeoff from P1 falls in the gap. Sweeps: gear picked on P1, any jump step, walk back first, a second jump (20,160 lines): 384 wins, 0 with a non-green takeoff. Gear 3/4 pressed at any moment while walking (5,520 lines): 0. With a 5-tile runway the same sweeps let 12–188 yellow lines win.
+- **Known expert line, not cheese (flagged for design-lead):** green on the runway, shift up and jump within 0.2 s of turning yellow (grace then coyote, the w2-04 Two Colors trick). The yellow takeoff drags back to green 6 tiles out and lands on the pad or the exit pad. It needs a shift press on the runway itself, which every other line punishes. 40,000 random input logs: 708 wins, 73 of them cross this way. One gap cannot separate green and yellow landing spots, so it stays; the fastest known line uses it.
+- **Landing:** the green pad is 2 tiles, then safe ground. Holding right always works. Letting go the moment you land kills the earliest 8 of the 21 jump steps (blue on green before you reach safe ground); later landings roll onto the exit pad.
+- **Checks:** intended flight 4.8 tiles (≤ 6). No roof (world 2: jumping is the lesson); P1 has 8 clear rows above it. Exit on the first screen.
+- **Safe spots:** P1 (spawn) and the exit pad.
+- **Hints:** `hint: shiftUp 2 3` and `hint: jump 2 6`, stacked over P1 (boxes cols 1–3, rows 2–3 and 5–6, empty sky; the floor under col 2 is row 9). Render-only; `tests/levels/hints.test.ts` passes.
+
+**Fastest known:** 157 steps (`1R+ 42R 1R+ 4R 1R+ 10R 1RJ`, the expert yellow line). Green-only best: 187 (`1R+ 87R 1RJ`).
+
+**Solution:** 209 steps. Stand 20, shift up once, walk right, jump at x = 10.91 (middle of the window), land at 15.61, walk into the exit. Fairness (earlier/later, capped at 30): shift-up 19/10, jump 10/10.
+
+## w2-02 Coast
+
+**Teaches:** air drag: every 6 tiles of flight costs one color.
+
+One screen (30 × 13): left wall, safe runway (cols 1–7, 6.5 tiles from the spawn, open sky) → red runway (cols 8–12) over a pit → 7-tile gap (cols 13–19) → yellow landing pad (cols 20–23), **2 tiles lower** → safe exit pad (cols 24–29, exit 2 tiles tall at col 27).
+
+- **The tension (trust the air):** the pad is yellow and you must be red to stand on the red runway. Try to arrive yellow and you fall: gear 3 meets the red runway as a hole, and shifting down on the runway drops you after grace. The only way across is to take off red and let the flight turn you yellow. The solution's jump drags to yellow at x = 18.10 and lands yellow at 21.85.
+- **Telegraphed run-up:** the spawn is against the back wall, facing the whole run. Gear 4 from the spawn is red at x = 4.73, 3.3 tiles before the red runway. The cheap failure (walking on too slow) is next to the spawn.
+- **Jump window:** takeoff at x 10.10–14.50, **23 steps**. **Deviation from the plan's "flat" gap (flagged for design-lead):** the pad is 2 tiles lower to widen the window (level plan: lower landing pads, not shorter gaps). A flat draft measured 18 steps. The gap is still 7 tiles; the flight is about 9.6 tiles instead of 8.7. The drag drop comes on flight step 30 and the landing on step 55 (≥ 3 steps apart); a second drop would need 12 tiles.
+- **Acceptance: a red takeoff lands yellow on the pad, a yellow takeoff falls.** Every win takes off red, and every red crossing is longer than 6 tiles, so every win drags. Shift down on the runway and jump in the grace: 650 lines, 346 yellow takeoffs, 0 wins (they drag to green and fall through the pad). Gear 3 jumping at any step: 0 of 119.
+- **Removing the new piece breaks it:** paint the pad red (what a red takeoff would need with no drag): 3 of 139 jump timings still win, the latest ones, which land straight on the exit pad. With drag turned off in a scratch tuning (`airDragTilesPerGear` 1000, tests only), red jumps land red and fall through the yellow pad; only 9 of the 23 window steps still win, because undragged they fly over the pad onto the exit pad.
+- **Cheese check:** 166,400 lines (gear 1–4, shift-ups at any point, a shift-down on the runway at various points, a jump at every step, holding or letting go after): 722 wins, 0 without a red takeoff. 40,000 random input logs: 23 wins, all red takeoffs with a drag drop.
+- **Landing:** the yellow pad is 4 tiles, then safe ground. Holding right always works. Letting go the moment you land: 11 of the 23 jump steps survive. A 3-tile pad let 8 jump timings skip the yellow pad; a 5-tile pad left only 6 of 23 surviving a release.
+- **Checks:** no roof (world 2). The spawn runway is open sky. No hint glyph (none in the plan; jump and shift were shown in w2-01).
+- **Safe spots:** the safe runway (spawn) and the exit pad.
+
+**Fastest known:** 153 steps (`1R+ 1R 1R+ 1R 1R+ 73R 1RJ`: shift while starting the run, jump late).
+
+**Solution:** 182 steps. Stand 20, shift up to gear 4, sprint (red at x = 4.73), jump at x = 12.30 (middle of the window), drag to yellow at 18.10, land at 21.85, run into the exit. Fairness (earlier/later, capped at 30): shift-ups 19/11, jump 11/11.

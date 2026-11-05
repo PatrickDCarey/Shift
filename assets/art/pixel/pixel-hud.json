@@ -299,6 +299,30 @@
     "x": 0,
     "y": 0.5
    }
+  },
+  "hud/edge/exit": {
+   "frame": {
+    "x": 1,
+    "y": 18,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "pivot": {
+    "x": 0,
+    "y": 0.5
+   }
   }
  },
  "meta": {
@@ -308,7 +332,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 255,
-   "h": 18
+   "h": 35
   },
   "scale": "1"
  },
@@ -317,18 +341,19 @@
    "glyph/runner": "0930b4da",
    "glyph/twin": "275dfc1e",
    "glyph/home": "23ce657d",
-   "hud/edge/runner/white": "6d02538b",
-   "hud/edge/runner/blue": "119feb4e",
-   "hud/edge/runner/green": "5f7bfe3f",
-   "hud/edge/runner/yellow": "cb43e409",
-   "hud/edge/runner/red": "ed91b983",
-   "hud/edge/twin/white": "44de7093",
-   "hud/edge/twin/blue": "c936159f",
-   "hud/edge/twin/green": "933e7773",
-   "hud/edge/twin/yellow": "0a92f8f7",
-   "hud/edge/twin/red": "dcb29aa3"
+   "hud/edge/runner/white": "23cd366b",
+   "hud/edge/runner/blue": "65252d0e",
+   "hud/edge/runner/green": "1129ee9f",
+   "hud/edge/runner/yellow": "1b221289",
+   "hud/edge/runner/red": "00669103",
+   "hud/edge/twin/white": "5634b1f3",
+   "hud/edge/twin/blue": "b142f7b7",
+   "hud/edge/twin/green": "47f6c9d3",
+   "hud/edge/twin/yellow": "abfe4ac7",
+   "hud/edge/twin/red": "7d19e583",
+   "hud/edge/exit": "38d89417"
   },
-  "naming": "glyph/<runner|twin> (7x12 white mask), glyph/home (7x7 white mask), hud/edge/<runner|twin>/<band> (22x16, points right, pivot (0, 0.5); flipX at the left edge)",
+  "naming": "glyph/<runner|twin> (7x12 white mask), glyph/home (7x7 white mask), hud/edge/<runner|twin>/<band> (22x16, points right, pivot (0, 0.5); flipX at the left edge; band pattern swatch), hud/edge/exit (22x16, doorway, no band)",
   "sizes": {
    "body": [
     7,

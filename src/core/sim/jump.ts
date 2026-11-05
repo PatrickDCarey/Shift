@@ -28,7 +28,7 @@ export function jumpPhase(w: Work, ctx: StepCtx): Work {
       coyoteSteps: 0,
       jumpBufferSteps: 0,
     });
-    const event = { type: 'jump', body: 0, coyote: !ctx.startGrounded, buffered: !ctx.pressed.jump } as const;
+    const event = { type: 'jump', body: ctx.body, coyote: !ctx.startGrounded, buffered: !ctx.pressed.jump } as const;
     return emit({ ...launched, jumped: true }, event);
   }
   if (ctx.pressed.jump && !ctx.startGrounded) return withPlayer(w, { jumpBufferSteps: ctx.params.jumpBufferSteps });

@@ -13,9 +13,11 @@
 --   * Nobody but the service role can INSERT, UPDATE or DELETE. The edge
 --     function `submit-run` (M3-11) uses the service-role key from Supabase
 --     function secrets; that key never touches the client or the repo.
---   * Enforced twice: row level security has a SELECT policy and no write
---     policies (so writes are denied by default), and table privileges for the
---     client roles are revoked down to column-level SELECT.
+--   * Enforced in two layers: table privileges for the client roles are revoked
+--     down to column-level SELECT (the layer that actually stops writes and the
+--     input_log read), and row level security has a SELECT policy and no write
+--     policies (so writes stay denied even if a privilege is granted by mistake).
+--     Keep both: never `grant select ... to anon` on the whole table.
 
 begin;
 
@@ -64,7 +66,8 @@ comment on column public.runs.verified      is 'True once the server has replaye
 create index if not exists runs_leaderboard_idx
   on public.runs (level_id, level_version, steps, created_at, id);
 
--- Row level security: on for everyone, including the table owner.
+-- Row level security: on, and forced for the table owner. FORCE has no effect on Supabase's
+-- postgres and service_role (they have BYPASSRLS); the privilege revoke below is the real guard.
 alter table public.runs enable row level security;
 alter table public.runs force row level security;
 

@@ -161,3 +161,16 @@ describe('keyLabel', () => {
     expect(keyLabel('NumpadAdd')).toBe('NumpadAdd');
   });
 });
+
+describe('sanitizeBindings cap (M1-58)', () => {
+  it('only looks at the first codes of an oversized list', () => {
+    const junk = Array.from({ length: 100 }, () => '!!');
+    const result = sanitizeBindings({ jump: [...junk, 'KeyJ'] });
+    expect(result.jump).toEqual(DEFAULT_BINDINGS.jump);
+  });
+
+  it('a long list of valid codes is truncated', () => {
+    const codes = Array.from({ length: 100 }, (_, i) => `Key${i}`);
+    expect(sanitizeBindings({ jump: codes }).jump.length).toBeLessThanOrEqual(16);
+  });
+});

@@ -25,6 +25,13 @@ function solutionText(steps: number, levelVersion = 1): string {
 
 const files = (text: string): Record<string, string> => ({ [`/levels/${id}.solution.txt`]: text });
 
+describe('chooseFrameSource in a build without replay', () => {
+  it('ignores ?replay=1 and stays live, even when a solution is supplied', () => {
+    const src = chooseFrameSource('?replay=1', level, files(solutionText(5)), false);
+    expect(src.kind).toBe('live');
+  });
+});
+
 describe('clampReplaySpeed', () => {
   it.each([
     ['1', 1],

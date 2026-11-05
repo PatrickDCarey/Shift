@@ -8,7 +8,9 @@ Optional. The game plays fully offline; leaderboards switch on only when the two
 |---|---|
 | `migrations/0001_runs.sql` | The `runs` table, indexes and access rules. Safe to run twice. |
 | `tests/0001_runs_rls.sql` | Checks that clients can read but never write. Run it right after the migration. |
-| `functions/submit-run/` | Not written yet (task M3-11): the only way to add a run. |
+| `migrations/0002_submit_run.sql` | Name allow-list, step and log caps, and the service-only `submit_attempts` rate-limit table. Run after 0001. |
+| `tests/0002_submit_run_checks.sql` | Checks for 0002. Run it right after the migration. |
+| `functions/submit-run/` | The edge function (task M3-11): the only way to add a run. `rules.ts` holds the pure rules (unit tests: `scripts/submit-run.test.ts`), `index.ts` the Deno handler. Not deployed until M3-12. |
 
 ## Set up the Supabase project (owner steps, USER-2, due Nov 14)
 
@@ -22,7 +24,7 @@ You need a free Supabase account. You do not give any key to an agent or to the 
    - the **Project URL**, like `https://abcdefghij.supabase.co`
    - the **anon / publishable** key. Newer projects call it the *publishable* key (starts `sb_publishable_`); older ones call it *anon public* (a long `eyJ...` string). Either works.
 
-   Do **not** copy the `service_role` or *secret* key anywhere in this repo, in `.env`, or into chat. It is only ever pasted into Supabase's own function secrets later (M3-12), and the backend-engineer will tell you exactly when.
+   Do **not** copy the `service_role` or *secret* key anywhere: not into this repo, `.env`, chat or any dashboard field. You never need it. Supabase injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` into every edge function by itself, and `submit-run` reads them with `Deno.env.get`.
 6. **Put them in `.env`** in the repo root (it is git-ignored; `.env.example` shows the names). Copy the example and fill in the two lines:
 
    ```
@@ -36,12 +38,16 @@ You need a free Supabase account. You do not give any key to an agent or to the 
    ```powershell
    $url = "https://YOUR-PROJECT-REF.supabase.co"
    $key = "YOUR-ANON-OR-PUBLISHABLE-KEY"
-   $h = @{ apikey = $key; Authorization = "Bearer $key" }
+   # Only the apikey header: a publishable key (sb_publishable_...) is not a JWT, so do not send it as Bearer.
+   $h = @{ apikey = $key }
 
    # Reading works and returns an empty list: []
    Invoke-RestMethod "$url/rest/v1/runs?select=id,level_id,steps&limit=5" -Headers $h
 
-   # Writing must be refused: expect an error with status 401 or 403 (code 42501)
+   # A client must not be able to read the input logs: expect an error (permission denied), not rows
+try { Invoke-RestMethod "$url/rest/v1/runs?select=input_log&limit=1" -Headers $h; "BAD: input_log is readable" } catch { "good, input_log refused" }
+
+# Writing must be refused: expect an error with status 401 or 403 (code 42501)
    $body = '{"level_id":"w0-02","level_version":1,"display_name":"cheater","steps":1,"input_log":"1R"}'
    try {
      Invoke-RestMethod "$url/rest/v1/runs" -Method Post -Headers $h -ContentType "application/json" -Body $body
@@ -50,7 +56,14 @@ You need a free Supabase account. You do not give any key to an agent or to the 
    ```
 8. Free-tier note: Supabase pauses free projects after about a week with no activity. Open the dashboard and restore the project if it says paused, and do so again a day or two before submitting (Nov 30).
 
-You do not need to configure Authentication, Storage or Realtime. No one signs in; the game only ever uses the anon key.
+9. **Turn off sign-ups.** By default the anon key can create users, and a signed-in user gets the `authenticated` role. Nobody signs in here, so in **Authentication**, **Sign In / Providers** (or **Settings**) switch off **Allow new users to sign up** and **Allow anonymous sign-ins**, and leave every provider disabled.
+10. **Check the GraphQL endpoint.** Run the same two checks against `$url/graphql/v1` (POST `{"query":"{ runsCollection { edges { node { inputLog } } } }"}` with the `apikey` header): it must not return `inputLog` values. If it does, tell the backend-engineer. (If you do not use GraphQL, disabling the `pg_graphql` extension also closes it.)
+
+You do not need to configure Storage or Realtime. The game only ever uses the anon key.
+
+### If a secret key leaks
+
+If a `service_role` / secret key (or the database password) ever appears in the repo, a log, chat or a build, treat it as public: in the dashboard go to **Project Settings**, **API Keys** (older projects: **API**, JWT settings) and rotate it, then redeploy the function. Remove it from git history before the repo goes public (SEC-3 scan). Rotating the anon key is only needed if you want to change the public key; update `.env` and rebuild afterwards.
 
 ## Schema: `public.runs`
 
@@ -71,7 +84,7 @@ Index `runs_leaderboard_idx (level_id, level_version, steps, created_at, id)` se
 
 ### Policies and privileges
 
-- Row level security is **enabled and forced**. The only policy is `runs_public_read` (SELECT for `anon` and `authenticated`, all rows). There is no INSERT, UPDATE or DELETE policy, so those are denied by default.
+- Row level security is **enabled** (and forced for the table owner, which does not affect Supabase's own `postgres` and `service_role`, so the privilege revoke below is the real guard). The only policy is `runs_public_read` (SELECT for `anon` and `authenticated`, all rows). There is no INSERT, UPDATE or DELETE policy, so those are denied by default.
 - Privileges are revoked from `public`, `anon` and `authenticated`, then granted back as **column-level SELECT** on every column except `input_log`. Consequences:
   - clients cannot insert, update, delete or truncate, even if a policy were added by mistake;
   - clients cannot read the input logs (large, and they would give away solutions);
@@ -86,13 +99,26 @@ GET {URL}/rest/v1/runs
     &select=display_name,steps,created_at
     &order=steps.asc,created_at.asc,id.asc
     &limit=20&offset=0
-headers: apikey: <anon key>, Authorization: Bearer <anon key>
+headers: apikey: <anon key> (plus Authorization: Bearer <anon key> only when the key is a JWT)
 ```
 
-## Not in 0001 (planned)
+## Migration 0002 and `submit-run` (M3-11)
 
-- Per-level floor times, name and profanity checks, and the per-IP rate limit: all in the `submit-run` edge function and a small service-only table in `0002` (M3-11).
-- Server-side replay: set `verified` after re-running `input_log` (stretch, v2).
+`0002` replaces three `runs` checks: names are 1 to 12 of `A-Z 0-9 space -` (no padding, no doubled spaces), `steps` is at most 36,000 and `input_log` at most 16,000 characters. It also creates `submit_attempts` (hashed IP and time) with RLS on, no policy and all client privileges revoked. A new table in `public` is granted to `anon` and `authenticated` by default on Supabase, so any further table must repeat that revoke and enable RLS.
+
+`submit-run` takes `POST /functions/v1/submit-run` with `{ levelId, levelVersion, steps, name, inputLog }` and answers `{ ok: true, rank, total }` or `{ ok: false, code }` where code is one of:
+
+| Code | When |
+|---|---|
+| `rate` | more than 30 calls per minute from one IP (keyed hash of `cf-connecting-ip`; raw addresses are never stored) |
+| `invalid` | wrong shape or extra keys, unknown level (world 0 included), steps outside 1..36,000, a malformed log, or a log shorter than `steps`. Run counts are summed, never expanded. |
+| `version` | the level version is not the one the function knows |
+| `floor` | fewer steps than 85% of the fastest known (table in `rules.ts`, from `levels/README.md`) |
+| `name` | fails the name rule or the normalised blocklist (`DEFAULT_BLOCKLIST` is a placeholder until design-lead supplies the list) |
+
+Deploy (M3-12): `supabase functions deploy submit-run`. No `supabase secrets set` is needed. The level table in `rules.ts` must be updated when a level is added or its version or fastest time changes.
+
+Not done: server-side replay (stretch, v2: set `verified` after re-running `input_log`) and keeping only the top N rows per level.
 
 ## Release build for itch.io
 

@@ -45,12 +45,15 @@ describe('chooseLevel', () => {
     expect(c.messages).toEqual([]);
   });
 
-  it('defaults to w0-02 when present', () => {
-    expect(chooseLevel(levels, null).level.meta.id).toBe(DEFAULT_LEVEL_ID);
+  it('defaults to w1-01 when present (PT-1), and w0-02 is still reachable by id', () => {
+    expect(DEFAULT_LEVEL_ID).toBe('w1-01');
+    expect(chooseLevel(levels, null).level.meta.id).toBe('w1-01');
+    expect(selectLevel(files, '').level.meta.id).toBe('w1-01');
+    expect(selectLevel(files, '?level=w0-02').level.meta.id).toBe('w0-02');
   });
 
   it('falls back to the first level (world, then id order) when the default is missing', () => {
-    const c = chooseLevel(levels.filter((l) => l.meta.id !== 'w0-02'), null);
+    const c = chooseLevel(levels.filter((l) => l.meta.id !== DEFAULT_LEVEL_ID), null);
     expect(c.level.meta.id).toBe('w0-01');
   });
 
@@ -79,7 +82,7 @@ describe('selectLevel', () => {
   it('reports a broken file but still plays the good ones', () => {
     const broken = { ...files, '/levels/w0-03.txt': 'id: w0-03\nnonsense' };
     const sel = selectLevel(broken, '');
-    expect(sel.level.meta.id).toBe('w0-02');
+    expect(sel.level.meta.id).toBe(DEFAULT_LEVEL_ID);
     expect(sel.messages[0]).toContain('failed to parse');
     expect(sel.messages.length).toBeGreaterThan(1);
   });

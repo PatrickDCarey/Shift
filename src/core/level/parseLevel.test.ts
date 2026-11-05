@@ -212,6 +212,18 @@ describe('parseLevel: grid', () => {
     ]);
   });
 
+  it.each([
+    ['X', 'crate'],
+    ['M', 'moving platform'],
+    ['~', 'mud'],
+    ['*', 'boost pad'],
+    ['<', 'conveyor'],
+    ['>', 'conveyor'],
+  ])('refuses reserved glyph %s with its name, line and column', (glyph, name) => {
+    const e = errors(parseLevel(levelText(['@..E', `.${glyph}..`, '####']), 'w1-01'));
+    expect(e).toEqual([`w1-01.txt:8:2: reserved character '${glyph}' (${name}) is not supported yet`]);
+  });
+
   it('describes spaces, tabs and non-ASCII characters readably', () => {
     const e = errors(parseLevel(levelText(['@ \tEé']), 'w1-01'));
     expect(e).toEqual([

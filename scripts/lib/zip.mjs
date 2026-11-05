@@ -19,17 +19,66 @@ const DOS_DATE = (0 << 9) | (1 << 5) | 1; // 1980-01-01
 const FILE_ATTR = (0o100644 << 16) >>> 0;
 const MAX_ENTRIES = 0xfffe;
 const MAX_SIZE = 0xfffffffe; // no zip64: the game is a few MB
+const MAX_NAME_BYTES = 0xffff;
+/** Default cap on one inflated entry in `readZip`. */
+const DEFAULT_MAX_ENTRY_BYTES = 256 * 1024 * 1024;
 
 /** Reject names that could escape the extraction folder or confuse an unzipper. */
 function checkName(name) {
   const bad =
     name.length === 0 ||
+    Buffer.byteLength(name, 'utf8') > MAX_NAME_BYTES ||
     name.includes('\\') ||
+    name.includes('\0') ||
+    name.includes(':') ||
     name.startsWith('/') ||
     name.endsWith('/') ||
-    /^[A-Za-z]:/.test(name) ||
     name.split('/').some((part) => part === '' || part === '.' || part === '..');
-  if (bad) throw new Error(`unsafe zip entry name: ${JSON.stringify(name)}`);
+  if (bad) throw new Error(`unsafe zip entry name: ${JSON.stringify(name.slice(0, 80))}`);
+}
+
+function localHeader(nameBytes, method, crc, csize, usize) {
+  const h = Buffer.alloc(30);
+  h.writeUInt32LE(SIG_LOCAL, 0);
+  h.writeUInt16LE(VERSION_NEEDED, 4);
+  h.writeUInt16LE(FLAG_UTF8, 6);
+  h.writeUInt16LE(method, 8);
+  h.writeUInt16LE(DOS_TIME, 10);
+  h.writeUInt16LE(DOS_DATE, 12);
+  h.writeUInt32LE(crc, 14);
+  h.writeUInt32LE(csize, 18);
+  h.writeUInt32LE(usize, 22);
+  h.writeUInt16LE(nameBytes.length, 26);
+  h.writeUInt16LE(0, 28);
+  return h;
+}
+
+function centralHeader(nameBytes, method, crc, csize, usize, offset) {
+  const h = Buffer.alloc(46);
+  h.writeUInt32LE(SIG_CENTRAL, 0);
+  h.writeUInt16LE(MADE_BY_UNIX, 4);
+  h.writeUInt16LE(VERSION_NEEDED, 6);
+  h.writeUInt16LE(FLAG_UTF8, 8);
+  h.writeUInt16LE(method, 10);
+  h.writeUInt16LE(DOS_TIME, 12);
+  h.writeUInt16LE(DOS_DATE, 14);
+  h.writeUInt32LE(crc, 16);
+  h.writeUInt32LE(csize, 20);
+  h.writeUInt32LE(usize, 24);
+  h.writeUInt16LE(nameBytes.length, 28);
+  h.writeUInt32LE(FILE_ATTR, 38);
+  h.writeUInt32LE(offset, 42);
+  return h;
+}
+
+function endRecord(count, centralSize, centralOffset) {
+  const e = Buffer.alloc(22);
+  e.writeUInt32LE(SIG_END, 0);
+  e.writeUInt16LE(count, 8);
+  e.writeUInt16LE(count, 10);
+  e.writeUInt32LE(centralSize, 12);
+  e.writeUInt32LE(centralOffset, 16);
+  return e;
 }
 
 /**
@@ -56,58 +105,26 @@ export function createZip(entries) {
     const method = useDeflate ? METHOD_DEFLATE : METHOD_STORE;
     const nameBytes = Buffer.from(name, 'utf8');
     const crc = crc32(raw);
-
-    const local = Buffer.alloc(30);
-    local.writeUInt32LE(SIG_LOCAL, 0);
-    local.writeUInt16LE(VERSION_NEEDED, 4);
-    local.writeUInt16LE(FLAG_UTF8, 6);
-    local.writeUInt16LE(method, 8);
-    local.writeUInt16LE(DOS_TIME, 10);
-    local.writeUInt16LE(DOS_DATE, 12);
-    local.writeUInt32LE(crc, 14);
-    local.writeUInt32LE(body.length, 18);
-    local.writeUInt32LE(raw.length, 22);
-    local.writeUInt16LE(nameBytes.length, 26);
-    local.writeUInt16LE(0, 28);
+    const local = localHeader(nameBytes, method, crc, body.length, raw.length);
     chunks.push(local, nameBytes, body);
-
-    const head = Buffer.alloc(46);
-    head.writeUInt32LE(SIG_CENTRAL, 0);
-    head.writeUInt16LE(MADE_BY_UNIX, 4);
-    head.writeUInt16LE(VERSION_NEEDED, 6);
-    head.writeUInt16LE(FLAG_UTF8, 8);
-    head.writeUInt16LE(method, 10);
-    head.writeUInt16LE(DOS_TIME, 12);
-    head.writeUInt16LE(DOS_DATE, 14);
-    head.writeUInt32LE(crc, 16);
-    head.writeUInt32LE(body.length, 20);
-    head.writeUInt32LE(raw.length, 24);
-    head.writeUInt16LE(nameBytes.length, 28);
-    head.writeUInt32LE(FILE_ATTR, 38);
-    head.writeUInt32LE(offset, 42);
-    central.push(head, nameBytes);
-
+    central.push(centralHeader(nameBytes, method, crc, body.length, raw.length, offset), nameBytes);
     offset += local.length + nameBytes.length + body.length;
     if (offset > MAX_SIZE) throw new Error('zip too large (no zip64 support)');
   }
 
   const centralBytes = Buffer.concat(central);
-  const end = Buffer.alloc(22);
-  end.writeUInt32LE(SIG_END, 0);
-  end.writeUInt16LE(sorted.length, 8);
-  end.writeUInt16LE(sorted.length, 10);
-  end.writeUInt32LE(centralBytes.length, 12);
-  end.writeUInt32LE(offset, 16);
-  return Buffer.concat([...chunks, centralBytes, end]);
+  return Buffer.concat([...chunks, centralBytes, endRecord(sorted.length, centralBytes.length, offset)]);
 }
 
 /**
  * Read a zip made by `createZip` (or any zip without zip64, spanning or encryption),
- * checking every entry's CRC. Used for the package self-check and in tests.
+ * checking every entry's CRC. Used for the package self-check and in tests; for zips this
+ * repo built itself. `maxEntryBytes` stops a hostile zip from inflating without limit.
  * @param {Uint8Array} bytes
+ * @param {{ maxEntryBytes?: number }} [options]
  * @returns {{ name: string, data: Buffer }[]}
  */
-export function readZip(bytes) {
+export function readZip(bytes, { maxEntryBytes = DEFAULT_MAX_ENTRY_BYTES } = {}) {
   const buf = Buffer.from(bytes);
   const endAt = buf.length - 22;
   if (endAt < 0 || buf.readUInt32LE(endAt) !== SIG_END) throw new Error('not a zip (no end record)');
@@ -132,7 +149,7 @@ export function readZip(bytes) {
     const body = buf.subarray(dataAt, dataAt + csize);
     let data;
     if (method === METHOD_STORE) data = Buffer.from(body);
-    else if (method === METHOD_DEFLATE) data = inflateRawSync(body);
+    else if (method === METHOD_DEFLATE) data = inflateRawSync(body, { maxOutputLength: Math.max(1, maxEntryBytes) });
     else throw new Error(`unsupported compression method ${method}: ${name}`);
     if (data.length !== usize || crc32(data) !== crc) throw new Error(`checksum mismatch: ${name}`);
     out.push({ name, data });

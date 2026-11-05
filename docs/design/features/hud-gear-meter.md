@@ -60,6 +60,13 @@ Visual / manual (qa-tester):
 12. Lit-cell glyphs and the bracket have ≥ 3:1 contrast against `palette.ui.panel`.
 13. In w0-02, a fresh player can say the target gear for red before reaching the red bridge (next playtest question).
 
+## Amendments from the M1 playtest (M1-52, 2026-11-05)
+
+These come from `clarity-fixes.md`, which has the full checks. Where they differ from the sections above, they win.
+- **Bracket arrival (PT-5, Must):** the selected-gear bracket is thin (1 px, `ui.textMuted`) while its cell is not the lit cell, and bold on the step the lit cell reaches it. Unlit cells use the ghost treatment, so the lit cell is the only filled cell.
+- **Drag bar (PT-4, Should):** it runs from the needle toward the centre of cell `litBand − 1`, filled by `min(airDistance / airDragTilesPerGear, 1)`, and ends in a 3 × 5 px chevron. There is no word label. If it is not built for the pixel HUD by M2-29, hide it.
+- **Cue ring (PT-3):** when the scene reports a fall-through or a colored wall stop with band `b`, cell `b` gets a 1 px `ui.text` ring for 45 frames plus one brightness pulse. Reduced motion: ring only. Respawn clears it.
+
 ## Priority
 
 - **Must (M1):** five cells with patterns, lit band, selected-gear bracket, speed needle, reset on death.

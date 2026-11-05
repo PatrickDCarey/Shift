@@ -84,7 +84,7 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 - **Which body the camera keeps:**
   - both non-home and within 28 tiles: the camera's x target is their midpoint, clamped to the level bounds and eased as today;
   - one body home: the camera frames the body that is not home;
-  - both non-home and more than 28 tiles apart: the camera follows the runner, and a pixel arrow (with the twin's silhouette) at the screen edge points at the twin.
+  - both non-home and more than 28 tiles apart: the camera follows the runner, and a pixel arrow (with the twin's silhouette) at the screen edge points at the twin. The arrow carries the twin's band by its pattern ink (white is plain), so the band never depends on color alone (ruled in M1-52, 2026-11-05; built by art in M1-59).
 - **Level rule:** intended solutions keep the bodies within 26 tiles of each other.
 
 ## Readability (requirements for art and UI; color is never the only signal)

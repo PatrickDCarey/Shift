@@ -33,7 +33,14 @@ import {
 const REQUIRED_KEYS = ['id', 'title', 'world', 'teaches', 'version'] as const;
 const ALLOWED_KEYS = [...REQUIRED_KEYS, HINT_KEY];
 const LEGEND_HINT = 'see the legend in docs/tech/level-format.md';
-const RESERVED_NAMES: Readonly<Record<string, string>> = { X: 'crate', M: 'moving platform' };
+const RESERVED_NAMES: Readonly<Record<string, string>> = {
+  X: 'crate',
+  M: 'moving platform',
+  '~': 'mud',
+  '*': 'boost pad',
+  '<': 'conveyor',
+  '>': 'conveyor',
+};
 
 /** How a character reads in an error message: 'Q', space, or U+00E9. */
 function describeChar(ch: string): string {

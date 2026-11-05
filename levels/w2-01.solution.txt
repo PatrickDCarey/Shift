@@ -1,0 +1,12 @@
+level: w2-01
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand on P1 (reading the shiftUp and jump glyphs)
+# 1+ 1. shift up once while standing: gear 2 (cruise green)
+# 98R   walk right: green at x = 2.1, still on P1; onto the green runway
+# 1RJ   jump at x = 10.91, the middle of the window (x 9.81-11.81): green takeoff, 4.8 tiles of flight
+# 88R   land green on the green pad at x = 15.61, walk on into the exit
+# Fairness: jump 10/10 steps earlier/later (the whole window is 21 steps), shift-up 19/10.
+steps: 209
+---
+20. 1+ 1. 98R 1RJ 88R

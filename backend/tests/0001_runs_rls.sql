@@ -140,6 +140,73 @@ begin
 end $$;
 reset role;
 
+-- 7. Privilege catalog checks (the column revoke is the first layer).
+do $$
+begin
+  if has_column_privilege('anon', 'public.runs', 'input_log', 'select')
+     or has_column_privilege('authenticated', 'public.runs', 'input_log', 'select') then
+    raise exception 'FAIL: a client role can select input_log';
+  end if;
+  if has_table_privilege('anon', 'public.runs', 'insert, update, delete, truncate')
+     or has_table_privilege('authenticated', 'public.runs', 'insert, update, delete, truncate') then
+    raise exception 'FAIL: a client role has a write privilege on public.runs';
+  end if;
+  if (select array_agg(r order by r) from pg_policies p, unnest(p.roles) r
+      where p.schemaname = 'public' and p.tablename = 'runs') is distinct from array['anon', 'authenticated']::name[] then
+    raise exception 'FAIL: the runs policies are not exactly for {anon, authenticated}';
+  end if;
+end $$;
+
+-- 8. The RLS layer on its own. Give the client roles the table privileges they are denied
+-- above (undone by the rollback), so only row level security stands in the way.
+grant insert, update, delete on public.runs to anon, authenticated;
+
+set local role anon;
+do $$
+declare
+  denied boolean := false;
+  n bigint;
+begin
+  begin
+    insert into public.runs (level_id, level_version, display_name, steps, input_log)
+    values ('w0-02', 1, 'cheater', 1, '1R');
+  exception when insufficient_privilege then denied := true; end;
+  if not denied then raise exception 'FAIL: RLS did not block an anon insert'; end if;
+
+  update public.runs set steps = 1;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: RLS let anon update % rows', n; end if;
+
+  delete from public.runs;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: RLS let anon delete % rows', n; end if;
+end $$;
+reset role;
+
+set local role authenticated;
+do $$
+declare
+  denied boolean := false;
+  n bigint;
+begin
+  begin
+    perform input_log from public.runs;
+  exception when insufficient_privilege then denied := true; end;
+  if not denied then raise exception 'FAIL: authenticated can read input_log'; end if;
+
+  denied := false;
+  begin
+    insert into public.runs (level_id, level_version, display_name, steps, input_log)
+    values ('w0-02', 1, 'cheater', 1, '1R');
+  exception when insufficient_privilege then denied := true; end;
+  if not denied then raise exception 'FAIL: RLS did not block an authenticated insert'; end if;
+
+  update public.runs set steps = 1;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: RLS let authenticated update % rows', n; end if;
+end $$;
+reset role;
+
 rollback;
 
 select 'ok: all checks for 0001_runs passed (changes rolled back)' as result;

@@ -56,9 +56,10 @@ export function chooseFrameSource(
   search: string,
   level: Level,
   solutionFiles: Readonly<Record<string, string>>,
+  replayAvailable = true,
 ): FrameSource {
   const request = parseReplayRequest(search);
-  if (!request.active) return { kind: 'live' };
+  if (!replayAvailable || !request.active) return { kind: 'live' };
   const id = level.meta.id;
   const text = findSolutionText(solutionFiles, id);
   if (text === null) return { kind: 'error', message: `Replay: no solution file levels/${id}.solution.txt.` };

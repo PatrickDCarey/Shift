@@ -288,3 +288,30 @@ No `tuning.json` change. T-03 (deleting the four unused keys) waits for tech-lea
 - **World tint and music follow the faster non-home body** — one ambient pace; each body's own color stays on the body and its strip.
 - **No screen shake anywhere** — simplest accessible answer; nothing in the game needs it.
 - **Flash cap: 3 per second for the whole screen** — photosensitivity guideline, both bodies counted together.
+
+## 2026-11-05 — M1-52: verdicts from the M1 playtest (`docs/playtests/2026-11-07-m1-greybox.md`)
+
+No `tuning.json` change: every issue was missing information or level geometry, not a wrong number. Checks per fix: `features/clarity-fixes.md`.
+
+### Playtest fixes PT-1..PT-7
+- **PT-1 `/` opens on w1-01: DO** — w0-02 asks six ideas at once and was the biggest quit risk; w1-01 reads in 8 s (pillar 2). An unknown `?level=` also falls back to w1-01 until the title exists.
+- **PT-2 exit doorway and off-screen exit arrow: DO; opening camera pan and w0-02 pocket cue REJECTED** — the goal must be the most distinct object and a wide level must say it continues (pillar 2); a pan delays every retry (pillar 3); world 0 does not ship.
+- **PT-3 show why you fell: DO (Must for fall-through; Should for airborne pass-through and colored wall stops)** — highlight the tile run and ring that color's HUD cell for 0.75 s, held, never blinking; the rule must be visible at the moment it acts (pillar 2).
+- **PT-4 drag bar: CHANGE, labelled by shape (it runs from the needle to the next lower cell, ending in a chevron), no word; hidden if not built by M2-29** — one drop then explains it; an unexplained bar reads as a loading bar.
+- **PT-4 one-time air-shift hint: REJECT** — you cannot shift in the air (presses are buffered only within 6 steps of landing), so the hint would teach a false rule; the pending bracket already shows a buffered press. No glyph id and no producer sign-off needed.
+- **PT-5 "slot 4 lit while yellow": CHANGE, the bracket is thin until the lit cell reaches it, then bold; the lit cell is the only filled cell** — shows "selected but not reached yet" by shape without a runway hint (M1-29 ruling stands); any model bug found by ui-engineer is fixed separately.
+- **PT-6 tight windows: CHANGE w1-02 and w1-01 (P2 3 → 4 tiles), w1-04 (pad 6 → 8 tiles); w1-05 geometry KEPT** — "did it right but too slowly" deaths in teach levels fail pillar 3; w1-05's window is capped by its lesson (wall-to-bridge 2 tiles + 0.75 must stay under red's 3.23), and its standing-start line needs no timing.
+- **New level rule (level plan v3.3): every level has one winning line whose timed inputs each have ≥ 30 steps in world 1 (≥ 18 from world 2), or are a walking-pace position choice with ≥ 1 tile of spots; 12 steps stays the floor for other intended lines** — makes "never pixel-perfect" a number level-designer can measure.
+- **PT-7 win card: DEFER to M2-12; NEXT is primary (focused, Enter/Space), R is RETRY; no interim banner change** — the results panel replaces the banner, and the M1 build is internal.
+- **Scene spec gaps of 2026-11-04 (beat, replay banner, blur after win, R while paused, unknown `?level=`, tip in replay): answered in `clarity-fixes.md`, all accepted as built except unknown `?level=` → w1-01** — none affects a shipped run.
+- **Four fast E taps registering as two: not a bug** — a press is a key-down edge; the playtest script held E across steps without a release, which a human tap does not do.
+- **World-1 roofs read as hanging slabs (playtest Q5): KEEP the geometry; linking them visually across the top rows is an art Could** — the playtester never felt blocked, and pads must stay open for the full jump apex.
+
+### Other rulings
+- **Red ghost outline under protanopia, 2.20:1 (2.31 without star pixels): ACCEPT as the single documented exception, floor 2.15 pinned by test** — art proved no red outline meets 3:1 there without collapsing onto another band; the checker rim, dashed outline with solid corners and missing fill/lip carry the ghost, so color is not the only signal (the hard rule holds; 3:1 is our own bar). M2-29 includes a protanopia screenshot of a red ghost bridge.
+- **w1-04 blue bridge with no roof: ACCEPT; roof rule amended: a world-1 bridge may go roofless when a roof face would let a jump wall-stop past the lesson and the bridge is long enough that no takeoff clears it (sweep: 0 skips)** — 156 of 486 no-brake lines win under a roof, 0 of 486 on the open 12-tile bridge; the roof exists to protect the lesson, and here it would break it.
+- **Edge arrow carries the band: YES, by pattern ink (white = plain), with the body's silhouette as today; art builds it in M1-59** — in Tandem the off-screen body's color is the question the player is asking ("is the twin red on its red bridge?"), and color is never the only signal. The PT-2 exit arrow is neutral (no band) and differs by shape.
+- **w1-03 Runway: APPROVED (M2-23)** — one idea (back up to build speed); any standing start at x ≤ 8.3 works, so it is a lesson, not a test (pillar 3); no line that never backs up wins (0 of 5,680), and the roof stops 518 jump skips (pillar 4).
+- **w1-04 Brake: APPROVED subject to PT-6 v2 meeting its numbers (≥ 35 / ≥ 32 steps)** — one idea (slowing takes distance), the brake can't be skipped (0 air brakes in 25,728 runs); only the window was short.
+- **w1-05 Red Wall: APPROVED; README must record the timing-free standing-start line (≥ 30 steps)** — one new idea (a colored wall stops only its color), real tension (not red at the wall, red 2 tiles later); the playtester called it the best puzzle and fair.
+- **SEC-2 leaderboard name allow-list: `^[A-Z0-9-]+( [A-Z0-9-]+)*$`, 1–12 characters; the client types upper case, the server rejects anything that does not match (lower case included, check 11)** — the charset already in `leaderboards.md`, written as one pattern client and server can share (tech-lead's structure, our narrower charset; no `_` or `.`).

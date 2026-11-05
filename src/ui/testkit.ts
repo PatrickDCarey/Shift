@@ -30,6 +30,7 @@ import type { GearMeterParams } from './gearMeter';
 /** Hand-written params for pure-model tests (the shipped numbers, spelled out). */
 export const PARAMS: GearMeterParams = {
   gearSpeeds: [0, 3, 6, 9, 12],
+  colorBandEdges: [1.5, 4.5, 7.5, 10.5],
   minGear: 1,
   airDragTilesPerGear: 6,
   airDragMinBand: 1,

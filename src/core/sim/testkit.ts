@@ -15,6 +15,7 @@ import {
   INPUT_LETTERS,
   isTuning,
   PLAYER_START_CHAR,
+  TWIN_START_CHAR,
   TILE_LEGEND,
   type Gear,
   type InputButton,
@@ -43,16 +44,18 @@ export const params: SimParams = deriveParams(tuning);
 export function gridLevel(rows: readonly string[], id = 'w0-99'): Level {
   const width = rows[0]?.length ?? 0;
   const startRow = rows.findIndex((r) => r.includes(PLAYER_START_CHAR));
+  const isMarker = (ch: string): boolean => ch === PLAYER_START_CHAR || ch === TWIN_START_CHAR;
   const tiles = rows.flatMap((r) =>
-    [...r].map((ch): Tile => (ch === PLAYER_START_CHAR ? { kind: 'empty' } : (TILE_LEGEND[ch] ?? { kind: 'empty' }))),
+    [...r].map((ch): Tile => (isMarker(ch) ? { kind: 'empty' } : (TILE_LEGEND[ch] ?? { kind: 'empty' }))),
   );
+  const twinRow = rows.findIndex((r) => r.includes(TWIN_START_CHAR));
   return {
     meta: { id, title: 'test', world: 0, teaches: 'test', version: 1 },
     width,
     height: rows.length,
     tiles,
     start: { col: rows[startRow]?.indexOf(PLAYER_START_CHAR) ?? 0, row: startRow },
-    twinStart: null,
+    twinStart: twinRow < 0 ? null : { col: rows[twinRow]?.indexOf(TWIN_START_CHAR) ?? 0, row: twinRow },
   };
 }
 

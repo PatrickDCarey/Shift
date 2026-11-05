@@ -62,7 +62,8 @@ hint: shiftUp 6 0
 - **Anchor:** the glyph's box is centred horizontally on the anchor cell's centre (col + 0.5) and its bottom edge sits on the cell's bottom edge (row + 1). The glyph never collides.
 - **Parsed into** `LevelMeta.hints` in file order, as `{ glyph, anchor: { col, row } }`. The field is **absent** when the file has no `hint:` line (never an empty array).
 - **Render-only:** the sim never reads hints, so adding, moving or removing a hint needs **no** `version` bump and keeps the solution valid.
-- **Status:** format fixed 2026-11-04. Parser support is M2-04 (level lane); until it lands the parser rejects `hint` as an unknown key, so do not add hint lines to `levels/` before M2-04. The scene draws them in M2-41 (glyph art: M2-36).
+- **Placement** (`onboarding-hints.md`): the glyph's box touches columns col−1 … col+1 of rows row−1 … row; every one of those cells must be inside the grid and empty (`@` and `&` cells count as empty), and the first non-empty, non-exit tile below the anchor in its column must be at least 3 rows below the anchor row (no tile below passes). The parser does not check this; `tests/levels/hints.test.ts` does, for every shipped level, and also replays each hinted level with its `hint:` lines removed to the same `wonAtStep`.
+- The scene draws hints in M2-41 (glyph art: M2-36).
 
 ### Grid
 
@@ -100,9 +101,8 @@ Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X`
 - Ragged rows; zero or more than one `@`; no `E`.
 - More than one `&`: the error names the row and column of the second one.
 - `&` with an `E` directly above it (the spawn box overlaps that cell, so the twin would be home on step 1) or directly below it (an exit is not solid, so the twin would drop into it): an error naming the `&`'s row and column. Tech-lead ruling 2026-11-04 on `tandem.md` "Edge cases". `&` can never sit inside a solid tile or on an exit, because the character itself fills the cell.
-- `hint`: not three tokens; an unknown glyph id; a non-integer or negative column or row; an anchor outside the grid; an anchor cell that is not `.` in the file; more than 3 `hint:` lines (`MAX_LEVEL_HINTS`). The message names the file, the header line (its row) and the column where the bad token starts. The other placement rules in `onboarding-hints.md` (the glyph's 3 x 2-tile box over empty cells, at least 3 rows above the floor) are checked by level review, not the parser.
+- `hint`: not three tokens; an unknown glyph id; a non-integer or negative column or row; an anchor outside the grid; an anchor cell that is not `.` in the file; more than 3 `hint:` lines (`MAX_LEVEL_HINTS`); a **duplicate hint**, i.e. the same glyph id at the same anchor as an earlier line (the message names that earlier line). The same glyph at two anchors is allowed, and two different glyphs on one anchor are not a parse error (the placement test and level review catch overlapping boxes). The message names the file, the header line (its row) and the column where the bad token starts. The placement rules (box over empty cells, 3 rows above the floor) are checked by `tests/levels/hints.test.ts`, not the parser (§2 "Hint headers").
 
-**Parser status (2026-11-04):** `&` (T-04) and `hint` (M2-04) are defined here but not parsed yet; until then the parser rejects them as an unknown character / unknown key, and `Level.twinStart` is always null.
 
 ## 3. Example level
 

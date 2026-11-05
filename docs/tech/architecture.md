@@ -35,8 +35,10 @@ src/data/                 tuning.json (design-lead), palette.json (art-director)
 levels/                   *.txt levels + *.solution.txt recordings              level-designer
 backend/                  Supabase schema, edge functions                       backend-engineer
 assets/art, assets/audio  source and exported assets                            art-director / audio-designer
-tests/arch/               architecture guards (purity, lanes, tuning, docs, case) tech-lead
-tests/levels/             solvability + ±3-step robustness: real sim, every recording tech-lead
+tests/arch/               architecture guards (purity, lanes, tuning, docs, case,  tech-lead
+                          render/net imports, repo secrets, env guard, QA hook)
+tests/levels/             solvability, ±3-step robustness, hint placement: real  tech-lead
+                          sim, every recording
 config/envGuard.ts        Vite plugin: only safe VITE_ vars reach the client    tech-lead
 scripts/                  npm run package (itch.io zip)                         backend-engineer
 tests/e2e/                Playwright                                            qa-tester
@@ -67,7 +69,7 @@ step(state: SimState, input: InputFrame, level: Level, params: SimParams): SimSt
 - `SimState` is immutable; `step` returns a new object. It contains everything needed to continue (including `prevInput` for press edges). If randomness is ever needed, a seeded PRNG state lives inside `SimState`.
 - **Units** (header of `src/core/types.ts`): distances in tiles, **speeds in tiles/second everywhere** (tuning, params and state), time in whole steps, `dt = 1 / stepHz`. Snapped speeds are therefore exact (`vx === 3`, `vx === 12`), as the acceptance tests require. Pixels and milliseconds never enter the sim except through `Tuning`, converted once in `deriveParams` (`steps = round(ms × stepHz / 1000)`).
 - **Gear vs band.** `Gear` (1–4) is the selected cruise gear; `Band` (0–4) is the colour of the actual speed `|vx|`. They differ while ramping, braking, standing and after drag. Coloured tiles and speed gates test the **band**, never the gear.
-- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `home`, `won`, `died`, `restart`). Every event about one body carries `body: 0 | 1` (`BodyId`; 0 = runner, 1 = twin; `BodyEvent` in `types.ts`); `won` and `restart` are run-level. Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`.
+- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `home`, `won`, `died`, `restart`). Every event about one body carries `body: 0 | 1` (`BodyId`; 0 = runner, 1 = twin; `BodyEvent` in `types.ts`); `won` and `restart` are run-level. Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`. A `fallThrough` event is ruled but not in the contract yet (§3.2, T-07).
 - **Bodies (Tandem).** `SimState.player` is body 0, the runner (spawn `@`). `SimState.twin` is body 1 (spawn `&`, `Level.twinStart`), or `null` in a level without `&`; then the sim behaves exactly as before Tandem (same states, same events, all with `body: 0`). Renderers, HUD and audio handle one or two bodies the same way: a list of `[player, twin]` without the nulls.
 - **Renderer** (Phaser scenes and entities) reads `SimState` and draws it; it never decides game rules. Tiles → pixels (`× tileSize`) happens only there.
 
@@ -128,6 +130,23 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
 - **Air drag judges the band of the current `|vx|`** (after a wall stop that is white, so no drop).
 - **Gravity starts the step after a walk-off** (ruling 2026-11-02). Phase 6 runs before phase 8 can see that the floor is gone, so on the walk-off step the player moves only horizontally; coyote starts that step and the fall starts on the next. No look-ahead or second Y pass. Walk-off flights are therefore one step longer than a "same-step gravity" model (the sim lane's numbers in `*Acceptance.test.ts` are normative; design-lead updates the spec tables).
 - **`wallStop` fires once per contact** (ruling 2026-11-02): when phase 7 is blocked **and** (`vxOld ≠ 0` **or** the box moved this step). Holding into a wall from standing (vx 0 → 3 → blocked, box already flush) emits nothing, so audio/FX get one thud per impact, not 60 per second. `speed` stays `|vx|` before the stop. In the air a stop zeroes `vx`, so it cannot repeat anyway.
+- **Fall-through is a sim event, `fallThrough`** (T-07 ruling 2026-11-05; request from design-lead 2026-11-04, `adaptive-audio.md` "Fall-through trigger"). Audio and fx (and the PT-3 tile flash and HUD pulse) all need "a coloured floor let this body go". It is a sim event, not a derived helper, because:
+  1. events exist so consumers never diff states (§3); a helper would need the previous state, the level and `SimParams` in every consumer;
+  2. `src/audio`, `src/fx` and `src/net` import only types from core (`tests/arch/render-imports.test.ts`), so they could not call a core helper anyway, and audio already models a `{ type: 'fallThrough', body }` cue;
+  3. the sim already knows the exact condition in phase 8, with its own footprint and `SIM_EPSILON`, so audio, fx and HUD cannot disagree;
+  4. it costs nothing in determinism: events are never read back by the sim, recordings and `wonAtStep` do not change, and no solution needs re-recording.
+
+  This supersedes the "no sim event; a pure derived helper" line in `decisions.md` (2026-11-05 list); design-lead amends it (requests). Shape and rule, for the contract change after the batch:
+  ```ts
+  /** A coloured tile that was under a body's footprint when the floor let it go. */
+  export interface FallThroughCell { readonly col: number; readonly row: number; readonly band: ColoredBand }
+  // new SimEvent member (contracts/state.ts):
+  | { readonly type: 'fallThrough'; readonly body: BodyId; readonly cells: readonly FallThroughCell[] }
+  ```
+  - **When:** phase 8, for a non-home body, on the step where it was grounded at start, is not grounded after phase 8, did not jump in phase 5, and at least one coloured tile (`B G Y R`, later the coloured gates) lay in its support row (the row under its feet at the start of the step) across its footprint. That is exactly the coyote-start condition plus the coloured-cell test. `cells` lists those coloured cells left to right (never empty).
+  - **Fires on:** letting go on a blue bridge (the step the body leaves the floor), grace expiry on a mismatched floor, walking off a safe tile onto a mismatched coloured one. **Never on:** a walk-off from a safe-only ledge, a jump (phase 5 fired), a restart or respawn step, a home body, a `won` step.
+  - **Order:** in the body's event list right after `ceiling` (phase 8), before `airDrag`, `bandChange`, `land`, `graceStart`.
+  - **Sequence (after T-10 lands, Batch 4):** (1) tech-lead adds `FallThroughCell` and the union member to `contracts/state.ts` and §3 (no behaviour change; the sim emits none yet); (2) [sim] emits it, with the four cases of `adaptive-audio.md` check 5 as tests plus a Tandem case (twin event carries `body: 1`); (3) audio maps the sim event and deletes its local `FallThroughEvent`; [scene] PT-3 flashes `cells`, ui pulses the slot of `cells[0].band`. No contract stub lands in Batch 3, because [sim] is mid-T-10 in `src/core/sim`.
 - **`shiftBuffered.net` is the running buffer total** after the press (`player.shiftBufferNet`), unclamped, and may be 0 (`+` then `-` in one jump; the event still fires). The clamped outcome is the `shift` event on landing. Buffer expiry (phase 13) has no event: HUDs show pending shifts from `player.shiftBufferNet`/`shiftBufferSteps`, not from events.
 
 ### 3.3 Floating point
@@ -219,7 +238,9 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 
 ## 8. Networking stays optional (`src/net`)
 
-- `src/net` is loaded with a **dynamic `import()`** only when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are both set, so offline builds don't ship the client code.
+- **Public API** (M2-18, backend-engineer; `src/net/index.ts`): `getNetClient()` (shared client built from `import.meta.env`) or `createNetClient({ config, fetch?, timeoutMs?, isOnline? })`; `fetchTopRuns(levelId, levelVersion, limit, offset?)` and `submitRun(runResult)` resolve `{ ok: true, data } | { ok: false, reason, status? }` and never throw. `submitRun` returns `unavailable` until the edge function (M3-11). Plain `fetch` (no supabase-js); `src/net` imports only types from core.
+- **Status (2026-11-05):** built and reviewed (M2-27a), **not wired**: nothing imports it yet. M3-13 wires it.
+- `src/net` must be loaded with a **dynamic `import()`** only when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are both set, so offline builds don't ship the client code. `tests/arch/render-imports.test.ts` fails on any static (non-type) import of `src/net` from outside it.
 - Every call has a short timeout and resolves to a result value (`{ ok: false, reason }`) rather than throwing into game code. Nothing on the play path `await`s the network: submit after the win screen is shown, fetch boards in the background, and render "offline" if they never arrive.
 - Only the URL and the anon key reach the client. Row Level Security on the Supabase side; the service-role key lives only in backend secrets (the edge function reads the injected `SUPABASE_SERVICE_ROLE_KEY`; nobody pastes it anywhere).
 - **Env guard** (`config/envGuard.ts`, a Vite plugin in `vite.config.ts`): every `vite build`, dev and preview start fails if the client env has a `VITE_` variable other than `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `VITE_QA_HOOK`, a key that is not `sb_publishable_…` or a JWT with role `anon`, a secret key or non-anon JWT in any value, only one of the two Supabase values, a non-https URL (loopback http allowed for a local Supabase), or a widened `envPrefix`. Messages never echo values. `npm run package` builds through the same config and adds its release-only checks (no QA hook, output scan).
@@ -242,8 +263,8 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 |---|---|
 | gameplay-engineer | one lane per sitting: `src/core/sim`, `src/core/motion`, `src/core/level` (§3.5); scene lane: `GameScene` loop, `src/entities` |
 | ui-engineer | menu scenes registered in `src/main.ts`, HUD reading `SimState.player.gear` (selected 1–4) and `.band` (colour), key bindings, Sticky Keys tip, `src/save` |
-| art-director | `src/fx` consumes `SimState` + events (`airDrag` flash); `palette.json` per-band entries under `gears`, keyed by `BandColor` names |
-| audio-designer | `src/audio` consumes `SimEvent`s (`airDrag` clunk) and `band` each step |
+| art-director | `src/fx` consumes `SimState` + events (`airDrag` flash); `palette.json` per-band entries under `gears`, keyed by `BandColor` names. Imports only types from core |
+| audio-designer | `src/audio` consumes `SimEvent`s (`airDrag` clunk, `fallThrough` once ruled in, §3.2) and `band` each step; the scene calls it. Imports only types from core |
 | backend-engineer | `src/net` (dynamic import), `backend/` |
 | level-designer | `levels/*.txt` + `*.solution.txt` (format in `level-format.md`, LF or CRLF) |
 | qa-tester | `tests/e2e/**`, runs `npm run check` + `npm run test:e2e` |
@@ -252,7 +273,8 @@ Adding a scene: create it in the owner's folder, add its key to `src/scenes/keys
 
 ## 11. Quality gates
 
-- CI (`.github/workflows/ci.yml`): `npm ci` → typecheck → unit tests with coverage (thresholds enforced; `src/`, `tests/` and `scripts/` tests) → build (env guard runs) → no `__redshift` in `dist/`; then a Playwright smoke job.
-- `tests/levels`: solvability and ±3-step robustness of every level (§6).
+- CI (`.github/workflows/ci.yml`): `npm ci` → `npm audit --audit-level=high` → typecheck → unit tests with coverage (thresholds enforced; `src/`, `tests/` and `scripts/` tests) → build (env guard runs) → no `__redshift` in `dist/` → `npm run package` (the release zip and its checks); then a Playwright smoke job. Every third-party action is pinned to a full commit SHA with the tag in a comment (security LOW 18); update with `git ls-remote https://github.com/actions/<name> refs/tags/<tag>`.
+- **Secret check** (`tests/arch/repo-secrets.test.ts`, M1-04, part of `npm test`): every file git would commit (`git ls-files --cached --others --exclude-standard`, so the ignored local `.env` is never read) is checked for secret file names (`.env*` except `.env.example`, `*.pem`, `*.key`, `.npmrc`, SSH keys) and secret content (Supabase secret keys, non-`anon` JWTs, PEM private keys, GitHub and AWS tokens, a `SUPABASE_SERVICE_ROLE_KEY` value), and `.env.example` must stay empty. Messages never echo the value. Test fixtures build fake keys at run time. Full-history scanning is SEC-3 (gitleaks).
+- `tests/levels`: solvability and ±3-step robustness of every level (§6); hint placement and hint-free replay (`hints.test.ts`, `level-format.md` §2).
 - Review checklist: `.claude/agents/tech-lead.md`.
 - **QA hook.** `window.__redshift` (read-only `{ levelId, state, replay }`, used by every e2e spec) is installed only when `import.meta.env.DEV` or `VITE_QA_HOOK=1` at build time. Playwright's `webServer` sets `VITE_QA_HOOK=1` for its build (locally and in CI); a plain `npm run build` (the itch.io zip) has no hook and no `__redshift` string in `dist/`. Replay mode (`?replay=1`) and the bundled solutions follow the same gate (§6 ruling; scene change pending). `tests/arch/qa-hook.test.ts` requires every `'__redshift'` use in `src/` to sit on an `if (QA_HOOK)` line. Never set `VITE_QA_HOOK` in `.env` or a release build.

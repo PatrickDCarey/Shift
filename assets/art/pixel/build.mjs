@@ -230,6 +230,7 @@ try {
     px.blit(out, frame('runner', band[0], 'sprint_2'), 120 - 10, 30 + 7 * 16 - 26);
     px.blit(out, parked ? frame('twin', band[1], 'park_0') : frame('twin', band[1], 'run_1'), (parked ? 23 * 16 + 8 : 120) - 10, 30 + 14 * 16 - 26);
     px.blit(out, px.bakeEdgeArrow('twin', band[1]), 480 - 22, 30 + 3 * 16);
+    px.blit(out, px.bakeExitArrow(), 480 - 22, 30 + 5 * 16);
     strip(out, 5, 'runner', band[0], 'RUN 4', false);
     strip(out, 21, 'twin', band[1], parked ? 'HOME' : 'RUN 2', parked);
     return out;

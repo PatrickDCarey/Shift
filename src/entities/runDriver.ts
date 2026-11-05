@@ -8,6 +8,7 @@
 import {
   createSim,
   encodeRuns,
+  INPUT_BUTTONS,
   step,
   type InputFrame,
   type Level,
@@ -20,6 +21,13 @@ import { advanceClock } from './interpolation';
 
 /** One input frame per call; null means "do not step now" (a replay that has finished). */
 export type FrameSupplier = () => InputFrame | null;
+
+/** Only the six buttons, as the sim stores them, so extra sampler fields never reach the state. */
+function buttonsOf(frame: InputFrame): InputFrame {
+  const out: Record<string, boolean> = {};
+  for (const b of INPUT_BUTTONS) out[b] = frame[b];
+  return out as unknown as InputFrame;
+}
 
 export class RunDriver {
   /** State after the latest step. */
@@ -104,7 +112,7 @@ export class RunDriver {
       this.startNewRun(frame);
       return [];
     }
-    this.frames.push(frame);
+    if (this.state.status !== 'won') this.frames.push(frame); // the recording ends at the win step
     this.state = step(this.state, frame, this.level, this.params);
     if (this.prev.status !== 'won' && this.state.status === 'won') this.queueWin();
     return this.state.events;
@@ -125,6 +133,6 @@ export class RunDriver {
   private startNewRun(frame: InputFrame): void {
     this.frames = [];
     // Like the sim's own respawn: buttons held through the restart are not new presses.
-    this.state = { ...createSim(this.level, this.params), prevInput: frame };
+    this.state = { ...createSim(this.level, this.params), prevInput: buttonsOf(frame) };
   }
 }

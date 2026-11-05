@@ -8,8 +8,8 @@
 import { loadLevels, type Level } from '../core';
 import { devLevel } from './devLevel';
 
-/** Level the grey-box milestone opens on when no `?level=` is given. */
-export const DEFAULT_LEVEL_ID = 'w0-02';
+/** Level the game opens on when no `?level=` is given (PT-1); w0-02 stays reachable by `?level=w0-02`. */
+export const DEFAULT_LEVEL_ID = 'w1-01';
 
 export interface LevelSelection {
   readonly level: Level;

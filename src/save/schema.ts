@@ -56,6 +56,8 @@ const LEVEL_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,31}$/i;
 /** Sanity caps so corrupt data cannot grow without bound. */
 const MAX_LEVELS = 256;
 const MAX_STEPS = 10_000_000;
+/** Stored text above this is ignored before `JSON.parse` (a real save is a few KiB). */
+export const MAX_SAVE_BYTES = 64 * 1024;
 
 export function isValidLevelId(value: unknown): value is string {
   return typeof value === 'string' && LEVEL_ID_PATTERN.test(value);
@@ -101,10 +103,11 @@ export function sanitizeSettings(raw: unknown, fallback: Settings = DEFAULT_SETT
 export function sanitizeProgress(raw: unknown): Progress {
   const r = asRecord(raw);
   const completed = hasOwn(r, 'completedLevels') && Array.isArray(r.completedLevels) ? r.completedLevels : [];
-  const completedLevels = [...new Set(completed.filter(isValidLevelId))].slice(0, MAX_LEVELS);
+  const completedLevels = [...new Set(completed.slice(0, MAX_LEVELS).filter(isValidLevelId))];
 
   const best = asRecord(hasOwn(r, 'bestSteps') ? r.bestSteps : undefined);
-  const bestSteps: Record<string, number> = {};
+  // No prototype: a level id can never collide with an Object.prototype member.
+  const bestSteps: Record<string, number> = Object.create(null);
   for (const id of Object.keys(best).slice(0, MAX_LEVELS)) {
     const steps = best[id];
     if (isValidLevelId(id) && isValidSteps(steps)) bestSteps[id] = steps;
@@ -147,7 +150,7 @@ function migrate(raw: Record<string, unknown>, from: number): Record<string, unk
  * Every field is validated either way.
  */
 export function parseSave(text: string | null): SaveData {
-  if (text === null) return defaultSave();
+  if (text === null || text.length > MAX_SAVE_BYTES) return defaultSave();
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);

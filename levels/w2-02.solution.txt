@@ -1,0 +1,12 @@
+level: w2-02
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand at the spawn, against the back wall, facing the run-up
+# 1+ 1. 1+ 1. 1+ 1.   shift up to gear 4 while standing
+# 69R   sprint: red at x = 4.73, before the red runway (col 8)
+# 1RJ   jump at x = 12.30, the middle of the window (x 10.1-14.5): red takeoff
+# 86R   air drag turns you yellow 6 tiles out (x = 18.10); land yellow on the yellow pad (x = 21.85), run into the exit
+# Fairness: jump 11/11 steps earlier/later (the whole window is 23 steps), shift-ups 19/11.
+steps: 182
+---
+20. 1+ 1. 1+ 1. 1+ 1. 69R 1RJ 86R

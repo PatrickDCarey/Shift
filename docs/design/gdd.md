@@ -320,7 +320,8 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 
 - Color grace + coyote: 12 steps (0.2 s) from your color changing under you to the last valid jump.
 - Two Colors (shift green→yellow, then jump): yellow on the 5th step counting the press as step 1, then up to 12 steps to jump.
-- Brake (w1-04): the window to start slowing is ~3.5 tiles at sprint (≥ 17 steps).
+- Brake (w1-04): the window to start slowing is ~3.5 tiles at sprint (≥ 17 steps). Since v2 (M1-52), the 8-tile pad gives ≥ 35 steps.
+- Level floor (M1-52, 2026-11-05): every level has one winning line whose timed inputs each have a window of ≥ 30 steps in world 1 (≥ 18 from world 2), or are position choices at walking pace with ≥ 1 tile of valid spots.
 
 ### 5.8 What changed and why
 
@@ -338,7 +339,7 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 - Every 6 tiles of flight costs one color, down to blue. Sprint jumps always land yellow or lower.
 - Recommended max gap: 2 × gear tiles.
 - Corridors: the player is 1.5 tiles tall; 2-tile-tall corridors are fine.
-- **World 1 roofs (v1.6):** a world-1 colored bridge may sit under a low safe roof (exactly 2 tiles of headroom) so no jump can skip the lesson. The roof is safe tiles only; its end faces sit over safe ground or exactly at the bridge's first and last columns; every spawn and stop pad stays open (at least 5 tiles of clear headroom, so a standing jump shows the full 3-tile apex). Worlds 2 and 4 do not use roofs over a level's lesson: jumping is part of it there. Tandem lanes have their own ceilings (the divider).
+- **World 1 roofs (v1.6):** a world-1 colored bridge may sit under a low safe roof (exactly 2 tiles of headroom) so no jump can skip the lesson. The roof is safe tiles only; its end faces sit over safe ground or exactly at the bridge's first and last columns; every spawn and stop pad stays open (at least 5 tiles of clear headroom, so a standing jump shows the full 3-tile apex). A bridge may go without a roof when a roof face would let a jump wall-stop past the lesson, as long as the bridge is long enough that no takeoff clears it (w1-04, ruled 2026-11-05). Worlds 2 and 4 do not use roofs over a level's lesson: jumping is part of it there. Tandem lanes have their own ceilings (the divider).
 - Keep intended drag drops at least 3 steps away from the intended landing. (Exception: a sprint walk-off off a 4-tile drop lands red one step before its drop would come; that is safe because sprint is the top speed.)
 - A sprint walk-off keeps red down to a 4-tile drop; 5 tiles or more lands yellow.
 - Never hang a colored tile less than 1.5 tiles above a floor of the same color (no-embed is per color, §4.7). Same for gate tiles over a gate floor of the same band.

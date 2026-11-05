@@ -22,11 +22,11 @@ export function shiftPhase(w: Work, ctx: StepCtx): Work {
   const p = w.player;
   if (ctx.startGrounded) {
     const gear = clampGear(p.gear + net, ctx.params);
-    return gear === p.gear ? w : emit(withPlayer(w, { gear }), { type: 'shift', body: 0, from: p.gear, to: gear });
+    return gear === p.gear ? w : emit(withPlayer(w, { gear }), { type: 'shift', body: ctx.body, from: p.gear, to: gear });
   }
   const shiftBufferNet = p.shiftBufferNet + net;
   const buffered = withPlayer(w, { shiftBufferNet, shiftBufferSteps: ctx.params.shiftBufferSteps });
-  return emit(buffered, { type: 'shiftBuffered', body: 0, net: shiftBufferNet });
+  return emit(buffered, { type: 'shiftBuffered', body: ctx.body, net: shiftBufferNet });
 }
 
 /** Only L pressed -> -1, only R -> +1, both on one step -> 0, none -> unchanged. */

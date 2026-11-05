@@ -220,8 +220,8 @@ export async function holdRightUntilPastX(page: Page, x: number): Promise<void> 
  * w0-02 only: from the spawn, hold ArrowRight (gear 1) onto the blue bridge (columns 3-10), let go once
  * past x = 9 and drop through it (letting go of blue: grace runs out, then you fall), landing on the
  * safe floor four tiles down at row 12. The bridge sits 6 tiles under a safe ceiling and the player is
- * white while standing, so there are 6 open tiles overhead: room for a full 3-tile jump. (The spawn
- * itself had only 0.5 tiles of headroom before w0-02 v2; since then a jump at the spawn pad works too, the pit is kept because the walk-in tests depend on it.) Resolves to the floor y, standing there.
+ * white while standing, so there are 6 open tiles overhead: room for a full 3-tile jump. (A jump at the spawn pad is a full jump too, since w0-02 v2;
+ * `m2-additions.spec.ts` covers it. The pit is kept because the walk-in tests depend on it.) Resolves to the floor y, standing there.
  *
  * The release is reactive, so on a loaded machine (a few frames per second) input lag can carry the
  * player past the drop zone: off the safe floor (death) or onto the 1.5-tile ceiling at column 13. Both
