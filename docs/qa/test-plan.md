@@ -268,6 +268,51 @@ E `sticky-keys.spec.ts`: on a Windows user agent the first level start sets `set
 
 See the bottom of this file, filled after each full run.
 
+### Run 4: 2026-11-05 (batch 2: M1-35 simulation, M1-36 side tracks, pause, win recording, hints; commit 68bdce0)
+
+| Check | Result |
+|---|---|
+| `npm run check` (orchestrator, 2026-11-05) | 87 files, **1840 tests passed**; coverage 84.88% statements, 84.39% branches; build ok (1,288.13 kB, gzip 351.04 kB) |
+| `npm run test:coverage` (QA, 2026-11-04) | 87 files, 1836 tests passed, 34.8 s. `src/core` only (39 files): lines 751/751 = **100%**, statements 901/905 = 99.56%, functions 212/212 = 100%, branches 548/584 = 93.84%. Threshold 80% held. Lowest: `level/text.ts` 82.35% branches, `motion/testkit.ts` and `sim/testkit.ts` (helpers) 50% and 82% |
+| `npx vitest run src/core tests/arch tests/levels` | 33 files, 843 tests passed (all six levels solvable, plus the +-3 robustness test) |
+| `npx vitest run src/save src/ui src/audio scripts tests/arch` | 24 files, 826 tests passed |
+| `npm run test:e2e` (orchestrator) | **64 passed, 0 failed**, 4.2 min (was 31 in run 3: new `pause` 10, `win` 7, `levels-hints` 10, `sticky-keys` 3, replay of w1-03 to w1-05, `embed` blur test rewritten) |
+| `npm run test:e2e` (QA, same day, before that) | Run A 60 passed, 4 failed (the first four tests of the run: `__redshift never appeared` after 45 s and two timeouts at 1.5 to 2.9 min: machine starvation at start-up, all later tests passed). Run B **64 passed, 0 failed, 3.8 min**. Run C 63 passed, 1 failed: my own test pressed three different shift-up keys back to back and one press merged (see bugs.md, polish note); fixed by waiting for each gear change. A final pair of runs on the fixed spec was interrupted by two session drops (the log shows 3 failures with "4.0 h" durations, i.e. the machine was suspended; not a game result). The orchestrator's 64/64 is the clean run of record |
+| Plain `vite build` | no `__redshift` in `dist/` (`grep -rlw`, orchestrator); the packaged zip has only the unrelated `__redshift_probe__` storage key |
+| `npm run typecheck` | clean (QA, 2026-11-04, with the new specs) |
+
+#### M1-35: simulation against the five M1 specs (verdict: PASS)
+
+Evidence: the acceptance suites run through the real `step` and every `describe` is named `<spec> check N`; a script over those names found every numbered check present (movement 1-16, jump 1-12 minus 4, airDrag 1-15, gating 1-16, reset 1-14, colored walls 1-7). The two missing numbers have other homes: movement check 17 (alternate bindings) is e2e `keyboard.spec.ts` (passes), jump check 4 (gravity 37.5, launch 15) is `params.test.ts`. Test counts: movement 21, jump 10, air-drag 16, gating 20, reset 17, colored walls 11, motion lane 34.
+
+| Spec | Checks | Verdict | Evidence |
+|---|---|---|---|
+| movement-and-gears | 17 | Pass 17/17 | `movementAcceptance.test.ts` (1-16), `motion/acceptance.test.ts`; check 17: `keyboard.spec.ts` (3 up keys, 3 down keys) |
+| color-gating | 16 | Pass 16/16 | `gatingAcceptance.test.ts`, `determinism.test.ts` |
+| air-drag | 15 | Pass 15/15 | `airDragAcceptance.test.ts`; checks 13-14 also in browser (`keyboard.spec.ts` SB1 to SB3) |
+| jump | 12 | Pass 12/12 | `jumpAcceptance.test.ts` (11), `params.test.ts` (4) |
+| safe-tiles-and-reset | 14 | Pass 14/14 | `resetAcceptance.test.ts`, `determinism.test.ts` |
+| colored-walls (design-lead restated check 6) | 7 | Pass 7/7 | `coloredWallsAcceptance.test.ts`: check 6 at 4 tiles (row 5) asserts first ceiling contact on flight step 15 (so none on 14), vy >= 0 after, vx 6; gear 3 no contact, apex 3.0 on step 24, lands 6.8 out in band 2. Note: the head heights 3.979 and 4.078 are not asserted, only the steps, and a comment above that test still talks about the old 3.5 tiles (sim lane, cosmetic) |
+
+Not verifiable by QA: feel (playtest), 60 fps (no headless measure), hud-gear-meter checks 11 and 12 (greyscale and 3:1 by eye, manual at the gate), check 13 (playtest question).
+
+#### M1-36: side tracks (verdict: PASS, with BUG-4 open and two reviewer items outstanding)
+
+| Track | Accept line | Verdict | Evidence |
+|---|---|---|---|
+| Storage (M1-16) | never throws; survives reload; blocked storage falls back | Pass | `save.test.ts`, `progress.test.ts` (826-test run above); e2e: the save survives a reload (`win.spec.ts`), replay writes nothing. Browser with storage actually blocked: not run (`main.ts` wiring is M2-40) |
+| Bindings (M1-40) | every action bound, no key on two actions, Shift told apart by code, Q/E/Z/X | Pass | `bindings.test.ts`; e2e `keyboard.spec.ts` (six gear keys), `pause.spec.ts` (Esc, P, R) |
+| Sticky Keys tip (M1-40, M2-39) | shown once on Windows, non-blocking, not elsewhere | Pass | `stickyKeysTip.test.ts`; e2e `sticky-keys.spec.ts` (3 tests); screenshot of the tip `docs/qa/evidence/package-zip-subfolder-load.png` |
+| Packaging (M1-18) | zip loads from a subfolder; no `.env` or secrets; script in `package.json` | Pass | `npm run package` built `release/redshift-0.1.0.zip` (2 files: `index.html` 500 B and one JS, 0.33 MB zipped, 1.29 MB unpacked). Unzipped into `sub/game/` and served under `/sub/game/`: canvas 960x540, no console errors, no 404s, `window.__redshift` undefined. Same sha256 on a second package (`f823b052...9bf9b51`), so it is reproducible. Refused as designed: `VITE_QA_HOOK=1`, `VITE_FOO=1`, `VITE_SUPABASE_ANON_KEY=sb_secret_...` (each printed "package failed" and wrote no zip). No `.env`, key or Supabase string in the bundle; `.env` and `release/` are git-ignored, only `.env.example` is tracked. **Fails the tech-lead ruling** that recordings do not ship: BUG-4 |
+| Supabase schema (M1-19) | policies deny anon insert, update, delete; no keys in repo; steps copy-pasteable | Pass (read-through only) | Files exist (`backend/migrations/0001_runs.sql` 92 lines, `backend/tests/0001_runs_rls.sql` 145 lines). The README's table, limits (name 1-24, steps 1..1,000,000, log 200,000 chars), forced RLS, single SELECT policy and column-level SELECT without `input_log` all match the SQL; the test file ends with the documented `ok: all checks for 0001_runs passed` row. **Never run against a database, so not verified.** Open reviewer items (not QA's): security HIGH 1 (`backend/README.md` still tells the owner to paste the service-role key later, step 5 text) and MEDIUMs 6-10 |
+| Audio engine and SFX (M1-24, M2-17) | nothing throws before a gesture; mute and bus volumes; ten SFX, clunk unlike shift down | Pass (unit) | `engine.test.ts`, `sfxSpec.test.ts`, `sfxEvents.test.ts`, `sfx.test.ts` all pass (mocked context: no context before a gesture, resume failure and missing Web Audio do not throw, mute, volumes, voice cap; ten ids exist, short, not clipping; the clunk is an octave below and gritty). **Audibility is not verifiable by QA** (no sound output); needs a human listen |
+
+#### Blockers for M1-37 (gate)
+
+- No open blocker or major bug. Open: BUG-4 (minor, releases only; needs the scene change and a package-script check).
+- Still to do at the gate by hand: greyscale and contrast look at the gear meter (hud checks 11, 12), a keyboard-only playthrough of w0-02 with Q/E/Z/X, 60 fps read from the F3 overlay, a listen to the SFX.
+- Not verified and will stay so for M1: the Supabase SQL against a real database (owner step USER-2), blocked-storage behaviour in a real browser, any non-Chromium browser.
+
 ### Run 3: 2026-11-04 (M1-42 closures, M1-50 additions; batch 1 with nine agents editing in parallel)
 
 Machine shared with other agents all session, so wall times are high. Working tree on top of 90453b5 (tech-lead's b432391 fixes in).

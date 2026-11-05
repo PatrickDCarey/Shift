@@ -58,3 +58,5 @@ e2e `pause.spec.ts` "window blur pauses ...": after a blur the game is paused (`
 
 ### Checked, no bug (polish note): presses of one gear action inside a single rendered frame merge into one press, 2026-11-04
 Found by a flaky test of mine: `page.keyboard.press` for E, Right Shift and X back to back (three different keys, all "shift up") reached gear 3, not 4, once in four full runs. `InputSampler` latches a key code once per sample and `heldActions` ORs the codes of one action, so two taps inside one rendered frame (under 17 ms at 60 fps, but 50 ms or more when headless Chromium or a slow laptop drops to ~20 fps) count as one. A human double-tap is never that fast, and a single tap is never lost (M1-14), so this is not filed as a bug; the tests now wait for each gear change before the next press. Worth knowing if a low-fps player reports "my second shift did not register".
+
+Update 2026-11-05: still open at 68bdce0 (orchestrator confirmed the solutions are in the bundle). Not a gate blocker (minor); it must be closed before the first public itch.io upload.
