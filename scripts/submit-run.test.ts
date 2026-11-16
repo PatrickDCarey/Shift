@@ -1,8 +1,10 @@
 // Unit tests for the submit-run rules (M3-11): every rejection code has a test.
 // Owner: backend-engineer. Lives in scripts/ because vitest only collects src, tests and scripts.
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   LEVELS,
+  NAME_MAX,
   MAX_RUN_STEPS,
   RATE_LIMIT_PER_MINUTE,
   REJECT_CODES,
@@ -111,5 +113,20 @@ describe('contract', () => {
   });
   it('accepts a good run and returns it unchanged', () => {
     expect(checkSubmission(good)).toEqual({ ok: true, value: good });
+  });
+});
+
+describe('name rule copies', () => {
+  const sql = readFileSync(new URL('../backend/migrations/0002_submit_run.sql', import.meta.url), 'utf8');
+  const fn = readFileSync(new URL('../backend/functions/submit-run/rules.ts', import.meta.url), 'utf8');
+  const pattern = '^[A-Z0-9-]+( [A-Z0-9-]+)*$';
+  it('SQL check and function use the same pattern and length', () => {
+    expect(sql).toContain(`display_name ~ '${pattern}'`);
+    expect(sql).toContain(`between 1 and ${NAME_MAX}`);
+    expect(fn).toContain(pattern);
+  });
+  it('the shared core constant, if it exists, agrees', () => {
+    const core = readFileSync(new URL('../src/core/types.ts', import.meta.url), 'utf8');
+    if (core.includes(pattern)) expect(core).toContain(String(NAME_MAX));
   });
 });

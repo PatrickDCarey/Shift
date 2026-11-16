@@ -272,6 +272,26 @@ try {
   });
   writeFileSync(path.join(previewDir, 'tandem-vision.png'), encodePng(px.upscale(sheetAll, 2)));
 
+  // ---- tiles under the vision simulations (M2-14b): solid and ghost of every band plus the safe tile, on the standing field ----
+  {
+    const none = { up: false, right: false, down: false, left: false };
+    const kinds = [...bandsAll.map((b) => ['solid', b]), ...bandsAll.slice(1).map((b) => ['ghost', b]), ['safe', 'safe']];
+    const gap = 20;
+    const rowH = 22;
+    const labelW = 44;
+    const out = px.createRaster(labelW + kinds.length * gap + 6, col.VISIONS.length * rowH + 6);
+    px.fillRect(out, 0, 0, out.width, out.height, px.rgba(col.hexToRgb(fx.palette.background)));
+    col.VISIONS.forEach((vision, vi) => {
+      const oy = 4 + vi * rowH;
+      drawText(out, vision === 'protanopia' ? 'PROTAN' : vision === 'deuteranopia' ? 'DEUTAN' : vision === 'tritanopia' ? 'TRITAN' : vision.toUpperCase(), 3, oy + 5, ui.text);
+      kinds.forEach(([kind, band], ki) => {
+        const t = kind === 'solid' ? px.bakeSolidTile(band, none) : kind === 'ghost' ? px.bakeGhostTile(band) : px.bakeSafeTile(none, 0);
+        px.blit(out, sim(t, vision), labelW + ki * gap, oy);
+      });
+    });
+    writeFileSync(path.join(previewDir, 'tiles-vision.png'), encodePng(px.upscale(out, 3)));
+  }
+
   // ---- effects preview: dust on land, ring burst, speed lines (tinted as the scene would), on the red and yellow fields ----
   const fxPreview = (speed, band) => {
     const out = px.createRaster(330, 70);

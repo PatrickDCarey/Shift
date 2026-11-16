@@ -100,7 +100,7 @@ test.describe('replay mode', () => {
     await page.goto(`./?level=${LEVEL}&replay=1&speed=60`);
     await waitForHook(page);
     await pollState(page, (s) => s.state.status, 'replay won', 90_000).toBe('won');
-    await pollState(page, (s) => s.state.wonAtStep, 'win step').toBe(414);
+    await pollState(page, (s) => s.state.wonAtStep, 'win step').toBe(434);
     // Give the scene a few more frames to (wrongly) write.
     await page.evaluate(() => new Promise<void>((done) => { let n = 0; const t = (): void => { n += 1; if (n >= 30) done(); else requestAnimationFrame(t); }; requestAnimationFrame(t); }));
     const save = await readSave(page);

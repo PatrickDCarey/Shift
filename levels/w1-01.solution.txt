@@ -1,11 +1,12 @@
 level: w1-01
-levelVersion: 1
+levelVersion: 2
 # Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
 # 20.   stand at the spawn (reading the arrow glyph)
-# 160R  walk right in gear 1 (blue from the first step) across bridge 1 onto P2
+# 170R  walk right in gear 1 (blue from the first step) across bridge 1 onto P2 (middle of the
+#       let-go spots: letting go after 123-217 steps of walking stops you on P2)
 # 30.   let go on P2: white, and safe, because P2 is a white pad
-# 204R  walk on across bridge 2 into the exit
-# Fairness: start 20/37 steps earlier/later, let-go on P2 37/30, walk-on 30/40 (all >= 3).
-steps: 414
+# 214R  walk on across bridge 2 into the exit
+# Fairness (earlier/later, capped at 30): start 19/29, let-go on P2 30/30.
+steps: 434
 ---
-20. 160R 30. 204R
+20. 170R 30. 214R

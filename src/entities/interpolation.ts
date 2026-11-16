@@ -37,14 +37,23 @@ export interface Point {
 }
 
 /**
- * Feet position to draw. Blends only between two consecutive playing steps;
- * across a death, respawn or restart the new position is shown at once so the
- * player never slides back to the spawn.
+ * Feet position of one body to draw (0 runner, 1 twin; null when there is no
+ * such body). Blends only between two consecutive playing steps; across a
+ * death, respawn or restart the new position is shown at once so the body
+ * never slides back to the spawn.
  */
+export function renderBodyPosition(prev: SimState, cur: SimState, alpha: number, body: 0 | 1): Point | null {
+  const now = body === 0 ? cur.player : cur.twin;
+  const before = body === 0 ? prev.player : prev.twin;
+  if (now === null) return null;
+  const consecutive = before !== null && prev.status === 'playing' && cur.status === 'playing' && cur.step === prev.step + 1;
+  if (!consecutive) return { x: now.x, y: now.y };
+  return { x: lerp(before.x, now.x, alpha), y: lerp(before.y, now.y, alpha) };
+}
+
+/** Feet position of the runner to draw; see `renderBodyPosition`. */
 export function renderPosition(prev: SimState, cur: SimState, alpha: number): Point {
-  const consecutive = prev.status === 'playing' && cur.status === 'playing' && cur.step === prev.step + 1;
-  if (!consecutive) return { x: cur.player.x, y: cur.player.y };
-  return { x: lerp(prev.player.x, cur.player.x, alpha), y: lerp(prev.player.y, cur.player.y, alpha) };
+  return renderBodyPosition(prev, cur, alpha, 0) ?? { x: cur.player.x, y: cur.player.y };
 }
 
 /** Exponential ease of `current` toward `target` over a frame of `deltaMs` (time constant `tauMs`). */

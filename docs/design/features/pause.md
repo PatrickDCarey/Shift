@@ -25,7 +25,7 @@ Pressing **Esc or P** during play freezes the run and opens a pause menu over th
 - **Focus loss** (canvas blur, window blur, tab hidden): the game **pauses automatically and drops every held key**. Browsers lose the key-up events while unfocused, so without this a held arrow would stick and run the player off a ledge (pillar 3). On return the pause menu is showing, and the player resumes deliberately.
 - **Pause during the death freeze:** allowed. The freeze counts steps (`deathFreezeMs`), so it finishes after resume on the same step as without the pause.
 - **After the win step:** Esc and P do nothing. The results screen owns the screen from that step on (`results.md`).
-- **Sticky Keys tip visible:** pausing hides it for good (`sticky-keys-tip.md`).
+- **Sticky Keys tip visible:** pausing hides it while paused; on resume it comes back with the rest of its 12 s (amended 2026-11-13, B1; `sticky-keys-tip.md`). Quitting from the pause leaves it hidden.
 - **Tandem:** nothing differs. Both bodies freeze.
 - **Replay mode** (`?replay=1`): Esc and P pause the replay in the same way. RESTART restarts the replay from frame 0.
 - **Audio** (Should): music ducks and low-passes while paused (audio-designer).

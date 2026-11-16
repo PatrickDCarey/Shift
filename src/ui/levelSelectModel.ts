@@ -27,6 +27,7 @@ export const DEFAULT_WORLD_NAMES: Readonly<Record<number, string>> = {
 
 export const NO_LEVELS_TEXT = 'NO LEVELS';
 export const HEADING = 'LEVELS';
+/** A world with more levels wraps onto a continuation row (same `world`), so a cell never leaves the 8 px margin. */
 export const MAX_CELLS_PER_ROW = 5;
 const DETAIL_MAX = 24;
 
@@ -101,7 +102,7 @@ export function createLevelSelectModel(input: LevelSelectInput): LevelSelectMode
   for (const entry of input.order) {
     const cell = buildCell(entry, input, completed);
     const last = rows[rows.length - 1];
-    if (last !== undefined && last.world === entry.world) {
+    if (last !== undefined && last.world === entry.world && last.cells.length < MAX_CELLS_PER_ROW) {
       rows[rows.length - 1] = { ...last, cells: [...last.cells, cell] };
     } else {
       rows.push({ world: entry.world, name: names[entry.world] ?? `WORLD ${entry.world}`, cells: [cell] });
@@ -190,7 +191,9 @@ export function levelSelectLayout(model: LevelSelectModel): readonly LayoutItem[
   }
   model.rows.forEach((row, r) => {
     const y = ROWS_Y + r * ROW_PITCH;
-    out.push(textItem(`world:${r}`, String(row.world), MARGIN, y, 2), textItem(`worldName:${r}`, row.name, MARGIN, y + 16, 1));
+    if (model.rows[r - 1]?.world !== row.world) {
+      out.push(textItem(`world:${r}`, String(row.world), MARGIN, y, 2), textItem(`worldName:${r}`, row.name, MARGIN, y + 16, 1));
+    }
     row.cells.forEach((cell, c) => {
       const rect = cellRect(r, c);
       out.push(rect, textItem(`label:${r}:${c}`, cell.label, rect.x + 4, rect.y + 2, 2));

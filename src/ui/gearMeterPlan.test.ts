@@ -9,7 +9,7 @@ import { palette } from '../fx/palette';
 import type { BandColor } from '../core/types';
 import { gearKeyCaps } from './gearKeyCaps';
 import type { GearMeterModel } from './gearMeter';
-import { GEAR_METER_LAYOUT, type GearMeterLayout } from './gearMeterLayout';
+import { COMPACT_STRIP_LAYOUT, GEAR_METER_LAYOUT, type GearMeterLayout } from './gearMeterLayout';
 import { gearMeterPlan, type Rect } from './gearMeterPlan';
 
 const model = (over: Partial<GearMeterModel> = {}): GearMeterModel => ({
@@ -33,10 +33,13 @@ const overlaps = (a: Rect, b: Rect): boolean => a.x < b.x + b.w && b.x < a.x + a
 const cellRect = (c: { x: number; y: number; size: number }): Rect => ({ x: c.x, y: c.y, w: c.size, h: c.size });
 
 describe('layout', () => {
-  it('fits the spec box: at most 220 x 64, cells at least 24 px', () => {
-    expect(GEAR_METER_LAYOUT.panelW).toBeLessThanOrEqual(220);
-    expect(GEAR_METER_LAYOUT.panelH).toBeLessThanOrEqual(64);
-    expect(GEAR_METER_LAYOUT.cell).toBeGreaterThanOrEqual(24);
+  it('fits the pixel box: 110 x 32, whole-pixel numbers, cells at least 8 px', () => {
+    expect(GEAR_METER_LAYOUT.panelW).toBeLessThanOrEqual(110);
+    expect(GEAR_METER_LAYOUT.panelH).toBeLessThanOrEqual(32);
+    expect(GEAR_METER_LAYOUT.cell).toBeGreaterThanOrEqual(8);
+    for (const l of [GEAR_METER_LAYOUT, COMPACT_STRIP_LAYOUT]) {
+      for (const [k, v] of Object.entries(l)) if (typeof v === 'number' && k !== 'panelAlpha') expect(Number.isInteger(v), k).toBe(true);
+    }
   });
 
   it('keeps every element inside the panel, in the busiest state', () => {
@@ -63,11 +66,17 @@ describe('layout', () => {
     capRects.forEach((a, i) => capRects.slice(i + 1).forEach((b) => expect(overlaps(a, b)).toBe(false)));
   });
 
-  it('a layout is data: halving it halves the plan (PX-9 will pass a 110 x 32 layout)', () => {
-    const half: GearMeterLayout = Object.fromEntries(
-      Object.entries(GEAR_METER_LAYOUT).map(([k, v]) => [k, typeof v === 'number' ? v / 2 : v]),
-    ) as unknown as GearMeterLayout;
-    expect(plan(model({ needle: 2 }), null, half).needle.x).toBeCloseTo(plan(model({ needle: 2 })).needle.x / 2, 9);
+  it('a layout is data: the compact strip is 110 x 14, one cell row, no digits, needle, drag bar or caps', () => {
+    const p = plan(model({ litBand: 3, selectedGear: 3, needle: 3, dragFill: 0.5, airborne: true }), null, COMPACT_STRIP_LAYOUT);
+    expect(p.panel).toEqual({ x: 0, y: 0, w: 110, h: 14 });
+    expect(p.cells).toHaveLength(5);
+    expect(p.digits).toEqual([]);
+    expect(p.drag).toBeNull();
+    expect(p.hints).toEqual([]);
+    expect(p.needle.h).toBe(0);
+    expect(p.glyph && inside(p.glyph, p.panel)).toBe(true);
+    expect(p.cells.every((c) => inside(cellRect(c), p.panel))).toBe(true);
+    expect(inside(p.bracket, p.panel)).toBe(true);
   });
 });
 
@@ -155,35 +164,82 @@ describe('needle', () => {
     for (const n of [0, 1, 2, 3, 4]) {
       const p = plan(model({ needle: n }));
       const cell = p.cells[n];
-      expect(cell && p.needle.x).toBeCloseTo((cell?.x ?? 0) + GEAR_METER_LAYOUT.cell / 2, 9);
+      expect(cell && p.needle.x).toBe(Math.floor((cell?.x ?? 0) + GEAR_METER_LAYOUT.cell / 2));
     }
   });
 
   it('band edges fall on cell boundaries (needle 0.5 is half way between cell centres)', () => {
     const p = plan(model({ needle: 1.5 }));
     const [c1, c2] = [p.cells[1], p.cells[2]];
-    expect(p.needle.x).toBeCloseTo(((c1?.x ?? 0) + (c2?.x ?? 0)) / 2 + GEAR_METER_LAYOUT.cell / 2, 9);
+    expect(p.needle.x).toBe(Math.floor(((c1?.x ?? 0) + (c2?.x ?? 0)) / 2 + GEAR_METER_LAYOUT.cell / 2));
   });
 });
 
-describe('drag meter', () => {
+describe('drag bar (PT-4)', () => {
+  const air = (over: Partial<GearMeterModel>): GearMeterModel => model({ litBand: 3, needle: 3, airborne: true, dragFill: 0.5, ...over });
+
   it('absent when the model says hidden', () => {
     expect(plan(model({ dragFill: null })).drag).toBeNull();
   });
 
-  it('fill is the model fraction of the inner bar width, from empty to full', () => {
-    const empty = plan(model({ dragFill: 0, airborne: true })).drag;
-    const half = plan(model({ dragFill: 0.5, airborne: true })).drag;
-    const full = plan(model({ dragFill: 1, airborne: true })).drag;
-    expect(empty?.fill.w).toBe(0);
-    expect(half?.fill.w).toBeCloseTo((full?.fill.w ?? 0) / 2, 9);
-    expect(full && contains(full.frame, full.fill)).toBe(true);
+  it('runs from the needle to the centre of the next lower cell, chevron at that end', () => {
+    const p = plan(air({ needle: 3.2 }));
+    const lower = p.cells[2];
+    expect(p.drag?.chevron.x).toBe(Math.floor((lower?.x ?? 0) + GEAR_METER_LAYOUT.cell / 2));
+    expect(p.drag?.chevron.w).toBe(3);
+    expect(p.drag?.chevron.h).toBe(5);
+    expect((p.drag?.frame.x ?? 0) + (p.drag?.frame.w ?? 0) - 1).toBe(p.needle.x);
   });
 
-  it('sits under the needle row, within the cell row width', () => {
-    const p = plan(model({ dragFill: 0.3, airborne: true }));
-    expect(p.drag && p.drag.frame.y).toBeGreaterThanOrEqual(p.needle.top + p.needle.h);
-    expect(p.drag?.frame.x).toBe(p.cells[0]?.x);
+  it('fill is a whole number of pixels (B5): the floor of the inner width, growing from the needle', () => {
+    const empty = plan(air({ dragFill: 0 })).drag;
+    const half = plan(air({ dragFill: 0.5 })).drag;
+    const full = plan(air({ dragFill: 1 })).drag;
+    expect(empty?.fill.w).toBe(0);
+    const inner = (full?.frame.w ?? 0) - 2;
+    expect(full?.fill.w).toBe(inner);
+    expect(half?.fill.w).toBe(Math.floor(inner / 2));
+    for (const f of [0.1, 0.33, 0.77]) expect(Number.isInteger(plan(air({ dragFill: f })).drag?.fill.w)).toBe(true);
+    expect(full && contains(full.frame, full.fill)).toBe(true);
+    expect(half && half.fill.x + half.fill.w).toBe((half?.frame.x ?? 0) + (half?.frame.w ?? 0) - 1);
+  });
+
+  it('sits in the row under the needle, inside the panel', () => {
+    const p = plan(air({}));
+    expect(p.drag && p.drag.chevron.y).toBeGreaterThanOrEqual(p.needle.top + p.needle.h);
+    expect(p.drag && inside(p.drag.chevron, p.panel)).toBe(true);
+    expect(p.drag && inside(p.drag.frame, p.panel)).toBe(true);
+  });
+
+  it('a span too short for a frame shows only the chevron', () => {
+    const p = plan(air({ needle: 2.1 }));
+    expect(p.drag?.frame.w).toBe(0);
+    expect(p.drag?.fill.w).toBe(0);
+  });
+});
+
+describe('bracket weight (PT-5)', () => {
+  it('is bold only when the lit cell is the selected gear', () => {
+    expect(plan(model({ selectedGear: 4, litBand: 3 })).bracketBold).toBe(false);
+    expect(plan(model({ selectedGear: 4, litBand: 4 })).bracketBold).toBe(true);
+    expect(plan(model({ selectedGear: 1, litBand: 0 })).bracketBold).toBe(false);
+    expect(plan(model({ selectedGear: 1, litBand: 1 })).bracketBold).toBe(true);
+  });
+
+  it('thin is thinner than bold', () => {
+    expect(GEAR_METER_LAYOUT.bracketThinWidth).toBeLessThan(GEAR_METER_LAYOUT.bracketWidth);
+  });
+});
+
+describe('cue ring (PT-3)', () => {
+  it('rings exactly the cue cell; the pulse covers it only while the cue pulses', () => {
+    const on = plan(model(), null, GEAR_METER_LAYOUT);
+    expect(on.ring).toBeNull();
+    const ringed = gearMeterPlan(model(), GEAR_METER_LAYOUT, caps, null, { ringBand: 2, pulse: false });
+    expect(ringed.ring).toEqual(cellRect(ringed.cells[2] as never));
+    expect(ringed.pulse).toBeNull();
+    const pulsed = gearMeterPlan(model(), GEAR_METER_LAYOUT, caps, null, { ringBand: 2, pulse: true });
+    expect(pulsed.pulse).toEqual(pulsed.ring);
   });
 });
 

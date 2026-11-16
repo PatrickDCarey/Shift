@@ -182,7 +182,7 @@ Trigger: the studio owner played the build and judged the puzzles thin. No `tuni
 - **The studio owner picked Tandem (one throttle, two runners) from `core-twists.md` (owner decision)** — puzzles are pure planning and pace stays the only verb.
 - **World 3 becomes five Tandem levels (Must, M3); worlds 1–2 stay single-runner (5 + 4, M2); Must stays 14** — the twist needs fluent single-runner skills first, and the M2 levels need no new engineering.
 - **w2-04 Gate leaves M2; speed gates and ice become Should (world 4 Gates)** — Tandem takes the engineering slot gates had. Gates' best puzzle is now a Tandem combine (w4-03).
-- **Schedule: Tandem spec Nov 3, sim and scene Nov 9–13, decision gate Nov 12; if `tandem.md` checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world** — the sim lane is on M1 until about Nov 8, and the fallback is fully specced, so the gamble is bounded.
+- _(gate date superseded 2026-11-13: Tue Nov 17)_ **Schedule: Tandem spec Nov 3, sim and scene Nov 9–13, decision gate Nov 12; if `tandem.md` checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world** — the sim lane is on M1 until about Nov 8, and the fallback is fully specced, so the gamble is bounded.
 - **Open: Tandem first appears at level 10; decide at M2-31 whether to move Two Colors after w3-01 or trim world 1** — jam voters play about 10 minutes.
 
 ### Rules settled in `features/tandem.md`
@@ -275,7 +275,7 @@ No `tuning.json` change. T-03 (deleting the four unused keys) waits for tech-lea
 - **Music follows the band (discrete), with a 150 ms glide and a 30 ms snap on a drag drop** — bands are what the rules use; the snap sells the clunk.
 - **Clunk vs shift down: an octave lower, one hard attack with grit, and it darkens the music** — the game taking a gear must not sound like the player choosing to.
 - **No SFX on `bandChange` or `graceStart`** — the music already carries pace; a blip at every band edge is noise.
-- **Fall-through has no sim event; it is a pure derived helper (grounded → airborne, no jump, colored tile under the footprint)** — no sim change for a render-only need; tech-lead places the helper.
+- _(superseded 2026-11-13 by the T-07 ruling: fall-through is the sim event `fallThrough { body, cells }`, `architecture.md` §3.2)_ **Fall-through has no sim event; it is a pure derived helper (grounded → airborne, no jump, colored tile under the footprint)** — no sim change for a render-only need; tech-lead places the helper.
 - **Tandem: each body's event once; the twin's voice is a fourth lower and 3 dB softer; same event on the same step plays as one unison** — two voices make "out of step" audible without doubling volume.
 - **`home` chime per body, suppressed on the win step** — one sting for the win, not three sounds.
 - **Audio, effect and leaderboard constants are not `tuning.json` keys** — tuning is for gameplay numbers; these live with their owners.
@@ -315,3 +315,24 @@ No `tuning.json` change: every issue was missing information or level geometry, 
 - **w1-04 Brake: APPROVED subject to PT-6 v2 meeting its numbers (≥ 35 / ≥ 32 steps)** — one idea (slowing takes distance), the brake can't be skipped (0 air brakes in 25,728 runs); only the window was short.
 - **w1-05 Red Wall: APPROVED; README must record the timing-free standing-start line (≥ 30 steps)** — one new idea (a colored wall stops only its color), real tension (not red at the wall, red 2 tiles later); the playtester called it the best puzzle and fair.
 - **SEC-2 leaderboard name allow-list: `^[A-Z0-9-]+( [A-Z0-9-]+)*$`, 1–12 characters; the client types upper case, the server rejects anything that does not match (lower case included, check 11)** — the charset already in `leaderboards.md`, written as one pattern client and server can share (tech-lead's structure, our narrower charset; no `_` or `.`).
+
+## 2026-11-13 (batch 4A) — GDD v1.7: pixel cutover, level rulings, T-07, B1
+
+### Owner decisions
+- **M1 signed off; the pixel cutover (PX-4..PX-10) starts in Batch 4A; the M1-55 hand checks move to the M2 gate on the pixel build (owner decision)** — recorded from `requests.md` "Owner decisions (2026-11-13)".
+- **Tandem decision gate moved from Nov 12 to Tue Nov 17 (owner decision); Tandem stays world 3 until then** — the gate is qa-tester's T-13 run of `tandem.md` checks 1–12; noted in `tandem.md` Priority, GDD §10 and the level plan.
+
+### PX-5
+- **`tileSize` 32 → 16; GDD notes the 480×270 base with whole-number zoom (§4.1, §9, §11)** — the ADR's option (a); the sim works in tiles, so no rule, level, solution or `src/core` test changes, and 16 px at 2× is the same on-screen size as 32 px today. No other tuning value changes.
+
+### Levels (M2-23)
+- **w2-01 Commit: APPROVED; the grace-and-coyote yellow line (73 of 708 random wins, fastest known 157) ACCEPTED as an expert line, no geometry change** — it needs a shift press on the runway and a jump within about 12 steps of turning yellow, which every other line punishes, so a first-timer meets it only by luck; nothing pressed in the air helps it, so the lesson holds; the drop it shows is w2-02's idea with its full cue, a preview rather than a misteach; and one gap cannot separate the green (4.8) and dragged-yellow (6.0–7.3) landings. Intended window 21 steps (≥ 18), 0 of 80 no-jump lines win. Level-plan drag-rescue constraint amended to name this exception.
+- **w2-02 Coast: APPROVED with the yellow pad 2 tiles lower (keep, do not revert)** — it is the plan's own fix ("lower landing pads, not shorter gaps"): the window grows 18 → 23 steps (≥ 18, pillar 3) with the gap still 7 tiles; the drop comes on flight step 30 and the landing on step 55, a second drop would need 12 tiles, and every one of 722 sweep wins takes off red while 0 yellow takeoffs win.
+- **World 1, still pending: w1-01 v2, w1-02 v2 and w1-04 v2 are APPROVED in advance if PT-6 lands with the 2026-11-05 numbers** (w1-02: shift-down ≥ 50 steps, let-go ≥ 45; w1-01: the same room as w1-02, every timed input ≥ 30 steps; w1-04: running ≥ 35, let-go ≥ 32, else a 9-tile pad), replay and ±3 green, `hints.test.ts` green and 0 bridge skips in the rerun sweeps; any miss comes back to design-lead — the ideas and rooms were approved on 2026-11-04/05; only the windows changed, and those are measurable. w1-05's README fair line (≥ 30 steps) closes its condition the same way. w1-03 and w1-05 stay APPROVED (2026-11-05).
+
+### T-07 amendment
+- **Fall-through is the sim event `fallThrough { body, cells }` (tech-lead's T-07 ruling, `architecture.md` §3.2); the 2026-11-04 "no sim event" line is superseded, and `adaptive-audio.md` (trigger, check 5) and `clarity-fixes.md` (PT-3 triggers and checks 1–2) now point at it** — the trigger condition is unchanged, and the sim computes it once so audio, effects and HUD cannot disagree; render code may not call core helpers anyway.
+- **Airborne pass-through (PT-3 Should) stays out of `fallThrough`; tech-lead decides in the contract change whether the sim reports it. Design asks only for at most one cue per body per flight, with the crossed cells and band** — `fallThrough` needs a grounded start, and a Should must not hold up the Must event.
+
+### B1 Sticky Keys tip
+- **CHANGE: a pause (Esc/P or focus loss) hides the tip only while paused; on resume it returns with the rest of its 12 s (counted in unpaused time). The flag is still saved when the tip first shows** — an accidental click outside the itch iframe in the first seconds burns a Must one-time tip that the players who need it never see (pillar 2); keeping it through a pause is cheaper and simpler than a delayed save, and acceptance checks 1, 2 and 8 stay as they are. `sticky-keys-tip.md` (edge case, check 11) and `pause.md` amended.

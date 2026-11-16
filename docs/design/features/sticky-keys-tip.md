@@ -27,7 +27,8 @@ The tip is shown once ever (saved when it is displayed). It never pauses the gam
 
 ## Edge cases
 
-- **Hiding:** Enter, pressing Q, E, Z or X, 12 s untouched, pausing, or leaving the level. The alternate gear keys hide it **and still shift the gear** (the key is not swallowed): the player has just learned the lesson.
+- **Hiding:** Enter, pressing Q, E, Z or X, 12 s untouched, or leaving the level. The alternate gear keys hide it **and still shift the gear** (the key is not swallowed): the player has just learned the lesson.
+- **Pausing (amended 2026-11-13, B1):** a pause, from Esc/P or from focus loss, hides the tip only while the game is paused. On resume it comes back where it was, with the rest of its 12 s. The 12 s counts unpaused time only. Reason: an accidental click outside the itch iframe in the first seconds must not burn the one-time tip. The saved flag is unchanged (still set when the tip first shows).
 - **Shift keys do not hide it.** A player still tapping Shift is the one who needs it.
 - **The game runs underneath:** the sim keeps stepping and every game key reaches the game while the tip is up.
 - **Storage blocked:** the flag lives in memory, so the tip shows on the first level start of each session.
@@ -53,7 +54,7 @@ None. `STICKY_TIP_AUTO_HIDE_MS` (12 s) and the panel sizes are UI constants in `
 8. Storage blocked: the tip shows on the first level start of the session and not on the second.
 9. Replay mode: never shown, and the flag is unchanged.
 10. `tipPlacement`: a player at the bottom of the view gets the top position (y 42). A player in the upper half gets the bottom position. Neither position overlaps the HUD rectangle (unit).
-11. Pausing while the tip is visible: after resume the tip is gone.
+11. Pausing while the tip is visible (Esc, and a focus-loss pause): the tip is hidden behind the pause panel; after resume it is visible again at the same position, and it auto-hides 12 s of unpaused time after it first showed (a 5 s pause at 2 s leaves 10 s on resume). Quitting to the menu from that pause leaves it hidden for good.
 12. At 480×270 with the bitmap font, all three lines fit inside the panel and the panel lies within 8 px margins. A greyscale screenshot shows the key caps readable.
 
 ## Priority

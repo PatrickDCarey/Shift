@@ -12,7 +12,7 @@ _Owner: qa-tester. Tasks M1-26, M1-50, M1-35 and M1-36. Written 2026-11-02 again
 | **Solvability** | `tests/levels/solvability.test.ts` | `npx vitest run tests/levels` | Every `levels/<id>.txt` has a recording and the real sim wins with it. |
 | **Coverage** | vitest v8, threshold 80% on `src/core/**` | `npm run test:coverage` (part of `npm run check`) | CLAUDE.md quality bar. |
 | **Type check / build** | `tsc` twice, `vite build` | `npm run typecheck`, `npm run build` | Browser code and tests/configs compile; the shipped bundle builds. |
-| **E2E** | `tests/e2e/*.spec.ts` (Playwright, Chromium, 960x540 viewport) | `npm run test:e2e` (builds with `VITE_QA_HOOK=1`, serves `dist/` on 4173; **port 4173 must be free**, the config never reuses a server) | The real browser build: boot, canvas size, key bindings in a browser, focus, replay of every shipped solution, iframe embed. |
+| **E2E** | `tests/e2e/*.spec.ts` (Playwright, Chromium, 960x540 viewport; canvas 480x270 since the pixel cutover) | `npm run test:e2e` (builds with `VITE_QA_HOOK=1`, serves `dist/` on 4173; **port 4173 must be free**, the config never reuses a server) | The real browser build: boot, canvas size, key bindings in a browser, focus, replay of every shipped solution, iframe embed. |
 | **Manual / playtest** | this plan section 5; `docs/playtests/` | by hand | Feel, 60 fps, anything visual. |
 
 **E2E conventions.** Never sleep on wall-clock time. Every wait polls `window.__redshift` (`tests/e2e/helpers.ts`: `waitForHook` 45 s boot timeout, `pollState` 20 s, 120 s per test via `test.describe.configure`) because a loaded machine or headless Chromium can run the game at a few frames per second. The 960x540 viewport comes from `playwright.config.ts` (set on the chromium project after the device spread; BUG-2 closed), so specs no longer call `test.use`; `embed.spec.ts` asserts `page.viewportSize()` equals `EMBED_VIEWPORT` as a regression guard. The suite runs `workers: 2` (BUG-3 closed). `window.__redshift` exists only in dev and in builds made with `VITE_QA_HOOK=1` (BUG-1 closed): the e2e build has it, a plain `npm run build` does not, so never point e2e at a plain build. A shared auto-fixture fails any test that logs a console error or a page error. Replay tests use `?level=<id>&replay=1&speed=60`; `replay.done` is true on `won` or when the frames run out, never on `dead` (recordings include deaths).
@@ -195,6 +195,42 @@ Node-side spec `tests/e2e/levels-hints.spec.ts` (no browser; it parses the real 
 
 E `sticky-keys.spec.ts`: on a Windows user agent the first level start sets `settings.stickyKeysTipShown` and keys still move the runner while the tip is up (non-blocking); the flag persists across a reload; replay mode never shows it; a macOS user agent never sets it. The panel is a canvas object: see `docs/qa/evidence/package-zip-subfolder-load.png` (taken from the packaged zip). Auto-hide, Enter dismissal and pause-hides-it are not automated.
 
+### 2.13 Clarity fixes PT-1 to PT-7 (`clarity-fixes.md`, added 2026-11-13, batch 4A)
+
+Verified in run 5 or the M2 gate once each lands. U = unit, E = e2e (hook), H = by hand on the pixel build.
+
+| Check | What to verify | How |
+|---|---|---|
+| PT-1 | `/` with no `?level=` opens w1-01 (`hook.levelId`); `?level=w0-02` still loads w0-02; unknown id loads w1-01 plus the message. After M2-11 `/` opens the title. | E (add to `levels-hints.spec.ts` after the scene lane lands), U |
+| PT-2 | Exit is the most distinct object (idle animation Should); off-screen exit arrow shows only while no exit tile is in view, points at it, level with its centre, clamped 4 px under the HUD and 4 px above the bottom; no band pattern; differs from the Tandem arrows in greyscale (art test M1-59). | U (`exitCue`), H screenshot |
+| PT-3 | Why-you-fell cue: the failing tile run highlights and the HUD cell rings for one 45-frame ring, cleared on respawn and restart; one ring only; walk-off and grace fall-through are Must, the two Should triggers noted. | U (model), H |
+| PT-4 | Drag bar runs from the needle to the centre of cell `litBand - 1`, fills by `min(airDistance / airDragTilesPerGear, 1)`, ends in a chevron; hidden if not built. No air-shift hint exists anywhere (rejected). | U, H |
+| PT-5 | Bracket thin and dimmed while its cell is not lit, bold on the step the lit cell reaches it (`arrived`); `litBand === state.band` in w1-03 at gear 4, band 3. | U; E reads `hook.meter.litBand` against `state.band` on every sampled frame (already in `m2-additions`) |
+| PT-6 | w1-01 v2, w1-02 v2, w1-04 v2: timed windows at least 30 steps (world 1), 18 steps (world 2); w1-05 geometry kept with its timing-free line; `version` and `Fastest known` bumped; the recordings still win and win with inputs shifted +-3 steps. | `npx vitest run tests/levels`, E replay of every solution |
+| PT-7 | The interim banner is unchanged; on M2-12 the results panel focuses NEXT, Enter or Space picks it, R retries, Esc goes to levels, and nothing names R before NEXT. | E once M2-12 lands |
+
+### 2.14 Pixel cutover (PX-4 to PX-10, `docs/tech/adr-pixel-rendering.md`, added 2026-11-13)
+
+Automated in `tests/e2e/pixel.spec.ts`, `smoke.spec.ts`, `embed.spec.ts` (hook-based specs are unchanged: sim units are tiles).
+
+| Check | Verified by |
+|---|---|
+| Canvas attributes are 480 x 270 on boot (smoke, embed, iframe) | E |
+| CSS width is a whole multiple of 480 and the box is centred at 960x540 (960), 1366x768 (960), 1920x1080 (1920), 2560x1440 (2400); non-multiple viewports 1000x600 (960) and 1500x1000 (1440) | E `pixel.spec.ts` |
+| 640x360 gives a centred 480 x 270 box (zoom 1, no fractional fit) | E `embed.spec.ts` |
+| Live resize 960 to 1920 to 960 re-zooms (4 then 2) without touching the sim | E |
+| 2x screenshot is 960x540, made of uniform 2x2 blocks, under 200 colours (`docs/qa/evidence/px-10-embed-2x.png`) | E |
+| `image-rendering` is pixelated on the canvas | E |
+| Boot with storage blocked (PX-4) | add in run 5 (`addInitScript` throwing from `localStorage`) |
+| Player screen x constant while the camera follows (snapping invariant) | U (scene lane); H: no jitter between player and tiles at gear 1 to 4 |
+| `tileSize` is 16 and no level changes; every recording still replays | `tests/levels`, e2e replay |
+| Bitmap font legible at 2x and 4x; `---` and the shift glyph render | H (PX-11) |
+| 60 fps in the 960x540 embed, F3 overlay | H (M2 gate); the spike measured 54 fps headless software GL |
+| Fullscreen at 1366x768 and 1920x1080: dither clean, letterbox black | H (PX-11, playtester) |
+| Reduced-effects mode, keyboard-only, alternative bindings on the pixel build | H (M2 gate) |
+
+Assumptions that depend on the cutover lanes' exact output: (1) `main.ts` re-zooms on window `resize` (ADR); (2) the canvas CSS box is `canvas.boundingBox()` and Phaser centres it with margins, so centre equals viewport centre within 1 px; (3) the CSS `image-rendering` computes to `pixelated` or `crisp-edges`; (4) the frame at step 30 on w0-02 contains no smoothed pixels (no scaled bitmap text at fractional scale, no alpha-blended fades; a fade or glow would raise the 2x2 non-uniform count and the 200-colour cap, so loosen the caps and note it if art adds alpha effects); (5) `w0-02` is the level loaded by `?level=`.
+
 ## 3. M1 board tasks: how each acceptance line will be verified (M1-35 to M1-37)
 
 | Task | Acceptance (short) | Verification |
@@ -243,7 +279,7 @@ E `sticky-keys.spec.ts`: on a Windows user agent the first level start sets `set
 ## 5. Manual and playtest checks (cannot be automated in M1)
 
 1. Feel of acceleration, brake and air drag (playtester M1-28, answers D-1, D-2, D-3).
-2. 60 fps on a mid-range laptop at 960x540 (read the F3 overlay fps; automated headless fps is not meaningful).
+2. 60 fps on a mid-range laptop at 960x540 (on the pixel build, M2 gate) (read the F3 overlay fps; automated headless fps is not meaningful).
 3. Real-keyboard check: Left Shift vs Right Shift on a physical keyboard, Windows Sticky Keys dialog not triggered when using Q/E/Z/X.
 4. Visual: tiles solid vs ghost, patterns per gear visible without color (screenshots in `docs/art/`).
 5. Resize and focus: window resize, tab switch while holding a key, pausing mid-shift (partially covered by e2e blur test).

@@ -1,6 +1,8 @@
 # Redshift — Task Board
 
-_Owner: producer. Last updated: 2026-11-05 (Thu), after batch 2 (commit 68bdce0, QA run 4 in 7a52b08) and the M1 playtest; Batch 3 defined below. Jam closes 2026-12-01 21:37 UTC; studio submits 2026-11-30._
+_Owner: producer. Last updated: 2026-11-13 (Fri), after batch 3 (commit cab74a1) and an idle week Nov 6–12; Batch 4 defined below (variants A and B). Jam closes 2026-12-01 21:37 UTC; studio submits 2026-11-30._
+
+**Status (2026-11-13): BEHIND.** Nov 6–12 produced nothing: the M1 gate (M1-37), the owner's M1 sign-off and the Tandem decision gate were all missed; the pixel cutover is blocked on the owner; batch 3 code is unreviewed. The M2 gate (Nov 15) cannot be met: it needs the cutover, menus, e2e, verification and a playtest, about 5 working days of serial work. M4 freeze (Nov 28) and submit (Nov 30) hold. **Re-plan (the 8 lost days absorbed): M2 gate Wed Nov 18 (A) or Fri Nov 20 (B); M3 gate Tue Nov 25 (A) or Wed Nov 26 (B); Tandem decision gate Mon Nov 16, final.** Cuts proposed to the owner in `cut-list.md` ("Re-plan 2026-11-13"). Batch 3 landed (cab74a1): 2031 unit and 73 e2e tests pass; every line of it is Review until tech-lead reads it (Batch 4) and QA run 5 verifies.
 
 **Status (2026-11-05):** on track, about two days ahead of the Nov 3 plan. Batch 1 and 2 are committed; `npm run check` passes (1840 tests, 84.9% coverage), e2e 64/64; M1-35 and M1-36 PASS; M1-28 playtest done (overall 3, innovation 4, theme 4). The M1 gate (M1-37) waits on five by-hand checks (M1-55) and the owner review (planned Nov 8; it can happen earlier if the owner signs off sooner). Open: BUG-4 (solutions ship in the zip; fix is M1-54, must close before any public upload), the playtest clarity fixes (PT-1..PT-7), security follow-ups (SEC-1..SEC-3). **The pixel cutover (PX-4..PX-10) still starts only after the owner's M1 review; Batch 3 contains no cutover work and needs no `m1` tag.** Everything below this line up to "Critical paths" is the Nov 3 text, kept for history.
 
@@ -13,20 +15,23 @@ _Owner: producer. Last updated: 2026-11-05 (Thu), after batch 2 (commit 68bdce0,
 
 **Calendar**
 
-| Day | Plan |
-|---|---|
-| Wed Nov 4 | DONE. Batch 1 (commit 9ea8970). T-01 Tandem contracts landed (stage 2 too). |
-| Thu Nov 5 | **Batch 3 (pre-cutover, below).** Batch 2 is committed (68bdce0); QA run 4 PASS. PX-1..3 built (Review). |
-| Fri Nov 6 | Batch 4 (pre-cutover): playtest fixes that survive the cutover (retunes after design-lead's rulings, scene cue logic that is render-free, CI grep for recordings, T-11 if T-10 lands). M1-55 hand checks by the owner or orchestrator. |
-| Sat Nov 7 | Buffer day. M1-37 gate can close as soon as M1-55 is done and the owner signs off; **if the owner signs off on Nov 6 or 7, tag `m1` and start the cutover that day** (PX-1..3 are already built). |
-| Sun Nov 8 | **M1 gate** latest date (M1-37), owner review, tag `m1`. Cutover starts if not already running. |
-| Mon Nov 9 | Cutover continues (PX-4..PX-10). Tandem sim continues (T-11). |
-| Tue Nov 10 | Cutover lands (target); PX-11 review and playtest; Tandem scene T-20 starts; menus start. |
-| Thu Nov 12 | **Tandem decision gate** (checks 1–12). |
-| Sat Nov 14 | M2 playtest. USER-2 (Supabase) due. |
-| Sun Nov 15 | **M2 gate** (worlds 1–2 = 9 levels, pixel build, HUD, title and level select, colored-wall tests). |
-| Sun Nov 22 | **M3 gate** (Tandem world 3, leaderboards, audio). |
-| Sat Nov 28 | M4 freeze. Mon Nov 30: submit. |
+**Re-planned calendar (2026-11-13).** A = owner signs off M1 now and the cutover starts today; B = cutover waits for the owner's hand checks. Dates before Nov 13 are history (Batches 1–3 landed on time, Nov 4–5; Nov 6–12 idle).
+
+| Day | A: cutover now | B: cutover waits |
+|---|---|---|
+| Fri Nov 13 | Owner signs off M1 (hand checks M1-55 deferred to the pixel build); tag `m1`. **Batch 4A** (cutover set PX-4..PX-10). | Owner does the M1-55 hand checks today or tomorrow. **Batch 4B** (no cutover). |
+| Sat Nov 14 | Orchestrator: check, build, e2e on the cutover. USER-2 (Supabase) due. | Owner signs off; tag `m1`. Orchestrator check and e2e for 4B. |
+| Sun Nov 15 | **Batch 5A**: PX-11 review and play, menus M2-11/12/13, T-12, fallThrough event, T-20 starts, art M2-15. | **Batch 5B = cutover** (PX-4..PX-10) plus the sim and level work that does not touch it. |
+| Mon Nov 16 | **Tandem decision gate, final** (T-13 on checks 1–12; no further extension, else gates world). | Same date; cutover continues. |
+| Tue Nov 17 | Menus, T-20, world 3 levels, leaderboards (M3-12 needs USER-2). Cut trigger: USER-2 not done. | PX-11, then Batch 6B = menus, T-20. |
+| Wed Nov 18 | **M2 gate** (worlds 1–2 = 9 levels, pixel build, HUD, title and level select, colored-wall tests). | Menus continue. |
+| Fri Nov 20 | Tandem scene and world 3 levels continue. | **M2 gate** (two days after A). |
+| Sun Nov 22 | w3 levels done; leaderboard and audio wiring. | Same, one day behind. |
+| Tue Nov 25 | **M3 gate** (Tandem world 3, leaderboards, adaptive audio, palette and effects). | Wed Nov 26 **M3 gate**. |
+| Wed–Fri Nov 26–28 | Polish; **M4 freeze Fri Nov 28** (fixed). | Freeze Nov 28 (fixed); M4 polish window is two days. |
+| Mon Nov 30 | **Submit** (fixed). | Same. |
+
+Variant B costs two days on M2 and one on M3 and leaves a 2-day M4. If B is chosen, the owner must do the hand checks by Sat Nov 14 or B slips one day per day.
 
 Line format: `- [Mx] <id> · <task> — owner: <agent> — est: <hours> — accept: <criteria> — needs: <ids or none>`
 Task ids: `M1-nn`..`M4-nn`, `PX-n` (pixel rendering, from the ADR), `T-nn` (Tandem), `G-n` (gates package: Should, or Must if the Tandem gate fails), `S-nn`, `USER-n`. "Reviewed" means tech-lead approved; "verified" means qa-tester passed the acceptance criteria. A task is Done only after both (`CLAUDE.md`). Tech-lead's own deliverables have no second reviewer in the pipeline: qa-tester verifies them and the code-reviewer agent reads the code.
@@ -95,14 +100,44 @@ No task depends on another in the batch, and no two sittings share files. Parall
 11. qa-tester — M1-55 gate checklist, M2-60 e2e additions (writes only; runs last)
 Left out because the cutover would discard them: [motion] (nothing pending), PX-6..PX-9 work, GameHud and meter view relayout, menu scenes, playtester.
 
-**Batch 4 — Fri Nov 6 – Sat Nov 7 (pre-cutover, needs Batch 3 in Review and design-lead's rulings)**
-level-designer PT-6 (w1 retunes), [sim] T-11, tech-lead CI recording grep and T-14 prep, backend M3-11 finish or SEC-2, art-director M2-14c/T-05 remainder, ui-engineer pure models for the PT-3 "needed slot" cue, design-lead M2-23 rolling, qa run 5. Then the cutover (**Batch C**: PX-4..PX-10 after the `m1` tag and the owner's review) and Batch 5 (PX-11, T-20, M2-11/12/13, T-05, T-06, M2-15, T-12).
+**Batch 4 — Fri Nov 13 – Sat Nov 14 (Batch 3 landed in cab74a1; rewritten 2026-11-13)**
+Rules as Batch 3: one sitting per owner area, no shared files, no in-batch dependencies; parallel agents run only `npx vitest run <path>`; the orchestrator then runs `npm run check`, build and `npm run test:e2e`; qa-tester's run 5 comes last (port 4173). Ports: art 5185, ui 5186, level 5187, audio 5188, backend 5189, scene 5190, playtester 5191. Common lines (both variants) first.
+
+*Common to 4A and 4B*
+1. [sim] gameplay-engineer — T-11 Tandem part 2 (per-body shift and jump, clamp resync, wall stop, home, win, death and restart; checks 4–15). Files: `src/core/sim/**` only (new tests `tandemAcceptance2.test.ts`; no `fallThrough` yet). Done: `npx vitest run src/core/sim` green, all M1 and T-10 tests unchanged, derived numbers that differ filed in requests. Not Done until T-13 verifies checks 1–12.
+2. level-designer — PT-6 (w1-01 v2, w1-02 v2, w1-04 v2 per `clarity-fixes.md`, w1-05 README line), then M2-22 w2-03 Step Down (exact 4-tile drop; spec `level-plan.md` row w2-03). Files: `levels/**`. Done: `npx vitest run tests/levels` green (replay and ±3), windows meet the numbers in the request of 2026-11-05, `Fastest known` and version bumps recorded, request line to backend-engineer. w2-04 follows in Batch 5.
+3. design-lead — rulings in `docs/design/decisions.md`: w2-01 (the one expert line keeping yellow alive, 73 of 708 random wins: accept as an expert line or ask for a roof/gap change), w2-02 (pad lowered 2 tiles, 23-step window: accept or revert); amend the T-07 lines (`decisions.md`, `adaptive-audio.md` fall-through trigger points at the sim event); B1 Sticky Keys tip burn rule; M2-23 verdicts for w1-04 and the 11-05 levels; name blocklist handed to backend-engineer by request line. Files: `docs/design/**`. Done: a verdict and reason per item; any level change is a requests line to level-designer. In 4A also PX-5 (below).
+4. ui-engineer — pure models for PT-5 (bracket `arrived`), PT-4 (drag bar span), PT-3 (needed-slot cue, one 45-frame ring, cleared on respawn), B6 `MAX_CELLS_PER_ROW`, B7/B8. Files: `src/ui/**` model files and tests, `src/save/**`. Done: one unit test per `clarity-fixes.md` check of those items; `npx vitest run src/ui src/save` green; no view change. Port 5186.
+5. audio-designer — B9 (exhaustive `switch` with a `never` check in `sfxEvents.ts`, keeping the local `FallThroughEvent` until Batch 5), B10, B11. Files: `src/audio/**`. Done: tests for each; `npx vitest run src/audio` green. Port 5188.
+6. backend-engineer — SEC-2 (name pattern and 1–12 length in `rules.ts` and the SQL check, code `name`), B13 (`content-length` guard in `src/net/client.ts`), B14 (`validate.ts` bidi and zero-width rejection, dead `try/catch`). Files: `backend/**`, `src/net/**`. Done: unit test per rejection, `npx vitest run scripts src/net` green. Port 5189.
+7. art-director — M2-14b (accessibility doc for the pixel patterns, three simulations) and T-05 (home pose, silhouette glyph, divider as solid ground; runner against twin in greyscale). Files: `src/fx/**`, `src/data/palette.json`, `assets/art/**`, `docs/art/**` (rerun `npm run art:build`, commit sheets). Done: numbers and images in `docs/art/`, drift test green, no API rename (the scene lane codes against it). Port 5185. (Tandem-fallback swap: G-5 instead of T-05.)
+8. tech-lead — **in this order:** `FallThroughCell` and the union member in `src/core/contracts/state.ts` (per `architecture.md` §3.2, with the airborne pass-through question from design-lead decided in the ruling), the name-rule constant (M3-04), then the review of Batch 3 at commit cab74a1: T-10 sim, M1-54/PT-1/M1-57, M1-58, M3-16, M1-59 (edge arrow re-review), SEC-1 and M3-11 (security-reviewer agent; M1-19 re-review), M1-04, M1-56, w2-01/w2-02 (hints test). Files: `src/core/contracts/**`, `src/core/types.ts`, `docs/tech/**`. Done: a review file `docs/tech/reviews/2026-11-batch3-review.md` with Approve or file:line per item; contract compiles (`npx tsc -p tsconfig.json --noEmit` by the orchestrator). In 4A the review runs after PX-4 and the scene/ui views that the cutover rewrites are read for logic only.
+9. qa-tester — test-plan additions in `docs/qa/test-plan.md` (clarity checks, menu and level-select checks, Tandem checks 1–18, protanopia screenshot), then run 5 verifying Batch 3 acceptance lines (written last, 4173 at the end only). Files: `docs/qa/**`, `tests/e2e/**` (writes only). Done: Pass/Fail per Batch 3 line with evidence.
+
+*4A only — cutover (PX-4..PX-10), one coordinated set, starts now*
+- tech-lead (added to line 8, first): PX-4 `src/main.ts`, `src/scenes/BootScene.ts`, `index.html`, `architecture.md`; 480×270, `Scale.NONE` plus integer zoom, boots with storage blocked, BootScene builds the pixel textures.
+- design-lead (added to line 3): PX-5 `src/data/tuning.json` `tileSize` 32 to 16 and the GDD 480×270 note; no `src/core` test change.
+- [scene] gameplay-engineer: PX-6, PX-7, PX-8 in order (`src/scenes/GameScene.ts`, `src/entities/**`: tilemap `LevelView`, sprite `PlayerView`, camera helper with tests, bitmap-font `GameHud`), plus B2 and B3. Done: unit tests for `playerFrame` and the camera snapping invariant, `npx vitest run src/entities`; the build renders only after PX-4 and PX-9 land together. Port 5190.
+- ui-engineer (line 4 is second to this): PX-9 first (`GearMeterView` 110×32, compact 110×14 strip, `StickyKeysTipView`, B5 floor), `hudModel` tests unchanged. Port 5186.
+- qa-tester (line 9, written against the ADR): PX-10 e2e for the new canvas (480×270 attributes, whole-multiple CSS widths at four viewports, live resize, 2× screenshot). Orchestrator runs `npm run test:e2e` after the set lands; green means the cutover is Done pending PX-11 in Batch 5.
+- No playtester sitting (build is in flux). If PX-4..PX-9 are not all in by Nov 14 evening, the orchestrator does not merge a half cutover; it lands Nov 15.
+
+*4B only — no cutover*
+- [scene] gameplay-engineer: B2, B3, and `exitCue(view, exitRect, hudBottom)` pure helper (PT-2b) in a new `src/entities/exitCue.ts` with tests. Files: `src/entities/**`, `GameScene.ts` for B2/B3 only. Done: unit tests, `npx vitest run src/entities`. Port 5190. Nothing that the cutover rewrites (LevelView, PlayerView, GameHud, meter view).
+- No ui view work, no PX lines, no playtester; the owner does the M1-55 hand checks and says "M1 signed off"; the cutover moves to Batch 5B.
+
+*Tandem decision (owner question 2)*
+- **Extend to Mon Nov 16, final (recommended):** T-11 now (line 1), T-13 (qa, checks 1–12) opens Batch 5, producer decides Nov 16. Batch 5 adds the `fallThrough` event to [sim] (contract exists after line 8) and T-12.
+- **Fall back to gates now:** replace line 1 with nothing in 4A/4B (T-10 stays as harmless groundwork); line 7 builds G-5 instead of T-05; line 8 adds G-1 after `FallThroughCell`; G-2, G-3 ([sim], [level]) start in Batch 5 (G-2 needs G-1). Design-lead adds the GDD v1.3 revert and the level-plan fallback table to line 3. Tandem tasks T-05, T-06, T-11, T-12, T-13, T-14, T-20, T-21 and world 3 Tandem levels are dropped; w3 levels become gates levels. Saves about 25 engineering hours of scene and HUD work, costs the game's core twist; this is a Must-scope change and is the owner's decision.
+
+**Batch 5 (Nov 15–16, outline)** — A: PX-11 (tech-lead review, playtester), M2-11 title and level select, M2-12 pause and results, M2-13 controls ([ui] sittings in order; one ui area per batch so M2-11 and M2-12 split across Batch 5 and 6), T-12 and the `fallThrough` event ([sim], after the contract), T-13 (qa), T-20 start ([scene]), M2-15 (art, needs PX-4), w2-04 and world 3 drafts (level-designer), audio B9 tail and M3-21 wiring prep, backend M3-12 (USER-2). B: the cutover set above plus T-12/fallThrough, w2-04, T-13.
 
 ---
 
 ## User actions (not agent tasks)
 
 - `USER-1` — **DONE 2026-11-02:** repo created at https://github.com/PatrickDCarey/Shift (private until release), MIT license. Making it public is `USER-6`.
+- `USER-0` (2026-11-13) — **answer two questions today:** (1) sign off M1 now and start the cutover (A; hand checks M1-55 done on the pixel build) or do the hand checks first (B, by Nov 14); (2) extend the Tandem gate to Mon Nov 16, final (recommended), or fall back to the gates world now. Also decide the proposed cuts in `cut-list.md`.
 - `USER-2` — by **Nov 14**: create the **Supabase project** and run `backend/migrations/*.sql` (steps in `backend/README.md`, written in M1-19). Needed by M3-12. If skipped, the game ships offline-only (cut list).
 - `USER-3` — by **Nov 26**: create the **itch.io game page as a draft** (HTML, play in browser, 960×540, restricted) and upload a test zip from `npm run package` (M1-18). Needed by M4-15.
 - `USER-4` — by **Nov 29**: confirm you are signed up for the **GitHub Game Off 2026** jam on itch.io; **publish** and **submit the entry** on **Nov 30** with the public repo link (S-03, S-06).
@@ -116,11 +151,13 @@ level-designer PT-6 (w1 retunes), [sim] T-11, tech-lead CI recording grep and T-
 
 ## Doing
 
-Batch 3 (above) starts now. Its lines are in "Todo — Batch 3 and playtest fixes" further down.
+Batch 4 (above) starts on the owner's "Start the batch" (2026-11-13). Variant A or B is chosen by the owner's answer to the cutover question.
 
 ## Review
 
 Built in the repo and waiting on tech-lead review, a QA verification, or a closing fix. Nothing here is Done yet.
+
+**Batch 3, landed in cab74a1 (files checked 2026-11-13; unit 2031 and e2e 73 pass per the orchestrator). All Review until tech-lead's `2026-11-batch3-review.md` and QA run 5 (Batch 4 lines 8 and 9):** T-10 (`src/core/sim/tandemAcceptance.test.ts`; checks 1, 2, 3, 16, 17), T-02b, M1-52 (`clarity-fixes.md`), M1-54/PT-1/M1-57 (`src/entities/solutionFiles.ts` gated by `QA_HOOK`), M1-58, PT-5 (answered: intended, pinned), M2-21 (`levels/w2-01.*`, `w2-02.*`; design-lead rulings in Batch 4 line 3), SEC-1 and M3-11 (`backend/functions/submit-run/`), M3-16 and M2-17b (`src/audio/music*.ts`), M1-59 and PT-2a, M1-55 (`docs/qa/m1-gate.md`; steps not yet done by a human), M2-60, T-07 ruling (`architecture.md` §3.2; the `FallThroughCell` contract is **not** in `src/core/contracts` yet), M2-25a/26a/27a (`docs/tech/reviews/2026-11-batch2-review.md`), M1-04, M1-56. M1-48 and M1-51 are confirmed at HEAD by tech-lead (2026-11-05 line): moved to Done below.
 
 - [M1] PX-1, PX-2, PX-3 · Pixel data, atlases, bitmap font (below, moved from Doing 2026-11-05: built, art's final format is `docs/art/style.md`) — tech-lead review: `src/fx/pixel` "Changes needed" (edge arrow colour-only, HIGH, blocks T-20 only; closes in M1-59). QA: drift tests pass in run 4.
 - [M1] M1-19 · Supabase schema and RLS, `backend/README.md` — owner: backend-engineer — tech-lead verdict "Changes needed" until SEC-1 (HIGH 1) lands; SQL never executed (first real run is USER-2).
@@ -166,6 +203,7 @@ Evidence: tech-lead `docs/tech/reviews/2026-11-m1-review-sweep.md` (M1-30, M1-33
 
 ## Done
 
+- [M1] M1-48, M1-51 · [level] follow-ups, [motion] test cleanup — tech-lead confirmed at HEAD 2026-11-05; suite green in run 4 and at cab74a1. Done 2026-11-13.
 - `USER-1` — repo created and pushed (2026-11-02).
 - [M1] M1-26 · `docs/qa/test-plan.md` mapping every M1 criterion — owner: qa-tester — verified: file exists and lists every check once. (Checked by the producer against the five specs; tech-lead read not needed for a plan.)
 - [M1] M1-29 · Tuning pass 1 and D-1..D-3 verdicts — owner: design-lead — verified: `decisions.md` (2026-11-03) has a verdict per decision and a reason for every change (none changed); board table updated by the producer today.
@@ -284,7 +322,7 @@ Spec: `docs/design/features/tandem.md`. Contract and architecture first, then th
 - [M3] T-12 · **[sim]** Tandem part 3: determinism (check 18), golden hash for a two-body log, coverage ≥ 80%, request lines for every derived number that differs — owner: gameplay-engineer — est: 3 h — accept: checks 1–18 pass; golden hash recorded with a reason — needs: T-11
 - [M3] T-13 · **Decision gate, verify:** run `tandem.md` checks 1–12 against the sim; report Pass/Fail per check — owner: qa-tester — est: 2 h — accept: written table in `docs/qa/`; Nov 12 — needs: T-11
 - [M3] T-14 · Review the Tandem sim and contract — owner: tech-lead — est: 2 h — accept: Approve, no CRITICAL/HIGH; determinism inspected — needs: T-12
-- [M3] T-15 · **Decision gate, decide (Nov 12):** checks 1–12 pass → world 3 stays Tandem, G-1..G-6 stay Should. Checks 1–12 do not pass → world 3 reverts to the gates plan (level plan v3.0 fallback), G-1..G-6 become Must, T-20 and T-05, T-06, T-21, M3-22, M3-23, M3-40, M3-41 are replaced by G-6 levels. The user gets a short note either way — owner: producer — est: 0.5 h — accept: decision and date written on this board and in `decisions.md` request to design-lead — needs: T-13
+- [M3] T-15 · **Decision gate, decide (was Nov 12, missed; now Mon Nov 16, final, if the owner extends):** checks 1–12 pass → world 3 stays Tandem, G-1..G-6 stay Should. Checks 1–12 do not pass → world 3 reverts to the gates plan (level plan v3.0 fallback), G-1..G-6 become Must, T-20 and T-05, T-06, T-21, M3-22, M3-23, M3-40, M3-41 are replaced by G-6 levels. The user gets a short note either way — owner: producer — est: 0.5 h — accept: decision and date written on this board and in `decisions.md` request to design-lead — needs: T-13
 - [M3] T-05 · Art for Tandem: home and parked pose or glyph, silhouette glyph for the HUD strips and the camera edge arrow, lane divider reads as solid ground, runner vs twin checked in grayscale and in the three color-vision simulations (added to `docs/art/accessibility.md`) — owner: art-director — est: 3 h — accept: runner and twin distinguishable by shape in the simulation images; both show their band pattern in every frame — needs: PX-2, T-01
 - [M3] T-06 · HUD for two bodies: two stacked compact strips (top runner, bottom twin), each marked with its silhouette glyph, band cell, bracket, needle, drag meter and pending shift; a home strip dims and shows a home glyph; one strip when `twin` is null — owner: ui-engineer — est: 4 h — accept: unit checks: two strips from a two-body state, a gear 1 / gear 3 split shows different brackets, home strip dimmed — needs: T-01, PX-9, T-05
 - [M3] T-20 · **[scene]** Tandem view: second `PlayerView` (twin frames), camera per `tandem.md` (midpoint of non-home bodies, the non-home body when one is home, runner plus an edge arrow beyond 28 tiles), home pose, events by body in `FeedbackFx`, scene checks S1–S4 — owner: gameplay-engineer — est: 8 h — accept: S1–S4 pass; level with no `&` renders unchanged — needs: PX-7, T-10, T-05
@@ -342,7 +380,7 @@ Done when: level loader and replay test, **worlds 1–2 = 9 levels**, HUD gear m
 - [M2] M2-29 · Verify M2 on the pixel build: all accept lines, colored-wall checks 1–7, 960×540 in an iframe, keyboard only, alternate bindings, color-blind screenshots — owner: qa-tester — est: 3 h — accept: Pass/Fail per criterion with evidence — needs: M2-23, M2-25, M2-26, M2-27, M2-28, M2-47
 - [M2] M2-30 · Playtest worlds 1–2 (fresh eyes) including re-checks of D-1 and D-3 and **how far a 10-minute player gets** (R9) — owner: playtester — est: 2 h — accept: report with per-level sections and a "would they reach level 10" estimate — needs: M2-29
 - [M2] M2-31 · Triage the playtest into decisions, lock tuning, **decide whether Two Colors moves after w3-01 or world 1 trims** (GDD §12.7) — owner: design-lead — est: 2 h — accept: each issue decided with a reason; lock recorded — needs: M2-30
-- [M2] M2-32 · **M2 gate (Nov 15):** suite, build, worlds 1–2 verified after the decisions — owner: qa-tester — est: 1.5 h — accept: no open blocker or major — needs: M2-29, M2-31
+- [M2] M2-32 · **M2 gate (Nov 18 in A, Nov 20 in B; was Nov 15):** suite, build, worlds 1–2 verified after the decisions — owner: qa-tester — est: 1.5 h — accept: no open blocker or major — needs: M2-29, M2-31
 - [M2] M2-33 · M2 close-out, M3 re-plan, Tandem gate outcome applied — owner: producer — est: 1 h — accept: board current; cut triggers checked — needs: M2-32
 
 ---
@@ -386,7 +424,7 @@ Done when: Tandem world 3 (5 levels), leaderboards live, adaptive audio, pixel e
 - [M3] M3-33 · Verify M3: world 3 solvable, Tandem checks 1–18 and S1–S4, leaderboards online and offline, audio after a gesture, 60 fps, reduced effects — owner: qa-tester — est: 4 h — accept: Pass/Fail per criterion with evidence — needs: M3-30, M3-31, M3-32, T-21, M3-28
 - [M3] M3-34 · Playtest worlds 1–3 as a jam voter (about 10 minutes) — owner: playtester — est: 2 h — accept: report with jam-category scores and where the player stopped — needs: M3-33
 - [M3] M3-35 · Triage the playtest into decisions — owner: design-lead — est: 1.5 h — accept: each issue decided — needs: M3-34
-- [M3] M3-36 · **M3 gate (Nov 22)** — owner: qa-tester — est: 1 h — accept: no open blocker or major — needs: M3-33, M3-35
+- [M3] M3-36 · **M3 gate (Nov 25 in A, Nov 26 in B; was Nov 22)** — owner: qa-tester — est: 1 h — accept: no open blocker or major — needs: M3-33, M3-35
 - [M3] M3-37 · M3 close-out and freeze plan — owner: producer — est: 1 h — accept: freeze list on the board — needs: M3-36
 
 ### Should: world 4 and the gates package (G-1..G-6)

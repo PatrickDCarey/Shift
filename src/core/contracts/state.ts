@@ -71,6 +71,17 @@ export interface PlayerState {
 export type SimStatus = 'playing' | 'dead' | 'restarting' | 'won';
 
 /**
+ * A coloured tile that was under a body's footprint when the floor let it go
+ * (`fallThrough`). Grid cell, not pixels; `band` is the tile's colour, i.e.
+ * the band the body would have needed to stand on it.
+ */
+export interface FallThroughCell {
+  readonly col: number;
+  readonly row: number;
+  readonly band: ColoredBand;
+}
+
+/**
  * What happened during one step, in step order, for audio/fx/HUD to react to
  * without diffing state. Informational only: never read back by the sim.
  * Respawn has no event: watch `status` go from dead/restarting to playing.
@@ -99,6 +110,19 @@ export type SimEvent =
    */
   | { readonly type: 'wallStop'; readonly body: BodyId; readonly speed: number }
   | { readonly type: 'ceiling'; readonly body: BodyId }
+  /**
+   * A coloured floor let this body go (phase 8, T-07, architecture.md §3.2):
+   * grounded at the start of the step, not grounded after phase 8, no jump in
+   * phase 5, and at least one coloured tile in its support row across its
+   * footprint. `cells` lists those tiles left to right and is never empty.
+   * Never on a safe-only walk-off, a jump, a restart or respawn step, a home
+   * body or a `won` step. In the body's events right after `ceiling`.
+   * Airborne pass-through (feet crossing a mismatched tile mid-flight) is NOT
+   * reported here, by ruling (§3.2): this event always means "the floor you
+   * stood on let you go".
+   * Contract only as of Batch 4: the sim emits it from Batch 5.
+   */
+  | { readonly type: 'fallThrough'; readonly body: BodyId; readonly cells: readonly FallThroughCell[] }
   /** Grace started: `band` tiles hold the player from above for colorGraceSteps. */
   | { readonly type: 'graceStart'; readonly body: BodyId; readonly band: ColoredBand }
   /**

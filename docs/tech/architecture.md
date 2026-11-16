@@ -13,13 +13,13 @@ _Owner: tech-lead. Keep in sync with the code; update when setup changes. Matche
 | Playwright | 1.64.1, Chromium only | Runs against `vite build` (with `VITE_QA_HOOK=1`, §11) + `vite preview` on port 4173. 960×540 viewport, 2 workers. |
 | Node | ≥ 22.12 (`.nvmrc` = 22) | |
 
-**Rendering resolution:** decided in [`adr-pixel-rendering.md`](adr-pixel-rendering.md) (2026-11-03): 480 x 270 logical, `Scale.NONE` + integer `MAX_ZOOM`, 16 px tiles, bitmap font, atlases baked from `src/fx/pixel` + `palette.json` by `npm run art:build` and loaded at boot. The game still runs at 960 x 540 with 32 px tiles until the migration (PX-1 to PX-11) lands.
+**Rendering resolution:** decided in [`adr-pixel-rendering.md`](adr-pixel-rendering.md) (2026-11-03): 480 x 270 logical, `Scale.NONE` + integer `MAX_ZOOM`, 16 px tiles, bitmap font, atlases baked from `src/fx/pixel` + `palette.json` by `npm run art:build` and loaded at boot. **In effect from the Batch 4A cutover (PX-4..PX-10, 2026-11-13); PX-11 review in Batch 5.** Details in §4.1.
 
 ## 2. Module layout and owners
 
 ```
-index.html, src/main.ts   Phaser.Game config (960x540, pixelArt, FIT), SaveStore  tech-lead
-src/scenes/keys.ts, Boot  scene + registry keys, BootScene                     tech-lead
+index.html, src/main.ts   Phaser.Game config (480x270, NONE + integer zoom), SaveStore  tech-lead
+src/scenes/keys.ts, Boot  scene + registry keys, BootScene (loads pixel sheets) tech-lead
 src/core/                 PURE deterministic simulation (no Phaser), 3 lanes    see §3.5
   sim/ motion/ level/     lanes, each with a public index.ts                    gameplay-engineer (one sitting per lane)
   types.ts, contracts/    shared types + lane contracts                         tech-lead
@@ -69,7 +69,7 @@ step(state: SimState, input: InputFrame, level: Level, params: SimParams): SimSt
 - `SimState` is immutable; `step` returns a new object. It contains everything needed to continue (including `prevInput` for press edges). If randomness is ever needed, a seeded PRNG state lives inside `SimState`.
 - **Units** (header of `src/core/types.ts`): distances in tiles, **speeds in tiles/second everywhere** (tuning, params and state), time in whole steps, `dt = 1 / stepHz`. Snapped speeds are therefore exact (`vx === 3`, `vx === 12`), as the acceptance tests require. Pixels and milliseconds never enter the sim except through `Tuning`, converted once in `deriveParams` (`steps = round(ms × stepHz / 1000)`).
 - **Gear vs band.** `Gear` (1–4) is the selected cruise gear; `Band` (0–4) is the colour of the actual speed `|vx|`. They differ while ramping, braking, standing and after drag. Coloured tiles and speed gates test the **band**, never the gear.
-- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `home`, `won`, `died`, `restart`). Every event about one body carries `body: 0 | 1` (`BodyId`; 0 = runner, 1 = twin; `BodyEvent` in `types.ts`); `won` and `restart` are run-level. Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`. A `fallThrough` event is ruled but not in the contract yet (§3.2, T-07).
+- `SimState.events` lists what happened in the last step, in step order (`shift`, `shiftBuffered`, `bandChange`, `airDrag`, `jump`, `land`, `wallStop`, `ceiling`, `graceStart`, `home`, `won`, `died`, `restart`). Every event about one body carries `body: 0 | 1` (`BodyId`; 0 = runner, 1 = twin; `BodyEvent` in `types.ts`); `won` and `restart` are run-level. Audio, FX and HUD react to events; they never mutate sim state. Respawn has no event: watch `status` change from `dead`/`restarting` to `playing`. `fallThrough` (§3.2, T-07) is in the contract since Batch 4; the sim emits it from Batch 5.
 - **Bodies (Tandem).** `SimState.player` is body 0, the runner (spawn `@`). `SimState.twin` is body 1 (spawn `&`, `Level.twinStart`), or `null` in a level without `&`; then the sim behaves exactly as before Tandem (same states, same events, all with `body: 0`). Renderers, HUD and audio handle one or two bodies the same way: a list of `[player, twin]` without the nulls.
 - **Renderer** (Phaser scenes and entities) reads `SimState` and draws it; it never decides game rules. Tiles → pixels (`× tileSize`) happens only there.
 
@@ -136,17 +136,18 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
   3. the sim already knows the exact condition in phase 8, with its own footprint and `SIM_EPSILON`, so audio, fx and HUD cannot disagree;
   4. it costs nothing in determinism: events are never read back by the sim, recordings and `wonAtStep` do not change, and no solution needs re-recording.
 
-  This supersedes the "no sim event; a pure derived helper" line in `decisions.md` (2026-11-05 list); design-lead amends it (requests). Shape and rule, for the contract change after the batch:
+  This supersedes the "no sim event; a pure derived helper" line in `decisions.md` (2026-11-05 list); design-lead amended it on 2026-11-13. Shape and rule, **in `contracts/state.ts` since Batch 4** (additive: no sim, audio or ui code had to change):
   ```ts
   /** A coloured tile that was under a body's footprint when the floor let it go. */
   export interface FallThroughCell { readonly col: number; readonly row: number; readonly band: ColoredBand }
-  // new SimEvent member (contracts/state.ts):
+  // SimEvent member:
   | { readonly type: 'fallThrough'; readonly body: BodyId; readonly cells: readonly FallThroughCell[] }
   ```
   - **When:** phase 8, for a non-home body, on the step where it was grounded at start, is not grounded after phase 8, did not jump in phase 5, and at least one coloured tile (`B G Y R`, later the coloured gates) lay in its support row (the row under its feet at the start of the step) across its footprint. That is exactly the coyote-start condition plus the coloured-cell test. `cells` lists those coloured cells left to right (never empty).
   - **Fires on:** letting go on a blue bridge (the step the body leaves the floor), grace expiry on a mismatched floor, walking off a safe tile onto a mismatched coloured one. **Never on:** a walk-off from a safe-only ledge, a jump (phase 5 fired), a restart or respawn step, a home body, a `won` step.
   - **Order:** in the body's event list right after `ceiling` (phase 8), before `airDrag`, `bandChange`, `land`, `graceStart`.
-  - **Sequence (after T-10 lands, Batch 4):** (1) tech-lead adds `FallThroughCell` and the union member to `contracts/state.ts` and §3 (no behaviour change; the sim emits none yet); (2) [sim] emits it, with the four cases of `adaptive-audio.md` check 5 as tests plus a Tandem case (twin event carries `body: 1`); (3) audio maps the sim event and deletes its local `FallThroughEvent`; [scene] PT-3 flashes `cells`, ui pulses the slot of `cells[0].band`. No contract stub lands in Batch 3, because [sim] is mid-T-10 in `src/core/sim`.
+  - **Airborne pass-through is not reported (ruling 2026-11-13, PT-3 Should; design-lead left it to tech-lead).** `fallThrough` always means "the floor you stood on let you go" and never fires mid-flight, so audio can keep playing one whoosh per event. A pass-through cue (a falling body's feet cross the top edge of a coloured tile it does not match) is not in the contract because "at most one cue per body per flight" needs a per-flight latch in `PlayerState`. That is a state-shape change touching spawn, respawn, every acceptance fixture and golden hashes, for a Should. If the producer schedules the PT-3 Should, it lands as its **own** event `passThrough { body, cells }` (never an extension of `fallThrough`), with that latch, after a contract change by tech-lead. Until then the scene shows nothing for it.
+  - **Sequence:** (1) done in Batch 4: tech-lead added `FallThroughCell` and the union member (no behaviour change; the sim emits none yet; `types.test.ts` pins the shape); (2) [sim] emits it, with the four cases of `adaptive-audio.md` check 5 as tests plus a Tandem case (twin event carries `body: 1`); (3) audio maps the sim event and deletes its local `FallThroughEvent`; [scene] PT-3 flashes `cells`, ui pulses the slot of `cells[0].band`. No contract stub lands in Batch 3, because [sim] is mid-T-10 in `src/core/sim`.
 - **`shiftBuffered.net` is the running buffer total** after the press (`player.shiftBufferNet`), unclamped, and may be 0 (`+` then `-` in one jump; the event still fires). The clamped outcome is the `shift` event on landing. Buffer expiry (phase 13) has no event: HUDs show pending shifts from `player.shiftBufferNet`/`shiftBufferSteps`, not from events.
 
 ### 3.3 Floating point
@@ -181,6 +182,14 @@ These make §3.1 deterministic and unambiguous. If design-lead disagrees, change
 - **Enforced in CI** by `tests/arch/core-purity.test.ts` (purity; lane import edges; cross-lane imports only via `index.ts`; no stray files in the `src/core` root; code outside `src/core` imports only the barrel or `types`) and `tests/arch/lane-contracts.test.ts` (no unlisted lane exports; every export matches its contract type). `REQUIRE_COMPLETE` is on since 2026-11-02 (all lanes implemented), so a missing export fails too.
 
 ## 4. Fixed-step loop (how Phaser drives the sim)
+
+### 4.1 Canvas, zoom and boot (PX-4, `adr-pixel-rendering.md`)
+
+- **Canvas 480 x 270**, `Scale.NONE`, `zoom: MAX_ZOOM`, `autoCenter: CENTER_BOTH`, `pixelArt: true` (`src/main.ts`). The browser upscales by a whole number: 2x in the 960 x 540 itch embed, 4x at 1920 x 1080, 5x at 2560 x 1440; between whole multiples the page background (`#000`, `index.html`) letterboxes. Below 480 x 270 the zoom stays 1 and the canvas is clipped.
+- **Re-zoom on resize.** Phaser does not re-zoom in `NONE` mode, so `main.ts` calls `scale.getParentBounds()` then `scale.setMaxZoom()` on every window `resize` (ignored before boot). itch's fullscreen button resizes the iframe, so this covers fullscreen.
+- **`fps.panicMax: 0`.** Phaser otherwise clamps the frame delta to one step for the first 120 frames, which made slow machines run in slow motion after boot. The accumulator below caps catch-up itself.
+- **Boot order.** `main.ts` creates the one `SaveStore` (never throws; storage blocked means in memory, §9) and installs it in `preBoot`. `BootScene.preload` loads every `PIXEL_KEYS` sheet: five JSON-hash atlases (`pixel-player`, `-tiles`, `-scenery`, `-hud`, `-fx`; PNG as `?url`, JSON imported as data), the Tilemap grid `pixel-tileset` (`load.image`) and the bitmap font `pixel-font` (PNG + XML as `?url`). `create` checks the store and starts `Game`. Every later scene finds the textures and font in the global caches under the `PIXEL_KEYS` names; no other scene loads pixel files. A failed file load does not stop the boot (Phaser's missing-texture box shows instead). `tests/arch/boot-assets.test.ts` fails if a sheet in `assets/art/pixel/` or a `PIXEL_KEYS` entry is not loaded.
+- **Pixels only in the renderer.** `tuning.tileSize` is 16 (render-only). Snap after interpolation, never write back (ADR "Sub-pixel positions").
 
 Phaser calls `GameScene.update(time, delta)` once per display frame (60, 120, 144 Hz…). The scene runs the sim at exactly `stepHz` using an accumulator:
 
@@ -234,6 +243,7 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
     { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
   ```
   The scene passes that map to `loadLevels` (level lane); parsing is pure, shared with the Node tests, and accepts LF and CRLF (`level-format.md` §1).
+- Pixel sheets (`assets/art/pixel/`) are generated by `npm run art:build` and loaded once in `BootScene` (§4.1).
 - `src/data/palette.json` is read by `src/fx` and the renderer only; its per-band entries sit under a `gears` object keyed by `BandColor` names. The sim never knows colours, just bands.
 
 ## 8. Networking stays optional (`src/net`)
@@ -242,6 +252,7 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 - **Status (2026-11-05):** built and reviewed (M2-27a), **not wired**: nothing imports it yet. M3-13 wires it.
 - `src/net` must be loaded with a **dynamic `import()`** only when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are both set, so offline builds don't ship the client code. `tests/arch/render-imports.test.ts` fails on any static (non-type) import of `src/net` from outside it.
 - Every call has a short timeout and resolves to a result value (`{ ok: false, reason }`) rather than throwing into game code. Nothing on the play path `await`s the network: submit after the win screen is shown, fetch boards in the background, and render "offline" if they never arrive.
+- **Name rule (M3-04, SEC-2):** `DISPLAY_NAME_PATTERN` (`^[A-Z0-9-]+( [A-Z0-9-]+)*$`), `DISPLAY_NAME_MIN_LENGTH` 1, `DISPLAY_NAME_MAX_LENGTH` 12 and `isDisplayName(name)` in `src/core/contracts/leaderboard.ts` (via `types.ts`). The client name entry uses `isDisplayName`; the SQL check and `submit-run/rules.ts` keep copies that `scripts/submit-run.test.ts` compares with it. Nobody trims or upper-cases on the player's behalf.
 - Only the URL and the anon key reach the client. Row Level Security on the Supabase side; the service-role key lives only in backend secrets (the edge function reads the injected `SUPABASE_SERVICE_ROLE_KEY`; nobody pastes it anywhere).
 - **Env guard** (`config/envGuard.ts`, a Vite plugin in `vite.config.ts`): every `vite build`, dev and preview start fails if the client env has a `VITE_` variable other than `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `VITE_QA_HOOK`, a key that is not `sb_publishable_…` or a JWT with role `anon`, a secret key or non-anon JWT in any value, only one of the two Supabase values, a non-https URL (loopback http allowed for a local Supabase), or a widened `envPrefix`. Messages never echo values. `npm run package` builds through the same config and adds its release-only checks (no QA hook, output scan).
 
@@ -264,7 +275,7 @@ The accumulator and `delta` are render-side and non-deterministic, and that is f
 | gameplay-engineer | one lane per sitting: `src/core/sim`, `src/core/motion`, `src/core/level` (§3.5); scene lane: `GameScene` loop, `src/entities` |
 | ui-engineer | menu scenes registered in `src/main.ts`, HUD reading `SimState.player.gear` (selected 1–4) and `.band` (colour), key bindings, Sticky Keys tip, `src/save` |
 | art-director | `src/fx` consumes `SimState` + events (`airDrag` flash); `palette.json` per-band entries under `gears`, keyed by `BandColor` names. Imports only types from core |
-| audio-designer | `src/audio` consumes `SimEvent`s (`airDrag` clunk, `fallThrough` once ruled in, §3.2) and `band` each step; the scene calls it. Imports only types from core |
+| audio-designer | `src/audio` consumes `SimEvent`s (`airDrag` clunk, `fallThrough` from Batch 5, §3.2) and `band` each step; the scene calls it. Imports only types from core |
 | backend-engineer | `src/net` (dynamic import), `backend/` |
 | level-designer | `levels/*.txt` + `*.solution.txt` (format in `level-format.md`, LF or CRLF) |
 | qa-tester | `tests/e2e/**`, runs `npm run check` + `npm run test:e2e` |

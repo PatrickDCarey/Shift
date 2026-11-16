@@ -1,5 +1,7 @@
 # M1 gate: by-hand checks (M1-55)
 
+**Update 2026-11-13: the owner signed off M1 and deferred these five checks to the M2 gate, to be done on the pixel build (480x270, integer zoom).** They are now part of the M2 gate. Everything below stays valid, with these differences: the game is 480x270 shown at 2x in the 960x540 embed, the gear meter and text are the pixel bitmap font, and check 3 (greyscale) should also look at the pixel patterns. Nothing here is claimed done.
+
 Owner: the human (USER-9). QA does not run these and claims none done. Tick each box, note the date and browser, then say "M1 signed off".
 
 ## Start the build

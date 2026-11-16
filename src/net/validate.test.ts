@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampInt, isLevelId, isLevelVersion } from './validate';
+import { clampInt, isLevelId, isLevelVersion, parseEntries } from './validate';
 
 describe('validate helpers', () => {
   it('isLevelId matches the SQL check', () => {
@@ -18,5 +18,23 @@ describe('validate helpers', () => {
     expect(clampInt(99, 1, 10, 5)).toBe(10);
     expect(clampInt(Number.NaN, 1, 10, 5)).toBe(5);
     expect(clampInt('3', 1, 10, 5)).toBe(5);
+  });
+});
+
+describe('parseEntries display_name', () => {
+  const rows = (name: string) => [{ display_name: name, steps: 10, verified: false, created_at: '2026-11-04T12:00:00.000Z' }];
+  it('accepts a plain name', () => {
+    expect(parseEntries(rows('ACE'), 5)).toHaveLength(1);
+  });
+  it.each([
+    ['zero-width space', 'AC​E'],
+    ['right-to-left override', 'AC‮E'],
+    ['isolate', 'AC⁦E'],
+    ['word joiner', 'AC⁠E'],
+    ['byte order mark', 'AC﻿E'],
+    ['line separator', 'AC E'],
+    ['control', 'ACE'],
+  ])('rejects %s', (_label, name) => {
+    expect(parseEntries(rows(name), 5)).toBeNull();
   });
 });

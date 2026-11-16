@@ -64,6 +64,15 @@ export interface Palette {
     readonly shadeMix: number;
     /** Ghost tile dither wash: mix of the band colour into the background. */
     readonly ghostWashMix: number;
+    /** Safe tile: dither darkening, rivet and lit lip mixes (toward background, background, white). */
+    readonly safeDepthMix: number;
+    readonly safeRivetMix: number;
+    readonly safeLipMix: number;
+    /** Solid tile: seam row under the lip and the side shade, mixes toward the background. */
+    readonly solidSeamMix: number;
+    readonly solidSideMix: number;
+    /** Flashed body: shade mix of white toward the band fill. */
+    readonly flashShadeMix: number;
     /** Ghost outline dash and gap, in pixels. */
     readonly ghostDash: readonly number[];
     readonly exit: { readonly frame: string; readonly doorway: string; readonly glow: string };
@@ -89,7 +98,18 @@ export function patternOf(color: BandColor): PatternId {
 }
 
 /** Tint stops with gear names resolved to hex, ready for `spectrumTint`. */
+const stopsCache = new WeakMap<Palette, readonly TintStop[]>();
+
+/** Cached per palette object: the tint is sampled every frame. */
 export function tintStops(p: Palette = palette): readonly TintStop[] {
+  const hit = stopsCache.get(p);
+  if (hit) return hit;
+  const stops = resolveStops(p);
+  stopsCache.set(p, stops);
+  return stops;
+}
+
+function resolveStops(p: Palette): readonly TintStop[] {
   return p.tint.stops.map((s) => {
     const style = p.gears[s.gear as BandColor];
     if (!style) throw new Error(`palette.json: tint stop references unknown gear "${s.gear}"`);

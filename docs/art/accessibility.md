@@ -227,3 +227,16 @@ Every cell is at least 3:1 except **red under protanopia**. The worst point is t
 Under greyscale the two tiles also differ in lightness (green is much brighter than red) before any pattern is looked at, so dots against checker is a two-cue difference: fill grey and mark size.
 
 **Effect frames (cutover).** The dust, ring and speed-line masks (`src/fx/pixel/effects.ts`, atlas `pixel-fx`) are white and fully opaque and are tinted at runtime from palette colours (dust `ui.textMuted`, 8.4:1 on the panel; ring and speed lines the band's solid outline, 7.47:1 or better against the field). None is a flash: the ring covers under 15% of its frame and the dust under 25%, and nothing is drawn over a whole screen. Reduced motion: ring off, speed lines off, dust held on one static frame (`docs/art/style.md`, Effects).
+
+## 12. M2-14b and T-05 close-out for the pixel cutover (2026-11-13)
+
+Image: `docs/art/pixel/tiles-vision.png` (solid tile of every band, ghost tile of the four marked bands and the safe tile, each under normal, greyscale, protanopia, deuteranopia and tritanopia, Machado 2009 at severity 1.0, on the standing field; rebuilt by `npm run art:build`). Numbers are the ones in sections 8 and 11, measured from the baked pixels by `src/fx/pixel/tiles.test.ts` and `readability16.test.ts`; nothing in the palette changed in this batch.
+
+| Question | Answer |
+|---|---|
+| Each band identifiable by pattern alone in the three simulations? | Yes. The mask read back from the baked solid tile matches the band's pattern in every vision (nearest of five); ink against fill at least 3:1 under all four visions (min 3.17, red under protanopia). Pairs of solid patterns differ on at least 40.0% of the 12 x 10 cell, 0.333 mean difference at half scale (blue vs yellow, the closest pair). |
+| Red checker "reads as grating"? | No. It is two 4 x 4 px blocks per cell, not a line lattice; longest ink run 4 px against 2 px for dots and bars, so size differs and not only density. Checker vs dots 51.7% at 1x, 0.517 at half scale. In the image the red tile is the only one with large squares in every vision. |
+| Solid vs ghost obvious in the simulations? | Yes. Solid is a filled slab with a lit lip; ghost is a dashed outline with hollow marks on near-black in every row of the image. The one weak cell remains red ghost outline under protanopia against the brightest decor (2.20:1, section 11, awaiting design-lead acceptance). |
+| T-05 (Tandem art) | Already built and tested (section 10, `tandem-vision.png`): parked pose and house glyph, 7 x 12 silhouette glyphs, edge arrows with band swatch, divider is the safe tile. Runner vs twin silhouettes differ on at least 40 visible pixels in every pose, band and vision (greyscale included), and the band pattern shows in every frame. |
+
+M1-59 leftovers closed: the flash colour of the body is `palette.flash.color`; all tile and body mix ratios live in `palette.pixel` (`safeDepthMix`, `safeRivetMix`, `safeLipMix`, `solidSeamMix`, `solidSideMix`, `flashShadeMix` added, defaults equal the old literals so the sheets are byte-identical); `TILE` comes from `palette.pixel.tileSize` and the atlas metadata uses it; `tintStops()` is cached per palette object.

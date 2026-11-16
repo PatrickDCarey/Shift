@@ -1,14 +1,14 @@
 import Phaser from 'phaser';
 import type { InputFrame, SimEvent } from '../core/types';
 import { audio } from '../audio';
-import { cameraScroll } from '../entities/camera';
+import { cameraFocus, cameraScroll, snapFeet, type CameraBody } from '../entities/camera';
 import { debugText } from '../entities/debugText';
 import { FeedbackFx } from '../entities/FeedbackFx';
 import { GameHud, GEAR_METER_AREA } from '../entities/GameHud';
 import { InputSampler } from '../entities/inputSampler';
 import { embeddedMask } from '../entities/embedded';
 import { focusPromptVisible } from '../entities/focusPrompt';
-import { easeToward, renderPosition } from '../entities/interpolation';
+import { easeToward, renderBodyPosition } from '../entities/interpolation';
 import { attachKeyboard } from '../entities/keyboardInput';
 import { pageLevelStarts } from '../entities/levelStart';
 import { LEVEL_FILES } from '../entities/levelFiles';
@@ -31,6 +31,9 @@ import { getSaveStore, SCENE_KEYS } from './keys';
 
 /** The world tint follows actual speed, eased so it never flickers at a band edge (docs/art/style.md). */
 const TINT_EASE_MS = 100;
+
+/** Tandem camera: bodies further apart than this are not framed together (ADR "Tandem", docs/design/features/tandem.md). */
+const MAX_APART_TILES = 28;
 
 /** Data a caller (results NEXT, level select) hands to `scene.start`/`restart`. */
 export interface GameSceneData {
@@ -81,6 +84,11 @@ export class GameScene extends Phaser.Scene {
   private store!: SaveStore;
   private levelView!: LevelView;
   private playerView!: PlayerView;
+  /** The twin's view, created on first sight of `state.twin` (one instance per body). */
+  private twinView: PlayerView | null = null;
+  private reduced = false;
+  /** Last whole-pixel camera focus; kept when every body is home. */
+  private lastFocus: { readonly x: number; readonly y: number } | null = null;
   private fx!: FeedbackFx;
   private hud!: GameHud;
   private gearMeter!: GearMeterView;
@@ -99,6 +107,8 @@ export class GameScene extends Phaser.Scene {
   /** The win of the current run, from the same event the results screen gets; null while playing. */
   private lastWin: LevelCompleteEvent | null = null;
   private nextId: string | null = null;
+  /** The level set, loaded once per `create()` (B2) instead of on every win. */
+  private levelSet: ReturnType<typeof loadLevelSet> | null = null;
   private meter: GearMeterModel = INITIAL_GEAR_METER_MODEL;
   /** Set while `?replay=1` is playing a solution; keyboard play is off then. */
   private replay: { readonly feed: ReplayFeed; readonly speed: number | null } | null = null;
@@ -118,6 +128,7 @@ export class GameScene extends Phaser.Scene {
     this.pendingRestart = false;
     this.lastWin = null;
     this.nextId = null;
+    this.levelSet = null;
     this.meter = INITIAL_GEAR_METER_MODEL;
     const search = this.requestedLevelId === null ? window.location.search : `?level=${encodeURIComponent(this.requestedLevelId)}`;
     this.replayRequested = REPLAY_AVAILABLE && parseReplayRequest(search).active;
@@ -125,16 +136,19 @@ export class GameScene extends Phaser.Scene {
     const { tuning, params } = this.cfg;
     this.driver = new RunDriver(selection.level, params);
     this.sampler = new InputSampler();
-    this.levelView = new LevelView(this, selection.level, tuning.tileSize);
-    this.playerView = new PlayerView(this, tuning.tileSize, tuning.playerWidthTiles, tuning.playerHeightTiles);
+    const osReduced = prefersReducedMotion(typeof window.matchMedia === 'function' ? (q) => window.matchMedia(q) : undefined);
+    this.reduced = reducedMotion(this.store.getSettings(), osReduced);
+    this.lastFocus = null;
+    this.twinView = null;
+    this.levelView = new LevelView(this, selection.level, tuning.tileSize, this.reduced);
+    this.playerView = new PlayerView(this, 'runner', this.reduced);
     this.fx = new FeedbackFx(this);
     const { id, title } = selection.level.meta;
     const source = chooseFrameSource(search, selection.level, SOLUTION_FILES, REPLAY_AVAILABLE);
     this.replay = source.kind === 'replay' ? { feed: source.feed, speed: source.speed } : null;
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
     this.gearMeter = new GearMeterView(this, GEAR_METER_AREA.x, GEAR_METER_AREA.y);
-    const osReduced = prefersReducedMotion(typeof window.matchMedia === 'function' ? (q) => window.matchMedia(q) : undefined);
-    this.gearMeter.setReducedMotion(reducedMotion(this.store.getSettings(), osReduced));
+    this.gearMeter.setReducedMotion(this.reduced);
     this.detachKeyboard = attachKeyboard(this.sampler, {
       onToggleDebug: () => {
         if (this.debugOn) this.showDebug = !this.showDebug;
@@ -154,13 +168,15 @@ export class GameScene extends Phaser.Scene {
     const paused = this.pause.paused;
     const events = paused ? [] : this.runSim(delta);
     this.handleWins();
-    const { state, prev, alpha } = this.driver;
+    const { state } = this.driver;
     if (state.status !== 'won') this.lastWin = null;
     const ts = this.cfg.tuning.tileSize;
-    const pos = renderPosition(prev, state, alpha);
-    const feetX = pos.x * ts;
-    const feetY = pos.y * ts;
-    this.reactToEvents(events, feetX, feetY - (this.cfg.tuning.playerHeightTiles * ts) / 2);
+    const bodyHeightPx = Math.round(this.cfg.tuning.playerHeightTiles * ts);
+    const dead = state.status === 'dead' || state.status === 'restarting';
+    // Snap each body's feet to whole pixels once (renderer only, never written back); the camera derives from these.
+    const runner = this.snapBody(0, ts) ?? snapFeet(state.player.x, state.player.y, ts);
+    const twin = this.snapBody(1, ts);
+    this.reactToEvents(events, runner.px, runner.py - bodyHeightPx / 2);
     const embedded = embeddedMask(
       this.driver.level,
       state.player.x,
@@ -169,8 +185,14 @@ export class GameScene extends Phaser.Scene {
       this.cfg.tuning.playerHeightTiles,
     );
     this.levelView.update(state.player.band, state.player.graceBand, embedded, time);
-    this.playerView.draw(feetX, feetY, state.player.band, state.player.facing);
-    this.followCamera(feetX, feetY - (this.cfg.tuning.playerHeightTiles * ts) / 2);
+    this.playerView.draw(runner.px, runner.py, state.player, dead);
+    if (state.twin !== null && twin !== null) {
+      this.twinView ??= new PlayerView(this, 'twin', this.reduced);
+      this.twinView.draw(twin.px, twin.py, state.twin, dead);
+    }
+    const bodies: CameraBody[] = [{ ...runner, home: state.player.home }];
+    if (twin !== null && state.twin !== null) bodies.push({ ...twin, home: state.twin.home });
+    this.followCamera(bodies, bodyHeightPx);
     this.applyTint(Math.abs(state.player.vx), delta);
     if (!paused) this.fx.update(delta);
     this.meter = gearMeterModel(state.player, this.cfg.params);
@@ -244,7 +266,7 @@ export class GameScene extends Phaser.Scene {
     for (const result of this.driver.takeWins()) {
       const event = recordWin(this.store, this.driver.level, result, this.replayRequested);
       this.lastWin = event;
-      this.nextId = event.replay ? null : nextLevelId(loadLevelSet(LEVEL_FILES).levels, event.levelId);
+      this.nextId = event.replay ? null : nextLevelId((this.levelSet ??= loadLevelSet(LEVEL_FILES)).levels, event.levelId);
       this.events.emit(LEVEL_COMPLETE_EVENT, event);
     }
   }
@@ -264,23 +286,41 @@ export class GameScene extends Phaser.Scene {
 
   /** First level start of the page session, live play only (sticky-keys-tip.md). */
   private mountStickyKeysTip(): void {
+    if (this.replayRequested) return; // a replay load must not use up the page's first start (B3)
     const isFirstLevelStart = pageLevelStarts.consumeFirstStart();
-    if (this.replayRequested) return;
     this.tip = showStickyKeysTipIfDue({ scene: this, store: this.store, isFirstLevelStart });
+  }
+
+  /** Whole-pixel feet of one body at the interpolated position, or null when the level has no such body. */
+  private snapBody(body: 0 | 1, ts: number): { readonly px: number; readonly py: number } | null {
+    const { state, prev, alpha } = this.driver;
+    const pos = renderBodyPosition(prev, state, alpha, body);
+    return pos === null ? null : snapFeet(pos.x, pos.y, ts);
+  }
+
+  private viewFor(body: number): PlayerView | null {
+    return body === 0 ? this.playerView : this.twinView;
   }
 
   private reactToEvents(events: readonly SimEvent[], centerX: number, centerY: number): void {
     for (const e of events) {
-      if (e.type === 'airDrag') this.fx.airDrag(centerX, centerY);
+      if (e.type === 'airDrag' && e.body === 0) this.fx.airDrag(centerX, centerY);
       else if (e.type === 'died') this.fx.died();
+      else if (e.type === 'land') this.viewFor(e.body)?.pulse('land');
+      else if (e.type === 'jump') this.viewFor(e.body)?.pulse('jump');
+      else if (e.type === 'bandChange') this.viewFor(e.body)?.pulse('shift');
     }
   }
 
-  private followCamera(focusX: number, focusY: number): void {
+  /** Scroll from the snapped integer bodies (see `cameraFocus`); keeps the last scroll when every body is home. */
+  private followCamera(bodies: readonly CameraBody[], bodyHeightPx: number): void {
     const { level } = this.driver;
     const ts = this.cfg.tuning.tileSize;
     const cam = this.cameras.main;
-    const s = cameraScroll(focusX, focusY, cam.width, cam.height, level.width * ts, level.height * ts);
+    const focus = cameraFocus(bodies, bodyHeightPx, MAX_APART_TILES * ts) ?? this.lastFocus;
+    if (focus === null) return;
+    this.lastFocus = focus;
+    const s = cameraScroll(focus.x, focus.y, cam.width, cam.height, level.width * ts, level.height * ts);
     cam.setScroll(s.x, s.y);
   }
 
@@ -329,6 +369,8 @@ export class GameScene extends Phaser.Scene {
     this.tip = null;
     this.levelView.destroy();
     this.playerView.destroy();
+    this.twinView?.destroy();
+    this.twinView = null;
     this.fx.destroy();
     this.gearMeter.destroy();
     if (QA_HOOK) Reflect.deleteProperty(window, '__redshift');

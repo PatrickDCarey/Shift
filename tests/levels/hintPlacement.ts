@@ -38,13 +38,24 @@ function boxProblems(level: Level, hint: LevelHint): readonly string[] {
   return problems;
 }
 
-/** Row of the first floor tile below the anchor in its column, or null over a pit. */
-function floorRowBelow(level: Level, hint: LevelHint): number | null {
-  for (let r = hint.anchor.row + 1; r < level.height; r += 1) {
-    const kind = tileAt(level, hint.anchor.col, r)?.kind;
+/** Row of the first floor tile below one cell, or null over a pit. */
+function floorRowUnder(level: Level, col: number, fromRow: number): number | null {
+  for (let r = fromRow + 1; r < level.height; r += 1) {
+    const kind = tileAt(level, col, r)?.kind;
     if (kind !== undefined && kind !== 'empty' && kind !== 'exit') return r;
   }
   return null;
+}
+
+/** Highest floor row under any of the glyph box's columns, or null if all are pits. */
+function floorRowBelow(level: Level, hint: LevelHint): number | null {
+  const { col, row } = hint.anchor;
+  const rows: number[] = [];
+  for (let c = col - HINT_BOX.colsLeft; c <= col + HINT_BOX.colsRight; c += 1) {
+    const r = floorRowUnder(level, c, row);
+    if (r !== null) rows.push(r);
+  }
+  return rows.length === 0 ? null : Math.min(...rows);
 }
 
 const BOX_COLS = HINT_BOX.colsLeft + HINT_BOX.colsRight + 1;

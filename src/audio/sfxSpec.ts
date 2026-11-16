@@ -85,6 +85,7 @@ export const MAX_SHORT_SFX_SECONDS = 0.5;
 export const MAX_STING_SECONDS = 1.2;
 export const MIN_LAYER_GAIN = 0.1;
 export const MAX_SUMMED_GAIN = 0.75;
+/** Floor for a layer's start pitch only; a sweep may end below it. */
 export const MIN_AUDIBLE_HZ = 150;
 
 /** Twin voice: a perfect fourth down (5 semitones) and 3 dB softer. */
@@ -177,11 +178,12 @@ function reset(): ToneLayer[] {
 /** Rising C major arpeggio C5 E5 G5 C6, the last note ringing: a resolved sting in the music's key. */
 function levelComplete(): ToneLayer[] {
   const n = LEVEL_COMPLETE_NOTES;
+  const top = n[n.length - 1] ?? 1046.5;
   const lastDelay = (n.length - 1) * STING_STEP_SECONDS;
   const layers = n.map((hz, i) =>
     i === n.length - 1 ? layer(hz, 0.55, 'square', 0.16, lastDelay) : layer(hz, 0.1, 'square', 0.15, i * STING_STEP_SECONDS),
   );
-  layers.push(layer(n[n.length - 1]! * 2, 0.5, 'triangle', 0.1, lastDelay));
+  layers.push(layer(top * 2, 0.5, 'triangle', 0.1, lastDelay));
   return layers;
 }
 

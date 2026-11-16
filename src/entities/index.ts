@@ -4,12 +4,13 @@
 // barrel in Node. Phaser views are imported by file (LevelView, PlayerView,
 // FeedbackFx, GameHud).
 
-export { axisScroll, cameraScroll } from './camera';
+export { axisScroll, cameraFocus, cameraScroll, snapFeet, type CameraBody, type CameraFocus } from './camera';
+export { playerFrame, RUN_FRAMES_PER_TILE, type PlayerFrame } from './playerFrame';
 export { embeddedMask, isEmbedded, type EmbeddedMask } from './embedded';
 export { FOCUS_PROMPT_TEXT, focusPromptVisible } from './focusPrompt';
 export { devLevel, DEV_LEVEL_ID } from './devLevel';
 export { InputSampler } from './inputSampler';
-export { advanceClock, easeToward, lerp, MAX_STEPS_PER_FRAME, renderPosition } from './interpolation';
+export { advanceClock, easeToward, lerp, MAX_STEPS_PER_FRAME, renderBodyPosition, renderPosition } from './interpolation';
 export { attachKeyboard, handleKeyDown, handleKeyUp } from './keyboardInput';
 export { chooseLevel, DEFAULT_LEVEL_ID, loadLevelSet, requestedLevelId, selectLevel } from './levelSelect';
 export { loadGameParams } from './params';

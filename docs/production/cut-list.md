@@ -42,5 +42,14 @@ Mud, boost pads, conveyors, moving platforms, crates, afterimage ghosts, tint ga
 - **M1 not met by Nov 8:** nothing to cut (all Must). The response is to shrink M1-28 to the HUD and D-questions and move packaging, schema and audio engine (M1-18, M1-19, M1-24) to M2 without holding the gate. M1 is already met in code; this trigger only fires on verification.
 - **Voter-reach risk (R3):** if the M2 playtest says a 10-minute player does not reach level 10, M2-31 moves Two Colors after w3-01 or trims world 1 to four levels (a Must-count change from 14 to 13, so the user is told).
 
+## Re-plan 2026-11-13 (8 days lost, Nov 6–12): proposed cuts, owner decides
+Never cut: any Must. Proposed now, in order, because the M3 gate moved to Nov 25 (A) or Nov 26 (B):
+1. **World 4 entirely** (items 7 and 8: G-1..G-7, ice spec M2-02, w4-01..w4-04). Cut now, not at a trigger; it is the only way to keep Tandem and the cutover in the same 12 days. Not cut if the Tandem gate falls back to gates (then G tasks are Must).
+2. **M3-18 reduced** (item 9): afterimages and the reduced-effects path only; no speed lines or dust. The band-drop flash stays.
+3. **Leaderboards stay Should** with a hard trigger: `USER-2` not done by Nov 17 means local best times only (item 10).
+4. **Could items 1–6 stay off the board;** the world-1 roof-band art idea (design-lead, 2026-11-05) is Could and cut.
+5. **Tandem gate is extended once, to Nov 16, final.** If checks 1–12 do not pass that day, world 3 reverts to gates (Must); no second extension.
+Escalation if the M3 gate (Nov 25/26) slips a further day: world 3 at four levels (drop w3-04 Clamp, 13 Must levels), the owner's call. M2 menus are not cut.
+
 ## Escalation
 If cutting items 1–11 and the pixel responses still leaves M3 behind, the producer reports a Must-scope decision to the user: world 3 at three or four Tandem levels (11 or 13 Must levels), or reverting to the gates world. The producer does not decide that alone.

@@ -77,7 +77,7 @@ export function createResultsModel(input: ResultsInput): ResultsModel {
   return {
     // Focus starts on NEXT; without it, on LEVELS.
     list: createList(items, input.nextLevelId === null ? 'levels' : 'next'),
-    caption: truncate(levelCaption(input.levelId, input.title), 32),
+    caption: truncate(levelCaption(input.levelId, input.title), CAPTION_MAX),
     clearText: 'CLEAR',
     timeText: `TIME ${formatTime(input.steps, input.stepHz)}`,
     bestText: record.best === null ? null : `BEST ${formatTime(record.best, input.stepHz)}`,
@@ -116,21 +116,27 @@ function chosenAction(model: ResultsModel): ResultsAction | null {
 const PANEL_W = 200;
 const PANEL_H = 140;
 
+/** Longest caption, in characters. */
+const CAPTION_MAX = 32;
+
+/** Top of each text line, from the top of the panel (px). */
+const ROW = { caption: 8, clear: 20, time: 40, best: 58, note: 68, items: 82 } as const;
+
 /** Panel (`panel`), then text lines top to bottom, then the items, all inside the 200x140 panel. */
 export function resultsLayout(model: ResultsModel): readonly LayoutItem[] {
   const px = (SCREEN_W - PANEL_W) / 2;
   const py = (SCREEN_H - PANEL_H) / 2;
   const out: LayoutItem[] = [
     box('panel', px, py, PANEL_W, PANEL_H),
-    centredText('caption', model.caption, py + 8, 1),
-    centredText('clear', model.clearText, py + 20, 2),
-    centredText('time', model.timeText, py + 40, 2),
+    centredText('caption', model.caption, py + ROW.caption, 1),
+    centredText('clear', model.clearText, py + ROW.clear, 2),
+    centredText('time', model.timeText, py + ROW.time, 2),
   ];
-  if (model.bestText !== null) out.push(centredText('best', model.bestText, py + 58, 1));
+  if (model.bestText !== null) out.push(centredText('best', model.bestText, py + ROW.best, 1));
   const note = model.marker ?? (model.notSaved ? NOT_SAVED : null);
-  if (note !== null) out.push(centredText(model.marker === null ? 'notSaved' : 'marker', note, py + 68, 1));
+  if (note !== null) out.push(centredText(model.marker === null ? 'notSaved' : 'marker', note, py + ROW.note, 1));
   model.list.items.forEach((item, index) => {
-    out.push(centredText(`item:${item.id}`, item.label, py + 82 + index * ITEM_PITCH, 2));
+    out.push(centredText(`item:${item.id}`, item.label, py + ROW.items + index * ITEM_PITCH, 2));
   });
   return out;
 }

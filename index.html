@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Redshift</title>
     <style>
+      /* The canvas is 480 x 270 at a whole-number zoom (src/main.ts), centred;
+         the page background is the letterbox around it. */
       html,
       body {
         margin: 0;
@@ -18,6 +20,7 @@
         width: 100%;
         height: 100%;
       }
+      /* Phaser sets crisp scaling too (pixelArt: true); this keeps it before boot. */
       canvas {
         display: block;
         image-rendering: pixelated;

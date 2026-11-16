@@ -180,7 +180,7 @@ export const PLAYER_ANIMS: readonly AnimMeta[] = [
 export function roleColors(band: BandColor, mode: FrameMode): Record<Role, Rgba> {
   const s = palette.gears[band].solid;
   const fill = hexToRgb(s.fill);
-  const white = hexToRgb('#FFFFFF');
+  const white = hexToRgb(palette.flash.color);
   const bg = hexToRgb(palette.pixel.keyline);
   const flash = mode === 'flash';
   const dark = hexToRgb(s.ink);
@@ -193,7 +193,7 @@ export function roleColors(band: BandColor, mode: FrameMode): Record<Role, Rgba>
     [ROLE.ink]: rgba(flash ? fill : dark),
     [ROLE.visor]: rgba(standing && !flash ? bg : white),
     [ROLE.pupil]: rgba(standing && !flash ? white : bg),
-    [ROLE.shade]: rgba(flash ? mix(white, fill, 0.35) : mix(fill, bg, palette.pixel.shadeMix)),
+    [ROLE.shade]: rgba(flash ? mix(white, fill, palette.pixel.flashShadeMix) : mix(fill, bg, palette.pixel.shadeMix)),
     [ROLE.light]: rgba(flash ? white : mix(fill, white, palette.pixel.lipMix)),
     [ROLE.mark]: rgba(hexToRgb(palette.ui.text)),
   };

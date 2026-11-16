@@ -43,7 +43,7 @@ test('the shipped levels include w1-03, w1-04 and w1-05 (board M2-04)', () => {
   expect(levelIds).toEqual(expect.arrayContaining(['w1-01', 'w1-02', 'w1-03', 'w1-04', 'w1-05']));
 });
 
-for (const [id, steps] of [['w1-01', 414], ['w1-02', 311]] as const) {
+for (const [id, steps] of [['w1-01', 434], ['w1-02', 326]] as const) {
   test(`hint check 5: ${id} wins on step ${steps} with and without its hint headers`, () => {
     const text = read(`${id}.txt`);
     expect(text, 'the file has hint headers').toMatch(/^hint:/m);

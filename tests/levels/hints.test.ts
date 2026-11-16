@@ -32,6 +32,10 @@ function wonAtStep(level: Level): number | null {
 }
 
 describe('hint placement (shipped levels)', () => {
+  it('finds hinted levels (an empty list would pass every case below vacuously)', () => {
+    expect(hinted.length).toBeGreaterThan(0);
+  });
+
   it.each(hinted.map((level) => [level.meta.id, level] as const))('%s: boxes empty, 3 rows above the floor', (_id, level) => {
     expect(hintPlacementProblems(level)).toEqual([]);
   });
@@ -40,22 +44,31 @@ describe('hint placement (shipped levels)', () => {
     const text = levelTexts.get(id) ?? '';
     const bare = parsed(text.replace(HINT_LINE, ''), id);
     expect(bare.meta.hints).toBeUndefined();
-    expect(wonAtStep(bare)).toBe(wonAtStep(level));
+    const won = wonAtStep(level);
+    expect(won, `${id} has no winning recording`).not.toBeNull();
+    expect(wonAtStep(bare)).toBe(won);
   });
 });
 
 describe('hint placement self-check (planted bad hints)', () => {
   const grid = ['.......', '.@.....', '.......', '.......', '####.##', '......E'];
-  const level = (hint: string): Level =>
-    parsed(['id: w0-99', 'title: t', 'world: 0', 'teaches: t', 'version: 1', hint, '---', ...grid].join('\n'), 'w0-99');
+  const level = (hint: string, rows: readonly string[] = grid): Level =>
+    parsed(['id: w0-99', 'title: t', 'world: 0', 'teaches: t', 'version: 1', hint, '---', ...rows].join('\n'), 'w0-99');
   const box = 'its 3 x 2 box must cover only empty cells';
 
   it('passes a hint with an empty box 3 rows above the floor (the @ cell counts as empty)', () => {
     expect(hintPlacementProblems(level('hint: move 2 1'))).toEqual([]);
   });
 
-  it('passes a hint over a pit (no floor below)', () => {
-    expect(hintPlacementProblems(level('hint: jump 4 2'))).toEqual([]);
+  it('passes a hint over a pit (no floor below any column of its box)', () => {
+    const widePit = ['.......', '.@.....', '.......', '.......', '#.....#', '......E'];
+    expect(hintPlacementProblems(level('hint: jump 3 2', widePit))).toEqual([]);
+  });
+
+  it('fails a hint over a pit whose box overhangs a higher floor in a neighbouring column', () => {
+    expect(hintPlacementProblems(level('hint: jump 4 2'))).toEqual([
+      'w0-99: hint jump at col 4, row 2: anchor is 2 row(s) above the floor (row 4); needs at least 3',
+    ]);
   });
 
   it('fails a hint 2 rows above the floor', () => {

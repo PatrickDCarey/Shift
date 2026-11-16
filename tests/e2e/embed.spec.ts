@@ -9,15 +9,15 @@ test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
 const LEVEL = 'w0-02';
 
-test('canvas is 960x540 logical and fills the 960x540 viewport', async ({ page }) => {
+test('canvas is 480x270 logical, shown at 2x (960x540 CSS) in the 960x540 viewport', async ({ page }) => {
   // The project's default viewport is the itch.io embed size (BUG-2 regression guard: no per-spec test.use).
   expect(page.viewportSize()).toEqual(EMBED_VIEWPORT);
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
   const canvas = page.locator('#game canvas');
   await expect(canvas).toHaveCount(1);
-  await expect(canvas).toHaveAttribute('width', '960');
-  await expect(canvas).toHaveAttribute('height', '540');
+  await expect(canvas).toHaveAttribute('width', '480');
+  await expect(canvas).toHaveAttribute('height', '270');
   const box = await canvas.boundingBox();
   expect(box?.width).toBeCloseTo(960, 0);
   expect(box?.height).toBeCloseTo(540, 0);
@@ -33,14 +33,17 @@ test('no scrollbars at 960x540', async ({ page }) => {
   expect(overflow).toEqual({ x: 0, y: 0 });
 });
 
-test('canvas scales down in a smaller viewport and keeps 16:9', async ({ page }) => {
+// ADR: below the 2x embed size the picture is a letterboxed 1x (480x270 CSS), centred, never a fractional fit.
+test('in a 640x360 viewport the canvas is 480x270 CSS, centred, still 16:9', async ({ page }) => {
   await page.setViewportSize({ width: 640, height: 360 });
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
-  await expect(page.locator('#game canvas')).toHaveAttribute('width', '960');
+  await expect(page.locator('#game canvas')).toHaveAttribute('width', '480');
   const box = await page.locator('#game canvas').boundingBox();
-  expect(box?.width).toBeLessThanOrEqual(640.5);
-  expect(box ? box.width / box.height : 0).toBeCloseTo(16 / 9, 1);
+  expect(box?.width).toBeCloseTo(480, 0);
+  expect(box?.height).toBeCloseTo(270, 0);
+  expect(box?.x).toBeCloseTo(80, 0);
+  expect(box?.y).toBeCloseTo(45, 0);
 });
 
 test('keys work after clicking the canvas', async ({ page }) => {
@@ -108,7 +111,8 @@ test('inside a 960x540 iframe: keys work and the host page does not scroll', asy
   expect(frame.url(), 'iframe loaded the game, not an error page').toContain(`level=${LEVEL}`);
   await waitForHook(frame);
   await frame.locator('#game canvas').click();
-  await expect(frame.locator('#game canvas')).toHaveAttribute('width', '960');
+  await expect(frame.locator('#game canvas')).toHaveAttribute('width', '480');
+  expect((await frame.locator('#game canvas').boundingBox())?.width, 'iframe canvas CSS width (2x)').toBeCloseTo(960, 0);
   const step0 = (await snapshot(frame))?.state.step ?? 0;
   for (const key of ['Space', 'ArrowUp', 'ArrowLeft', 'ArrowRight']) await page.keyboard.press(key);
   // The spawn pad has headroom since w0-02 v2, so Space is a full 48-step jump; a shift pressed in the air is

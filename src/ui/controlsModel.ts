@@ -5,6 +5,7 @@
  *
  * Owner: ui-engineer.
  */
+import { ADVANCE } from '../fx/pixel/font';
 import { DEFAULT_BINDINGS, keyLabel } from './bindings';
 import type { Action, Bindings } from './bindings';
 import { createList, focusedId, moveList } from './menuFocus';
@@ -95,9 +96,12 @@ const ROWS_Y = 36;
 const ROW_PITCH = 20;
 const WRAP_LINE = 12;
 
-/** Cap box width: 6 px per character plus 5. */
+/** Padding added to a cap's text width (1 px border each side plus 3 px air). */
+const CAP_PAD = 5;
+
+/** Cap box width: one font advance per character plus `CAP_PAD`. */
 export function capWidth(label: string): number {
-  return 6 * label.length + 5;
+  return ADVANCE * label.length + CAP_PAD;
 }
 
 /** Heading, rows (label + one cap per code, wrapping before x 472), the menu row and the items. */

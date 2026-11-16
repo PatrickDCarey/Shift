@@ -1,0 +1,12 @@
+level: w2-03
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand at the spawn, against the back wall, facing the ledge and the red floor below
+# 1+ 1. 1+ 1. 1+   shift up to gear 4 while standing
+# 142R  sprint (red at x = 4.73), walk off the edge (no jump), land red 5.8 tiles out (x = 17.10)
+#       on the red floor, run into the exit
+# Fairness: no timed input. Holding right in gear 4 from anywhere on the ledge wins; the third
+#   shift-up press may come any time in the first 73 steps of walking (x 1.5-5.1).
+steps: 167
+---
+20. 1+ 1. 1+ 1. 1+ 142R

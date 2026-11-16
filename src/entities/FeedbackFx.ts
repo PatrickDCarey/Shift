@@ -13,7 +13,9 @@ import { effectProgress, flashAllowed, flashAlpha } from './effectMath';
 const DEPTH_RING = 20;
 const DEPTH_FLASH = 100;
 const RING_MS = 220;
-const RING_MAX_RADIUS = 42;
+const RING_MAX_RADIUS = 21;
+const RING_MIN_RADIUS = 6;
+const RING_LINE_WIDTH = 1;
 const DEATH_FLASH_MS = 200;
 
 function reducedMotion(): boolean {
@@ -90,8 +92,8 @@ export class FeedbackFx {
     this.rings = this.rings.filter((r) => effectProgress(this.nowMs - r.startedAt, RING_MS) !== null);
     for (const r of this.rings) {
       const t = effectProgress(this.nowMs - r.startedAt, RING_MS) ?? 1;
-      g.lineStyle(3, hexToNumber(palette.flash.color), 1 - t);
-      g.strokeCircle(r.x, r.y, 12 + (RING_MAX_RADIUS - 12) * t);
+      g.lineStyle(RING_LINE_WIDTH, hexToNumber(palette.flash.color), 1 - t);
+      g.strokeCircle(r.x, r.y, RING_MIN_RADIUS + (RING_MAX_RADIUS - RING_MIN_RADIUS) * t);
     }
   }
 }

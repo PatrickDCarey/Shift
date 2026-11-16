@@ -1,21 +1,29 @@
 /**
- * Minimal text overlay for the grey-box scene: level title, the win banner,
- * load/parse messages and the dev debug overlay. The real gear meter belongs
- * to ui-engineer and goes in GEAR_METER_AREA (top-left). All objects are fixed to the camera.
+ * Text overlay at 480 x 270 on the 5 x 7 bitmap font (`pixel-font`, tinted from
+ * palette.ui): level title, the win banner (2x), load/parse messages, pause and
+ * focus prompts, and the dev debug overlay. The gear meter (ui-engineer) sits in
+ * GEAR_METER_AREA, top-left. All objects are fixed to the camera and sit on
+ * whole pixels (layout in `hudText.ts`).
  *
  * Owner: gameplay-engineer [scene].
  */
 import type Phaser from 'phaser';
-import { palette } from '../fx';
+import { hexToNumber, palette, PIXEL_KEYS } from '../fx';
 import { FOCUS_PROMPT_TEXT } from './focusPrompt';
+import { blockHeight, blockWidth, centeredX, wrapText } from './hudText';
 import { PAUSE_TEXT } from './pauseState';
 
 const DEPTH_HUD = 200;
-const MARGIN = 10;
-const MESSAGE_WRAP = 920;
+const MARGIN = 5;
+const MESSAGE_WRAP = 460;
+const PAD_X = 3;
+const PAD_Y = 2;
+const BIG_PAD_X = 8;
+const BIG_PAD_Y = 5;
+const NEXT_HINT_GAP = 20;
 
 /** Top-left rectangle (screen px) kept free for ui-engineer's GearMeterView. */
-export const GEAR_METER_AREA = { x: MARGIN, y: MARGIN, width: 220, height: 64 } as const;
+export const GEAR_METER_AREA = { x: MARGIN, y: MARGIN, width: 110, height: 32 } as const;
 
 export interface HudLayout {
   /** Level title: top centre, so it never sits under the gear meter. */
@@ -45,65 +53,124 @@ export function winText(steps: number | null, stepHz: number): string {
   return `Level complete — ${formatRunTime(steps, stepHz)} — press R`;
 }
 
+type Anchor = 'topCenter' | 'topLeft' | 'topRight' | 'center' | 'bottomCenter';
+
+interface TextOptions {
+  readonly anchor: Anchor;
+  readonly x: number;
+  readonly y: number;
+  readonly color: string;
+  readonly scale?: number;
+  readonly padX?: number;
+  readonly padY?: number;
+  readonly panel?: boolean;
+}
+
+/** One bitmap-text block on a panel, re-laid-out on whole pixels whenever its text changes. */
+class HudText {
+  private readonly text: Phaser.GameObjects.BitmapText;
+  private readonly panel: Phaser.GameObjects.Rectangle;
+  private readonly scale: number;
+  private shown = '';
+
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly opts: TextOptions,
+  ) {
+    this.scale = opts.scale ?? 1;
+    this.panel = scene.add
+      .rectangle(0, 0, 1, 1, hexToNumber(palette.ui.panel), 0.85)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(DEPTH_HUD)
+      .setVisible(false);
+    this.text = scene.add
+      .bitmapText(0, 0, PIXEL_KEYS.font, '')
+      .setOrigin(0, 0)
+      .setScale(this.scale)
+      .setTint(hexToNumber(opts.color))
+      .setScrollFactor(0)
+      .setDepth(DEPTH_HUD + 1)
+      .setVisible(false);
+  }
+
+  get visible(): boolean {
+    return this.text.visible;
+  }
+
+  get content(): string {
+    return this.shown;
+  }
+
+  setVisible(visible: boolean): void {
+    this.text.setVisible(visible);
+    this.panel.setVisible(visible && this.opts.panel !== false);
+  }
+
+  setText(value: string): void {
+    if (value === this.shown) return;
+    this.shown = value;
+    this.text.setText(value);
+    this.layout();
+  }
+
+  private layout(): void {
+    const { anchor, x, y } = this.opts;
+    const padX = this.opts.padX ?? PAD_X;
+    const padY = this.opts.padY ?? PAD_Y;
+    const w = blockWidth(this.shown, this.scale);
+    const h = blockHeight(this.shown, this.scale);
+    const boxW = w + 2 * padX;
+    const boxH = h + 2 * padY;
+    const { width, height } = this.scene.scale;
+    let left = x;
+    let top = y;
+    if (anchor === 'topCenter') left = centeredX(width, boxW);
+    else if (anchor === 'topRight') left = x - boxW;
+    else if (anchor === 'center') {
+      left = centeredX(width, boxW);
+      top = y === 0 ? centeredX(height, boxH) : y;
+    } else if (anchor === 'bottomCenter') {
+      left = centeredX(width, boxW);
+      top = y - boxH;
+    }
+    this.panel.setPosition(left, top).setSize(boxW, boxH);
+    this.text.setPosition(left + padX, top + padY);
+  }
+}
+
 export class GameHud {
-  private readonly banner: Phaser.GameObjects.Text;
-  private readonly debug: Phaser.GameObjects.Text;
-  private readonly focusPrompt: Phaser.GameObjects.Text;
-  private readonly pauseLabel: Phaser.GameObjects.Text;
-  private readonly nextHint: Phaser.GameObjects.Text;
+  private readonly banner: HudText;
+  private readonly debug: HudText;
+  private readonly focusPrompt: HudText;
+  private readonly pauseLabel: HudText;
+  private readonly nextHint: HudText;
 
   constructor(scene: Phaser.Scene, title: string, messages: readonly string[]) {
     const { width, height } = scene.scale;
-    const base = { fontFamily: 'monospace', color: palette.ui.text };
-    const panel = { backgroundColor: palette.ui.panel, padding: { x: 8, y: 4 } };
-    const fixed = <T extends Phaser.GameObjects.Text>(t: T): T => t.setScrollFactor(0).setDepth(DEPTH_HUD);
     const layout = hudLayout(width);
-    fixed(
-      scene.add
-        .text(layout.title.x, layout.title.y, title, { ...base, ...panel, fontSize: '14px', color: palette.ui.textMuted })
-        .setOrigin(0.5, 0),
-    );
-    this.banner = fixed(
-      scene.add
-        .text(width / 2, height / 2, '', { ...base, ...panel, fontSize: '28px', padding: { x: 20, y: 12 } })
-        .setOrigin(0.5)
-        .setVisible(false),
-    );
-    this.debug = fixed(
-      scene.add
-        .text(width - MARGIN, MARGIN, '', { ...base, ...panel, fontSize: '13px', align: 'right' })
-        .setOrigin(1, 0)
-        .setVisible(false),
-    );
+    const { text, textMuted } = palette.ui;
+    const shown = (t: HudText, value: string): HudText => {
+      t.setText(value);
+      t.setVisible(true);
+      return t;
+    };
+    shown(new HudText(scene, { anchor: 'topCenter', x: layout.title.x, y: layout.title.y, color: textMuted }), title);
+    this.banner = new HudText(scene, { anchor: 'center', x: 0, y: 0, color: text, scale: 2, padX: BIG_PAD_X, padY: BIG_PAD_Y });
+    this.debug = new HudText(scene, { anchor: 'topRight', x: width - MARGIN, y: MARGIN, color: text });
     // Plain text, no input handling: it never blocks a key or a click.
-    this.focusPrompt = fixed(
-      scene.add
-        .text(width / 2, height - MARGIN, FOCUS_PROMPT_TEXT, { ...base, ...panel, fontSize: '16px' })
-        .setOrigin(0.5, 1)
-        .setVisible(false),
-    );
+    this.focusPrompt = new HudText(scene, { anchor: 'bottomCenter', x: 0, y: height - MARGIN, color: text });
     // M1 stand-in for the results NEXT item (ui-engineer, M2-12).
-    this.nextHint = fixed(
-      scene.add
-        .text(width / 2, height / 2 + 40, 'Enter: next level', { ...base, ...panel, fontSize: '14px', color: palette.ui.textMuted })
-        .setOrigin(0.5, 0)
-        .setVisible(false),
-    );
+    this.nextHint = new HudText(scene, { anchor: 'center', x: 0, y: Math.floor(height / 2) + NEXT_HINT_GAP, color: textMuted });
+    this.nextHint.setText('Enter: next level');
     // M1 stand-in for the pause overlay (ui-engineer, M2-12); plain text, no input handling.
-    this.pauseLabel = fixed(
-      scene.add
-        .text(width / 2, height / 2, PAUSE_TEXT, { ...base, ...panel, fontSize: '22px', align: 'center', padding: { x: 20, y: 12 } })
-        .setOrigin(0.5)
-        .setVisible(false),
-    );
+    this.pauseLabel = new HudText(scene, { anchor: 'center', x: 0, y: 0, color: text, scale: 2, padX: BIG_PAD_X, padY: BIG_PAD_Y });
+    this.pauseLabel.setText(PAUSE_TEXT);
+    this.focusPrompt.setText(FOCUS_PROMPT_TEXT);
     if (messages.length > 0) {
-      fixed(
-        scene.add.text(layout.messages.x, layout.messages.y, messages.join('\n'), {
-          ...base,
-          ...panel,
-          fontSize: '13px',
-          wordWrap: { width: MESSAGE_WRAP },
-        }),
+      shown(
+        new HudText(scene, { anchor: 'topLeft', x: layout.messages.x, y: layout.messages.y, color: text }),
+        wrapText(messages.join('\n'),MESSAGE_WRAP - 2 * PAD_X),
       );
     }
   }
@@ -116,7 +183,7 @@ export class GameHud {
 
   /** The win banner text while it is showing, else null (read by the QA hook). */
   get bannerText(): string | null {
-    return this.banner.visible ? this.banner.text : null;
+    return this.banner.visible ? this.banner.content : null;
   }
 
   /** Show the "Enter: next level" hint under the win banner. */

@@ -27,3 +27,4 @@ export * from './contracts/input';
 export * from './contracts/level';
 export * from './contracts/state';
 export * from './contracts/lanes';
+export * from './contracts/leaderboard';

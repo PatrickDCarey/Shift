@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.7 (2026-11-13, batch 4A): pixel cutover: `tileSize` 32 → 16 and the 480×270 base resolution noted (§4.1, §9, §11), no rule or level change; Tandem decision gate moved to Tue Nov 17 (owner decision, §10). Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -42,7 +42,7 @@ Theme link: you **shift** gears with the **Shift** keys, the world **red-shifts*
 
 ### 4.1 Units and simulation
 
-- Positions and distances are in **tiles**, speeds in **tiles/second**, the simulation runs at a fixed `stepHz` = 60 steps/second (dt = 1/60 s). `tileSize` is used only for rendering.
+- Positions and distances are in **tiles**, speeds in **tiles/second**, the simulation runs at a fixed `stepHz` = 60 steps/second (dt = 1/60 s). `tileSize` is used only for rendering: the game draws at **480×270 logical pixels with 16 px tiles**, scaled by a whole-number zoom (2× in the 960×540 itch frame), so the view is 30 × 16.875 tiles (§11). Changing the resolution or `tileSize` never changes a rule, a level or a solution.
 - All `...Ms` tuning values convert to whole steps: `steps = round(ms × stepHz / 1000)`. Every shipped value is an exact multiple of 1/60 s (100 ms = 6 steps, 400 ms = 24 steps).
 - "Up" is up on screen. Heights are measured from the player's feet.
 - The player is an axis-aligned box `playerWidthTiles` × `playerHeightTiles` (0.75 × 1.5). The player's **x** is the box's horizontal center; **feet** are the bottom edge.
@@ -390,7 +390,7 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 | Key | Value | Unit | Meaning |
 |---|---|---|---|
 | `stepHz` | 60 | steps/s | Simulation steps per second. |
-| `tileSize` | 32 | px | Pixels per tile. Render only. |
+| `tileSize` | 16 | art px | Art pixels per tile at the 480×270 logical resolution (§11). Render only; the sim works in tiles. Was 32 at the old 960×540 config; changed in the pixel cutover (PX-5, 2026-11-13). |
 | `gearSpeeds` | [0, 3, 6, 9, 12] | tiles/s | Speed per gear; index 0 is standing. Strictly increasing from 0. |
 | `minGear` | 1 | gear | Lowest selectable gear. |
 | `startGear` | 1 | gear | Gear at spawn, respawn and restart. |
@@ -419,7 +419,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 - **Should:** world 4 Gates (4 levels: speed gates, gate floors, ice), per-level leaderboards, adaptive music that pitch-shifts with gear, mirrored twin.
 - **Could:** free key-remap screen, ghost replays of top runs, level timer medals, a hidden "ultraviolet" reverse gear; boost pads as a Tandem split tool (`core-twists.md` §1).
 - **Cut (2026-11-03):** mud, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`); the Paint and Clock twists (`core-twists.md`).
-- **Fallback (decision gate Nov 12):** if Tandem's sim checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world and speed gates become Must again.
+- **Fallback (decision gate Tue Nov 17; owner decision 2026-11-13, was Nov 12):** if Tandem's sim checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world and speed gates become Must again.
 
 ### Design deliverables
 
@@ -441,13 +441,13 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 ### Milestone mapping
 
 - **M1 grey-box (Nov 8):** §4 in full in one test room, all input bindings including Q/E and Z/X. Specs: `features/movement-and-gears.md`, `color-gating.md`, `air-drag.md`, `jump.md`, `safe-tiles-and-reset.md`.
-- **M2 first worlds (Nov 15):** worlds 1–2 (9 levels), HUD gear meter, title, level select, Sticky Keys tip. Tandem sim and scene built Nov 9–13 alongside, with a decision gate on Nov 12.
+- **M2 first worlds (Nov 15):** worlds 1–2 (9 levels), HUD gear meter, title, level select, Sticky Keys tip. Tandem sim and scene built alongside from Nov 9, with a decision gate on Tue Nov 17 (moved from Nov 12 by the owner, 2026-11-13).
 - **M3 content (Nov 22):** world 3 Tandem (Must, 5 levels), world 4 Gates (Should: gates, ice).
 - **M4 freeze (Nov 28):** itch.io page copy final.
 
 ## 11. HUD, audio and visual direction
 
-- **Art direction C, Pixel Dither (owner decision 2026-11-03):** 480×270 logical, scaled 2× to the 960×540 itch frame; 16 px tiles (the screen still shows 30 × 16.9 tiles); the player is 12×24 px. Every gameplay element must read at that size by shape and dither pattern, never by color alone. Rendering approach: tech-lead's pixel-rendering ADR (`docs/tech/`); look: `docs/art/`.
+- **Art direction C, Pixel Dither (owner decision 2026-11-03):** 480×270 logical, scaled 2× to the 960×540 itch frame; 16 px tiles (the screen still shows 30 × 16.9 tiles); the player is 12×24 px. **Base resolution (pixel cutover, 2026-11-13):** the game canvas is 480×270, scaled by the largest whole-number zoom that fits (2× in the itch embed, 4× at 1920×1080, letterboxed otherwise), never a fractional scale; `tileSize` is 16. All HUD, menu and text layout is specified in 480×270 pixels. Every gameplay element must read at that size by shape and dither pattern, never by color alone. Rendering approach: tech-lead's pixel-rendering ADR (`docs/tech/`); look: `docs/art/`.
 - The world's tint slides along the spectrum with your actual speed, while gameplay rules use the discrete bands.
 - The player's body shows the band color **and** the band's pattern or glyph (color is never the only signal).
 - **The twin** (Tandem) differs from the runner **by shape** at 12×24 px (art-director's design, adopted 2026-11-04: antenna, chamfered shoulders, wide stance, two square eyes; no extra head marker unless the M3 playtest asks for one) and shows its own band pattern. A home body shows a parked pose or glyph and stops animating. Stacked lanes are separated by a solid safe divider.

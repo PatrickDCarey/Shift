@@ -61,8 +61,17 @@ export function sfxForEvent(event: SfxSourceEvent, ctx?: SfxContext): SfxCue | n
       return { id: 'reset' };
     case 'won':
       return { id: 'levelComplete' };
-    default:
+    // Silent on purpose (spec: no SFX on bandChange or graceStart; wallStop and ceiling are not
+    // sounded yet). Listed explicitly so a new event type fails the typecheck below.
+    case 'bandChange':
+    case 'graceStart':
+    case 'wallStop':
+    case 'ceiling':
       return null;
+    default: {
+      const unhandled: never = event;
+      return unhandled;
+    }
   }
 }
 

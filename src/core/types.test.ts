@@ -12,7 +12,9 @@ import {
   RESERVED_CHARS,
   TILE_KINDS,
   TILE_LEGEND,
+  TWIN,
 } from './types';
+import type { BodyEvent, FallThroughCell, SimEvent } from './types';
 
 describe('gear and band constants', () => {
   it('maps every band to a distinct colour name', () => {
@@ -68,5 +70,19 @@ describe('input constants', () => {
   it('EMPTY_INPUT holds nothing and has exactly the canonical buttons', () => {
     expect(INPUT_BUTTONS.every((b) => !EMPTY_INPUT[b])).toBe(true);
     expect(Object.keys(EMPTY_INPUT).sort()).toEqual([...INPUT_BUTTONS].sort());
+  });
+});
+
+describe('fallThrough event contract (T-07)', () => {
+  it('is a body event that carries its coloured cells', () => {
+    const cells: readonly FallThroughCell[] = [
+      { col: 3, row: 9, band: 2 },
+      { col: 4, row: 9, band: 2 },
+    ];
+    const event: BodyEvent = { type: 'fallThrough', body: TWIN, cells };
+    const events: readonly SimEvent[] = [event];
+    const bodies = events.filter((e): e is BodyEvent => 'body' in e).map((e) => e.body);
+    expect(bodies).toEqual([TWIN]);
+    expect(event.type === 'fallThrough' && event.cells.map((c) => c.col)).toEqual([3, 4]);
   });
 });

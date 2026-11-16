@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import palette from '../data/palette.json';
+import { PIXEL_KEYS, textWidth } from '../fx/pixel';
 import type { SaveStore } from '../save';
 import { keyLabel } from './bindings';
 import {
@@ -11,7 +12,7 @@ import {
 
 /**
  * One-time Windows Sticky Keys tip (GDD section 3). A small panel near the
- * bottom of the 960x540 canvas. Non-blocking by design: it takes no pointer
+ * bottom of the 480x270 canvas, drawn in whole pixels with the bitmap font. Non-blocking by design: it takes no pointer
  * input, never swallows or captures keys (it only listens), and the game keeps
  * running underneath. It hides itself after a while, on Enter, or as soon as
  * the player uses one of the alternate gear keys.
@@ -21,12 +22,14 @@ import {
  * Owner: ui-engineer.
  */
 
-const PANEL_WIDTH = 600;
-const PANEL_HEIGHT = 92;
-const PANEL_BOTTOM_MARGIN = 24;
+const PANEL_WIDTH = 340;
+const PANEL_HEIGHT = 46;
+const PANEL_BOTTOM_MARGIN = 12;
 const DEPTH = 1000;
 const FADE_MS = 250;
-const FONT = 'monospace';
+const CAP_SIZE = 14;
+const CAP_GAP = 3;
+const ROW_Y = 22;
 
 const toNumber = (hex: string): number => Phaser.Display.Color.HexStringToColor(hex).color;
 
@@ -88,70 +91,59 @@ export class StickyKeysTip {
   private buildPanel(): Phaser.GameObjects.Graphics {
     const g = this.scene.add.graphics();
     g.fillStyle(toNumber(palette.ui.panel), 0.92);
-    g.fillRoundedRect(-PANEL_WIDTH / 2, 0, PANEL_WIDTH, PANEL_HEIGHT, 8);
-    g.lineStyle(2, toNumber(palette.ui.panelBorder), 1);
-    g.strokeRoundedRect(-PANEL_WIDTH / 2, 0, PANEL_WIDTH, PANEL_HEIGHT, 8);
+    g.fillRect(-PANEL_WIDTH / 2, 0, PANEL_WIDTH, PANEL_HEIGHT);
+    g.fillStyle(toNumber(palette.ui.panelBorder), 1);
+    this.frame(g, -PANEL_WIDTH / 2, 0, PANEL_WIDTH, PANEL_HEIGHT);
     return g;
   }
 
-  private buildTexts(): Phaser.GameObjects.Text[] {
-    const headline = this.scene.add
-      .text(0, 14, 'Windows tip: tapping Shift 5 times opens Sticky Keys.', {
-        fontFamily: FONT,
-        fontSize: '16px',
-        color: palette.ui.text,
-      })
-      .setOrigin(0.5, 0);
-    const hint = this.scene.add
-      .text(PANEL_WIDTH / 2 - 14, PANEL_HEIGHT - 10, 'Enter to dismiss', {
-        fontFamily: FONT,
-        fontSize: '12px',
-        color: palette.ui.textMuted,
-      })
-      .setOrigin(1, 1);
-    const lead = this.scene.add
-      .text(-PANEL_WIDTH / 2 + 24, 56, 'Shift gears with', {
-        fontFamily: FONT,
-        fontSize: '14px',
-        color: palette.ui.textMuted,
-      })
-      .setOrigin(0, 0.5);
-    return [headline, hint, lead];
+  /** 1 px outline as four rectangles (no strokes: they land on half pixels). */
+  private frame(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number): void {
+    g.fillRect(x, y, w, 1);
+    g.fillRect(x, y + h - 1, w, 1);
+    g.fillRect(x, y + 1, 1, h - 2);
+    g.fillRect(x + w - 1, y + 1, 1, h - 2);
+  }
+
+  private text(x: number, y: number, value: string, color: string, rightAligned = false): Phaser.GameObjects.BitmapText {
+    const left = rightAligned ? x - textWidth(value) : x;
+    return this.scene.add.bitmapText(Math.round(left), y, PIXEL_KEYS.font, value).setTint(toNumber(color));
+  }
+
+  private buildTexts(): Phaser.GameObjects.BitmapText[] {
+    const headline = 'Windows tip: tapping Shift 5 times opens Sticky Keys.';
+    return [
+      this.text(-textWidth(headline) / 2, 6, headline, palette.ui.text),
+      this.text(-PANEL_WIDTH / 2 + 12, ROW_Y + 3, 'Shift gears with', palette.ui.textMuted),
+      this.text(PANEL_WIDTH / 2 - 8, PANEL_HEIGHT - 11, 'Enter to dismiss', palette.ui.textMuted, true),
+    ];
   }
 
   /** Q E   or   Z X, drawn as key caps with letters (icons, not just words). */
   private buildKeyCaps(): Phaser.GameObjects.GameObject[] {
     const groups: readonly (readonly string[])[] = [['KeyQ', 'KeyE'], ['KeyZ', 'KeyX']];
     const items: Phaser.GameObjects.GameObject[] = [];
-    const capSize = 28;
-    const gap = 6;
-    let x = -PANEL_WIDTH / 2 + 24 + 140;
+    let x = -PANEL_WIDTH / 2 + 12 + textWidth('Shift gears with') + 8;
     groups.forEach((codes, groupIndex) => {
       if (groupIndex > 0) {
-        items.push(
-          this.scene.add
-            .text(x + 6, 56, 'or', { fontFamily: FONT, fontSize: '14px', color: palette.ui.textMuted })
-            .setOrigin(0, 0.5),
-        );
-        x += 40;
+        items.push(this.text(x + 2, ROW_Y + 3, 'or', palette.ui.textMuted));
+        x += textWidth('or') + 8;
       }
       codes.forEach((code) => {
-        items.push(...this.keyCap(x, 56, capSize, keyLabel(code)));
-        x += capSize + gap;
+        items.push(...this.keyCap(x, ROW_Y - 1, keyLabel(code)));
+        x += CAP_SIZE + CAP_GAP;
       });
     });
     return items;
   }
 
-  private keyCap(x: number, y: number, size: number, label: string): Phaser.GameObjects.GameObject[] {
+  private keyCap(x: number, y: number, label: string): Phaser.GameObjects.GameObject[] {
     const g = this.scene.add.graphics();
     g.fillStyle(toNumber(palette.ui.panelBorder), 0.35);
-    g.fillRoundedRect(x, y - size / 2, size, size, 5);
-    g.lineStyle(2, toNumber(palette.ui.focus), 1);
-    g.strokeRoundedRect(x, y - size / 2, size, size, 5);
-    const text = this.scene.add
-      .text(x + size / 2, y, label, { fontFamily: FONT, fontSize: '16px', fontStyle: 'bold', color: palette.ui.focus })
-      .setOrigin(0.5);
+    g.fillRect(x, y, CAP_SIZE, CAP_SIZE);
+    g.fillStyle(toNumber(palette.ui.focus), 1);
+    this.frame(g, x, y, CAP_SIZE, CAP_SIZE);
+    const text = this.text(x + Math.floor((CAP_SIZE - textWidth(label)) / 2), y + 3, label, palette.ui.focus);
     return [g, text];
   }
 }

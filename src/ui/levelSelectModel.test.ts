@@ -166,3 +166,23 @@ describe('layout (check 16)', () => {
     expect(cellsBottom).toBeLessThan(216);
   });
 });
+
+describe('B6: a world with more than MAX_CELLS_PER_ROW levels wraps', () => {
+  const six = Array.from({ length: 6 }, (_, i) => ({ meta: { id: `w1-0${i + 1}`, title: `T${i + 1}`, world: 1 } }));
+  const model = createLevelSelectModel({
+    order: levelOrder(six as unknown as LevelSource[]),
+    progress: { completedLevels: [], bestSteps: {} } as unknown as Progress,
+    stepHz: 60,
+  });
+
+  it('splits into rows of at most 5 with the same world number', () => {
+    expect(model.rows.map((r) => r.cells.length)).toEqual([5, 1]);
+    expect(model.rows.map((r) => r.world)).toEqual([1, 1]);
+  });
+
+  it('no layout item leaves the screen, and the world label is drawn once', () => {
+    const layout = levelSelectLayout(model);
+    expect(layoutViolations(layout)).toEqual([]);
+    expect(layout.filter((i) => i.id.startsWith('world:'))).toHaveLength(1);
+  });
+});

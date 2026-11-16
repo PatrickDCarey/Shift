@@ -1,99 +1,105 @@
 /**
- * Draws the level grid. Coloured tiles are solid when they would hold the
- * player now (band matches, or the grace colour, and the player's box is not
- * inside that colour: the no-embed rule) and ghost otherwise; the
- * coloured layer is redrawn only when that answer changes. Reads sim state,
- * never writes it.
+ * Draws the level on Tilemap layers over `pixel-tileset` (ADR "LevelView moves
+ * from per-frame Graphics to Tilemap layers"). A static layer holds the safe
+ * tiles; a coloured layer swaps each cell between its solid and ghost index when
+ * the answer "does this colour hold the player now" changes (band matches, or
+ * the grace colour, and the player's box is not inside that colour: the
+ * no-embed rule). The exit door and its glow are sprites from `pixel-tiles`.
+ * Nothing is redrawn per frame. Reads sim state, never writes it.
  *
- * Reserved tile kinds (mud, ice, conveyor, boost, camera) have no spec yet and
- * draw as safe tiles. Owner: gameplay-engineer [scene].
+ * Owner: gameplay-engineer [scene].
  */
 import type Phaser from 'phaser';
-import { BAND_COLORS, type Band, type ColoredBand, type Level, type TilePos } from '../core/types';
-import { asTileCanvas, drawGearTile, drawSafeTile, hexToNumber, palette, type TileCanvas } from '../fx';
+import type { Band, ColoredBand, Level } from '../core/types';
+import { PIXEL_KEYS } from '../fx';
 import { isEmbedded, type EmbeddedMask } from './embedded';
+import { exitFrame, planLevel, type LevelPlan } from './levelTiles';
 
 const DEPTH_TILES = 0;
 const DEPTH_EXIT = 1;
-const EXIT_PULSE_MS = 260;
+const GLOW_ALPHA = 0.47;
+
+interface ExitSprites {
+  readonly door: Phaser.GameObjects.Image;
+  readonly glow: Phaser.GameObjects.Image;
+}
 
 export class LevelView {
-  private readonly staticGfx: Phaser.GameObjects.Graphics;
-  private readonly coloredGfx: Phaser.GameObjects.Graphics;
-  private readonly exitGfx: Phaser.GameObjects.Graphics;
-  private readonly exits: readonly TilePos[];
+  private readonly map: Phaser.Tilemaps.Tilemap;
+  private readonly coloredLayer: Phaser.Tilemaps.TilemapLayer;
+  private readonly plan: LevelPlan;
+  private readonly exits: readonly ExitSprites[];
   private modeKey = '';
+  private shownFrame = -1;
 
   constructor(
     scene: Phaser.Scene,
-    private readonly level: Level,
+    level: Level,
     private readonly tileSize: number,
+    private readonly reducedMotion = false,
   ) {
-    this.staticGfx = scene.add.graphics().setDepth(DEPTH_TILES);
-    this.coloredGfx = scene.add.graphics().setDepth(DEPTH_TILES);
-    this.exitGfx = scene.add.graphics().setDepth(DEPTH_EXIT);
-    this.exits = this.collectExits();
-    this.drawStatic(asTileCanvas(this.staticGfx));
+    this.plan = planLevel(level);
+    this.map = scene.make.tilemap({ tileWidth: tileSize, tileHeight: tileSize, width: level.width, height: level.height });
+    const tileset = this.map.addTilesetImage(PIXEL_KEYS.tileset, PIXEL_KEYS.tileset, tileSize, tileSize, 0, 0);
+    if (tileset === null) throw new Error(`texture "${PIXEL_KEYS.tileset}" is not loaded (BootScene must load it)`);
+    const staticLayer = this.createLayer('static', tileset);
+    this.coloredLayer = this.createLayer('colored', tileset);
+    this.plan.staticIndices.forEach((index, i) => {
+      if (index >= 0) staticLayer.putTileAt(index, i % level.width, Math.floor(i / level.width));
+    });
+    this.exits = this.plan.exits.map(({ col, row }) => this.addExit(scene, col, row));
   }
 
-  /** Call every frame: redraws tiles only if the band, grace colour or embedded colours changed. */
+  /** Call every frame: swaps cell indices only if the band, grace colour or embedded colours changed. */
   update(band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask, timeMs: number): void {
     const key = `${band}:${graceBand ?? 0}:${embedded}`;
     if (key !== this.modeKey) {
       this.modeKey = key;
-      this.drawColored(asTileCanvas(this.coloredGfx), band, graceBand, embedded);
+      this.swapColored(band, graceBand, embedded);
     }
-    this.drawExits(timeMs);
+    this.animateExits(timeMs);
   }
 
   destroy(): void {
-    this.staticGfx.destroy();
-    this.coloredGfx.destroy();
-    this.exitGfx.destroy();
+    for (const e of this.exits) {
+      e.door.destroy();
+      e.glow.destroy();
+    }
+    this.map.destroy();
   }
 
-  private collectExits(): TilePos[] {
-    const found: TilePos[] = [];
-    this.forEachTile((tile, col, row) => {
-      if (tile.kind === 'exit') found.push({ col, row });
-    });
-    return found;
+  private createLayer(name: string, tileset: Phaser.Tilemaps.Tileset): Phaser.Tilemaps.TilemapLayer {
+    const layer = this.map.createBlankLayer(name, tileset, 0, 0);
+    if (layer === null) throw new Error(`could not create tilemap layer "${name}"`);
+    return layer.setDepth(DEPTH_TILES);
   }
 
-  private forEachTile(visit: (tile: Level['tiles'][number], col: number, row: number) => void): void {
-    this.level.tiles.forEach((tile, i) => visit(tile, i % this.level.width, Math.floor(i / this.level.width)));
+  private swapColored(band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask): void {
+    for (const cell of this.plan.colored) {
+      const holds = (cell.band === band || cell.band === graceBand) && !isEmbedded(embedded, cell.band);
+      this.coloredLayer.putTileAt(holds ? cell.solid : cell.ghost, cell.col, cell.row);
+    }
   }
 
-  private drawStatic(g: TileCanvas): void {
-    const size = this.tileSize;
-    this.forEachTile((tile, col, row) => {
-      if (tile.kind === 'empty' || tile.kind === 'colored' || tile.kind === 'exit') return;
-      drawSafeTile(g, col * size, row * size, size);
-    });
+  /** The door sits on its tile; the 32 x 32 glow is centred on it (both on whole pixels). */
+  private addExit(scene: Phaser.Scene, col: number, row: number): ExitSprites {
+    const s = this.tileSize;
+    const glow = scene.add
+      .image(col * s + s / 2, row * s + s / 2, PIXEL_KEYS.tiles, 'tile/exit/glow_0')
+      .setOrigin(0.5)
+      .setAlpha(GLOW_ALPHA)
+      .setDepth(DEPTH_EXIT);
+    const door = scene.add.image(col * s, row * s, PIXEL_KEYS.tiles, 'tile/exit/door_0').setOrigin(0, 0).setDepth(DEPTH_EXIT);
+    return { door, glow };
   }
 
-  private drawColored(g: TileCanvas, band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask): void {
-    this.coloredGfx.clear();
-    const size = this.tileSize;
-    this.forEachTile((tile, col, row) => {
-      if (tile.kind !== 'colored') return;
-      const holds = (tile.band === band || tile.band === graceBand) && !isEmbedded(embedded, tile.band);
-      drawGearTile(g, BAND_COLORS[tile.band], holds ? 'solid' : 'ghost', col * size, row * size, size);
-    });
-  }
-
-  private drawExits(timeMs: number): void {
-    const g = this.exitGfx;
-    g.clear();
-    if (this.exits.length === 0) return;
-    const style = palette.gears.white.solid;
-    const alpha = 0.55 + 0.35 * Math.sin(timeMs / EXIT_PULSE_MS);
-    const size = this.tileSize;
-    for (const { col, row } of this.exits) {
-      g.fillStyle(hexToNumber(style.fill), alpha);
-      g.fillRect(col * size, row * size, size, size);
-      g.lineStyle(palette.treatment.solid.outlineWidth, hexToNumber(style.outline), 1);
-      g.strokeRect(col * size + 1, row * size + 1, size - 2, size - 2);
+  private animateExits(timeMs: number): void {
+    const frame = exitFrame(timeMs, this.reducedMotion);
+    if (frame === this.shownFrame) return;
+    this.shownFrame = frame;
+    for (const e of this.exits) {
+      e.door.setFrame(`tile/exit/door_${frame}`);
+      e.glow.setFrame(`tile/exit/glow_${frame}`);
     }
   }
 }

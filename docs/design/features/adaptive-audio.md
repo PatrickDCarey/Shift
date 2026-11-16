@@ -49,7 +49,7 @@ One loop, always playing during a level once audio is unlocked. Targets per band
 - Different **context in the mix**: the clunk lands with the music's 30 ms snap darker; shift down never touches the music.
 - Test: with eyes closed, a listener tells them apart 10 times out of 10 (audio-designer self-check, recorded in the M2-27 review notes).
 
-**Fall-through trigger.** There is no sim event for it. A body "fell through" on a step when: it was grounded at the end of the previous step, is airborne at the end of this step, emitted no `jump` this step, and at least one colored tile (`B G Y R`, or a gate tile later) was under its footprint on the previous step. A walk-off from a safe ledge plays nothing (the land thump comes later). This must be a pure, tested helper so audio and effects agree; tech-lead decides where it lives (request filed).
+**Fall-through trigger.** _(Amended 2026-11-13: T-07 ruling.)_ The fall-through sound plays on the sim event `fallThrough { body, cells }` (`docs/tech/architecture.md` §3.2), once per event, with the twin voice for `body: 1`. The condition is unchanged from the original spec and is computed by the sim, so audio, effects and the HUD cannot disagree: a body was grounded at the start of the step, is airborne after it, did not jump, and at least one colored tile (`B G Y R`, or a gate tile later) lay under its footprint. A walk-off from a safe ledge plays nothing (the land thump comes later). Until the sim emits the event (Batch 5), audio keeps its local `FallThroughEvent` stand-in; then it maps the sim event and deletes the stand-in.
 
 **Not sounded (on purpose):**
 - `bandChange`: the music carries pace; a blip on every band change would be constant noise at the band edges.
@@ -89,7 +89,7 @@ No `tuning.json` keys (not gameplay). Audio constants (glide 150 ms, drop snap 3
 2. Event mapping (unit, with a fake engine): a step whose events are `[shift 1→2]` calls shift up once; `[shift 3→2]` shift down; `[jump]` jump; `[land]` land; `[airDrag]` clunk; `[died]` reset; `[restart]` reset; `[won]` level complete.
 3. `bandChange` and `graceStart` alone call no SFX.
 4. Clunk vs shift down: the clunk's fundamental is at least one octave below the shift-down's lowest note and its envelope is a single attack (inspect the tone parameters in a unit test).
-5. Fall-through helper (unit): letting go on a blue bridge fires it on the step the body leaves the floor; walking off a safe ledge does not; a jump off a colored floor does not; grace expiry on a mismatched floor does.
+5. Fall-through event (unit, [sim] emits, audio maps): letting go on a blue bridge emits `fallThrough` on the step the body leaves the floor; walking off a safe ledge does not; a jump off a colored floor does not; grace expiry on a mismatched floor does. Audio: one `fallThrough` event calls the fall-through SFX once (twin voice for `body: 1`).
 6. Music targets (unit): band 0..4 give strictly increasing pitch and cutoff; a band change sets a 150 ms glide; an `airDrag` sets a ≤ 30 ms change.
 7. With a twin, music follows the faster non-home body; with the runner home, it follows the twin.
 8. Tandem: both bodies jump on one step → one unison call; runner alone jumps → the runner voice; twin alone → the twin voice (−5 semitones, −3 dB).

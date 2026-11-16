@@ -1,6 +1,6 @@
 {
   "stepHz": 60,
-  "tileSize": 32,
+  "tileSize": 16,
   "gearSpeeds": [0, 3, 6, 9, 12],
   "minGear": 1,
   "startGear": 1,

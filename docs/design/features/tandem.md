@@ -1,6 +1,6 @@
 # Feature: Tandem (one throttle, two runners)
 
-_Owner: design-lead. Milestone: M3 content, sim and scene built Nov 9–13 (decision gate Nov 12). GDD: §1, §4.15, §7, §11. Chosen by the studio owner on 2026-11-03 from `core-twists.md`. Fallback if the gate fails: world 3 reverts to the v1.3 gates plan._
+_Owner: design-lead. Milestone: M3 content, sim and scene from Nov 9 (decision gate **Tue Nov 17**, owner decision 2026-11-13; see Priority). GDD: §1, §4.15, §7, §11. Chosen by the studio owner on 2026-11-03 from `core-twists.md`. Fallback if the gate fails: world 3 reverts to the v1.3 gates plan._
 
 ## Rule
 
@@ -152,4 +152,4 @@ Test conventions: see `movement-and-gears.md`. "Lane" = a row of tiles holding o
 
 ## Priority
 
-Must (M3 content; sim and scene in the Nov 9–13 window). **Decision gate Nov 12:** if checks 1–12 are not passing, world 3 reverts to the v1.3 Gates world (`features/speed-gates.md`, level plan v2.0 sketches).
+Must (M3 content). **Decision gate Tue Nov 17** (owner decision 2026-11-13; was Nov 12): if checks 1–12 are not passing in qa-tester's T-13 run by then, world 3 reverts to the v1.3 Gates world (`features/speed-gates.md`, level plan v2.0 sketches). Tandem stays world 3 until the gate; no Tandem level or scene work is dropped before it.

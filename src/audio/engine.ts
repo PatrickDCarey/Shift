@@ -164,11 +164,37 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
       }
       graph = buildGraph(ctx);
       applyGains();
+      watchContextState(ctx);
     } catch {
       graph = null;
       unsupported = true;
     }
     return graph;
+  }
+
+  /** Voice counters must not stay at the cap when a suspended or interrupted context never fires onended. */
+  function dropAllVoices(): void {
+    for (const v of sfxVoices.splice(0)) {
+      v.osc.onended = null;
+      try {
+        v.osc.stop(0);
+      } catch {
+        // Already stopped.
+      }
+      releaseNodes(v);
+    }
+    voices = 0;
+  }
+
+  function watchContextState(ctx: AudioContextLike): void {
+    const target = ctx as AudioContextLike & { onstatechange?: (() => void) | null };
+    try {
+      target.onstatechange = () => {
+        if (ctx.state !== 'running') dropAllVoices();
+      };
+    } catch {
+      // Mock or frozen context: tone() below also resets when it sees a non-running state.
+    }
   }
 
   async function unlock(): Promise<void> {
@@ -235,7 +261,11 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
 
   function tone(opts: ToneOptions): boolean {
     const g = graph;
-    if (!g || getState() !== 'running') return false;
+    if (!g) return false;
+    if (getState() !== 'running') {
+      if (voices > 0) dropAllVoices();
+      return false;
+    }
     if (!isPositive(opts.freq) || !isPositive(opts.duration)) return false;
     const busName: BusName = opts.bus ?? 'sfx';
     if (!audible(busName)) return false;

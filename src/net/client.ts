@@ -107,6 +107,9 @@ async function getJson(
         signal: controller.signal,
       });
       if (!res.ok) return fail('http', res.status);
+      // Refuse an oversized body before reading it; the post-read check below covers a missing or false header.
+      const declared = Number(res.headers?.get('content-length'));
+      if (Number.isFinite(declared) && declared > MAX_BODY_CHARS) return fail('invalid-response');
       const text = await res.text();
       if (text.length > MAX_BODY_CHARS) return fail('invalid-response');
       try {

@@ -10,37 +10,90 @@
     "white": {
       "label": "standing",
       "pattern": "plain",
-      "solid": { "fill": "#F2F4FF", "outline": "#F7F8FF", "ink": "#0B0D14" },
-      "ghost": { "fill": "#F2F4FF", "outline": "#C4C6D0", "ink": "#C4C6D0" }
+      "solid": {
+        "fill": "#F2F4FF",
+        "outline": "#F7F8FF",
+        "ink": "#0B0D14"
+      },
+      "ghost": {
+        "fill": "#F2F4FF",
+        "outline": "#C4C6D0",
+        "ink": "#C4C6D0"
+      }
     },
     "blue": {
       "label": "walk",
       "pattern": "stripes",
-      "solid": { "fill": "#4C8DFF", "outline": "#94BBFF", "ink": "#0B0D14" },
-      "ghost": { "fill": "#4C8DFF", "outline": "#4F86E8", "ink": "#4F86E8" }
+      "solid": {
+        "fill": "#4C8DFF",
+        "outline": "#94BBFF",
+        "ink": "#0B0D14"
+      },
+      "ghost": {
+        "fill": "#4C8DFF",
+        "outline": "#4F86E8",
+        "ink": "#4F86E8"
+      }
     },
     "green": {
       "label": "jog",
       "pattern": "dots",
-      "solid": { "fill": "#5CF29B", "outline": "#A4F8C6", "ink": "#0B0D14" },
-      "ghost": { "fill": "#5CF29B", "outline": "#40D88C", "ink": "#40D88C" }
+      "solid": {
+        "fill": "#5CF29B",
+        "outline": "#A4F8C6",
+        "ink": "#0B0D14"
+      },
+      "ghost": {
+        "fill": "#5CF29B",
+        "outline": "#40D88C",
+        "ink": "#40D88C"
+      }
     },
     "yellow": {
       "label": "run",
       "pattern": "chevrons",
-      "solid": { "fill": "#FFD60A", "outline": "#FFE66C", "ink": "#0B0D14" },
-      "ghost": { "fill": "#FFD60A", "outline": "#CEAE0C", "ink": "#CEAE0C" }
+      "solid": {
+        "fill": "#FFD60A",
+        "outline": "#FFE66C",
+        "ink": "#0B0D14"
+      },
+      "ghost": {
+        "fill": "#FFD60A",
+        "outline": "#CEAE0C",
+        "ink": "#CEAE0C"
+      }
     },
     "red": {
       "label": "sprint",
       "pattern": "checker",
-      "solid": { "fill": "#F5283C", "outline": "#F98A94", "ink": "#0B0D14" },
-      "ghost": { "fill": "#F5283C", "outline": "#E11E3A", "ink": "#E11E3A" }
+      "solid": {
+        "fill": "#F5283C",
+        "outline": "#F98A94",
+        "ink": "#0B0D14"
+      },
+      "ghost": {
+        "fill": "#F5283C",
+        "outline": "#E11E3A",
+        "ink": "#E11E3A"
+      }
     }
   },
   "treatment": {
-    "solid": { "fillAlpha": 1, "outlineWidth": 2.5, "inkAlpha": 0.75, "dash": null },
-    "ghost": { "fillAlpha": 0.12, "outlineWidth": 1.5, "inkAlpha": 1, "dash": [5, 4] }
+    "solid": {
+      "fillAlpha": 1,
+      "outlineWidth": 2.5,
+      "inkAlpha": 0.75,
+      "dash": null
+    },
+    "ghost": {
+      "fillAlpha": 0.12,
+      "outlineWidth": 1.5,
+      "inkAlpha": 1,
+      "dash": [
+        5,
+        4
+      ]
+    }
   },
   "pattern": {
     "minStrokePx": 1.5
@@ -54,11 +107,26 @@
   },
   "tint": {
     "stops": [
-      { "t": 0, "gear": "white" },
-      { "t": 0.25, "gear": "blue" },
-      { "t": 0.5, "gear": "green" },
-      { "t": 0.75, "gear": "yellow" },
-      { "t": 1, "gear": "red" }
+      {
+        "t": 0,
+        "gear": "white"
+      },
+      {
+        "t": 0.25,
+        "gear": "blue"
+      },
+      {
+        "t": 0.5,
+        "gear": "green"
+      },
+      {
+        "t": 0.75,
+        "gear": "yellow"
+      },
+      {
+        "t": 1,
+        "gear": "red"
+      }
     ],
     "strength": 0.03,
     "backgroundStrength": 0.85,
@@ -71,13 +139,33 @@
   },
   "pixel": {
     "tileSize": 16,
-    "body": { "width": 12, "height": 24 },
+    "body": {
+      "width": 12,
+      "height": 24
+    },
     "keyline": "#0B0D14",
     "lipMix": 0.6,
     "shadeMix": 0.35,
     "ghostWashMix": 0.2,
-    "ghostDash": [3, 2],
-    "exit": { "frame": "#FFFFFF", "doorway": "#04050A", "glow": "#FFFFFF" },
-    "decor": { "starMix": 0.05, "ridgeFarShade": 0.5, "ridgeNearShade": 0.65 }
+    "ghostDash": [
+      3,
+      2
+    ],
+    "exit": {
+      "frame": "#FFFFFF",
+      "doorway": "#04050A",
+      "glow": "#FFFFFF"
+    },
+    "decor": {
+      "starMix": 0.05,
+      "ridgeFarShade": 0.5,
+      "ridgeNearShade": 0.65
+    },
+    "safeDepthMix": 0.55,
+    "safeRivetMix": 0.4,
+    "safeLipMix": 0.45,
+    "solidSeamMix": 0.25,
+    "solidSideMix": 0.45,
+    "flashShadeMix": 0.35
   }
 }

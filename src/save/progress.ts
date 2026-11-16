@@ -29,11 +29,12 @@ export type CompletedIds = readonly string[] | ReadonlySet<string>;
 
 export type LevelState = 'locked' | 'open' | 'cleared';
 
+/** Arrays are copied into a set; anything else is already set-like (a `ReadonlySet`, not necessarily a `Set` instance). */
 const toSet = (completed: CompletedIds): ReadonlySet<string> =>
-  completed instanceof Set ? completed : new Set(completed as readonly string[]);
+  Array.isArray(completed) ? new Set(completed as readonly string[]) : (completed as ReadonlySet<string>);
 
 /**
- * World >= 1 levels in play order: world, then id (the loader's order). World 0
+ * World >= 1 levels in play order: world, then id (the loader's order). Ids compare as strings, which is the play order only because ids are zero-padded `w<d>-<dd>` (the save parser enforces that shape). World 0
  * (test rooms) is never listed. Does not mutate `levels`.
  */
 export function levelOrder(levels: readonly LevelSource[]): readonly LevelEntry[] {

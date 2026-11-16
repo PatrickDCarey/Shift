@@ -21,6 +21,7 @@ import {
 } from './effects';
 import { blit, createRaster, hashRaster, type Raster } from './raster';
 import { RIDGES, bakeHorizon, bakeRidge, bakeStars } from './scenery';
+import { TILE } from './tiles';
 import { COLORED_BANDS, TILESET_COLUMNS, TILESET_COUNT, TILESET_ROWS, bakeTileset, tilesetIndex } from './tileset';
 import {
   EXIT_FRAMES,
@@ -235,7 +236,7 @@ function packTileset(): PackedTileset {
   return {
     sheet,
     json: {
-      tileSize: 16,
+      tileSize: TILE,
       columns: TILESET_COLUMNS,
       rows: TILESET_ROWS,
       count: TILESET_COUNT,
@@ -272,7 +273,7 @@ export function buildPixelAssets(): PixelAssets {
       naming: 'player/<runner|twin>/<band>/<anim>_<n>',
     }),
     tiles: packAtlas('pixel-tiles.png', tileItems(), 512, {
-      tileSize: 16,
+      tileSize: TILE,
       neighbourMask: 'bit0 up, bit1 right, bit2 down, bit3 left: that neighbour is the same kind',
       naming: 'tile/safe/m<mask>/d<depth 0-4>, tile/<band>/solid/m<mask>, tile/<band>/ghost, tile/exit/door_<0-3>, tile/exit/glow_<0-3> (32x32, centred on the door tile)',
     }),

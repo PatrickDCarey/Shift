@@ -10,7 +10,8 @@ import { palette, patternOf } from '../palette';
 import { PIXEL_CELLS, pixelPatternOn } from '../patterns';
 import { bayer, createRaster, fillRect, rgba, setPixel, type Raster } from './raster';
 
-export const TILE = 16;
+/** Tile edge in pixels, from `palette.pixel.tileSize` (16). */
+export const TILE = palette.pixel.tileSize;
 /** Pattern cell origin inside a tile (12 x 10 px, below the lip). */
 const PAT_X = 2;
 const PAT_Y = 4;
@@ -53,13 +54,13 @@ export function bakeSafeTile(n: Neighbours, depth: number): Raster {
   const r = createRaster(TILE, TILE);
   const f = hexToRgb(palette.safeTile.fill);
   fillRect(r, 0, 0, TILE, TILE, rgba(f));
-  const dark = rgba(mix(f, bg(), 0.55));
+  const dark = rgba(mix(f, bg(), palette.pixel.safeDepthMix));
   for (let j = 0; j < TILE; j++) {
     for (let i = 0; i < TILE; i++) if (bayer(i, j) < 0.14 * depth) setPixel(r, i, j, dark);
   }
-  const rivet = rgba(mix(f, bg(), 0.4));
+  const rivet = rgba(mix(f, bg(), palette.pixel.safeRivetMix));
   for (const [i, j] of [[2, 2], [TILE - 3, 2], [2, TILE - 3], [TILE - 3, TILE - 3]] as const) setPixel(r, i, j, rivet);
-  if (!n.up) fillRect(r, 0, 1, TILE, 1, rgba(mix(f, WHITE, 0.45)));
+  if (!n.up) fillRect(r, 0, 1, TILE, 1, rgba(mix(f, WHITE, palette.pixel.safeLipMix)));
   outlineEdges(r, n, hexToRgb(palette.safeTile.outline), false);
   return r;
 }
@@ -78,8 +79,8 @@ export function bakeSolidTile(band: BandColor, n: Neighbours): Raster {
     for (let i = 0; i < p.width; i++) if (pixelPatternOn(id, i, j, p.width)) setPixel(r, PAT_X + i, PAT_Y + j, ink);
   }
   fillRect(r, 0, 1, TILE, 2, rgba(mix(fill, WHITE, palette.pixel.lipMix)));
-  fillRect(r, 0, 3, TILE, 1, rgba(mix(fill, bg(), 0.25)));
-  if (n.left) fillRect(r, 0, 4, 1, TILE - 5, rgba(mix(fill, bg(), 0.45)));
+  fillRect(r, 0, 3, TILE, 1, rgba(mix(fill, bg(), palette.pixel.solidSeamMix)));
+  if (n.left) fillRect(r, 0, 4, 1, TILE - 5, rgba(mix(fill, bg(), palette.pixel.solidSideMix)));
   outlineEdges(r, n, hexToRgb(s.outline), true);
   return r;
 }

@@ -25,13 +25,7 @@ let shared: NetClient | undefined;
 /** The app-wide client, built once from `import.meta.env`. Never throws. */
 export function getNetClient(): NetClient {
   if (shared === undefined) {
-    let env: ImportMetaEnv | undefined;
-    try {
-      env = import.meta.env;
-    } catch {
-      env = undefined;
-    }
-    shared = createNetClient({ config: readNetConfig(env) });
+    shared = createNetClient({ config: readNetConfig(import.meta.env) });
   }
   return shared;
 }

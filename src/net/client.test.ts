@@ -122,6 +122,16 @@ describe('fetchTopRuns: failures resolve quietly', () => {
     expect(await pending).toEqual({ ok: false, reason: 'timeout' });
   });
 
+  it('rejects on content-length over the cap without reading the body', async () => {
+    const text = vi.fn(async () => '[]');
+    const big = { ok: true, status: 200, headers: new Headers({ 'content-length': String(300 * 1024) }), text } as unknown as Response;
+    const { client } = setup(async () => big);
+    const pending = client.fetchTopRuns('w1-01', 1, 10);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toEqual({ ok: false, reason: 'invalid-response' });
+    expect(text).not.toHaveBeenCalled();
+  });
+
   it('reports a 500 with its status', async () => {
     const { client } = setup(async () => new Response('boom', { status: 500 }));
     expect(await client.fetchTopRuns('w1-01', 1, 10)).toEqual({ ok: false, reason: 'http', status: 500 });

@@ -1,14 +1,14 @@
 level: w1-04
-levelVersion: 1
+levelVersion: 2
 # Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
 # 20.   stand at the spawn
 # 1+ 1. 1+ 1. 1+   shift up to gear 4
-# 76R   sprint (red at x = 4.7) through the red tunnel onto the safe pad
-# 1R- 1R 1R- 1R 1R-   shift down to gear 1 at x = 13.7 (first pad tile) while still holding right:
-#       yellow 0.74, green 1.91, blue 3.24 tiles later, on the pad before the blue bridge
-# 338R  walk the 12-tile blue bridge into the exit
-# Fairness (earlier/later, capped at 30): shift-up cluster 13/13, run start >= 3/13,
-#   shift-down cluster 13/13 (the whole window is 27 steps, press at x 11.1-16.3).
-steps: 444
+# 81R   sprint (red at x = 4.7) through the red tunnel onto the 8-tile safe pad
+# 1R- 1R 1R- 1R 1R-   shift down to gear 1 at x = 14.5 (second pad tile) while still holding right:
+#       blue at x = 17.7, on the pad before the blue bridge (col 21)
+# 358R  walk the 12-tile blue bridge into the exit
+# Fairness (earlier/later, capped at 30): shift-up cluster 18/18, shift-down cluster 18/18
+#   (the whole window is 37 steps, first press at x 11.1-18.3).
+steps: 469
 ---
-20. 1+ 1. 1+ 1. 1+ 76R 1R- 1R 1R- 1R 1R- 338R
+20. 1+ 1. 1+ 1. 1+ 81R 1R- 1R 1R- 1R 1R- 358R

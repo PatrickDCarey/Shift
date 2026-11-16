@@ -24,6 +24,9 @@ export function clampInt(value: unknown, min: number, max: number, fallback: num
   return Math.min(max, Math.max(min, Math.floor(value)));
 }
 
+/** Control characters, zero-width (U+200B-200F), bidi embeds/overrides (U+202A-202E), isolates (U+2066-2069), U+2028/9, BOM. */
+const UNSAFE_NAME_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060\u2066-\u2069\ufeff]/;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -32,7 +35,7 @@ function parseEntry(row: unknown): LeaderboardEntry | null {
   if (!isRecord(row)) return null;
   const { display_name: name, steps, verified, created_at: createdAt } = row;
   if (typeof name !== 'string' || name.length < 1 || name.length > MAX_NAME_LENGTH) return null;
-  if (/[\u0000-\u001f\u007f-\u009f]/.test(name)) return null;
+  if (UNSAFE_NAME_CHARS.test(name)) return null;
   if (typeof steps !== 'number' || !Number.isInteger(steps) || steps < 1 || steps > MAX_STEPS) return null;
   if (typeof verified !== 'boolean') return null;
   if (typeof createdAt !== 'string' || createdAt.length > 64 || Number.isNaN(Date.parse(createdAt))) {
