@@ -31,3 +31,40 @@ export function devLevel(): Level {
   if (!parsed.ok) throw new Error(`built-in dev level is invalid:\n${parsed.errors.join('\n')}`);
   return parsed.value;
 }
+
+export const DEV_TANDEM_ID = 'w0-97';
+const TANDEM_WIDTH = 60;
+
+function tandemRows(): readonly string[] {
+  const open = '.'.repeat(TANDEM_WIDTH);
+  const laneRow = (start: string, wall: string): string => {
+    const cells = [...open];
+    cells[1] = start;
+    cells[20] = wall;
+    cells[TANDEM_WIDTH - 3] = 'E';
+    return cells.join('');
+  };
+  const floor = '#'.repeat(TANDEM_WIDTH);
+  const wallOnly = (): string => `${'.'.repeat(20)}#${'.'.repeat(TANDEM_WIDTH - 21)}`;
+  return [
+    ...Array<string>(5).fill(open),
+    laneRow('@', '.'),
+    floor,
+    floor,
+    ...Array<string>(5).fill(wallOnly()),
+    laneRow('&', '#'),
+    floor,
+  ];
+}
+
+/**
+ * Dev-only Tandem room (`?level=w0-97` in `npm run dev`; never shipped, never in `levels/`):
+ * two stacked lanes, a wall that holds the twin at column 20, and the runner's free run to its
+ * exit. The bodies drift past the 28-tile limit, so the camera follows the runner and the edge arrow shows.
+ */
+export function devTandemLevel(): Level {
+  const text = [`id: ${DEV_TANDEM_ID}`, 'title: Dev Tandem', 'world: 0', 'teaches: dev tandem scene', 'version: 1', '---', ...tandemRows()].join('\n');
+  const parsed = parseLevel(text, DEV_TANDEM_ID);
+  if (!parsed.ok) throw new Error(`built-in dev tandem level is invalid:\n${parsed.errors.join('\n')}`);
+  return parsed.value;
+}

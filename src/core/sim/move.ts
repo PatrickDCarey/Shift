@@ -3,6 +3,8 @@
  * the step, no-embed, and grace on floors only (GDD §4.7-4.8, §4.11).
  */
 import { supported, sweepX, sweepY } from './collision';
+import type { FallThroughCell } from '../types';
+import { boxAt, cellSpan, tileAt } from './geometry';
 import { gateFor } from './gating';
 import { emit, withPlayer, type StepCtx, type Work } from './work';
 
@@ -35,5 +37,24 @@ export function moveYPhase(w: Work, ctx: StepCtx): Work {
   const grounded = vy >= 0 && supported(ctx.level, ctx.params, p.x, res.y, gate);
   const landed = grounded ? withPlayer(afterHit, { grounded, y: Math.round(res.y), vy: 0 }) : withPlayer(afterHit, { grounded });
   const walkedOff = ctx.startGrounded && !grounded && !w.jumped;
-  return walkedOff ? withPlayer(landed, { coyoteSteps: ctx.params.coyoteSteps }) : landed;
+  if (!walkedOff) return landed;
+  const started = withPlayer(landed, { coyoteSteps: ctx.params.coyoteSteps });
+  const cells = supportCells(ctx, p.x, p.y);
+  return cells.length > 0 ? emit(started, { type: 'fallThrough', body: ctx.body, cells }) : started;
+}
+
+/**
+ * Coloured tiles in the support row (under the feet at the start of the step)
+ * across the footprint, left to right: what the floor "let go" (architecture.md 3.2).
+ */
+function supportCells(ctx: StepCtx, x: number, y: number): FallThroughCell[] {
+  const row = Math.round(y);
+  const box = boxAt(x, y, ctx.params);
+  const span = cellSpan(box.left, box.right);
+  const cells: FallThroughCell[] = [];
+  for (let col = span.first; col <= span.last; col += 1) {
+    const tile = tileAt(ctx.level, col, row);
+    if (tile.kind === 'colored') cells.push({ col, row, band: tile.band });
+  }
+  return cells;
 }

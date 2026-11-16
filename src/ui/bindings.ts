@@ -113,9 +113,9 @@ export function withBinding(bindings: Bindings, action: Action, codes: readonly 
   return next;
 }
 
-/** `KeyboardEvent.code` values look like "KeyQ", "ShiftLeft", "Digit1", "NumpadEnter". */
 /** More codes than this for one action is corrupt data; the rest is never looked at. */
 const MAX_CODES_PER_ACTION = 16;
+/** `KeyboardEvent.code` values look like "KeyQ", "ShiftLeft", "Digit1", "NumpadEnter". */
 const CODE_PATTERN = /^[A-Za-z][A-Za-z0-9]{0,31}$/;
 
 /**

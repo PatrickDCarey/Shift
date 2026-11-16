@@ -9,6 +9,7 @@ Optional. The game plays fully offline; leaderboards switch on only when the two
 | `migrations/0001_runs.sql` | The `runs` table, indexes and access rules. Safe to run twice. |
 | `tests/0001_runs_rls.sql` | Checks that clients can read but never write. Run it right after the migration. |
 | `migrations/0002_submit_run.sql` | Name allow-list, step and log caps, and the service-only `submit_attempts` rate-limit table. Run after 0001. |
+| `migrations/0003_attempts_prune_index.sql` | Index on `submit_attempts(created_at)` for the per-call prune. Run after 0002. |
 | `tests/0002_submit_run_checks.sql` | Checks for 0002. Run it right after the migration. |
 | `functions/submit-run/` | The edge function (task M3-11): the only way to add a run. `rules.ts` holds the pure rules (unit tests: `scripts/submit-run.test.ts`), `index.ts` the Deno handler. Not deployed until M3-12. |
 

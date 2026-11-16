@@ -13,6 +13,7 @@ import type Phaser from 'phaser';
 import type { Band, ColoredBand, Level } from '../core/types';
 import { PIXEL_KEYS } from '../fx';
 import { isEmbedded, type EmbeddedMask } from './embedded';
+import { twinLaneTest } from './tandemView';
 import { exitFrame, planLevel, type LevelPlan } from './levelTiles';
 
 const DEPTH_TILES = 0;
@@ -24,7 +25,16 @@ interface ExitSprites {
   readonly glow: Phaser.GameObjects.Image;
 }
 
+/** What decides whether a colour holds in one lane: that body's band, grace colour and embedded colours. */
+export interface LaneTint {
+  readonly band: Band;
+  readonly graceBand: ColoredBand | null;
+  readonly embedded: EmbeddedMask;
+}
+
 export class LevelView {
+  /** Tandem lanes: rows that follow the twin's colour (`twinLaneTest`); null = the runner's colour everywhere. */
+  private readonly inTwinLane: ((row: number) => boolean) | null;
   private readonly map: Phaser.Tilemaps.Tilemap;
   private readonly coloredLayer: Phaser.Tilemaps.TilemapLayer;
   private readonly plan: LevelPlan;
@@ -38,6 +48,7 @@ export class LevelView {
     private readonly tileSize: number,
     private readonly reducedMotion = false,
   ) {
+    this.inTwinLane = twinLaneTest(level);
     this.plan = planLevel(level);
     this.map = scene.make.tilemap({ tileWidth: tileSize, tileHeight: tileSize, width: level.width, height: level.height });
     const tileset = this.map.addTilesetImage(PIXEL_KEYS.tileset, PIXEL_KEYS.tileset, tileSize, tileSize, 0, 0);
@@ -51,11 +62,12 @@ export class LevelView {
   }
 
   /** Call every frame: swaps cell indices only if the band, grace colour or embedded colours changed. */
-  update(band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask, timeMs: number): void {
-    const key = `${band}:${graceBand ?? 0}:${embedded}`;
+  update(band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask, timeMs: number, twin: LaneTint | null = null): void {
+    const twinKey = twin === null ? '' : `${twin.band}:${twin.graceBand ?? 0}:${twin.embedded}`;
+    const key = `${band}:${graceBand ?? 0}:${embedded}:${twinKey}`;
     if (key !== this.modeKey) {
       this.modeKey = key;
-      this.swapColored(band, graceBand, embedded);
+      this.swapColored({ band, graceBand, embedded }, twin);
     }
     this.animateExits(timeMs);
   }
@@ -74,8 +86,9 @@ export class LevelView {
     return layer.setDepth(DEPTH_TILES);
   }
 
-  private swapColored(band: Band, graceBand: ColoredBand | null, embedded: EmbeddedMask): void {
+  private swapColored(runner: LaneTint, twin: LaneTint | null): void {
     for (const cell of this.plan.colored) {
+      const { band, graceBand, embedded } = twin !== null && this.inTwinLane?.(cell.row) === true ? twin : runner;
       const holds = (cell.band === band || cell.band === graceBand) && !isEmbedded(embedded, cell.band);
       this.coloredLayer.putTileAt(holds ? cell.solid : cell.ghost, cell.col, cell.row);
     }

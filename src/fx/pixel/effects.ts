@@ -5,7 +5,7 @@
  * single colour swap, and every fade is Bayer dither (never alpha), so the frames stay 1-bit pixel
  * art. Owner: art-director.
  *
- * Names (atlas `pixel-fx`): `fx/dust/land_<0-3>`, `fx/ring/<0-3>`, `fx/speed/<12|20|32>_<a|b>`.
+ * Names (atlas `pixel-fx`): `fx/dust/land_<0-3>`, `fx/ring/<0-3>`, `fx/speed/<12|20|32>_<a|b>`, `fx/wipe/<0|1>`.
  */
 import { bayer, createRaster, setPixel, type Raster, type Rgba } from './raster';
 
@@ -84,12 +84,35 @@ export function bakeSpeedLine(length: number, phase: number): Raster {
   return r;
 }
 
+export const WIPE_W = 480;
+export const WIPE_H = 270;
+export const WIPE_FRAMES = 2;
+/**
+ * Lit fraction of each wipe frame. The drop flash is a dither, not a solid fill: frame 0 lights half the
+ * pixels, frame 1 a quarter, so it reads as a pattern change (visible without colour, and a third of the
+ * screen area of a solid flash). The scene draws it white at `palette.flash.alpha`, one frame each.
+ */
+export const WIPE_DENSITY: readonly number[] = [0.5, 0.25];
+
+/** One frame of the screen dither wipe, 480 x 270, white mask: draw it at (0, 0) over the world, under the HUD. */
+export function bakeWipeFrame(frame: number): Raster {
+  const t = Math.min(Math.max(frame, 0), WIPE_FRAMES - 1);
+  const r = createRaster(WIPE_W, WIPE_H);
+  const density = WIPE_DENSITY[t] ?? 0.5;
+  for (let y = 0; y < WIPE_H; y++) {
+    for (let x = 0; x < WIPE_W; x++) if (bayer(x, y) < density) setPixel(r, x, y, WHITE);
+  }
+  return r;
+}
+
 export function effectFrameNames(): {
   dust: (n: number) => string;
   ring: (n: number) => string;
   speed: (length: number, phase: number) => string;
+  wipe: (n: number) => string;
 } {
   return {
+    wipe: (n) => `fx/wipe/${n}`,
     dust: (n) => `fx/dust/land_${n}`,
     ring: (n) => `fx/ring/${n}`,
     speed: (length, phase) => `fx/speed/${length}_${SPEED_PHASES[phase] ?? 'a'}`,

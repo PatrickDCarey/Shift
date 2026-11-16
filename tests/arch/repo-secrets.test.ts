@@ -22,11 +22,12 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
+/** Case-insensitive: Windows and macOS file systems treat `a.PEM` as `a.pem` (batch 3 review, T1). */
 const FORBIDDEN_NAMES: ReadonlyArray<{ pattern: RegExp; why: string }> = [
-  { pattern: /(^|\/)\.env(\..+)?$/, why: 'an env file (only .env.example may be committed)' },
-  { pattern: /\.(pem|key)$/, why: 'a key file' },
-  { pattern: /(^|\/)\.npmrc$/, why: 'an .npmrc (may hold a registry token)' },
-  { pattern: /(^|\/)id_(rsa|ed25519|ecdsa)/, why: 'an SSH key' },
+  { pattern: /(^|\/)\.env(\..+)?$/i, why: 'an env file (only .env.example may be committed)' },
+  { pattern: /\.(pem|key)$/i, why: 'a key file' },
+  { pattern: /(^|\/)\.npmrc$/i, why: 'an .npmrc (may hold a registry token)' },
+  { pattern: /(^|\/)id_(rsa|ed25519|ecdsa)/i, why: 'an SSH key' },
 ];
 const ALLOWED_NAMES: readonly string[] = ['.env.example'];
 
@@ -110,6 +111,9 @@ describe('secret check self-check (fake keys built at run time)', () => {
 
   it('flags forbidden file names and allows .env.example', () => {
     for (const p of ['.env', '.env.local', 'backend/.env.production', 'certs/a.pem', 'a.key', '.npmrc', 'id_rsa']) {
+      expect(nameProblems(p), p).toHaveLength(1);
+    }
+    for (const p of ['certs/A.PEM', 'deploy.Key', '.ENV', '.Env.Local', '.NPMRC', 'ID_RSA']) {
       expect(nameProblems(p), p).toHaveLength(1);
     }
     expect(nameProblems('.env.example')).toEqual([]);

@@ -8,6 +8,11 @@ import type { SaveStore } from '../save';
 export const SCENE_KEYS = {
   boot: 'Boot',
   game: 'Game',
+  title: 'Title',
+  levelSelect: 'LevelSelect',
+  pause: 'Pause',
+  results: 'Results',
+  controls: 'Controls',
 } as const;
 
 export type SceneKey = (typeof SCENE_KEYS)[keyof typeof SCENE_KEYS];

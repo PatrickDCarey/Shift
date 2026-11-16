@@ -183,13 +183,13 @@ Read through the hook's `paused`, `state` and per-frame samples (`startTracker` 
 |---|---|---|
 | W1 | A live win of w1-01 (hold ArrowRight all the way) stores the level once in `completedLevels` and its win step in `bestSteps` under `redshift.save` | E `win.spec.ts` "a live w1-01 win stores ..." |
 | W2 | A faster later win replaces the best; a slower one leaves it; `completedLevels` stays one entry; the save survives a reload | same test (three wins: 60 steps standing first, straight, 90 steps standing first) |
-| W3 | Replay mode (`?replay=1`) writes nothing | E "a replayed win writes nothing to localStorage" (w1-01 replay wins on 414; no completed level, no best) |
+| W3 | Replay mode (`?replay=1`) writes nothing | E "a replayed win writes nothing to localStorage" (w1-01 replay wins on 434 (v2); no completed level, no best) |
 | W4 | Nothing is stored before the first win | E "nothing is stored before the first win" |
 | W5 | World 0 writes nothing | Unit `progress.test.ts` (`recordRun` skips world < 1). Browser: not covered (a live w0-02 win needs 775 steps of exact input) |
 
 ### 2.11 Onboarding hints (onboarding-hints.md checks 5 and 6, level review)
 
-Node-side spec `tests/e2e/levels-hints.spec.ts` (no browser; it parses the real files through the `src/core` barrel). Check 5: w1-01 wins on 414 and w1-02 on 311 with and without their `hint:` lines. Check 6: every shipped level's hints are empty cells at least 3 rows above the floor under the anchor, at most 3 per level; w1-01 has `move`; w1-02 has `shiftUp` over columns 0-2 and `shiftDown` over columns 8-10. No level has `jump` yet, so the w2-01 parts of checks 5, 6 and 8 wait for that level. Checks 1-4 are unit (builders); check 7 is a screenshot (manual).
+Node-side spec `tests/e2e/levels-hints.spec.ts` (no browser; it parses the real files through the `src/core` barrel). Check 5: w1-01 wins on 434 and w1-02 on 326 (both v2; were 414 and 311 before 4A) with and without their `hint:` lines. Check 6: every shipped level's hints are empty cells at least 3 rows above the floor under the anchor, at most 3 per level; w1-01 has `move`; w1-02 has `shiftUp` over columns 0-2 and `shiftDown` over columns 8-10. No level has `jump` yet, so the w2-01 parts of checks 5, 6 and 8 wait for that level. Checks 1-4 are unit (builders); check 7 is a screenshot (manual).
 
 ### 2.12 Sticky Keys tip mounting (sticky-keys-tip.md, M2-39)
 
@@ -208,6 +208,10 @@ Verified in run 5 or the M2 gate once each lands. U = unit, E = e2e (hook), H = 
 | PT-5 | Bracket thin and dimmed while its cell is not lit, bold on the step the lit cell reaches it (`arrived`); `litBand === state.band` in w1-03 at gear 4, band 3. | U; E reads `hook.meter.litBand` against `state.band` on every sampled frame (already in `m2-additions`) |
 | PT-6 | w1-01 v2, w1-02 v2, w1-04 v2: timed windows at least 30 steps (world 1), 18 steps (world 2); w1-05 geometry kept with its timing-free line; `version` and `Fastest known` bumped; the recordings still win and win with inputs shifted +-3 steps. | `npx vitest run tests/levels`, E replay of every solution |
 | PT-7 | The interim banner is unchanged; on M2-12 the results panel focuses NEXT, Enter or Space picks it, R retries, Esc goes to levels, and nothing names R before NEXT. | E once M2-12 lands |
+
+### 2.15 Changed checks of 2026-11-13 and Tandem (added 2026-11-16)
+
+`sticky-keys-tip.md` check 11 (tip returns after resume, 12 s unpaused) and `adaptive-audio.md` check 5 / `clarity-fixes.md` PT-3 checks 1-2 (the `fallThrough` sim event) are unit-owned (ui, audio, sim lanes) and not observable through the hook, so `tests/e2e/tandem.spec.ts` holds skipped stubs with the reason. Tandem: sim checks 1-18 in `docs/qa/tandem-gate.md`; scene checks S1-S4 after T-20. The w2-03 replay needs no code: `listSolutions()` globs `levels/*.solution.txt`.
 
 ### 2.14 Pixel cutover (PX-4 to PX-10, `docs/tech/adr-pixel-rendering.md`, added 2026-11-13)
 
@@ -302,7 +306,54 @@ Assumptions that depend on the cutover lanes' exact output: (1) `main.ts` re-zoo
 
 ## 7. Results
 
-See the bottom of this file, filled after each full run.
+Newest run first. Run 5 is below; runs 4 to 1 follow it.
+
+### Run 5: 2026-11-16 (batch 3 at cab74a1 and batch 4A at 2eb0527; numbers are the orchestrator's, QA did not rerun the suite in this phase)
+
+| Check | Result |
+|---|---|
+| Batch 3 (cab74a1) full suite | **2031 unit tests passed**, e2e **73 passed** |
+| Batch 4A (2eb0527) `npm run check` | **2202 unit tests passed**; coverage **84.27% statements, 83.32% branches** (threshold 80% held); build ok |
+| Batch 4A `npm run test:e2e` | **82 passed**, after three stale step counts were updated (w1-01 414 to 434 and w1-02 311 to 326 in `levels-hints.spec.ts` and `win.spec.ts`; the expected values were the new v2 recordings, not a regression) |
+| Plain build | no `window.__redshift` and no solution text in `dist/` (bears on BUG-4; status stays in `bugs.md` until QA confirms against the packaged zip) |
+| `npm run package` | ok: 10 files, 0.37 MB |
+| Tandem sim checks (QA, 2026-11-16) | `npx vitest run src/core/sim/tandemAcceptance.test.ts src/core/sim/tandemAcceptance2.test.ts`: 2 files, 41 passed. Table: `docs/qa/tandem-gate.md` |
+| w2-03 replay | picked up by the glob `listSolutions()` (`levels/w2-03.solution.txt` exists; `replay.spec.ts` makes one test per file, so `replay of w2-03 wins on step <n>`); included in the 82 |
+
+Evidence class: orchestrator command output (not captured to a file). Where a line below says Not-verified, no test or screenshot exists for it.
+
+#### Batch 3 (cab74a1: Tandem sim, world 2 openers, playtest rulings, release hardening)
+
+| Acceptance line | Verdict | Evidence |
+|---|---|---|
+| Whole suite green after the batch | Pass | 2031 unit, 73 e2e (orchestrator) |
+| Tandem sim (T-10, T-11) builds and its tests pass | Pass | 41 tandem acceptance tests green today (`tandem-gate.md`) |
+| World 2 openers (w2-01, w2-02) solvable and win in the browser | Pass | `tests/levels` replay and +-3, `replay of w2-01` and `w2-02` e2e, inside the 73 |
+| Release hardening: env guard, package script refuse list | Pass (unit) | `scripts/` tests inside the 2031; `npm run package` ok in 4A. A negative run of the refuse list in a real package was not repeated by QA: Not-verified |
+| Playtest rulings applied | Not-verified | Design rulings; behaviour changes land in 4A (PT-1 to PT-7), see below |
+
+#### Batch 4A (2eb0527: pixel cutover, Tandem checks 4-15, world 1 retunes, w2-03)
+
+| Acceptance line | Verdict | Evidence |
+|---|---|---|
+| PX-4 to PX-10 cutover: 480x270 canvas, integer-multiple CSS size, live resize, 2x screenshot | Pass | `pixel.spec.ts`, `smoke.spec.ts`, `embed.spec.ts` inside the 82 |
+| PX-11 the look of the pixel build in a browser | Not-verified by QA | Playtester and owner (hand check; `docs/playtests/2026-11-16-pixel-build.md` is batch 5) |
+| Tandem checks 4-15 as tests | Pass | `tandemAcceptance2.test.ts` (see `tandem-gate.md`) |
+| PT-6 world 1 retunes (w1-01 v2, w1-02 v2, w1-04 v2): windows >= 30 steps, recordings win, win with inputs shifted +-3 | Pass | `npx vitest run tests/levels` in the 2202; e2e replays; `levels-hints.spec.ts` check 5 at 434 and 326 |
+| w2-03 Step Down: solvable, replay wins | Pass | glob picked it up (replay spec); tests/levels. Exact 4-tile drop number: design-lead's verdict (M2-23) |
+| Stale e2e step counts after the retunes | Pass after update | 414 to 434 and 311 to 326; no other file referenced them |
+| Coverage of `src/core` >= 80% | Pass | 84.27% statements, 83.32% branches |
+| Plain build ships no hook and no solution text | Pass | orchestrator grep of `dist/` |
+| itch zip: `npm run package` ok, size sane | Pass | 10 files, 0.37 MB |
+| PT-1 (`/` opens w1-01), PT-5 (litBand equals band) | Pass if those specs carry them; QA did not re-read the specs against the plan this phase | inside the 82 (orchestrator); line-by-line confirmation is Not-verified |
+| PT-2 exit cue, PT-3 why-you-fell cue, PT-4 drag bar, PT-7 results | Not-verified | PT-2/3/4 are unit-model plus hand checks on the pixel build; PT-3 mounting waits for the `fallThrough` event (Batch 6); PT-7 waits for M2-12 |
+| 60 fps in the pixel build | Not-verified | G6 stands: no fps measurement |
+
+#### Batch 5 additions (written 2026-11-16, not run yet)
+
+- `tests/e2e/tandem.spec.ts` (new): Tandem smoke on `w3-01` (both bodies in the hook; replay wins with both home) and two stubs for the changed checks (sticky-keys-tip 11, adaptive-audio 5 / PT-3 1-2). Skips with a message until `levels/w3-01.solution.txt` exists and the hook state carries `twin`. Expect the orchestrator's count to rise by 4 skipped (or 4 run).
+- The changed checks of 2026-11-13 are not observable through the hook, so they are unit-owned and stubbed (section 2.15).
+- Stale 414 and 311 in this file fixed (sections 2.10 and 2.11).
 
 ### Run 4: 2026-11-05 (batch 2: M1-35 simulation, M1-36 side tracks, pause, win recording, hints; commit 68bdce0)
 

@@ -14,6 +14,10 @@ import {
   RING_SIZE,
   SPEED_LENGTHS,
   SPEED_PHASES,
+  WIPE_FRAMES,
+  WIPE_H,
+  WIPE_W,
+  bakeWipeFrame,
   bakeDustFrame,
   bakeRingFrame,
   bakeSpeedLine,
@@ -215,6 +219,7 @@ function fxItems(): PackItem[] {
   for (const length of SPEED_LENGTHS) {
     SPEED_PHASES.forEach((_, phase) => items.push({ name: names.speed(length, phase), raster: bakeSpeedLine(length, phase), pivot: { x: 1, y: 0 } }));
   }
+  for (let n = 0; n < WIPE_FRAMES; n++) items.push({ name: names.wipe(n), raster: bakeWipeFrame(n), pivot: { x: 0, y: 0 } });
   return items;
 }
 
@@ -286,9 +291,9 @@ export function buildPixelAssets(): PixelAssets {
       sizes: { body: [GLYPH_BODY_W, GLYPH_BODY_H], home: [GLYPH_HOME_SIZE, GLYPH_HOME_SIZE], edge: [EDGE_ARROW_W, EDGE_ARROW_H] },
     }),
     tileset: packTileset(),
-    fx: packAtlas('pixel-fx.png', fxItems(), 256, {
-      naming: 'fx/dust/land_<0-3> (24x8, origin (0.5, 1) at the feet), fx/ring/<0-3> (48x48, origin (0.5, 0.5) on the body), fx/speed/<12|20|32>_<a|b> (Wx1, lead end at the right, origin (1, 0); flipX when moving left)',
-      sizes: { dust: [DUST_W, DUST_H], ring: [RING_SIZE, RING_SIZE], speed: [...SPEED_LENGTHS] },
+    fx: packAtlas('pixel-fx.png', fxItems(), 512, {
+      naming: 'fx/dust/land_<0-3> (24x8, origin (0.5, 1) at the feet), fx/ring/<0-3> (48x48, origin (0.5, 0.5) on the body), fx/speed/<12|20|32>_<a|b> (Wx1, lead end at the right, origin (1, 0); flipX when moving left), fx/wipe/<0|1> (480x270 dither mask for the drop flash, origin (0, 0), white at palette.flash.alpha, one frame each for flash.durationMs / 2; never in a level with a twin)',
+      sizes: { dust: [DUST_W, DUST_H], ring: [RING_SIZE, RING_SIZE], speed: [...SPEED_LENGTHS], wipe: [WIPE_W, WIPE_H] },
       note: 'White masks (pure #FFFFFF, fully opaque), tint at runtime: dust ui.textMuted, ring the new band solid.outline, speed lines the current band solid.outline.',
       anims: {
         dustLand: { frames: ['fx/dust/land_0', 'fx/dust/land_1', 'fx/dust/land_2', 'fx/dust/land_3'], fps: 20, repeat: 0, trigger: 'land event' },
@@ -298,6 +303,7 @@ export function buildPixelAssets(): PixelAssets {
         dustLand: 'show fx/dust/land_1 only, for 4 sim steps, no spread',
         ringBurst: 'off (palette swap only)',
         speedLines: 'off',
+        screenWipe: 'off',
       },
       reducedEffects: { speedLines: 'off', ringBurst: 'on unless reduced motion', dustLand: 'on' },
     }),

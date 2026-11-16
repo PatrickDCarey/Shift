@@ -23,6 +23,7 @@ describe('dismiss codes derive from the default bindings', () => {
   it('are Enter plus every non-Shift gear key', () => {
     const gear = [...DEFAULT_BINDINGS.shiftUp, ...DEFAULT_BINDINGS.shiftDown].filter((c) => !c.startsWith('Shift'));
     expect([...STICKY_TIP_DISMISS_CODES].sort()).toEqual(['Enter', ...gear].sort());
+    expect([...STICKY_TIP_DISMISS_CODES].sort()).toEqual(['Enter', 'KeyE', 'KeyQ', 'KeyX', 'KeyZ']);
   });
 });
 

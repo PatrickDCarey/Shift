@@ -11,7 +11,7 @@ import {
   serializeSave,
 } from './index';
 import type { KeyValueStorage } from './index';
-import { MAX_SAVE_BYTES } from './schema';
+import { MAX_SAVE_CHARS } from './schema';
 
 /** A working fake of Web Storage. */
 function fakeStorage(initial: Record<string, string> = {}): KeyValueStorage & { data: Map<string, string> } {
@@ -289,13 +289,13 @@ describe('createSaveStore', () => {
 describe('parseSave hardening (M1-58)', () => {
   it('stored text above 64 KiB gets defaults without parsing', () => {
     const big = JSON.stringify({ version: 1, settings: { muted: true }, progress: { completedLevels: ['a'] }, pad: 'x'.repeat(70_000) });
-    expect(big.length).toBeGreaterThan(MAX_SAVE_BYTES);
+    expect(big.length).toBeGreaterThan(MAX_SAVE_CHARS);
     expect(parseSave(big)).toEqual(defaultSave());
   });
 
   it('text just under the limit still parses', () => {
     const text = JSON.stringify({ version: 1, settings: { muted: true }, progress: {}, pad: 'x'.repeat(60_000) });
-    expect(text.length).toBeLessThan(MAX_SAVE_BYTES);
+    expect(text.length).toBeLessThan(MAX_SAVE_CHARS);
     expect(parseSave(text).settings.muted).toBe(true);
   });
 

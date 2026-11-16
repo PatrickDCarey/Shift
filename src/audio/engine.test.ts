@@ -66,6 +66,12 @@ class MockOsc extends MockNode {
 
 class MockContext {
   state: string = 'suspended';
+  onstatechange: (() => void) | null = null;
+  /** Change state the way a browser does, firing `onstatechange` after it. */
+  setState(state: string, fire = true): void {
+    this.state = state;
+    if (fire) this.onstatechange?.();
+  }
   currentTime = 0;
   destination = new MockNode();
   gains: MockGain[] = [];
@@ -534,5 +540,74 @@ describe('audio engine: dispose', () => {
     expect(ctx.state).toBe('closed');
     expect(engine.tone({ freq: 440, duration: 0.1 })).toBe(false);
     expect(() => engine.setMuted(true)).not.toThrow();
+  });
+});
+
+describe('audio engine: voice counters reset when the context leaves running (B10)', () => {
+  async function playing(count: number) {
+    const { engine, ctx } = setup();
+    await engine.unlock();
+    for (let i = 0; i < count; i += 1) engine.tone({ freq: 440 + i, duration: 1 });
+    expect(engine.activeVoices()).toBe(count);
+    return { engine, ctx };
+  }
+
+  it('onstatechange to suspended clears the voice counter and stops tracked SFX voices', async () => {
+    const { engine, ctx } = await playing(5);
+    ctx.setState('suspended');
+    expect(engine.activeVoices()).toBe(0);
+    expect(ctx.oscs.every((o) => o.stopped !== null)).toBe(true);
+  });
+
+  it('onstatechange to interrupted also clears', async () => {
+    const { engine, ctx } = await playing(3);
+    ctx.setState('interrupted');
+    expect(engine.activeVoices()).toBe(0);
+  });
+
+  it('onstatechange to running keeps live voices', async () => {
+    const { engine, ctx } = await playing(2);
+    ctx.setState('running');
+    expect(engine.activeVoices()).toBe(2);
+  });
+
+  it('a stale onended after the reset cannot drive the counter negative', async () => {
+    const { engine, ctx } = await playing(2);
+    const first = ctx.oscs[0]!;
+    ctx.setState('suspended');
+    first.onended?.();
+    expect(engine.activeVoices()).toBe(0);
+  });
+
+  it('a context that never fires onstatechange is caught by the tone() check', async () => {
+    const { engine, ctx } = await playing(4);
+    ctx.setState('suspended', false);
+    expect(engine.activeVoices()).toBe(4);
+    expect(engine.tone({ freq: 440, duration: 0.1 })).toBe(false);
+    expect(engine.activeVoices()).toBe(0);
+  });
+
+  it('after resume the full voice budget is available again', async () => {
+    const { engine, ctx } = await playing(MAX_VOICES);
+    ctx.setState('suspended');
+    ctx.setState('running');
+    for (let i = 0; i < MAX_VOICES; i += 1) expect(engine.tone({ freq: 300 + i, duration: 1 })).toBe(true);
+    expect(engine.activeVoices()).toBe(MAX_VOICES);
+  });
+
+  it('a context that rejects the hook still resets through tone()', async () => {
+    const ctx = new MockContext();
+    Object.defineProperty(ctx, 'onstatechange', {
+      set() {
+        throw new Error('frozen');
+      },
+      get: () => null,
+    });
+    const engine = createAudioEngine({ contextFactory: () => ctx as unknown as AudioContextLike });
+    await engine.unlock();
+    engine.tone({ freq: 440, duration: 1 });
+    ctx.state = 'suspended';
+    expect(engine.tone({ freq: 440, duration: 1 })).toBe(false);
+    expect(engine.activeVoices()).toBe(0);
   });
 });

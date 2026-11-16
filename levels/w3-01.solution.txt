@@ -1,0 +1,13 @@
+level: w3-01
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand on P1 (both bodies on their spawn pads)
+# 162R  walk right in gear 1: both bodies blue, both cross their blue bridges, both reach P2 (x = 9.63)
+# 1R+   shift up once on P2 while walking: both gear 2, green 0.52 tiles later (x = 10.15)
+# 154R  walk the green bridges; the runner parks at its exit on step 307, the twin walks on and parks on
+#       step 337 (won)
+# Fairness: the shift-up press works anywhere from x = 6.43 to 12.93 (after walking 98-228 steps, a 131-step
+#   window: before P2 the blue bridge's grace carries you onto the pad); the start is untimed.
+steps: 337
+---
+20. 162R 1R+ 154R

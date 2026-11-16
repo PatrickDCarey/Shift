@@ -65,3 +65,4 @@ export {
   type SfxId,
   type ToneLayer,
 } from './sfxSpec';
+export { bodiesOf, musicEventsOf, musicFeed } from './musicFeed';

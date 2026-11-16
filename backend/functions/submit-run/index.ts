@@ -6,7 +6,7 @@
 // Client: POST /functions/v1/submit-run with the anon key (see src/net, M3-13).
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
-import { MAX_BODY_CHARS, checkSubmission, hashIp, isRateLimited, type RejectCode } from './rules.ts';
+import { ATTEMPT_RETENTION_MS, MAX_BODY_CHARS, checkSubmission, hashIp, rateVerdict, shouldStore, type RejectCode } from './rules.ts';
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -30,16 +30,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
   // Rate limit first: it is cheap and covers malformed floods. The IP comes from the CDN header
-  // and is stored only as a keyed hash.
+  // and is stored only as a keyed hash. Order (B1, B4): prune old rows, count, then insert only
+  // under the limit, so a flood cannot grow the table. Any database error fails closed.
   const ipHash = await hashIp(req.headers.get('cf-connecting-ip') ?? 'unknown', serviceKey);
-  await db.from('submit_attempts').insert({ ip_hash: ipHash });
-  const { count } = await db
-    .from('submit_attempts')
-    .select('id', { count: 'exact', head: true })
-    .eq('ip_hash', ipHash)
-    .gte('created_at', new Date(Date.now() - 60_000).toISOString());
-  if (isRateLimited(count ?? 0)) return rejected('rate');
-  await db.from('submit_attempts').delete().lt('created_at', new Date(Date.now() - 3_600_000).toISOString());
+  const now = Date.now();
+  const pruned = await db.from('submit_attempts').delete().lt('created_at', new Date(now - ATTEMPT_RETENTION_MS).toISOString());
+  const since = (ms: number) => new Date(now - ms).toISOString();
+  const attempts = () => db.from('submit_attempts').select('id', { count: 'exact', head: true }).eq('ip_hash', ipHash);
+  const [minute, hour] = await Promise.all([attempts().gte('created_at', since(60_000)), attempts().gte('created_at', since(ATTEMPT_RETENTION_MS))]);
+  const verdict = pruned.error || minute.error || hour.error ? 'unavailable' : rateVerdict(minute.count, hour.count);
+  if (verdict === 'unavailable') return reply({ ok: false, code: 'rate' }, 503);
+  if (verdict === 'limited') return rejected('rate');
+  const logged = await db.from('submit_attempts').insert({ ip_hash: ipHash });
+  if (logged.error) return reply({ ok: false, code: 'rate' }, 503);
 
   const text = await req.text();
   if (text.length > MAX_BODY_CHARS) return rejected('invalid');
@@ -53,14 +56,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (!checked.ok) return rejected(checked.code);
 
   const { levelId, levelVersion, steps, name, inputLog } = checked.value;
-  const { error } = await db.from('runs').insert({
-    level_id: levelId,
-    level_version: levelVersion,
-    display_name: name,
-    steps,
-    input_log: inputLog,
-  });
-  if (error) return reply({ ok: false, code: 'invalid' }, 500);
+  // Retention (B2): one row per name per level version, the best. A slower repeat is not stored.
+  const mine = () => db.from('runs').select('steps').eq('level_id', levelId).eq('level_version', levelVersion).eq('display_name', name);
+  const existing = await mine().order('steps', { ascending: true }).limit(1);
+  if (existing.error) return reply({ ok: false, code: 'invalid' }, 500);
+  if (shouldStore(existing.data[0]?.steps ?? null, steps)) {
+    const { error } = await db.from('runs').insert({
+      level_id: levelId,
+      level_version: levelVersion,
+      display_name: name,
+      steps,
+      input_log: inputLog,
+    });
+    if (error) return reply({ ok: false, code: 'invalid' }, 500);
+    await db.from('runs').delete().eq('level_id', levelId).eq('level_version', levelVersion).eq('display_name', name).gt('steps', steps);
+  }
 
   const board = () => db.from('runs').select('id', { count: 'exact', head: true }).eq('level_id', levelId).eq('level_version', levelVersion);
   const [better, total] = await Promise.all([board().lt('steps', steps), board()]);

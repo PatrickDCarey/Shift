@@ -11,12 +11,17 @@ export interface LevelRule {
   readonly fastest: number;
 }
 
+/** Kept in step with each level file's `version:` header and levels/README.md "Fastest known" (scripts/levels-table.test.ts fails on drift). */
 export const LEVELS: Readonly<Record<string, LevelRule>> = {
-  'w1-01': { version: 1, fastest: 364 },
-  'w1-02': { version: 1, fastest: 268 },
+  'w1-01': { version: 2, fastest: 384 },
+  'w1-02': { version: 2, fastest: 273 },
   'w1-03': { version: 1, fastest: 77 },
-  'w1-04': { version: 1, fastest: 378 },
+  'w1-04': { version: 2, fastest: 366 },
   'w1-05': { version: 1, fastest: 114 },
+  'w2-01': { version: 1, fastest: 157 },
+  'w2-02': { version: 1, fastest: 153 },
+  'w2-03': { version: 1, fastest: 142 },
+  'w3-01': { version: 1, fastest: 195 },
 };
 
 export const FLOOR_PERCENT = 85;
@@ -27,6 +32,10 @@ export const MAX_LOG_CHARS = 16_000;
 export const MAX_BODY_CHARS = 32_000;
 /** At least 20 per minute per IP must be accepted (spec); this leaves headroom. */
 export const RATE_LIMIT_PER_MINUTE = 30;
+/** Stored-run cap per IP per hour (B2): bounds storage, since a stored run can carry a 16 KB log. */
+export const RATE_LIMIT_PER_HOUR = 200;
+/** Attempt rows older than this are pruned on every call (B1). */
+export const ATTEMPT_RETENTION_MS = 3_600_000;
 
 /** Names that are never allowed, compared after `normaliseName`. design-lead owns the real list. */
 export const DEFAULT_BLOCKLIST: readonly string[] = ['ADMIN', 'MODERATOR'];
@@ -117,6 +126,27 @@ export function checkSubmission(
 /** True when this attempt is over the limit; `recent` counts attempts in the last minute, this one included. */
 export function isRateLimited(recent: number, limit: number = RATE_LIMIT_PER_MINUTE): boolean {
   return recent > limit;
+}
+
+export type RateVerdict = 'ok' | 'limited' | 'unavailable';
+
+/**
+ * Rate decision from the attempt counts BEFORE this call is recorded (B1, B4). A count that
+ * could not be read (`null`, a database error) is `unavailable`: the caller fails closed and
+ * answers `rate` with 503 instead of letting the request through.
+ */
+export function rateVerdict(minute: number | null, hour: number | null): RateVerdict {
+  if (minute === null || hour === null || !Number.isFinite(minute) || !Number.isFinite(hour)) return 'unavailable';
+  if (minute >= RATE_LIMIT_PER_MINUTE || hour >= RATE_LIMIT_PER_HOUR) return 'limited';
+  return 'ok';
+}
+
+/**
+ * Retention (B2): each name keeps one row per level version, its best. `best` is the lowest
+ * stored step count for that name on that level version, or null if none. Ties keep the older run.
+ */
+export function shouldStore(best: number | null, steps: number): boolean {
+  return best === null || steps < best;
 }
 
 /** Keyed hash of an IP (HMAC-SHA-256, hex), so raw addresses are never stored. */

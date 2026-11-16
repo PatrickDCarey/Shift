@@ -15,9 +15,14 @@ import {
   RING_SIZE,
   SPEED_LENGTHS,
   SPEED_PHASES,
+  WIPE_DENSITY,
+  WIPE_FRAMES,
+  WIPE_H,
+  WIPE_W,
   bakeDustFrame,
   bakeRingFrame,
   bakeSpeedLine,
+  bakeWipeFrame,
   effectFrameNames,
 } from './effects';
 import { getPixel, type Raster } from './raster';
@@ -159,7 +164,7 @@ describe('atlas pixel-fx', () => {
 
   it('names every frame and carries pivots at the feet, the centre and the lead end', () => {
     const names = effectFrameNames();
-    expect(Object.keys(built.json.frames)).toHaveLength(DUST_FRAMES + RING_FRAMES + SPEED_LENGTHS.length * SPEED_PHASES.length);
+    expect(Object.keys(built.json.frames)).toHaveLength(DUST_FRAMES + RING_FRAMES + SPEED_LENGTHS.length * SPEED_PHASES.length + WIPE_FRAMES);
     expect(built.json.frames[names.dust(0)]?.pivot).toEqual({ x: 0.5, y: 1 });
     expect(built.json.frames[names.ring(3)]?.pivot).toEqual({ x: 0.5, y: 0.5 });
     expect(built.json.frames[names.speed(32, 1)]?.pivot).toEqual({ x: 1, y: 0 });
@@ -183,5 +188,42 @@ describe('atlas pixel-fx', () => {
     expect(fxJson.frames).toEqual(built.json.frames);
     expect(fxJson.redshift.hashes).toEqual(built.json.redshift.hashes);
     expect(fxJson.redshift.reducedMotion).toEqual(built.json.redshift.reducedMotion);
+  });
+});
+
+describe('screen wipe frames', () => {
+  const wipes = frames(WIPE_FRAMES, bakeWipeFrame);
+
+  it('are two full-view white dither masks, the second sparser than the first', () => {
+    expect(wipes).toHaveLength(2);
+    for (const w of wipes) expect([w.width, w.height]).toEqual([WIPE_W, WIPE_H]);
+    expect(lit(wipes[1]!)).toBeLessThan(lit(wipes[0]!));
+  });
+
+  it('light about the stated fraction of pixels (a pattern, never a solid fill) and are pure white', () => {
+    wipes.forEach((w, i) => {
+      const frac = lit(w) / (w.width * w.height);
+      expect(frac).toBeGreaterThan((WIPE_DENSITY[i] ?? 0) - 0.02);
+      expect(frac).toBeLessThan((WIPE_DENSITY[i] ?? 0) + 0.02);
+      expect(frac).toBeLessThanOrEqual(0.5);
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+          const px = getPixel(w, x, y);
+          if (px[3] > 0) expect([...px]).toEqual([255, 255, 255, 255]);
+        }
+      }
+    });
+  });
+
+  it('the two frames differ in a fifth of the screen, so the flash changes shape without any colour', () => {
+    const [a, b] = wipes as [Raster, Raster];
+    let changed = 0;
+    for (let y = 0; y < a.height; y++) for (let x = 0; x < a.width; x++) if (getPixel(a, x, y)[3] !== getPixel(b, x, y)[3]) changed++;
+    expect(changed / (a.width * a.height)).toBeGreaterThan(0.2);
+  });
+
+  it('are named fx/wipe/<n> in the atlas with origin (0, 0)', () => {
+    const built = buildPixelAssets().fx;
+    expect(built.json.frames[effectFrameNames().wipe(1)]?.pivot).toEqual({ x: 0, y: 0 });
   });
 });

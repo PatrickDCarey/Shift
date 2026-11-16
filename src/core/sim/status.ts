@@ -70,7 +70,10 @@ export function outcomePhase(
     events: [...events, ...homeEvents, ...extra],
     outcome,
   });
-  if (p0.home && (p1 === null || p1.home)) return out('won', [{ type: 'won' }]);
+  // `fallThrough` never fires on a won step (architecture.md 3.2): drop it from the step's body events.
+  if (p0.home && (p1 === null || p1.home)) {
+    return { ...out('won', [{ type: 'won' }]), events: [...events.filter((e) => e.type !== 'fallThrough'), ...homeEvents, { type: 'won' }] };
+  }
   const dead0 = fellOut(p0, level, params);
   const dead1 = p1 !== null && fellOut(p1, level, params);
   if (!dead0 && !dead1) return out(null, []);

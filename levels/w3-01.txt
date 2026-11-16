@@ -1,0 +1,37 @@
+# World 3, level 1. Teach: a twin obeys the same keys on its own floor, and both must reach home.
+# Target first-time solve: 30-60 s (hold right; one shift up on the middle pad; watch the runner park first).
+# Open from the start (first level of world 3), so it must work cold: the move and shiftUp glyphs say which keys.
+# Layout (one screen, 28 x 15), two identical lanes: runner on top (floor row 6), twin below (floor row 13).
+#   Each lane: safe pad P1 (cols 0-2, spawn at col 1) -> blue bridge (cols 3-7) -> safe pad P2 (cols 8-12)
+#   -> green bridge (cols 13-18) -> safe ground to the exit (2 tiles tall).
+#   The divider is the runner's floor (row 6) plus a safe row under each runner pad (row 7). The runner's
+#   bridges sit in it, open below: a runner that falls through drops into the twin's lane and out.
+# Exits: the runner's at col 22, the twin's at col 25 (3 tiles further), so the runner parks first and the
+#   twin walks on alone. Nothing needs doing then: keep holding right.
+# Hold right in gear 1 (blue) across the blue bridges; shift up once on P2 (green 0.6 tiles later) and walk
+#   the green bridges. Both bodies always share x, gear and color here, so whatever one does the other does.
+# Hints (runner lane only): move at col 1, row 3 (over P1) and shiftUp at col 10, row 3 (over P2). Boxes
+#   cols 0-2 and 9-11, rows 2-3, empty sky; the floor under both is row 6. Render-only.
+hint: move 1 3
+hint: shiftUp 10 3
+id: w3-01
+title: Two Lanes
+world: 3
+teaches: a twin obeys the same keys on its own floor; both must reach home
+version: 1
+---
+............................
+............................
+............................
+............................
+......................E.....
+.@....................E.....
+###BBBBB#####GGGGGG#########
+###.....#####......#########
+............................
+............................
+............................
+.........................E..
+.&.......................E..
+###BBBBB#####GGGGGG#########
+###.....#####......#########

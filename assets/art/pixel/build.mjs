@@ -313,6 +313,26 @@ try {
   };
   writeFileSync(path.join(previewDir, 'effects-yellow.png'), encodePng(px.upscale(fxPreview(9, 'yellow'), 4)));
   writeFileSync(path.join(previewDir, 'effects-red.png'), encodePng(px.upscale(fxPreview(12, 'red'), 4)));
+
+  // ---- wipe preview: standing field | yellow field | wipe frame 0 | wipe frame 1 (white at flash.alpha), 120 x 68 crops ----
+  {
+    const W = 120, H = 68;
+    const out = px.createRaster(W * 4 + 3 * 2, H);
+    px.fillRect(out, 0, 0, out.width, out.height, px.rgba(col.hexToRgb('#FFFFFF')));
+    const a = fx.palette.flash.alpha;
+    const panel = (i, color, wipe) => {
+      px.fillRect(out, i * (W + 2), 0, W, H, px.rgba(color));
+      if (wipe === undefined) return;
+      const mask = px.bakeWipeFrame(wipe);
+      const lit = col.composite(col.hexToRgb(fx.palette.flash.color), color, a);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (px.getPixel(mask, x + 200, y + 100)[3] > 0) px.setPixel(out, i * (W + 2) + x, y, px.rgba(lit));
+    };
+    panel(0, bg(0));
+    panel(1, bg(9));
+    panel(2, bg(9), 0);
+    panel(3, bg(9), 1);
+    writeFileSync(path.join(previewDir, 'wipe-and-yellow.png'), encodePng(px.upscale(out, 3)));
+  }
 } finally {
   await server.close();
 }

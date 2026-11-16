@@ -50,13 +50,39 @@ export function buildMusicGraph(ctx: AudioContextLike, bus: GainNodeLike): Music
   return { ctx, filter, duck, layers, live: [] };
 }
 
-/** Move `param` from `from` to `to` over `seconds` starting `now` (instant when seconds is 0). */
+interface Segment {
+  readonly from: number;
+  readonly to: number;
+  readonly start: number;
+  readonly end: number;
+  readonly exponential: boolean;
+}
+
+/** The last ramp scheduled on each param, so a retarget can start from the live value (A1). */
+const segments = new WeakMap<AudioParamLike, Segment>();
+
+function liveValue(seg: Segment, now: number): number {
+  if (now >= seg.end) return seg.to;
+  if (now <= seg.start) return seg.from;
+  const t = (now - seg.start) / (seg.end - seg.start);
+  return seg.exponential ? seg.from * Math.pow(seg.to / seg.from, t) : seg.from + (seg.to - seg.from) * t;
+}
+
+/**
+ * Move `param` to `to` over `seconds` starting `now` (instant when seconds is 0). The start is
+ * the value the param has right now, if a ramp is in flight; `from` is used only for a param
+ * that has never been ramped. A retarget mid-glide therefore never jumps.
+ */
 function ramp(param: AudioParamLike, now: number, from: number, to: number, seconds: number, exponential: boolean): void {
-  param.cancelScheduledValues(now);
-  param.setValueAtTime(Math.max(from, MIN_GAIN), now);
+  const prev = segments.get(param);
+  const start = Math.max(prev ? liveValue(prev, now) : from, MIN_GAIN);
+  const target = Math.max(to, MIN_GAIN);
   const end = now + Math.max(seconds, 0.001);
-  if (exponential) param.exponentialRampToValueAtTime(Math.max(to, MIN_GAIN), end);
-  else param.linearRampToValueAtTime(Math.max(to, MIN_GAIN), end);
+  param.cancelScheduledValues(now);
+  param.setValueAtTime(start, now);
+  if (exponential) param.exponentialRampToValueAtTime(target, end);
+  else param.linearRampToValueAtTime(target, end);
+  segments.set(param, { from: start, to: target, start: now, end, exponential });
 }
 
 /** Low-pass cutoff glide. Exponential, so it is even to the ear. */

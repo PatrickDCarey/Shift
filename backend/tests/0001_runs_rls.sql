@@ -25,7 +25,7 @@ end $$;
 -- 2. The service role (what the edge function uses) can insert.
 set local role service_role;
 insert into public.runs (level_id, level_version, display_name, steps, input_log)
-values ('w0-02', 1, 'rls-test', 775, '226R 90L 1+ 1. 1+ 102R 1RJ');
+values ('w0-02', 1, 'RLS-TEST', 775, '226R 90L 1+ 1. 1+ 102R 1RJ');
 reset role;
 
 -- 3. The service role cannot break the table constraints.
@@ -69,7 +69,7 @@ do $$
 declare n integer;
 begin
   select count(*) into n from public.runs
-  where level_id = 'w0-02' and display_name = 'rls-test';
+  where level_id = 'w0-02' and display_name = 'RLS-TEST';
   if n <> 1 then
     raise exception 'FAIL: anon cannot read the public columns (saw % rows, expected 1)', n;
   end if;

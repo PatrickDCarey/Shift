@@ -1,11 +1,13 @@
 // Unit tests for the submit-run rules (M3-11): every rejection code has a test.
 // Owner: backend-engineer. Lives in scripts/ because vitest only collects src, tests and scripts.
 import { readFileSync } from 'node:fs';
+import { DISPLAY_NAME_MAX_LENGTH, DISPLAY_NAME_PATTERN, isDisplayName } from '../src/core/types';
 import { describe, expect, it } from 'vitest';
 import {
   LEVELS,
   NAME_MAX,
   MAX_RUN_STEPS,
+  RATE_LIMIT_PER_HOUR,
   RATE_LIMIT_PER_MINUTE,
   REJECT_CODES,
   checkSubmission,
@@ -15,9 +17,11 @@ import {
   isRateLimited,
   logSteps,
   normaliseName,
+  rateVerdict,
+  shouldStore,
 } from '../backend/functions/submit-run/rules';
 
-const good = { levelId: 'w1-01', levelVersion: 1, steps: 400, name: 'ACE', inputLog: '20. 380R' };
+const good = { levelId: 'w1-01', levelVersion: 2, steps: 400, name: 'ACE', inputLog: '20. 380R' };
 const code = (over: Record<string, unknown>) => {
   const r = checkSubmission({ ...good, ...over });
   return r.ok ? 'ok' : r.code;
@@ -25,18 +29,18 @@ const code = (over: Record<string, unknown>) => {
 
 describe('floor', () => {
   it('is floor(0.85 x fastest known)', () => {
-    expect(floorSteps(364)).toBe(309);
+    expect(floorSteps(384)).toBe(326);
     expect(floorSteps(77)).toBe(65);
   });
   it('rejects one step under the floor with `floor`, accepts the floor itself', () => {
-    expect(code({ steps: 308, inputLog: '308R' })).toBe('floor');
-    expect(code({ steps: 309, inputLog: '309R' })).toBe('ok');
+    expect(code({ steps: 325, inputLog: '325R' })).toBe('floor');
+    expect(code({ steps: 326, inputLog: '326R' })).toBe('ok');
   });
 });
 
 describe('version', () => {
   it('rejects another version with `version`', () => {
-    expect(code({ levelVersion: 2 })).toBe('version');
+    expect(code({ levelVersion: 1 })).toBe('version');
     expect(code({ levelVersion: 0 })).toBe('version');
   });
 });
@@ -72,6 +76,30 @@ describe('rate', () => {
     expect(await hashIp('203.0.113.7', 'test-key')).toBe(a);
     expect(await hashIp('203.0.113.7', 'other-key')).not.toBe(a);
     expect(a).not.toContain('203');
+  });
+});
+
+describe('rate verdict (B1, B4)', () => {
+  it('is ok below both caps and limited at either cap', () => {
+    expect(rateVerdict(0, 0)).toBe('ok');
+    expect(rateVerdict(RATE_LIMIT_PER_MINUTE - 1, RATE_LIMIT_PER_HOUR - 1)).toBe('ok');
+    expect(rateVerdict(RATE_LIMIT_PER_MINUTE, 0)).toBe('limited');
+    expect(rateVerdict(0, RATE_LIMIT_PER_HOUR)).toBe('limited');
+  });
+  it('fails closed when a count could not be read', () => {
+    expect(rateVerdict(null, 0)).toBe('unavailable');
+    expect(rateVerdict(0, null)).toBe('unavailable');
+    expect(rateVerdict(null, null)).toBe('unavailable');
+    expect(rateVerdict(Number.NaN, 0)).toBe('unavailable');
+  });
+});
+
+describe('retention (B2)', () => {
+  it('stores a first run and a strictly faster one, not a tie or a slower one', () => {
+    expect(shouldStore(null, 400)).toBe(true);
+    expect(shouldStore(400, 399)).toBe(true);
+    expect(shouldStore(400, 400)).toBe(false);
+    expect(shouldStore(400, 401)).toBe(false);
   });
 });
 
@@ -125,8 +153,11 @@ describe('name rule copies', () => {
     expect(sql).toContain(`between 1 and ${NAME_MAX}`);
     expect(fn).toContain(pattern);
   });
-  it('the shared core constant, if it exists, agrees', () => {
-    const core = readFileSync(new URL('../src/core/types.ts', import.meta.url), 'utf8');
-    if (core.includes(pattern)) expect(core).toContain(String(NAME_MAX));
+  it('the shared core constant agrees with the copies and isDisplayName runs the same rule', () => {
+    expect(DISPLAY_NAME_PATTERN).toBe(pattern);
+    expect(DISPLAY_NAME_MAX_LENGTH).toBe(NAME_MAX);
+    for (const name of ['ACE', 'A', 'A'.repeat(NAME_MAX), 'ace', ' ACE', 'A  B', 'A'.repeat(NAME_MAX + 1), '']) {
+      expect(isDisplayName(name)).toBe(isAllowedName(name, []));
+    }
   });
 });

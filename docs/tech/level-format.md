@@ -62,7 +62,7 @@ hint: shiftUp 6 0
 - **Anchor:** the glyph's box is centred horizontally on the anchor cell's centre (col + 0.5) and its bottom edge sits on the cell's bottom edge (row + 1). The glyph never collides.
 - **Parsed into** `LevelMeta.hints` in file order, as `{ glyph, anchor: { col, row } }`. The field is **absent** when the file has no `hint:` line (never an empty array).
 - **Render-only:** the sim never reads hints, so adding, moving or removing a hint needs **no** `version` bump and keeps the solution valid.
-- **Placement** (`onboarding-hints.md`): the glyph's box touches columns col−1 … col+1 of rows row−1 … row; every one of those cells must be inside the grid and empty (`@` and `&` cells count as empty), and the first non-empty, non-exit tile below the anchor in its column must be at least 3 rows below the anchor row (no tile below passes). The parser does not check this; `tests/levels/hints.test.ts` does, for every shipped level, and also replays each hinted level with its `hint:` lines removed to the same `wonAtStep`.
+- **Placement** (`onboarding-hints.md`): the glyph's box touches columns col−1 … col+1 of rows row−1 … row; every one of those cells must be inside the grid and empty (`@` and `&` cells count as empty), and the highest non-empty, non-exit tile below the anchor row in any of the box's columns (col−1 … col+1) must be at least 3 rows below the anchor row (a pit under every box column passes). The parser does not check this; `tests/levels/hints.test.ts` does, for every shipped level, and also replays each hinted level with its `hint:` lines removed to the same `wonAtStep`.
 - The scene draws hints in M2-41 (glyph art: M2-36).
 
 ### Grid

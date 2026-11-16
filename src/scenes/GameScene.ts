@@ -1,7 +1,11 @@
 import Phaser from 'phaser';
-import type { InputFrame, SimEvent } from '../core/types';
+import { BAND_COLORS, type InputFrame, type SimEvent, type SimState } from '../core/types';
 import { audio } from '../audio';
-import { cameraFocus, cameraScroll, snapFeet, type CameraBody } from '../entities/camera';
+import { cameraScroll, snapFeet, type CameraBody } from '../entities/camera';
+import { DEV_TANDEM_ID, devTandemLevel } from '../entities/devLevel';
+import { EdgeArrowView } from '../entities/EdgeArrowView';
+import { TipLife } from '../entities/TipLife';
+import { edgeArrowPlacement, TANDEM_STRIPS, tandemCamera } from '../entities/tandemView';
 import { debugText } from '../entities/debugText';
 import { FeedbackFx } from '../entities/FeedbackFx';
 import { GameHud, GEAR_METER_AREA } from '../entities/GameHud';
@@ -20,20 +24,17 @@ import { PlayerView } from '../entities/PlayerView';
 import { chooseFrameSource, parseReplayRequest, type FrameSource, type ReplayFeed } from '../entities/replay';
 import { RunDriver, type FrameSupplier } from '../entities/runDriver';
 import { REPLAY_AVAILABLE, SOLUTION_FILES } from '../entities/solutionFiles';
-import { loadLevelSet, nextLevelId, selectLevel } from '../entities/levelSelect';
+import { loadLevelSet, nextLevelId, requestedLevelId, selectLevel } from '../entities/levelSelect';
 import { LEVEL_COMPLETE_EVENT, recordWin, type LevelCompleteEvent } from '../entities/winFlow';
 import { backgroundForSpeed, hexToNumber, rgbToHex } from '../fx';
 import type { SaveStore } from '../save';
-import { gearMeterModel, INITIAL_GEAR_METER_MODEL, type GearMeterModel } from '../ui';
+import { COMPACT_STRIP_LAYOUT, gearMeterModel, INITIAL_GEAR_METER_MODEL, type GearMeterModel } from '../ui';
 import { GearMeterView } from '../ui/GearMeterView';
-import { showStickyKeysTipIfDue, type StickyKeysTip } from '../ui/StickyKeysTipView';
+import { showStickyKeysTipIfDue } from '../ui/StickyKeysTipView';
 import { getSaveStore, SCENE_KEYS } from './keys';
 
 /** The world tint follows actual speed, eased so it never flickers at a band edge (docs/art/style.md). */
 const TINT_EASE_MS = 100;
-
-/** Tandem camera: bodies further apart than this are not framed together (ADR "Tandem", docs/design/features/tandem.md). */
-const MAX_APART_TILES = 28;
 
 /** Data a caller (results NEXT, level select) hands to `scene.start`/`restart`. */
 export interface GameSceneData {
@@ -92,7 +93,11 @@ export class GameScene extends Phaser.Scene {
   private fx!: FeedbackFx;
   private hud!: GameHud;
   private gearMeter!: GearMeterView;
-  private tip: StickyKeysTip | null = null;
+  /** Tandem only: the twin's compact strip (the runner's `gearMeter` is compact too then). */
+  private twinMeter: GearMeterView | null = null;
+  private edgeArrow!: EdgeArrowView;
+  /** B1: the Sticky Keys tip across pauses. */
+  private tip: TipLife | null = null;
   private detachKeyboard: () => void = () => undefined;
   private debugOn = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
   private showDebug = false;
@@ -132,7 +137,10 @@ export class GameScene extends Phaser.Scene {
     this.meter = INITIAL_GEAR_METER_MODEL;
     const search = this.requestedLevelId === null ? window.location.search : `?level=${encodeURIComponent(this.requestedLevelId)}`;
     this.replayRequested = REPLAY_AVAILABLE && parseReplayRequest(search).active;
-    const selection = selectLevel(LEVEL_FILES, search);
+    const selection =
+      import.meta.env.DEV && requestedLevelId(search) === DEV_TANDEM_ID
+        ? { level: devTandemLevel(), messages: [] as readonly string[] }
+        : selectLevel(LEVEL_FILES, search);
     const { tuning, params } = this.cfg;
     this.driver = new RunDriver(selection.level, params);
     this.sampler = new InputSampler();
@@ -147,8 +155,8 @@ export class GameScene extends Phaser.Scene {
     const source = chooseFrameSource(search, selection.level, SOLUTION_FILES, REPLAY_AVAILABLE);
     this.replay = source.kind === 'replay' ? { feed: source.feed, speed: source.speed } : null;
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
-    this.gearMeter = new GearMeterView(this, GEAR_METER_AREA.x, GEAR_METER_AREA.y);
-    this.gearMeter.setReducedMotion(this.reduced);
+    this.mountGearMeters(selection.level.twinStart !== null);
+    this.edgeArrow = new EdgeArrowView(this);
     this.detachKeyboard = attachKeyboard(this.sampler, {
       onToggleDebug: () => {
         if (this.debugOn) this.showDebug = !this.showDebug;
@@ -176,7 +184,7 @@ export class GameScene extends Phaser.Scene {
     // Snap each body's feet to whole pixels once (renderer only, never written back); the camera derives from these.
     const runner = this.snapBody(0, ts) ?? snapFeet(state.player.x, state.player.y, ts);
     const twin = this.snapBody(1, ts);
-    this.reactToEvents(events, runner.px, runner.py - bodyHeightPx / 2);
+    this.reactToEvents(events, runner.px, runner.py - bodyHeightPx / 2, twin === null ? null : { x: twin.px, y: twin.py - bodyHeightPx / 2 });
     const embedded = embeddedMask(
       this.driver.level,
       state.player.x,
@@ -184,7 +192,15 @@ export class GameScene extends Phaser.Scene {
       this.cfg.tuning.playerWidthTiles,
       this.cfg.tuning.playerHeightTiles,
     );
-    this.levelView.update(state.player.band, state.player.graceBand, embedded, time);
+    const twinTint =
+      state.twin === null
+        ? null
+        : {
+            band: state.twin.band,
+            graceBand: state.twin.graceBand,
+            embedded: embeddedMask(this.driver.level, state.twin.x, state.twin.y, this.cfg.tuning.playerWidthTiles, this.cfg.tuning.playerHeightTiles),
+          };
+    this.levelView.update(state.player.band, state.player.graceBand, embedded, time, twinTint);
     this.playerView.draw(runner.px, runner.py, state.player, dead);
     if (state.twin !== null && twin !== null) {
       this.twinView ??= new PlayerView(this, 'twin', this.reduced);
@@ -192,11 +208,16 @@ export class GameScene extends Phaser.Scene {
     }
     const bodies: CameraBody[] = [{ ...runner, home: state.player.home }];
     if (twin !== null && state.twin !== null) bodies.push({ ...twin, home: state.twin.home });
-    this.followCamera(bodies, bodyHeightPx);
+    const edgeBody = this.followCamera(bodies, bodyHeightPx);
+    this.updateEdgeArrow(edgeBody, twin, state.twin, bodyHeightPx);
     this.applyTint(Math.abs(state.player.vx), delta);
     if (!paused) this.fx.update(delta);
     this.meter = gearMeterModel(state.player, this.cfg.params);
     this.gearMeter.update(this.meter);
+    if (this.twinMeter !== null && state.twin !== null) {
+      this.twinMeter.setParked(state.twin.home);
+      this.twinMeter.update(gearMeterModel(state.twin, this.cfg.params), { body: 1 });
+    }
     this.hud.setWon(this.lastWin?.result.wonAtStep ?? null, this.lastWin !== null, this.cfg.params.stepHz);
     this.hud.setNextHint(this.lastWin !== null && this.nextId !== null);
     this.hud.setPaused(paused);
@@ -220,10 +241,10 @@ export class GameScene extends Phaser.Scene {
   private applyPauseChange(change: PauseChange): void {
     if (change === 'paused') {
       this.sampler.setPaused(true);
-      this.tip?.hide(); // pausing hides the Sticky Keys tip for good
-      this.tip = null;
+      this.tip?.pause();
     } else if (change === 'resumed') {
       this.sampler.setPaused(false);
+      this.tip?.resume();
       this.driver.resetClock(); // no catch-up after a long pause
     }
   }
@@ -288,7 +309,8 @@ export class GameScene extends Phaser.Scene {
   private mountStickyKeysTip(): void {
     if (this.replayRequested) return; // a replay load must not use up the page's first start (B3)
     const isFirstLevelStart = pageLevelStarts.consumeFirstStart();
-    this.tip = showStickyKeysTipIfDue({ scene: this, store: this.store, isFirstLevelStart });
+    const shown = showStickyKeysTipIfDue({ scene: this, store: this.store, isFirstLevelStart });
+    this.tip = shown === null ? null : new TipLife(this, shown, this.reduced);
   }
 
   /** Whole-pixel feet of one body at the interpolated position, or null when the level has no such body. */
@@ -302,9 +324,12 @@ export class GameScene extends Phaser.Scene {
     return body === 0 ? this.playerView : this.twinView;
   }
 
-  private reactToEvents(events: readonly SimEvent[], centerX: number, centerY: number): void {
+  private reactToEvents(events: readonly SimEvent[], centerX: number, centerY: number, twinCentre: { readonly x: number; readonly y: number } | null): void {
     for (const e of events) {
-      if (e.type === 'airDrag' && e.body === 0) this.fx.airDrag(centerX, centerY);
+      if (e.type === 'airDrag') {
+        if (e.body === 0) this.fx.airDrag(centerX, centerY);
+        else if (twinCentre !== null) this.fx.airDrag(twinCentre.x, twinCentre.y);
+      }
       else if (e.type === 'died') this.fx.died();
       else if (e.type === 'land') this.viewFor(e.body)?.pulse('land');
       else if (e.type === 'jump') this.viewFor(e.body)?.pulse('jump');
@@ -313,15 +338,44 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Scroll from the snapped integer bodies (see `cameraFocus`); keeps the last scroll when every body is home. */
-  private followCamera(bodies: readonly CameraBody[], bodyHeightPx: number): void {
+  private followCamera(bodies: readonly CameraBody[], bodyHeightPx: number): number | null {
     const { level } = this.driver;
     const ts = this.cfg.tuning.tileSize;
     const cam = this.cameras.main;
-    const focus = cameraFocus(bodies, bodyHeightPx, MAX_APART_TILES * ts) ?? this.lastFocus;
-    if (focus === null) return;
-    this.lastFocus = focus;
+    const framed = tandemCamera(bodies, bodyHeightPx, ts);
+    const focus = framed ?? this.lastFocus;
+    if (focus === null) return null;
+    this.lastFocus = { x: focus.x, y: focus.y };
     const s = cameraScroll(focus.x, focus.y, cam.width, cam.height, level.width * ts, level.height * ts);
     cam.setScroll(s.x, s.y);
+    return framed?.edgeBody ?? null;
+  }
+
+  /** Tandem: an arrow at the screen edge for the body the camera left behind (beyond 28 tiles), band by pattern. */
+  private updateEdgeArrow(
+    edgeBody: number | null,
+    twin: { readonly px: number; readonly py: number } | null,
+    twinState: SimState['twin'],
+    bodyHeightPx: number,
+  ): void {
+    const cam = this.cameras.main;
+    const target = edgeBody === 1 && twin !== null && twinState !== null ? twin : null;
+    const arrow = target === null ? null : edgeArrowPlacement(target, bodyHeightPx, { x: cam.scrollX, y: cam.scrollY }, { w: cam.width, h: cam.height });
+    this.edgeArrow.update(arrow, 'twin', BAND_COLORS[twinState?.band ?? 0]);
+  }
+
+  /** One full meter, or in a Tandem level two compact strips (runner on top, twin below). */
+  private mountGearMeters(tandem: boolean): void {
+    if (!tandem) {
+      this.gearMeter = new GearMeterView(this, GEAR_METER_AREA.x, GEAR_METER_AREA.y);
+      this.twinMeter = null;
+    } else {
+      const { runner, twin } = TANDEM_STRIPS;
+      this.gearMeter = new GearMeterView(this, runner.x, runner.y, { layout: COMPACT_STRIP_LAYOUT, body: 'runner' });
+      this.twinMeter = new GearMeterView(this, twin.x, twin.y, { layout: COMPACT_STRIP_LAYOUT, body: 'twin' });
+      this.twinMeter.setReducedMotion(this.reduced);
+    }
+    this.gearMeter.setReducedMotion(this.reduced);
   }
 
   /** Near-black standing, a dark hue of the band when moving; background only, never over tiles. */
@@ -365,7 +419,7 @@ export class GameScene extends Phaser.Scene {
   private teardown(): void {
     this.detachKeyboard();
     this.sampler.clear();
-    this.tip?.hide();
+    this.tip?.destroy();
     this.tip = null;
     this.levelView.destroy();
     this.playerView.destroy();
@@ -373,6 +427,9 @@ export class GameScene extends Phaser.Scene {
     this.twinView = null;
     this.fx.destroy();
     this.gearMeter.destroy();
+    this.twinMeter?.destroy();
+    this.twinMeter = null;
+    this.edgeArrow.destroy();
     if (QA_HOOK) Reflect.deleteProperty(window, '__redshift');
   }
 }

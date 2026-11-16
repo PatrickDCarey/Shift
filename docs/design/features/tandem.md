@@ -117,11 +117,11 @@ Test conventions: see `movement-and-gears.md`. "Lane" = a row of tiles holding o
 4. **A wall stops one body.** Both cruising at gear 4; the runner's lane has a red wall column, the twin's is open.
    - On the runner's contact step: runner `vx` 0, gear 4, band 0, one `wallStop` with `body: 0`; twin `vx` 12, band 4.
    - Keep holding R. Counting the step after contact as step 1, the runner is band 1 on step 1, band 2 on step 10, band 3 on step 23, band 4 on step 32 (GDD §5.1, ramp from standing). The twin is band 4 on every one of those steps.
-5. **Gear split in the air.** Both cruising at gear 4 on flat safe lanes; jump on the same step. The runner's lane has a hanging safe block whose face is 3.0 tiles past the runner's launch x, spanning heights +2 to +5 above the floor.
-   - Runner: wall stop on flight step 14 **(derived)**, `vx` 0, gear 1, x snapped to launch x + 2.625; lands on flight step 48 with `vx` 0.
+5. **Gear split in the air.** Both cruising at gear 4 on flat safe lanes; jump on the same step. The runner's lane has a hanging safe block whose face is **about 3 tiles** past the runner's launch x, spanning heights +2 to +5 above the floor. _(Reworded 2026-11-16, [sim] request: tile faces sit on whole columns and the gear-4 ramp leaves the launch x at a fraction, so a face exactly 3.0 past launch cannot be built. Use the first whole-column face at or beyond launch x + 3.0; the sim tests use 3.103.)_
+   - Runner: wall stop on flight step 14 **(derived)**, `vx` 0, gear 1, x snapped to **the face minus half the body width** (face − 0.375); lands on flight step 48 with `vx` 0.
    - Twin: drop to `|vx|` 9 on flight step 30, lands on flight step 48, 8.70 tiles out, gear 3 (`air-drag.md` check 1).
    - On the next step, holding R: runner `vx` 3 (band 1), twin `vx` 9 (band 3).
-6. **Clamp resync up.** From check 5's end state (runner gear 1 cruising at 3, twin gear 3 cruising at 9), holding R, press `+` on action steps 1, 3 and 5.
+6. **Clamp resync up.** Start from the end of **the step after check 5's landing** (runner gear 1 cruising at `vx` 3, twin gear 3 cruising at `vx` 9), not the landing step itself (where the runner's `vx` is still 0). Action step 1 is the next step. Holding R, press `+` on action steps 1, 3 and 5.
    - Gears after step 1: runner 2, twin 4; after step 3: 3, 4; after step 5: 4, 4.
    - Twin band 4 on action step 4 (GDD §5.1, yellow→red 4 steps).
    - Runner band 4 on action step 31 **(derived:** one step ahead of the ramp from standing, because it starts at 3), `vx` = 12 from action step 35 **(derived)**.
@@ -152,4 +152,25 @@ Test conventions: see `movement-and-gears.md`. "Lane" = a row of tiles holding o
 
 ## Priority
 
-Must (M3 content). **Decision gate Tue Nov 17** (owner decision 2026-11-13; was Nov 12): if checks 1–12 are not passing in qa-tester's T-13 run by then, world 3 reverts to the v1.3 Gates world (`features/speed-gates.md`, level plan v2.0 sketches). Tandem stays world 3 until the gate; no Tandem level or scene work is dropped before it.
+Must (M3 content). **Decision gate Tue Nov 17** (owner decision 2026-11-13; was Nov 12). The criteria are in "Gate criteria" below. Tandem stays world 3 until the gate; no Tandem level or scene work is dropped before it.
+
+## Gate criteria (owner's call, Tue Nov 17)
+
+_Added 2026-11-16. Read top to bottom; each line is yes or no._
+
+**Tandem stays if all five are yes:**
+1. **Sim:** `docs/qa/tandem-gate.md` (qa-tester, T-13) shows Pass for checks **1–18**, each citing a test name.
+2. **Level:** `levels/w3-01` (Two Lanes) exists with a solution recording, and `npx vitest run tests/levels` is green for it (replay and ±3).
+3. **Scene, in a browser:** on w3-01 in the dev or preview build, both bodies are drawn and told apart by shape (S4, also in greyscale), and two gear strips show (runner top, twin bottom). A unit test alone does not count; someone must see it.
+4. **Camera:** S1 (20 tiles apart, both on screen) and S2 (runner home, camera follows twin) seen in the browser or pinned by [scene] unit tests on `cameraFocus`. S3 (edge arrow at 30 apart) may be unit-only: no world-3 level needs it yet.
+5. **Played:** the owner (or orchestrator) wins w3-01 by hand once with the keyboard, and a level without `&` (w1-01) still looks and plays as before.
+
+**Stays with one fix:** only line 3's HUD strips or line 4's S3 arrow are missing or rough. Tandem stays; that piece is first in [scene]'s Batch 6 sitting.
+
+**Fall back to the gates world if any is true:**
+- any of checks **1–12** fails and no fix has landed by the call;
+- the twin is not drawn, or cannot be told from the runner in greyscale;
+- w3-01 has no green recording;
+- T-20 has not landed at all.
+
+Fallback means: world 3 reverts to the v1.3 Gates world (`features/speed-gates.md`, the level-plan fallback table), and the producer's Batch 4 fallback list applies (G-1..G-3; Tandem tasks T-05..T-21 and world-3 Tandem levels dropped). A failure in checks 13–18 alone is a bug, not a fallback.

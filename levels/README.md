@@ -13,6 +13,7 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w2-01 | Commit | 2 | NEW: in the air nothing you press changes your speed; you land in the color you took off in | 30–60 s | built (M2-21), awaiting design-lead approval; `shiftUp` and `jump` hint headers |
 | w2-02 | Coast | 2 | NEW: air drag: every 6 tiles of flight costs one color | 45–90 s | built (M2-21), awaiting design-lead approval |
 | w2-03 | Step Down | 2 | NEW: walking off a ledge is a shorter flight than jumping | 30–60 s | built (M2-22), awaiting design-lead approval |
+| w3-01 | Two Lanes | 3 | NEW: a twin obeys the same keys on its own floor; both must reach home | 30–60 s | built (Batch 5), version 1, awaiting design-lead approval; first Tandem level and the T-20 test level; `move` and `shiftUp` hint headers |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
 
@@ -200,3 +201,24 @@ One screen (30 × 13): left wall, safe ledge (cols 1–10, spawn against the wal
 **Fastest known:** 142 steps (`1R+ 1R 1R+ 1R 1R+ 137R`: shift while starting the run).
 
 **Solution:** 167 steps. Stand 20, shift up to gear 4, hold right: red at x = 4.73, walk off the edge, land red at 17.10, run into the exit. Fairness: no timed input (±3 passes on every transition).
+
+## w3-01 Two Lanes
+
+**Teaches:** a twin obeys the same keys on its own floor, and the level is won only when both bodies are home. First level of world 3 and open from the start, so it must work cold: the blue/green floors and one shift are all it asks, and the `move` and `shiftUp` glyphs name the keys. It is also the Tandem test level for T-20 and the Nov 17 gate.
+
+One screen (28 × 15), two identical lanes stacked: runner on top (floor row 6), twin below (floor row 13). Each lane: safe pad P1 (cols 0–2, spawn at col 1) → blue bridge (cols 3–7) → safe pad P2 (cols 8–12) → green bridge (cols 13–18) → safe ground to a 2-tile exit. The runner's exit is at col 22, the twin's at col 25.
+
+- **Divider:** the runner's floor (row 6) plus one safe row under each runner pad (row 7), so lanes + divider = 15 rows and each lane is ≤ 7 rows. The runner's bridges sit in the divider and are open below: a runner that falls through drops through the twin's lane and out of the grid. Since the lanes are identical, a runner never falls alone; the twin falls through its own bridge on the same step and the run dies when the twin leaves the grid (shorter drop).
+- **The idea, shown not asked:** hold right in gear 1 and both walk blue over the blue bridges; shift up once on P2 and both turn green 0.52 tiles later. The runner reaches its exit 3 tiles earlier (step 307 in the recording) and parks; the twin walks on alone and parks 30 steps later (`won`). The level does not end when your own body is home.
+- **Cheap failures, both by a safe pad:** no shift (blue walks into the green hole, dies at step 284 of a plain hold-right), or shifting on P1 (green onto blue). Letting go on either bridge drops both bodies.
+- **Splits:** none. Both bodies share x, gear and color on every step until one of them is home (checked in the sweep below). The only difference is the exits, and getting home is final by design.
+- **Removing the new piece breaks it:** without the twin this is w1-02 again. The twin is the lesson: the level is won only on the twin's home step.
+- **Cheese check:** 198,900 sweep runs through the real sim (0–3 standing presses, a 1–3 up or 1 down press cluster at any of 56 points, no / single / double jump at any of 110 points): 10,348 wins. The Tandem idea cannot be skipped: every win ends on the twin's home step, and runner and twin share x, gear and color on every step of every run until one body is home (the 180 runs where they differ are runs where the runner jumps over its own 2-tile exit door, the twin parks first and the runner has to walk back: a free "home" lesson, not a bug). **Known expert lines, not cheese (flagged for design-lead):** there is no roof (the lanes are open, as in world 2), so world-2 skills can skip a bridge: 168 wins jump the green bridge at yellow or red from P2, and a gear-3 coyote jump off the start of the blue bridge drags to green and lands on P2 (the fastest line). Each needs two or more presses and a timed jump; nothing a cold player does by holding right. If design-lead wants the bridges forced, 2-tile roofs over both bridges in both lanes fit the 15-row budget (version 2).
+- **Fair line:** hold right, press up once anywhere from x = 6.43 to 12.93 (after 98–228 steps of walking: a **131-step window**; before P2, the blue bridge's grace carries you onto the pad). Or let go on P2 (walking 123–227 steps, a **105-step window**), shift up standing, hold right. No tight timing.
+- **Safe spots:** P1 (spawn) and P2, in both lanes at once; the safe ground before the exits.
+- **Hints (runner lane only, level plan v3.1):** `hint: move 1 3` over P1 and `hint: shiftUp 10 3` over P2. Boxes cols 0–2 and 9–11, rows 2–3, empty sky; the floor under both is row 6. Render-only; `tests/levels/hints.test.ts` passes.
+- **Spread:** 0 tiles until a body is home; at most 3 in the intended line, at most 5 if the runner jumps over its exit (rule: ≤ 26).
+
+**Fastest known:** 195 steps (`1+ 1. 1+ 1. 27R 1RJ 122R 1R+ 1R 1R+ 400R`: start in gear 3, coyote jump off the blue bridge, drag to green, land on P2, two presses on the green bridge). Hold-right best (one press): 285 (`98R 1R+ 186R`).
+
+**Solution:** 337 steps. Stand 20, walk 162 steps, shift up on P2 (x = 9.63, green at 10.15), walk on; runner home at step 307, twin home and won at 337. Fairness: ±3 passes on every transition; the press window is 131 steps.

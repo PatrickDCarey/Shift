@@ -56,8 +56,8 @@ const LEVEL_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,31}$/i;
 /** Sanity caps so corrupt data cannot grow without bound. */
 const MAX_LEVELS = 256;
 const MAX_STEPS = 10_000_000;
-/** Stored text above this is ignored before `JSON.parse` (a real save is a few KiB). */
-export const MAX_SAVE_BYTES = 64 * 1024;
+/** Stored text longer than this many UTF-16 code units (`String.length`, not bytes) is ignored before `JSON.parse`; a real save is a few KiB. */
+export const MAX_SAVE_CHARS = 64 * 1024;
 
 export function isValidLevelId(value: unknown): value is string {
   return typeof value === 'string' && LEVEL_ID_PATTERN.test(value);
@@ -150,7 +150,7 @@ function migrate(raw: Record<string, unknown>, from: number): Record<string, unk
  * Every field is validated either way.
  */
 export function parseSave(text: string | null): SaveData {
-  if (text === null || text.length > MAX_SAVE_BYTES) return defaultSave();
+  if (text === null || text.length > MAX_SAVE_CHARS) return defaultSave();
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);

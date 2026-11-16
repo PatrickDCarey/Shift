@@ -26,7 +26,7 @@ Each level has one public board per level version. Runs are **ranked by steps** 
 - **Characters:** `A`–`Z`, `0`–`9`, space and `-`. Letters are upper case only: the pixel font's menus are upper case, and typing needs no Shift (menus never use Shift, `menu-navigation.md`). Lower-case key presses type the upper-case letter.
 - No leading or trailing space, no two spaces in a row (the entry field refuses the key).
 - **The allow-list as one pattern (SEC-2, 2026-11-05):** a name is valid if it matches `^[A-Z0-9-]+( [A-Z0-9-]+)*$` and is 1 to 12 characters long. The client, the SQL check and the edge function all use this pattern (shared constant via M3-04). The server never trims or upper-cases: it rejects anything that doesn't match, with code `name`.
-- **Blocked names:** the server checks a short blocklist after normalising (`0→O`, `1→I`, `3→E`, `4→A`, `5→S`, `7→T`, spaces and `-` removed), and rejects a match with code `name`. The client does not ship the list.
+- **Blocked names:** the server checks a short blocklist after normalising (`0→O`, `1→I`, `3→E`, `4→A`, `5→S`, `7→T`, spaces and `-` removed), and rejects a match with code `name`. The client does not ship the list. _(Matching rule, 2026-11-16:)_ the list has two parts. **Contains** terms (long, unambiguous) reject a name whose normalised form contains them anywhere. **Whole** terms (short words that hide inside ordinary words, such as `ASS` in `CLASS`) reject only a normalised name equal to the term. The terms themselves go to backend-engineer by request line and live only in `backend/functions/submit-run/rules.ts`.
 - Names are not unique and not owned. Two players may both be `ACE`. Accepted for a jam; there are no accounts.
 - **Stored locally** as `settings.leaderboardName` (string or absent). Clearing it in settings stops posting.
 
@@ -93,7 +93,7 @@ None in `tuning.json` (not gameplay). Constants with their owners: request timeo
 8. A `name` rejection reopens the field with `NAME NOT ALLOWED` and the text kept (mocked).
 9. Board rows: 5 rows sorted by steps then submission order; the same name appears once at its best; the player's row outside the top 5 shows as a sixth row with the returned rank (mocked).
 10. Times on the board equal `formatTime(steps)`: 775 → `0:12.91`.
-11. Server (unit, M3-11): floor = floor(0.85 × fastest known); a run one step under it is rejected `floor`, one at it is accepted; a wrong version is rejected `version`; names failing length, charset, spacing or the normalised blocklist are rejected `name` (`ACE` ok, `A  CE`, ` ACE`, 13 chars, lower case all rejected).
+11. Server (unit, M3-11): floor = floor(0.85 × fastest known); a run one step under it is rejected `floor`, one at it is accepted; a wrong version is rejected `version`; names failing length, charset, spacing or the normalised blocklist are rejected `name` (`ACE` ok, `A  CE`, ` ACE`, 13 chars, lower case all rejected). Blocklist: `SH1T`, `F-UCK` and `ASS` rejected; `CLASS`, `GRAPE`, `COCKPIT` and `BASS` accepted.
 12. Server (unit): 20 submissions in one minute from one IP all accepted; the 21st-plus may be `rate`.
 13. The client never sends or reads `input_log` in a select (`select=*` refused by the column grants; integration test from M1-19).
 14. Settings: clearing the name stops posting (spy) and POST appears again on the next win.
