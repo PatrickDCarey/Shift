@@ -12,7 +12,7 @@ export type SceneTarget = 'game' | 'title' | 'levelSelect' | 'controls';
 
 export interface SceneJump {
   readonly target: SceneTarget;
-  readonly data?: { readonly levelId?: string; readonly focusId?: string };
+  readonly data?: { readonly levelId?: string; readonly focusId?: string; readonly from?: 'title' };
 }
 
 /** Data the title and level select scenes accept in `init`. */
@@ -30,7 +30,7 @@ export function titleJump(action: TitleAction): SceneJump {
     case 'levels':
       return { target: 'levelSelect' };
     case 'controls':
-      return { target: 'controls' };
+      return { target: 'controls', data: { from: 'title' } };
   }
 }
 

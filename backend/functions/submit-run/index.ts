@@ -6,7 +6,19 @@
 // Client: POST /functions/v1/submit-run with the anon key (see src/net, M3-13).
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
-import { ATTEMPT_RETENTION_MS, MAX_BODY_CHARS, checkSubmission, hashIp, rateVerdict, shouldStore, type RejectCode } from './rules.ts';
+import {
+  MAX_BODY_BYTES,
+  MAX_BODY_CHARS,
+  RATE_LIMIT_PER_HOUR,
+  RATE_LIMIT_PER_MINUTE,
+  attemptVerdict,
+  checkSubmission,
+  clientIp,
+  hashIp,
+  parseRecordResult,
+  shouldPrune,
+  type RejectCode,
+} from './rules.ts';
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -20,32 +32,61 @@ function reply(body: Record<string, unknown>, status: number): Response {
 
 const rejected = (code: RejectCode): Response => reply({ ok: false, code }, code === 'rate' ? 429 : 400);
 
+
+/** Reads the request body, counting bytes and cancelling the stream past the cap. Null when over it. */
+async function readCappedBody(req: Request): Promise<string | null> {
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let text = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    if (bytes > MAX_BODY_BYTES) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  text += decoder.decode();
+  return text.length > MAX_BODY_CHARS ? null : text;
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return rejected('invalid');
 
   const url = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  // K5: own secret for the IP hash (supabase secrets set IP_HASH_SALT=<random string>), so rotating the service key does not reset the buckets.
+  const salt = Deno.env.get('IP_HASH_SALT');
   if (!url || !serviceKey) return reply({ ok: false, code: 'invalid' }, 500);
   const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
   // Rate limit first: it is cheap and covers malformed floods. The IP comes from the CDN header
-  // and is stored only as a keyed hash. Order (B1, B4): prune old rows, count, then insert only
-  // under the limit, so a flood cannot grow the table. Any database error fails closed.
-  const ipHash = await hashIp(req.headers.get('cf-connecting-ip') ?? 'unknown', serviceKey);
-  const now = Date.now();
-  const pruned = await db.from('submit_attempts').delete().lt('created_at', new Date(now - ATTEMPT_RETENTION_MS).toISOString());
-  const since = (ms: number) => new Date(now - ms).toISOString();
-  const attempts = () => db.from('submit_attempts').select('id', { count: 'exact', head: true }).eq('ip_hash', ipHash);
-  const [minute, hour] = await Promise.all([attempts().gte('created_at', since(60_000)), attempts().gte('created_at', since(ATTEMPT_RETENTION_MS))]);
-  const verdict = pruned.error || minute.error || hour.error ? 'unavailable' : rateVerdict(minute.count, hour.count);
+  // (clientIp: cf-connecting-ip only) and is stored only as a keyed hash. A request with no usable address is refused
+  // (B-2), never put in a shared bucket. Count and record happen in ONE SQL call, serialised per
+  // IP (B-3, migration 0004). Any database error fails closed.
+  const ip = clientIp(req.headers);
+  if (ip === null || !salt) return reply({ ok: false, code: 'rate' }, 503); // K2: a server-side refusal, not a bad submission
+  const ipHash = await hashIp(ip, salt);
+  const gate = await db.rpc('submit_attempt', {
+    p_ip_hash: ipHash,
+    p_per_minute: RATE_LIMIT_PER_MINUTE,
+    p_per_hour: RATE_LIMIT_PER_HOUR,
+    p_prune: shouldPrune(Math.random()),
+  });
+  const verdict = gate.error ? 'unavailable' : attemptVerdict(gate.data);
   if (verdict === 'unavailable') return reply({ ok: false, code: 'rate' }, 503);
   if (verdict === 'limited') return rejected('rate');
-  const logged = await db.from('submit_attempts').insert({ ip_hash: ipHash });
-  if (logged.error) return reply({ ok: false, code: 'rate' }, 503);
 
-  const text = await req.text();
-  if (text.length > MAX_BODY_CHARS) return rejected('invalid');
+  // N4: refuse by declared length first, then still cap what is actually read (the header can lie or be absent).
+  const declared = Number(req.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return rejected('invalid');
+  const text = await readCappedBody(req);
+  if (text === null) return rejected('invalid');
   let body: unknown;
   try {
     body = JSON.parse(text);
@@ -56,23 +97,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (!checked.ok) return rejected(checked.code);
 
   const { levelId, levelVersion, steps, name, inputLog } = checked.value;
-  // Retention (B2): one row per name per level version, the best. A slower repeat is not stored.
-  const mine = () => db.from('runs').select('steps').eq('level_id', levelId).eq('level_version', levelVersion).eq('display_name', name);
-  const existing = await mine().order('steps', { ascending: true }).limit(1);
-  if (existing.error) return reply({ ok: false, code: 'invalid' }, 500);
-  if (shouldStore(existing.data[0]?.steps ?? null, steps)) {
-    const { error } = await db.from('runs').insert({
-      level_id: levelId,
-      level_version: levelVersion,
-      display_name: name,
-      steps,
-      input_log: inputLog,
-    });
-    if (error) return reply({ ok: false, code: 'invalid' }, 500);
-    await db.from('runs').delete().eq('level_id', levelId).eq('level_version', levelVersion).eq('display_name', name).gt('steps', steps);
-  }
-
-  const board = () => db.from('runs').select('id', { count: 'exact', head: true }).eq('level_id', levelId).eq('level_version', levelVersion);
-  const [better, total] = await Promise.all([board().lt('steps', steps), board()]);
-  return reply({ ok: true, rank: (better.count ?? 0) + 1, total: total.count ?? 0 }, 200);
+  // Best per name (B-5): one upsert that keeps the lower time, rank and total from the same call.
+  // `verified` is false until server replay exists (B-1, backend/README.md). A database fault is a
+  // 503 `rate` (the client treats it as a failure to retry later), not a bad submission (B-6).
+  const saved = await db.rpc('record_run', {
+    p_level_id: levelId,
+    p_level_version: levelVersion,
+    p_name: name,
+    p_steps: steps,
+    p_input_log: inputLog,
+    p_verified: false,
+  });
+  const result = saved.error ? null : parseRecordResult(saved.data);
+  if (result === null) return reply({ ok: false, code: 'rate' }, 503);
+  return reply({ ok: true, rank: result.rank, total: result.total }, 200);
 });

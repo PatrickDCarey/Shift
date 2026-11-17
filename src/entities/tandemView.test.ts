@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cameraScroll, snapFeet, type CameraBody } from './camera';
 import { devTandemLevel } from './devLevel';
+import { loadGameParams } from './params';
 import { pauseTipBudget, resumeTipBudget, startTipBudget } from './stickyTipBudget';
 import { edgeArrowPlacement, TANDEM_STRIPS, tandemCamera, twinLaneTest } from './tandemView';
 import { gridLevel } from './testkit';
@@ -9,10 +10,11 @@ import { hudFrameNames } from '../fx/pixel';
 const TS = 16;
 const VIEW = { w: 480, h: 270 };
 const BODY_H = 24;
+const MAX_APART = loadGameParams().tuning.cameraMaxApartTiles;
 
 function frame(a: CameraBody, b: CameraBody | null) {
   const bodies = b === null ? [a] : [a, b];
-  const focus = tandemCamera(bodies, BODY_H, TS);
+  const focus = tandemCamera(bodies, BODY_H, TS, MAX_APART);
   if (focus === null) throw new Error('no focus');
   const scroll = cameraScroll(focus.x, focus.y, VIEW.w, VIEW.h, 120 * TS, 15 * TS);
   return { focus, scroll };

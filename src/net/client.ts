@@ -17,9 +17,16 @@ import { MAX_LIMIT, MAX_OFFSET, clampInt, isLevelId, isLevelVersion, parseEntrie
 
 export const DEFAULT_TIMEOUT_MS = 5000;
 /** A board of MAX_LIMIT rows is about 15 KB; anything near this is not one. */
-const MAX_BODY_CHARS = 256 * 1024;
+const MAX_BODY_CHARS = 64 * 1024;
+const MAX_BODY_BYTES = MAX_BODY_CHARS;
 /** Explicit columns only: `input_log` is not readable by clients and `*` would be refused. */
 const SELECT_COLUMNS = 'display_name,steps,verified,created_at';
+/**
+ * B-1 switch. When true the public board asks only for `verified = true` rows. Default OFF: no
+ * behaviour change until the owner chooses (backend/README.md, "Unverified times"). Every run is
+ * stored `verified = false` until server replay exists, so turning this on today shows an empty board.
+ */
+export const PUBLIC_BOARD_VERIFIED_ONLY = false;
 const ORDER = 'steps.asc,created_at.asc,id.asc';
 
 /**
@@ -39,6 +46,8 @@ export interface NetClientOptions {
   readonly timeoutMs?: number;
   /** Defaults to `navigator.onLine` (only a `false` is trusted). */
   readonly isOnline?: () => boolean;
+  /** Only list verified runs. Defaults to PUBLIC_BOARD_VERIFIED_ONLY. */
+  readonly verifiedOnly?: boolean;
 }
 
 export interface NetClient {
@@ -80,6 +89,32 @@ function safeOnline(probe: () => boolean): boolean {
   }
 }
 
+/**
+ * Reads the body as text, counting bytes as they arrive and cancelling the stream once past
+ * the cap (N1), so a missing or lying Content-Length cannot make us buffer a huge body.
+ * Returns null when over the cap. A response with no stream (odd environments) falls back to `text()`.
+ */
+async function readCappedText(res: Response): Promise<string | null> {
+  if (!res.body) {
+    const whole = await res.text();
+    return whole.length > MAX_BODY_CHARS ? null : whole;
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let text = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    bytes += value.byteLength;
+    if (bytes > MAX_BODY_BYTES) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+}
+
 /** One GET, parsed as JSON, bounded by `timeoutMs` for the whole exchange. */
 async function getJson(
   url: string,
@@ -110,8 +145,8 @@ async function getJson(
       // Refuse an oversized body before reading it; the post-read check below covers a missing or false header.
       const declared = Number(res.headers?.get('content-length'));
       if (Number.isFinite(declared) && declared > MAX_BODY_CHARS) return fail('invalid-response');
-      const text = await res.text();
-      if (text.length > MAX_BODY_CHARS) return fail('invalid-response');
+      const text = await readCappedText(res);
+      if (text === null) return fail('invalid-response');
       try {
         return { ok: true, data: JSON.parse(text) as unknown };
       } catch {
@@ -128,7 +163,14 @@ async function getJson(
   }
 }
 
-function topRunsUrl(config: NetConfig, levelId: string, version: number, limit: number, offset: number): string {
+function topRunsUrl(
+  config: NetConfig,
+  levelId: string,
+  version: number,
+  limit: number,
+  offset: number,
+  verifiedOnly: boolean,
+): string {
   const params = new URLSearchParams({
     level_id: `eq.${levelId}`,
     level_version: `eq.${version}`,
@@ -137,6 +179,7 @@ function topRunsUrl(config: NetConfig, levelId: string, version: number, limit: 
     limit: String(limit),
     offset: String(offset),
   });
+  if (verifiedOnly) params.set('verified', 'eq.true');
   return `${config.baseUrl}/rest/v1/runs?${params.toString()}`;
 }
 
@@ -145,6 +188,7 @@ export function createNetClient(options: NetClientOptions): NetClient {
   const fetchFn = options.fetch ?? defaultFetch;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const isOnline = options.isOnline ?? defaultIsOnline;
+  const verifiedOnly = options.verifiedOnly ?? PUBLIC_BOARD_VERIFIED_ONLY;
 
   async function fetchTopRuns(
     levelId: string,
@@ -158,7 +202,7 @@ export function createNetClient(options: NetClientOptions): NetClient {
       if (!safeOnline(isOnline)) return fail('offline');
       const rows = clampInt(limit, 1, MAX_LIMIT, 10);
       const skip = clampInt(offset, 0, MAX_OFFSET, 0);
-      const url = topRunsUrl(config, levelId, levelVersion, rows, skip);
+      const url = topRunsUrl(config, levelId, levelVersion, rows, skip, verifiedOnly);
       const res = await getJson(url, config, fetchFn, timeoutMs);
       if (!res.ok) return res;
       const entries = parseEntries(res.data, rows);

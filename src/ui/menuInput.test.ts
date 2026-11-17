@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createList, moveGridFocus, moveList, moveListFocus } from './menuFocus';
-import { MENU_CAPTURE_CODES, createMenuInput, resolveIntent, stepMenuInput } from './menuInput';
+import { MENU_CAPTURE_CODES, createMenuInput, resolveIntent, shouldPreventDefault, stepMenuInput } from './menuInput';
 import type { MenuInputState, MenuIntent, MenuKeyOptions } from './menuInput';
 
 /** Run a script of frames (each a list of held codes) and return the intents. */
@@ -97,6 +97,35 @@ describe('stepMenuInput', () => {
       expect(MENU_CAPTURE_CODES).toContain(code);
     }
   });
+
+  it('a keydown and keyup inside one frame still acts once (low frame rate)', () => {
+    const step = stepMenuInput(createMenuInput(), [], { pressed: ['Enter'] });
+    expect(step.intent.kind).toBe('choose');
+    expect(stepMenuInput(step.state, [], {}).intent.kind).toBe('none');
+  });
+
+  it('a press of a masked key (released and pressed again within a frame) counts', () => {
+    const state = createMenuInput(['Space']);
+    expect(stepMenuInput(state, ['Space'], { pressed: ['Space'] }).intent.kind).toBe('choose');
+    expect(stepMenuInput(state, ['Space']).intent.kind).toBe('none');
+  });
+
+  it('blocked frames drop pressed codes too', () => {
+    const step = stepMenuInput(createMenuInput(), [], { pressed: ['Enter'], blocked: true });
+    expect(step.intent.kind).toBe('none');
+  });
+});
+
+describe('shouldPreventDefault', () => {
+  it('prevents every menu code', () => {
+    for (const code of MENU_CAPTURE_CODES) expect(shouldPreventDefault({ code })).toBe(true);
+  });
+  it('leaves browser shortcuts, Tab, F-keys and other keys alone', () => {
+    expect(shouldPreventDefault({ code: 'ArrowLeft', altKey: true })).toBe(false);
+    expect(shouldPreventDefault({ code: 'KeyR', ctrlKey: true })).toBe(false);
+    expect(shouldPreventDefault({ code: 'KeyS', metaKey: true })).toBe(false);
+    for (const code of ['Tab', 'F5', 'F12', 'ShiftLeft', 'KeyQ']) expect(shouldPreventDefault({ code })).toBe(false);
+  });
 });
 
 describe('list focus', () => {
@@ -133,5 +162,21 @@ describe('grid focus (checks 13)', () => {
   });
   it('an empty grid stays at the origin', () => {
     expect(moveGridFocus([], { row: 3, col: 3 }, 'down')).toEqual({ row: 0, col: 0 });
+  });
+});
+
+describe('HeldKeys pressed latch', () => {
+  it('reports a keydown and keyup between two polls, once, and ignores repeats', async () => {
+    const { HeldKeys } = await import('./heldKeys');
+    const keys = new HeldKeys();
+    keys.keyDown('Enter');
+    keys.keyUp('Enter');
+    keys.keyDown('Enter', true);
+    expect([...keys.snapshot()]).toEqual([]);
+    expect([...keys.takePressed()]).toEqual(['Enter']);
+    expect([...keys.takePressed()]).toEqual([]);
+    keys.keyDown('Space');
+    keys.clear();
+    expect([...keys.takePressed()]).toEqual([]);
   });
 });

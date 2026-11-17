@@ -8,6 +8,7 @@
  *  - The drag-drop cue is gameplay information and is never fully removed, in any mode.
  */
 import { palette } from './palette';
+import type { WhyStep } from './pixel/effects';
 
 export interface EffectSettings {
   readonly reducedEffects: boolean;
@@ -84,6 +85,25 @@ export function wipeAt(elapsedMs: number): WipeStep | null {
   const half = palette.flash.durationMs / 2;
   if (elapsedMs < 0 || elapsedMs >= palette.flash.durationMs) return null;
   return { frame: elapsedMs < half ? 0 : 1, alpha: palette.flash.alpha };
+}
+
+/** How long the "why you fell" cue shows: 45 sim frames (clarity-fixes.md PT-3). */
+export const WHY_FELL_MS = 750;
+/** The bold ring shows this long at the start; the dithered fade this long at the end. */
+export const WHY_FELL_BOLD_MS = 120;
+export const WHY_FELL_FADE_MS = 150;
+
+/**
+ * Which "why you fell" step to draw `elapsedMs` after the fall began (`fx/why/<band>/<step>`), or
+ * null when the cue is over. Motion: bold, hold, fade (two changes in 0.75 s, under the flash cap).
+ * Reduced motion: `hold` for the whole time, nothing changes. Gameplay information: reduced effects
+ * never turns it off.
+ */
+export function whyFellFrame(elapsedMs: number, reducedMotion: boolean): WhyStep | null {
+  if (elapsedMs < 0 || elapsedMs >= WHY_FELL_MS) return null;
+  if (reducedMotion) return 'hold';
+  if (elapsedMs < WHY_FELL_BOLD_MS) return 'bold';
+  return elapsedMs >= WHY_FELL_MS - WHY_FELL_FADE_MS ? 'fade' : 'hold';
 }
 
 /** At most this many white flashes or wipes per second across the screen, both bodies included. */

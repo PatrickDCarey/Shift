@@ -1,0 +1,15 @@
+level: w3-02
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.    stand
+# 365R   walk: the runner is pinned at the kerb (x = 7.625, step 143); the twin walks on to Q (x = 19.7)
+# 10.    let go: the twin stops on Q, the runner stands at the kerb
+# 80L    walk back 4 tiles: runner x = 3.6, twin x = 15.7 (still on Q)
+# 10. 1+ 1.  shift up to gear 2 standing
+# 25R 1RJ  run (green after 0.6 tiles) and jump the kerb green at x = 5.7
+# 229R   the runner lands green on its green bridge; the twin crosses its green bridge and parks (step 641);
+#        the runner parks at step 742 (won)
+# Fairness (one input moved, others fixed): walk 323-417 steps (95), walk back 51-122 (72), jump 10-39 (30).
+steps: 742
+---
+20. 365R 10. 80L 10. 1+ 1. 25R 1RJ 229R

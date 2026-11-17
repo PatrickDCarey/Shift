@@ -18,20 +18,23 @@
 import type { InputFrame } from '../core/types';
 import { actionsForCode, DEFAULT_BINDINGS, heldActions, toSimButtons, type Action, type Bindings } from '../ui/bindings';
 
+/** A press of a key the scene itself acts on (everything else goes to the sim as held actions). */
+export type PressKind = 'pause' | 'restart';
+
 export class InputSampler {
   private readonly held = new Set<string>();
   private readonly latched = new Set<string>();
   /** Codes pressed while paused; ignored by `sample()` until released. */
   private readonly masked = new Set<string>();
   private paused = false;
-  private readonly edges: Record<'pause' | 'restart', number> = { pause: 0, restart: 0 };
+  private presses: PressKind[] = [];
 
   constructor(private readonly bindings: Bindings = DEFAULT_BINDINGS) {}
 
   keyDown(code: string): void {
     const isRepeat = this.held.has(code);
     this.held.add(code);
-    if (!isRepeat) this.countEdges(code);
+    if (!isRepeat && !this.paused) this.queuePresses(code);
     if (this.paused) {
       if (!isRepeat) this.masked.add(code);
       return;
@@ -49,14 +52,14 @@ export class InputSampler {
     this.held.clear();
     this.latched.clear();
     this.masked.clear();
-    this.edges.pause = 0;
-    this.edges.restart = 0;
+    this.presses = [];
   }
 
   /** Enter or leave the pause. Latched taps never survive either change. */
   setPaused(paused: boolean): void {
     this.paused = paused;
     this.latched.clear();
+    this.presses = [];
   }
 
   /** True while the code is physically down (for tests and the debug overlay). */
@@ -64,7 +67,14 @@ export class InputSampler {
     return this.held.has(code);
   }
 
-  /** True once per Esc/P press (not on key repeat); consumes it. */
+  /** Every Esc/P/R press since the last call, in arrival order; consumes them. */
+  takePresses(): readonly PressKind[] {
+    const taken = this.presses;
+    this.presses = [];
+    return taken;
+  }
+
+  /** True once per Esc/P press (not on key repeat); consumes the pause presses. */
   takePausePress(): boolean {
     return this.takeEdge('pause');
   }
@@ -84,15 +94,15 @@ export class InputSampler {
     return { ...toSimButtons(actions), restart: actions.restart };
   }
 
-  private countEdges(code: string): void {
+  private queuePresses(code: string): void {
     const actions: readonly Action[] = actionsForCode(code, this.bindings);
-    if (actions.includes('pause')) this.edges.pause += 1;
-    if (actions.includes('restart')) this.edges.restart += 1;
+    if (actions.includes('pause')) this.presses.push('pause');
+    if (actions.includes('restart')) this.presses.push('restart');
   }
 
-  private takeEdge(kind: 'pause' | 'restart'): boolean {
-    const pressed = this.edges[kind] > 0;
-    this.edges[kind] = 0;
+  private takeEdge(kind: PressKind): boolean {
+    const pressed = this.presses.includes(kind);
+    this.presses = this.presses.filter((k) => k !== kind);
     return pressed;
   }
 }

@@ -19,7 +19,7 @@ describe('sim event to SFX mapping (adaptive-audio.md acceptance 2, 3)', () => {
     expect(ids([{ type: 'died', body: 0 }])).toEqual(['reset']);
     expect(ids([{ type: 'restart' }])).toEqual(['reset']);
     expect(ids([{ type: 'won' }])).toEqual(['levelComplete']);
-    expect(ids([{ type: 'fallThrough', body: 0 }])).toEqual(['fallThrough']);
+    expect(ids([{ type: 'fallThrough', body: 0, cells: [{ col: 3, row: 5, band: 2 }] }])).toEqual(['fallThrough']);
   });
 
   it('passes the body band from the context to jump and land', () => {

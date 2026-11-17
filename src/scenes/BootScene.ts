@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXEL_KEYS } from '../fx';
-import { SCENE_KEYS, getSaveStore } from './keys';
+import { SCENE_KEYS, bootTarget, getSaveStore } from './keys';
 // The pixel sheets (art-director, `npm run art:build`; docs/art/style.md "Assets").
 // PNG and XML come in as `?url`: Vite copies them to dist/assets with relative
 // paths (base './', assetsInlineLimit 0), so they load from the itch.io zip.
@@ -52,6 +52,7 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     // Fail at boot, not at the first level complete, if main.ts did not share the store.
     getSaveStore(this.registry);
-    this.scene.start(SCENE_KEYS.game);
+    // The title on a normal load; `?level=` / `?replay=1` still open the game directly.
+    this.scene.start(bootTarget(window.location.search));
   }
 }

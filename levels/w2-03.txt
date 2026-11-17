@@ -2,19 +2,20 @@
 # Target first-time solve: 30-60 s (a jump off the edge after w2-01/w2-02, a drop through the red floor, then
 #   the same sprint without the jump).
 # Layout (one screen, 30 x 13): left wall, safe ledge (cols 1-10, spawn against the wall, open sky: stop and
-#   think) -> a drop of exactly 4 tiles -> 14-tile red floor (cols 11-24) over a pit -> safe exit pad
-#   (cols 25-29, exit 2 tiles tall at col 27).
+#   think) -> a 3-tile pit at the foot of the ledge (cols 11-13, v2) -> 11-tile red floor (cols 14-24) a drop
+#   of exactly 4 tiles below the ledge, over the same pit -> safe exit pad (cols 25-29, exit 2 tiles tall at col 27).
+# Version 2 (design-lead B6-06): the pit at the foot of the ledge shows a gap, which invites the world-2 jump.
 # Sprint (gear 4, red at x = 4.73) and walk off the edge: 29 airborne steps, landing 5.8 tiles out (x = 17.1),
 #   under the 6-tile drag point, so you land red on the red floor. Jump off the edge (or a coyote jump just
 #   after it) and you fly 10.65+ tiles, drag to yellow at 6, and fall through the red floor.
 # The drop must stay exactly 4 tiles: from 5 tiles the walk-off lands yellow too (0 of 1,120 lines win).
-# The red floor runs 14 tiles so that no jump off the ledge (coyote jumps included) reaches the exit pad.
+# The exit pad starts at col 25 so that no jump off the ledge (coyote jumps included) reaches it.
 # No roof (world 2). No hint glyph (none in the plan).
 id: w2-03
 title: Step Down
 world: 2
 teaches: walking off a ledge is a shorter flight than jumping
-version: 1
+version: 2
 ---
 #.............................
 #.............................
@@ -25,7 +26,7 @@ version: 1
 ###########...................
 ###########................E..
 ###########................E..
-###########RRRRRRRRRRRRRR#####
+###########...RRRRRRRRRRR#####
 ###########..............#####
 ###########..............#####
 ###########..............#####

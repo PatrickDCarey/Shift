@@ -1,0 +1,40 @@
+# World 3, level 5 (finale). COMBINE: air-stop split, clamp down, a pin to re-align, a shared drag jump, park,
+#   and the twin braking alone.
+# Target first-time solve: 3-5 min.
+# Layout (72 x 15, scrolls). Runner lane on top (floor row 6), twin lane below (floor row 13).
+#   1-2 Split and bridges (w3-03/w3-04): runner's hanging block (col 16, rows 1-3) and blue bridge (cols 17-19,
+#       over the twin's gap); twin's flat Coast (red runway cols 8-12, gap 13-19, yellow pad cols 20-23).
+#   3 Clamp down and pin: twin safe pad cols 24-31, blue strip cols 32-34, safe cols 35-44; runner safe
+#       cols 20-44. Both lanes have a 1-tile safe kerb at col 45. Press down twice on the twin's pad (runner
+#       clamped at gear 1, twin brakes to blue), hold right: the twin waits at its kerb while the runner
+#       catches up; then both are held at x = 44.625, exactly in step.
+#   4 Shared drag jump: walk back about 8 tiles, press up three times, run and jump the kerbs together:
+#       both lanes have the same 2-tile gap (cols 46-47) and 6-tile yellow pad (cols 48-53); the flight
+#       drags both to yellow and they land on their pads.
+#   5 Park and brake alone: the runner's exit is at col 55, right after its pad. The twin's lane goes on:
+#       safe pad cols 54-61, blue bridge cols 62-66, exit col 69. Shift down twice on the pad (the parked
+#       runner ignores it).
+# Deviation from levels-w3.md: safe kerbs instead of full-height blue walls (a blue wall cannot hold a walking
+#   body in the sim, see w3-02), so the walls are passed with the shared jump instead of a run-up.
+# No hints (levels-w3.md).
+id: w3-05
+title: Redshift
+world: 3
+teaches: combine: air-stop split, clamp down, kerb pin, shared drag jump, park, brake
+version: 1
+---
+#.......................................................................
+#...............#.......................................................
+#...............#.......................................................
+#...............#.......................................................
+#......................................................E................
+#@...........................................#.........E................
+#################BBB##########################..YYYYYY##################
+#.......................................................................
+#.......................................................................
+#.......................................................................
+#.......................................................................
+#....................................................................E..
+#&...........................................#.......................E..
+########RRRRR.......YYYY########BBB###########..YYYYYY########BBBBB#####
+########................########...###########........########.....#####

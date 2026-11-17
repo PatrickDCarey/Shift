@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PauseState } from './pauseState';
+import { PauseState, pauseWanted } from './pauseState';
 
 describe('PauseState', () => {
   it('toggles on Esc/P and reports the change', () => {
@@ -40,5 +40,19 @@ describe('PauseState', () => {
     p.toggle(true);
     p.reset();
     expect(p.paused).toBe(false);
+  });
+});
+
+describe('pauseWanted', () => {
+  it('opens the pause on any queued pause press, once', () => {
+    expect(pauseWanted(['pause'], false, true)).toBe(true);
+    expect(pauseWanted(['restart', 'pause', 'pause'], false, true)).toBe(true);
+  });
+
+  it('does nothing without a pause press, while paused, or after the win step', () => {
+    expect(pauseWanted([], false, true)).toBe(false);
+    expect(pauseWanted(['restart'], false, true)).toBe(false);
+    expect(pauseWanted(['pause'], true, true)).toBe(false);
+    expect(pauseWanted(['pause'], false, false)).toBe(false);
   });
 });

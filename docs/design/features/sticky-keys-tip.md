@@ -27,7 +27,7 @@ The tip is shown once ever (saved when it is displayed). It never pauses the gam
 
 ## Edge cases
 
-- **Hiding:** Enter, pressing Q, E, Z or X, 12 s untouched, or leaving the level. The alternate gear keys hide it **and still shift the gear** (the key is not swallowed): the player has just learned the lesson.
+- **Hiding:** Enter, pressing Q, E, Z or X, 12 s untouched, **winning the level (hidden on the win step and never brought back for that visit; added 2026-11-16, the card sat over the win banner in the pixel-build playtest)**, or leaving the level. The alternate gear keys hide it **and still shift the gear** (the key is not swallowed): the player has just learned the lesson.
 - **Pausing (amended 2026-11-13, B1):** a pause, from Esc/P or from focus loss, hides the tip only while the game is paused. On resume it comes back where it was, with the rest of its 12 s. The 12 s counts unpaused time only. Reason: an accidental click outside the itch iframe in the first seconds must not burn the one-time tip. The saved flag is unchanged (still set when the tip first shows).
 - **Shift keys do not hide it.** A player still tapping Shift is the one who needs it.
 - **The game runs underneath:** the sim keeps stepping and every game key reaches the game while the tip is up.
@@ -51,6 +51,7 @@ None. `STICKY_TIP_AUTO_HIDE_MS` (12 s) and the panel sizes are UI constants in `
 5. Pressing Q while the tip is visible: the tip hides and the gear drops by one (when above gear 1).
 6. Enter hides the tip. Left alone, it hides 12 s after showing.
 7. Pressing Left or Right Shift does not hide it.
+7a. Winning a level while the tip is visible hides it on the win step; it does not reappear on the results panel or after it (ui B6-19 `hide`, scene B6-29 calls it).
 8. Storage blocked: the tip shows on the first level start of the session and not on the second.
 9. Replay mode: never shown, and the flag is unchanged.
 10. `tipPlacement`: a player at the bottom of the view gets the top position (y 42). A player in the upper half gets the bottom position. Neither position overlaps the HUD rectangle (unit).

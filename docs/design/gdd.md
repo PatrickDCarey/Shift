@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.7 (2026-11-13, batch 4A): pixel cutover: `tileSize` 32 → 16 and the 480×270 base resolution noted (§4.1, §9, §11), no rule or level change; Tandem decision gate moved to Tue Nov 17 (owner decision, §10). Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.8 (2026-11-16, batch 6): **Tandem stays as world 3** (owner decision 2026-11-16: the gate is closed, the gates-world fallback is dropped, and calendar dates no longer drive the plan); three render/scene keys added to `tuning.json` (`runFramesPerTile` 3, `sprintFramesPerTile` 2, `cameraMaxApartTiles` 28, §9); no rule or gameplay-value change. Version 1.7 (2026-11-13, batch 4A): pixel cutover: `tileSize` 32 → 16 and the 480×270 base resolution noted (§4.1, §9, §11), no rule or level change; Tandem decision gate moved to Tue Nov 17 (owner decision, §10). Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -366,8 +366,8 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 ### 7.1 Pieces after M1
 
 - **Colored walls and ceilings (M2, Must):** §4.7; built in M1. Spec with extra checks: `features/colored-walls.md`.
-- **Tandem (M3, Must):** §4.15; spec `features/tandem.md`. Sim and scene built Nov 9–13; decision gate Nov 12 (if it fails, world 3 reverts to the v1.3 gates world and gates become Must again).
-- **Speed gates (Should since v1.4; Must in the fallback):** §4.7; spec `features/speed-gates.md`. Replaces the "speed camera" of v1.2: same characters, but gates read the band of the player's own speed (there is no world speed, conveyors are cut).
+- **Tandem (M3, Must):** §4.15; spec `features/tandem.md`. Sim and scene built; the decision gate was closed by the owner on 2026-11-16: Tandem stays as world 3 and there is no fallback.
+- **Speed gates (Should since v1.4):** §4.7; spec `features/speed-gates.md`. Replaces the "speed camera" of v1.2: same characters, but gates read the band of the player's own speed (there is no world speed, conveyors are cut).
 - **Ice (M3, Should)** (`=`, always solid): while supported only by ice, speed and gear are locked. Shift presses are ignored (not buffered); holding, letting go and reversing do nothing. You leave ice at the speed you entered. Open: what happens at speed 0 on ice (§12). Spec before M3; no tuning key expected.
 - **Cut 2026-11-03** (reasons in `mechanics-review.md` §4; post-jam at most): mud (`~`) and boost pads (`*`), whose puzzles collapse into "slow here" and "go fast"; conveyors (`<` `>`), moving platforms, crates and afterimage ghosts, which each need a new subsystem; and the new ideas considered in the review (tint gates, springs, crumble floors, speed limits, one-way floors).
 
@@ -378,12 +378,12 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 - **Step down:** sprint off a 4-tile ledge onto a red floor. Walking off keeps you red (5.8 tiles of flight); jumping lands yellow and drops you.
 - **Two colors:** a green floor under a yellow ledge 2 tiles up. Shift up mid-run and jump in the 12 steps after you turn yellow.
 - **Stop sign:** a green bridge ends at the exit ledge with no safe pad: let go on the bridge and you drop; hold through it.
-- **Out of Step (Tandem):** both runners cruise red; a red wall in your lane only stops you. Hold on: you restart at blue and are green 0.60–1.88 tiles past the wall (§5.1) while the twin is still red, so your lane has a green bridge where the twin's has a red one.
+- **Out of Step (Tandem, revised 2026-11-16):** both walk blue; a full-height blue wall in your lane holds you (you restart at blue every step), while the twin walks on to a safe pad far ahead. Hold until the twin is on its pad, back up a tile, shift up: both are green 0.6 tiles later and you pass the wall. Spec: `levels-w3.md`.
 - **Gear Split (Tandem):** both sprint-jump; a hanging block in your lane stops you in the air and drops your gear to 1, while the twin drags to gear 3. Holding right now gives you blue and the twin yellow. Press up three times and both clamp at gear 4.
 - **Red Wall (w1-05):** a red wall, 1 safe tile, a red bridge. Arrive red and the wall stops you; from its face red needs 3.23 tiles but only 2.75 remain. Arrive yellow and shift up: red 0.66 tiles later (shift window 2.75 tiles ≈ 18 steps).
 - **Gate (w4-01, Should):** a green gate, 2 safe tiles, a yellow bridge. Green at the gate, yellow 0.56 tiles after shifting up; shift window 3.75 tiles.
 - **Trapdoor (w4-02, Should):** a blue-gate floor over a pit with the exit pocket under its middle. Let go at sprint 3.24 tiles before the pocket (from yellow, 2.03): you turn blue and it opens under you.
-- **Gate Window (fallback world 3 only):** a yellow gate 4 tiles out and a green gate 7.5 tiles out in one gap, landing 4 tiles lower. Only a yellow takeoff passes both: yellow at 4, dragged to green at 6.0, lands 8.10 out.
+- **Gate Window (was the fallback world 3; unused since the fallback was dropped 2026-11-16, kept as a world-4 idea):** a yellow gate 4 tiles out and a green gate 7.5 tiles out in one gap, landing 4 tiles lower. Only a yellow takeoff passes both: yellow at 4, dragged to green at 6.0, lands 8.10 out.
 
 ## 9. Tuning keys (`src/data/tuning.json`)
 
@@ -410,8 +410,11 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 | `playerWidthTiles` | 0.75 | tiles | Player collision box width. |
 | `playerHeightTiles` | 1.5 | tiles | Player collision box height. |
 | `deathFreezeMs` | 400 | ms | Pause between falling out and respawning. |
+| `runFramesPerTile` | 3 | frames/tile | Render only. Run-cycle stride for the `run` anim (blue, green): frame = `floor(x × 3) mod 6` (`decisions.md` 2026-11-16). |
+| `sprintFramesPerTile` | 2 | frames/tile | Render only. Run-cycle stride for the `sprint` anim (yellow, red). |
+| `cameraMaxApartTiles` | 28 | tiles | Scene only. Tandem: two non-home bodies further apart than this are not framed together; the camera follows the runner and an edge arrow points at the twin (`features/tandem.md`). Levels keep intended spreads ≤ 26. |
 
-Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity, jump launch speed. Removed in v1.1: `pivotMaxBand` (replaced by `instantMaxGear`). Removed in v1.6 (T-03, same batch as tech-lead's T-02): `mudMaxGear`, `boostPadGear`, `ghostSpacingTiles`, `ghostLifetimeMs` (their mechanics were cut 2026-11-03). Speed gates, colored walls and Tandem need no keys. Audio, effect and leaderboard constants are not gameplay numbers: they live with their owners (`src/audio`, `src/fx`, `backend/`) as named constants, sized by `features/adaptive-audio.md`, `pixel-effects.md` and `leaderboards.md`.
+Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity, jump launch speed. Removed in v1.1: `pivotMaxBand` (replaced by `instantMaxGear`). Removed in v1.6 (T-03, same batch as tech-lead's T-02): `mudMaxGear`, `boostPadGear`, `ghostSpacingTiles`, `ghostLifetimeMs` (their mechanics were cut 2026-11-03). Speed gates, colored walls and the Tandem sim need no keys (the Tandem camera limit `cameraMaxApartTiles` is a scene number, added in v1.8 so no gameplay number lives in code). Audio, effect and leaderboard constants are not gameplay numbers: they live with their owners (`src/audio`, `src/fx`, `backend/`) as named constants, sized by `features/adaptive-audio.md`, `pixel-effects.md` and `leaderboards.md`.
 
 ## 10. Scope and deliverables
 
@@ -419,7 +422,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 - **Should:** world 4 Gates (4 levels: speed gates, gate floors, ice), per-level leaderboards, adaptive music that pitch-shifts with gear, mirrored twin.
 - **Could:** free key-remap screen, ghost replays of top runs, level timer medals, a hidden "ultraviolet" reverse gear; boost pads as a Tandem split tool (`core-twists.md` §1).
 - **Cut (2026-11-03):** mud, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`); the Paint and Clock twists (`core-twists.md`).
-- **Fallback (decision gate Tue Nov 17; owner decision 2026-11-13, was Nov 12):** if Tandem's sim checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world and speed gates become Must again.
+- **No fallback (owner decision 2026-11-16):** Tandem stays as world 3; the decision gate is closed and the gates-world fallback is off the table. Batches run in priority order; dates do not drive cuts (the owner cuts if and when they choose).
 
 ### Design deliverables
 
@@ -441,7 +444,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 ### Milestone mapping
 
 - **M1 grey-box (Nov 8):** §4 in full in one test room, all input bindings including Q/E and Z/X. Specs: `features/movement-and-gears.md`, `color-gating.md`, `air-drag.md`, `jump.md`, `safe-tiles-and-reset.md`.
-- **M2 first worlds (Nov 15):** worlds 1–2 (9 levels), HUD gear meter, title, level select, Sticky Keys tip. Tandem sim and scene built alongside from Nov 9, with a decision gate on Tue Nov 17 (moved from Nov 12 by the owner, 2026-11-13).
+- **M2 first worlds (Nov 15):** worlds 1–2 (9 levels), HUD gear meter, title, level select, Sticky Keys tip. Tandem sim and scene built alongside from Nov 9 (decision gate closed 2026-11-16: Tandem stays). Milestones are checklists, not dates (owner decision 2026-11-16).
 - **M3 content (Nov 22):** world 3 Tandem (Must, 5 levels), world 4 Gates (Should: gates, ice).
 - **M4 freeze (Nov 28):** itch.io page copy final.
 
@@ -465,8 +468,8 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 2. **No air control** is a strong choice for players used to platformers. Playtest early; the fallback is a small air nudge that cannot change speed band, which would complicate drag math.
 3. ~~World 5 afterimage rule~~ closed 2026-11-03: afterimage cut.
 4. ~~Crates push rules~~ closed 2026-11-03: crates cut.
-5. **Gate readability** (now Should): gates are solid *except* for their color, blocks only *for* their color. Mitigations in `features/speed-gates.md`; matters again only if world 4 or the fallback ships.
+5. **Gate readability** (now Should): gates are solid *except* for their color, blocks only *for* their color. Mitigations in `features/speed-gates.md`; matters again only if world 4 ships.
 6. **Ice at speed 0** (Should): a player who lands on ice standing still would be locked at 0. The ice spec rules on it before M3.
 7. **Tandem first appears at level 10** (after 5 + 4 single-runner levels). A jam voter plays about 10 minutes, so the twist may be missed. **Mitigated 2026-11-04 (owner decision):** the first level of every world is open from the start, so w3-01 is one menu move away (`features/level-select.md`). Still open: whether voters *find* it, and whether level order should change too (move Two Colors after w3-01, or trim world 1). The M2-30 playtest checks it; decide at M2-31.
 8. **Two bodies at a glance** (pillar 2): can a new player tell which body is which, and which gear strip belongs to which, within a few seconds? Checked in the M3 playtest (M3-34); fallbacks are a stronger silhouette difference and lane-colored dividers (with a pattern).
-9. **Tandem decision gate (Nov 12):** if `features/tandem.md` checks 1–12 don't pass, world 3 reverts to the v1.3 Gates world.
+9. ~~Tandem decision gate~~ closed 2026-11-16 by the owner: Tandem stays as world 3, no fallback.

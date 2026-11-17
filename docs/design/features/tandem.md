@@ -1,6 +1,6 @@
 # Feature: Tandem (one throttle, two runners)
 
-_Owner: design-lead. Milestone: M3 content, sim and scene from Nov 9 (decision gate **Tue Nov 17**, owner decision 2026-11-13; see Priority). GDD: §1, §4.15, §7, §11. Chosen by the studio owner on 2026-11-03 from `core-twists.md`. Fallback if the gate fails: world 3 reverts to the v1.3 gates plan._
+_Owner: design-lead. Milestone: M3 content. GDD: §1, §4.15, §7, §11. Chosen by the studio owner on 2026-11-03 from `core-twists.md`. **Confirmed 2026-11-16 (owner decision): Tandem stays as world 3; the decision gate is closed and there is no fallback.**_
 
 ## Rule
 
@@ -102,10 +102,15 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 - The split must come from the level (a wall, an air stop, an exit, a gap), never from timing.
 - Every split a level needs must be undoable or final by design (say which in `levels/README.md`).
 - All existing rules (GDD §6, `level-plan.md`) apply to each lane.
+- **Lane colouring (2026-11-16):** the two start rows are at least 3 rows apart (no shared rooms in shipped levels; stacked lanes always meet this), and **every colored tile in a lane is strictly nearer its own body's start row than the other body's**. In practice: with the runner on the divider and the twin on its lane floor, the top rows of the twin's lane (those at or above the midpoint of the two start rows) carry no colored tiles; hanging blocks there are safe (`#`). Check it in `levels/README.md` per level.
 
 ## Tuning
 
-No new keys. Uses every existing key per body; `deathFreezeMs` and `stepHz` at run level.
+No new sim keys. Uses every existing key per body; `deathFreezeMs` and `stepHz` at run level. The scene reads `cameraMaxApartTiles` (28, added 2026-11-16) for the camera framing limit below.
+
+### Lane colouring of tiles (scene, ruled 2026-11-16)
+
+A colored tile is drawn solid or ghost by **one** body's band. The scene assigns each tile row to a lane: the row belongs to the body whose start row is nearer (ties go to the runner). If the two start rows are fewer than 3 apart (a shared room), the runner's band drives every tile. This is accepted as built (`src/entities/tandemView.ts` `twinLaneTest`). The level rules that make it always right are in "Level rules" below.
 
 ## Acceptance
 
@@ -152,25 +157,17 @@ Test conventions: see `movement-and-gears.md`. "Lane" = a row of tiles holding o
 
 ## Priority
 
-Must (M3 content). **Decision gate Tue Nov 17** (owner decision 2026-11-13; was Nov 12). The criteria are in "Gate criteria" below. Tandem stays world 3 until the gate; no Tandem level or scene work is dropped before it.
+Must (M3 content). **Tandem stays as world 3 (owner decision 2026-11-16).** The decision gate is closed a day early and the gates-world fallback is dropped; nothing below can send world 3 back to gates.
 
-## Gate criteria (owner's call, Tue Nov 17)
+## Completion checklist (was "Gate criteria")
 
-_Added 2026-11-16. Read top to bottom; each line is yes or no._
+_Added 2026-11-16 as the owner's gate list; since the owner closed the gate the same day, it is now only the checklist that says Tandem is Done (board B6-41, B6-44). A failing line is a bug to fix, never a reason to cut Tandem._
 
-**Tandem stays if all five are yes:**
+**Tandem is Done when all five are yes:**
 1. **Sim:** `docs/qa/tandem-gate.md` (qa-tester, T-13) shows Pass for checks **1–18**, each citing a test name.
 2. **Level:** `levels/w3-01` (Two Lanes) exists with a solution recording, and `npx vitest run tests/levels` is green for it (replay and ±3).
 3. **Scene, in a browser:** on w3-01 in the dev or preview build, both bodies are drawn and told apart by shape (S4, also in greyscale), and two gear strips show (runner top, twin bottom). A unit test alone does not count; someone must see it.
 4. **Camera:** S1 (20 tiles apart, both on screen) and S2 (runner home, camera follows twin) seen in the browser or pinned by [scene] unit tests on `cameraFocus`. S3 (edge arrow at 30 apart) may be unit-only: no world-3 level needs it yet.
 5. **Played:** the owner (or orchestrator) wins w3-01 by hand once with the keyboard, and a level without `&` (w1-01) still looks and plays as before.
 
-**Stays with one fix:** only line 3's HUD strips or line 4's S3 arrow are missing or rough. Tandem stays; that piece is first in [scene]'s Batch 6 sitting.
-
-**Fall back to the gates world if any is true:**
-- any of checks **1–12** fails and no fix has landed by the call;
-- the twin is not drawn, or cannot be told from the runner in greyscale;
-- w3-01 has no green recording;
-- T-20 has not landed at all.
-
-Fallback means: world 3 reverts to the v1.3 Gates world (`features/speed-gates.md`, the level-plan fallback table), and the producer's Batch 4 fallback list applies (G-1..G-3; Tandem tasks T-05..T-21 and world-3 Tandem levels dropped). A failure in checks 13–18 alone is a bug, not a fallback.
+Any "no" goes to the owning lane as a bug at the top of the next batch. _(The fallback triggers that stood here until 2026-11-16 are withdrawn: the owner closed the gate and dropped the gates-world fallback.)_

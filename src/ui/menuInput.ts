@@ -65,7 +65,7 @@ export function createMenuInput(heldAtOpen: Iterable<string> = []): MenuInputSta
   return { prev: held, masked: held };
 }
 
-/** Every code any menu reads, for `keyboard.addCapture` (arrows and Space must not scroll the iframe). */
+/** Every code any menu reads: the keydown listener calls `preventDefault` on these (arrows and Space must not scroll the iframe). */
 export const MENU_CAPTURE_CODES: readonly string[] = [
   ...Object.keys(MOVE_CODES),
   ...CHOOSE_CODES,
@@ -73,6 +73,24 @@ export const MENU_CAPTURE_CODES: readonly string[] = [
   RETRY_CODE,
   PAUSE_CODE,
 ];
+
+/** The parts of a `KeyboardEvent` the preventDefault decision reads. */
+export interface KeyEventLike {
+  readonly code: string;
+  readonly ctrlKey?: boolean;
+  readonly altKey?: boolean;
+  readonly metaKey?: boolean;
+}
+
+/**
+ * Should a menu keydown call `preventDefault`? Yes for the menu's own keys,
+ * never with Ctrl, Alt or Meta held (browser shortcuts), and Tab and F-keys
+ * are not menu keys so they are left alone.
+ */
+export function shouldPreventDefault(e: KeyEventLike): boolean {
+  if (e.ctrlKey === true || e.altKey === true || e.metaKey === true) return false;
+  return MENU_CAPTURE_CODES.includes(e.code);
+}
 
 function pressedWith(fresh: ReadonlySet<string>, codes: readonly string[]): boolean {
   return codes.some((code) => fresh.has(code));
@@ -101,6 +119,13 @@ export function resolveIntent(fresh: ReadonlySet<string>, options: MenuKeyOption
   return dir === null ? NO_INTENT : { kind: 'move', dir };
 }
 
+export interface MenuInputOptions extends MenuKeyOptions {
+  /** True during a fade or the results beat. */
+  readonly blocked?: boolean;
+  /** Codes with a (non-repeat) keydown since the last frame, even if already released again. */
+  readonly pressed?: Iterable<string>;
+}
+
 export interface MenuInputStep {
   readonly state: MenuInputState;
   readonly intent: MenuIntent;
@@ -114,14 +139,18 @@ export interface MenuInputStep {
 export function stepMenuInput(
   state: MenuInputState,
   held: Iterable<string>,
-  options: MenuKeyOptions & { readonly blocked?: boolean } = {},
+  options: MenuInputOptions = {},
 ): MenuInputStep {
   const now = new Set(held);
-  // A masked code stays masked only while it stays down.
-  const masked = new Set([...state.masked].filter((code) => now.has(code)));
+  const pressed = new Set(options.pressed ?? []);
+  // A masked code stays masked only while it stays down and is not pressed anew.
+  const masked = new Set([...state.masked].filter((code) => now.has(code) && !pressed.has(code)));
   if (options.blocked === true) {
     return { state: { prev: now, masked: new Set([...masked, ...now]) }, intent: NO_INTENT };
   }
-  const fresh = new Set([...now].filter((code) => !state.prev.has(code) && !masked.has(code)));
+  // A keydown event always counts, even when its keyup landed in the same frame.
+  const fresh = new Set(
+    [...now, ...pressed].filter((code) => pressed.has(code) || (!state.prev.has(code) && !masked.has(code))),
+  );
   return { state: { prev: now, masked }, intent: resolveIntent(fresh, options) };
 }

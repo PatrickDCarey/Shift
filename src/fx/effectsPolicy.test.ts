@@ -8,6 +8,8 @@ import {
   exitPulseFrame,
   requestFlash,
   wipeAt,
+  whyFellFrame,
+  WHY_FELL_MS,
 } from './effectsPolicy';
 import { palette } from './palette';
 
@@ -105,5 +107,25 @@ describe('requestFlash (3 per second across the screen)', () => {
     const h = Object.freeze([0, 10]);
     requestFlash(h, 20);
     expect(h).toEqual([0, 10]);
+  });
+});
+
+describe('whyFellFrame', () => {
+  it('motion: bold, hold, fade, then done after 750 ms', () => {
+    expect(whyFellFrame(0, false)).toBe('bold');
+    expect(whyFellFrame(119, false)).toBe('bold');
+    expect(whyFellFrame(120, false)).toBe('hold');
+    expect(whyFellFrame(599, false)).toBe('hold');
+    expect(whyFellFrame(600, false)).toBe('fade');
+    expect(whyFellFrame(WHY_FELL_MS - 1, false)).toBe('fade');
+    expect(whyFellFrame(WHY_FELL_MS, false)).toBeNull();
+  });
+  it('reduced motion holds one static frame for the same time', () => {
+    for (const t of [0, 100, 400, WHY_FELL_MS - 1]) expect(whyFellFrame(t, true)).toBe('hold');
+    expect(whyFellFrame(WHY_FELL_MS, true)).toBeNull();
+  });
+  it('is null before the fall starts', () => {
+    expect(whyFellFrame(-1, false)).toBeNull();
+    expect(whyFellFrame(-1, true)).toBeNull();
   });
 });

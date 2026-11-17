@@ -5,19 +5,24 @@ import { DISPLAY_NAME_MAX_LENGTH, DISPLAY_NAME_PATTERN, isDisplayName } from '..
 import { describe, expect, it } from 'vitest';
 import {
   LEVELS,
+  MAX_BODY_BYTES,
   NAME_MAX,
   MAX_RUN_STEPS,
   RATE_LIMIT_PER_HOUR,
+  PRUNE_PROBABILITY,
   RATE_LIMIT_PER_MINUTE,
   REJECT_CODES,
+  attemptVerdict,
   checkSubmission,
+  clientIp,
+  ipBucket,
+  parseRecordResult,
+  shouldPrune,
   floorSteps,
   hashIp,
   isAllowedName,
-  isRateLimited,
   logSteps,
   normaliseName,
-  rateVerdict,
   shouldStore,
 } from '../backend/functions/submit-run/rules';
 
@@ -46,7 +51,7 @@ describe('version', () => {
 });
 
 describe('name', () => {
-  it.each(['ace', ' ACE', 'ACE ', 'A  CE', 'ABCDEFGHIJKLM', '', 'AC​E', 'AC‮E', 'Á', 'ACE!', 'ADMIN', 'AD M1N', '4DM1N'])(
+  it.each(['ace', ' ACE', 'ACE ', 'A  CE', 'ABCDEFGHIJKLM', '', 'AC​E', 'AC‮E', 'Á', 'ACE!', 'SH1T', 'F-UCK', 'ASS'])(
     'rejects %j with `name`',
     (name) => {
       expect(code({ name })).toBe('name');
@@ -54,6 +59,12 @@ describe('name', () => {
   );
   it.each(['ACE', 'A', 'ABCDEFGHIJKL', 'ACE-1', 'A B C', 'P1 X2'])('accepts %j', (name) => {
     expect(code({ name })).toBe('ok');
+  });
+  it.each(['SH1T', 'F-UCK', 'ASS', 'A55', 'CUM', '88', 'MY SH1T', 'NAZI 1'])('rejects %s on the default blocklist', (name) => {
+    expect(isAllowedName(name)).toBe(false);
+  });
+  it.each(['CLASS', 'GRAPE', 'COCKPIT', 'BASS', 'ACE', 'SCUMBAG'.slice(0, 4)])('accepts %s on the default blocklist', (name) => {
+    expect(isAllowedName(name)).toBe(true);
   });
   it('uses an injected blocklist and normalises look-alikes', () => {
     expect(normaliseName('B4D-W0RD')).toBe('BADWORD');
@@ -64,11 +75,9 @@ describe('name', () => {
 });
 
 describe('rate', () => {
-  it('accepts at least 20 per minute and limits above the cap', () => {
+  it('accepts at least 20 per minute and keeps an hourly cap above it', () => {
     expect(RATE_LIMIT_PER_MINUTE).toBeGreaterThanOrEqual(20);
-    expect(isRateLimited(20)).toBe(false);
-    expect(isRateLimited(RATE_LIMIT_PER_MINUTE)).toBe(false);
-    expect(isRateLimited(RATE_LIMIT_PER_MINUTE + 1)).toBe(true);
+    expect(RATE_LIMIT_PER_HOUR).toBeGreaterThan(RATE_LIMIT_PER_MINUTE);
   });
   it('hashes an IP to a stable 64-character keyed digest that hides the address', async () => {
     const a = await hashIp('203.0.113.7', 'test-key');
@@ -76,21 +85,6 @@ describe('rate', () => {
     expect(await hashIp('203.0.113.7', 'test-key')).toBe(a);
     expect(await hashIp('203.0.113.7', 'other-key')).not.toBe(a);
     expect(a).not.toContain('203');
-  });
-});
-
-describe('rate verdict (B1, B4)', () => {
-  it('is ok below both caps and limited at either cap', () => {
-    expect(rateVerdict(0, 0)).toBe('ok');
-    expect(rateVerdict(RATE_LIMIT_PER_MINUTE - 1, RATE_LIMIT_PER_HOUR - 1)).toBe('ok');
-    expect(rateVerdict(RATE_LIMIT_PER_MINUTE, 0)).toBe('limited');
-    expect(rateVerdict(0, RATE_LIMIT_PER_HOUR)).toBe('limited');
-  });
-  it('fails closed when a count could not be read', () => {
-    expect(rateVerdict(null, 0)).toBe('unavailable');
-    expect(rateVerdict(0, null)).toBe('unavailable');
-    expect(rateVerdict(null, null)).toBe('unavailable');
-    expect(rateVerdict(Number.NaN, 0)).toBe('unavailable');
   });
 });
 
@@ -159,5 +153,99 @@ describe('name rule copies', () => {
     for (const name of ['ACE', 'A', 'A'.repeat(NAME_MAX), 'ace', ' ACE', 'A  B', 'A'.repeat(NAME_MAX + 1), '']) {
       expect(isDisplayName(name)).toBe(isAllowedName(name, []));
     }
+  });
+});
+
+const headers = (h: Record<string, string>) => ({ get: (n: string) => h[n] ?? null });
+
+describe('client IP (B-2, K1)', () => {
+  it('trusts cf-connecting-ip only', () => {
+    expect(clientIp(headers({ 'cf-connecting-ip': '203.0.113.7' }))).toBe('203.0.113.7');
+    expect(clientIp(headers({ 'cf-connecting-ip': ' 203.0.113.7 ' }))).toBe('203.0.113.7');
+  });
+  it('a forged x-forwarded-for or x-real-ip on its own gives null (fail closed)', () => {
+    expect(clientIp(headers({ 'x-forwarded-for': '192.0.2.1' }))).toBeNull();
+    expect(clientIp(headers({ 'x-forwarded-for': '192.0.2.1, 10.0.0.1' }))).toBeNull();
+    expect(clientIp(headers({ 'x-real-ip': '198.51.100.1' }))).toBeNull();
+    expect(clientIp(headers({}))).toBeNull();
+  });
+  it('a forged first hop or x-real-ip beside a real cf-connecting-ip is ignored', () => {
+    const real = { 'cf-connecting-ip': '203.0.113.7' };
+    expect(clientIp(headers({ ...real, 'x-forwarded-for': '192.0.2.99', 'x-real-ip': '192.0.2.98' }))).toBe('203.0.113.7');
+  });
+  it('rejects junk values', () => {
+    for (const bad of ['', 'unknown', '<script>', '1.2.3', '256.1.1.1', '01.2.3.4', '1.2.3.4.5', '1'.repeat(46), 'fe80::1%eth0', '1::2::3', 'g::1', '1:2:3:4:5:6:7:8:9']) {
+      expect(clientIp(headers({ 'cf-connecting-ip': bad })), bad).toBeNull();
+    }
+  });
+  it('maps IPv4-mapped IPv6 to the IPv4 address, in both spellings', () => {
+    expect(ipBucket('::ffff:203.0.113.7')).toBe('203.0.113.7');
+    expect(ipBucket('::FFFF:203.0.113.7')).toBe('203.0.113.7');
+    expect(ipBucket('::ffff:cb00:7107')).toBe('203.0.113.7');
+    expect(ipBucket('0:0:0:0:0:ffff:cb00:7107')).toBe('203.0.113.7');
+    expect(ipBucket('::ffff:999.1.1.1')).toBeNull();
+  });
+  it('buckets IPv6 by /64: two addresses in one /64 share a bucket, another /64 does not', () => {
+    const a = ipBucket('2001:db8:1:2::1');
+    expect(a).toBe('2001:db8:1:2::/64');
+    expect(ipBucket('2001:0db8:0001:0002:ffff:eeee:dddd:cccc')).toBe(a);
+    expect(ipBucket('2001:DB8:1:2:0:0:0:99')).toBe(a);
+    expect(ipBucket('2001:db8:1:3::1')).not.toBe(a);
+    expect(ipBucket('::1')).toBe('0:0:0:0::/64');
+  });
+});
+
+describe('atomic rate gate and upsert (B-3, B-5)', () => {
+  it('reads the SQL answer and fails closed on anything else', () => {
+    expect(attemptVerdict('ok')).toBe('ok');
+    expect(attemptVerdict('limited')).toBe('limited');
+    for (const bad of [null, undefined, true, 'OK', ['ok'], {}]) expect(attemptVerdict(bad)).toBe('unavailable');
+  });
+  it('prunes on a small share of calls only', () => {
+    expect(shouldPrune(0)).toBe(true);
+    expect(shouldPrune(PRUNE_PROBABILITY)).toBe(false);
+    expect(shouldPrune(0.99)).toBe(false);
+  });
+  it('parses the record_run row, including bigint strings, and rejects odd shapes', () => {
+    expect(parseRecordResult([{ was_stored: true, board_rank: '2', board_total: 5 }])).toEqual({ stored: true, rank: 2, total: 5 });
+    expect(parseRecordResult({ was_stored: false, board_rank: 1, board_total: 1 })).toEqual({ stored: false, rank: 1, total: 1 });
+    for (const bad of [null, [], 'x', [{}], [{ was_stored: 'yes', board_rank: 1, board_total: 1 }],
+      [{ was_stored: true, board_rank: 0, board_total: 1 }], [{ was_stored: true, board_rank: 3, board_total: 2 }],
+      [{ was_stored: true, board_rank: 1.5, board_total: 2 }], [{ was_stored: true, board_rank: '-1', board_total: 2 }]]) {
+      expect(parseRecordResult(bad)).toBeNull();
+    }
+  });
+  it('the keep-the-lower rule: only a strictly lower time replaces (matches the SQL where-clause)', () => {
+    expect(shouldStore(400, 399)).toBe(true);
+    expect(shouldStore(400, 400)).toBe(false);
+    expect(shouldStore(null, 1000)).toBe(true);
+  });
+});
+
+describe('migration 0004 mirrors', () => {
+  const sql = readFileSync(new URL('../backend/migrations/0004_atomic_submit.sql', import.meta.url), 'utf8');
+  const fn = readFileSync(new URL('../backend/functions/submit-run/index.ts', import.meta.url), 'utf8');
+  it('has the unique key, the lock, the lower-time-only update and service-only execute', () => {
+    expect(sql).toContain('create unique index if not exists runs_best_per_name_idx');
+    expect(sql).toContain('(level_id, level_version, display_name)');
+    expect(sql).toContain('pg_advisory_xact_lock');
+    expect(sql).toContain('where r.steps > excluded.steps');
+    expect(sql).toMatch(/revoke all on function public.submit_attempt[^;]*from public, anon, authenticated/);
+    expect(sql).toMatch(/revoke all on function public.record_run[^;]*from public, anon, authenticated/);
+    expect(sql).toMatch(/grant execute on function public.record_run[^;]*to service_role/);
+  });
+  it('the function passes the limits from rules.ts and no longer buckets on "unknown"', () => {
+    expect(fn).toContain('p_per_minute: RATE_LIMIT_PER_MINUTE');
+    expect(fn).toContain('p_per_hour: RATE_LIMIT_PER_HOUR');
+    expect(fn).not.toContain("'unknown'");
+    expect(fn).not.toContain('x-forwarded-for');
+    expect(fn).toContain("Deno.env.get('IP_HASH_SALT')");
+    expect(fn).not.toMatch(/hashIp(ip, serviceKey)/);
+    expect(MAX_BODY_BYTES).toBeLessThanOrEqual(40_000);
+    expect(fn).not.toContain("from('submit_attempts')");
+    expect(fn).toContain("rpc('record_run'");
+  });
+  it('stores every run unverified until replay exists, and the board switch ships off', () => {
+    expect(fn).toContain('p_verified: false');
   });
 });

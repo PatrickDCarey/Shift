@@ -20,8 +20,13 @@ export const LEVELS: Readonly<Record<string, LevelRule>> = {
   'w1-05': { version: 1, fastest: 114 },
   'w2-01': { version: 1, fastest: 157 },
   'w2-02': { version: 1, fastest: 153 },
-  'w2-03': { version: 1, fastest: 142 },
+  'w2-03': { version: 2, fastest: 142 },
+  'w2-04': { version: 1, fastest: 192 },
   'w3-01': { version: 1, fastest: 195 },
+  'w3-02': { version: 1, fastest: 476 },
+  'w3-03': { version: 1, fastest: 552 },
+  'w3-04': { version: 1, fastest: 342 },
+  'w3-05': { version: 1, fastest: 1007 },
 };
 
 export const FLOOR_PERCENT = 85;
@@ -30,15 +35,25 @@ export const NAME_MAX = 12;
 export const MAX_RUN_STEPS = 36_000;
 export const MAX_LOG_CHARS = 16_000;
 export const MAX_BODY_CHARS = 32_000;
+/** Request body cap in bytes (K5): the 16 000-character log plus a small envelope, with room for escapes. */
+export const MAX_BODY_BYTES = 40_000;
 /** At least 20 per minute per IP must be accepted (spec); this leaves headroom. */
 export const RATE_LIMIT_PER_MINUTE = 30;
-/** Stored-run cap per IP per hour (B2): bounds storage, since a stored run can carry a 16 KB log. */
+/** Attempt cap per IP per hour, rejected attempts included (B2): bounds storage, since a stored run can carry a 16 KB log. */
 export const RATE_LIMIT_PER_HOUR = 200;
-/** Attempt rows older than this are pruned on every call (B1). */
-export const ATTEMPT_RETENTION_MS = 3_600_000;
 
-/** Names that are never allowed, compared after `normaliseName`. design-lead owns the real list. */
-export const DEFAULT_BLOCKLIST: readonly string[] = ['ADMIN', 'MODERATOR'];
+/**
+ * Blocklist from design-lead (request of 2026-11-16), matched after `normaliseName`. Server only:
+ * the client never ships it. CONTAINS words are rejected anywhere in the name; WHOLE words only
+ * when the whole name equals them (so CLASS, GRAPE, COCKPIT and BASS stay allowed).
+ */
+export const DEFAULT_BLOCKLIST: readonly string[] = [
+  'FUCK', 'SHIT', 'CUNT', 'NIGGER', 'NIGGA', 'FAGGOT', 'RETARD', 'WHORE', 'SLUT', 'BITCH', 'TWAT',
+  'PUSSY', 'ASSHOLE', 'DILDO', 'JIZZ', 'PORN', 'RAPIST', 'NAZI', 'HITLER', 'SIEGHEIL', 'KKK', 'KIKE', 'IA88',
+];
+export const DEFAULT_WHOLE_BLOCKLIST: readonly string[] = [
+  'ASS', 'CUM', 'COCK', 'DICK', 'FAG', 'RAPE', 'SPIC', 'CHINK', 'TIT', 'TITS', 'WANK', 'PENIS', 'SEX', '88',
+];
 
 export interface Submission {
   readonly levelId: string;
@@ -65,10 +80,15 @@ export function normaliseName(name: string): string {
 }
 
 /** 1 to 12 of A-Z 0-9 space `-`; no leading, trailing or doubled space; not on the blocklist. */
-export function isAllowedName(name: unknown, blocklist: readonly string[] = DEFAULT_BLOCKLIST): name is string {
+export function isAllowedName(
+  name: unknown,
+  blocklist: readonly string[] = DEFAULT_BLOCKLIST,
+  whole: readonly string[] = DEFAULT_WHOLE_BLOCKLIST,
+): name is string {
   if (typeof name !== 'string' || name.length < 1 || name.length > NAME_MAX) return false;
   if (!/^[A-Z0-9-]+( [A-Z0-9-]+)*$/.test(name)) return false;
   const normalised = normaliseName(name);
+  if (whole.includes(normalised)) return false;
   return !blocklist.some((word) => word !== '' && normalised.includes(word));
 }
 
@@ -123,30 +143,99 @@ export function checkSubmission(
   return { ok: true, value: sub };
 }
 
-/** True when this attempt is over the limit; `recent` counts attempts in the last minute, this one included. */
-export function isRateLimited(recent: number, limit: number = RATE_LIMIT_PER_MINUTE): boolean {
-  return recent > limit;
-}
-
-export type RateVerdict = 'ok' | 'limited' | 'unavailable';
-
-/**
- * Rate decision from the attempt counts BEFORE this call is recorded (B1, B4). A count that
- * could not be read (`null`, a database error) is `unavailable`: the caller fails closed and
- * answers `rate` with 503 instead of letting the request through.
- */
-export function rateVerdict(minute: number | null, hour: number | null): RateVerdict {
-  if (minute === null || hour === null || !Number.isFinite(minute) || !Number.isFinite(hour)) return 'unavailable';
-  if (minute >= RATE_LIMIT_PER_MINUTE || hour >= RATE_LIMIT_PER_HOUR) return 'limited';
-  return 'ok';
-}
-
 /**
  * Retention (B2): each name keeps one row per level version, its best. `best` is the lowest
  * stored step count for that name on that level version, or null if none. Ties keep the older run.
  */
 export function shouldStore(best: number | null, steps: number): boolean {
   return best === null || steps < best;
+}
+
+const HEX_GROUP = /^[0-9a-f]{1,4}$/;
+
+function ipv4(text: string): string | null {
+  const parts = text.split('.');
+  if (parts.length !== 4) return null;
+  const nums = parts.map((p) => (/^(0|[1-9][0-9]{0,2})$/.test(p) ? Number(p) : Number.NaN));
+  return nums.every((n) => n <= 255) ? nums.join('.') : null;
+}
+
+/** Expands an IPv6 text to its 8 groups, or null if malformed. Zone ids and embedded dotted tails are not accepted here. */
+function ipv6Groups(text: string): string[] | null {
+  const halves = text.split('::');
+  if (halves.length > 2) return null;
+  const head = halves[0] === '' ? [] : halves[0].split(':');
+  const tail = halves.length === 2 && halves[1] !== '' ? halves[1].split(':') : [];
+  const fill = 8 - head.length - tail.length;
+  if (halves.length === 1 ? fill !== 0 : fill < 1) return null;
+  const groups = [...head, ...Array<string>(halves.length === 2 ? fill : 0).fill('0'), ...tail];
+  return groups.length === 8 && groups.every((g) => HEX_GROUP.test(g)) ? groups : null;
+}
+
+/**
+ * Rate-limit bucket for an address (K1): IPv4 as is; `::ffff:a.b.c.d` (and its hex form) as the IPv4
+ * address; any other IPv6 by its /64 prefix (a client owns a whole /64, so one address per request
+ * would be a fresh bucket each time). Null when the text is not an address.
+ */
+export function ipBucket(raw: string): string | null {
+  const text = raw.trim().toLowerCase();
+  if (text.length < 3 || text.length > 45) return null;
+  if (!text.includes(':')) return ipv4(text);
+  const mapped = /^::ffff:(.+)$/.exec(text);
+  if (mapped !== null) {
+    const v4 = ipv4(mapped[1]);
+    if (v4 !== null) return v4;
+  }
+  const groups = ipv6Groups(text);
+  if (groups === null) return null;
+  if (groups.slice(0, 5).every((g) => /^0{1,4}$/.test(g)) && groups[5] === 'ffff') {
+    const hi = parseInt(groups[6], 16);
+    const lo = parseInt(groups[7], 16);
+    return [hi >> 8, hi & 255, lo >> 8, lo & 255].join('.');
+  }
+  return groups.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, '')).join(':') + '::/64';
+}
+
+/**
+ * Caller IP for the rate limit (B-2, K1). ONLY `cf-connecting-ip` is trusted: the CDN overwrites it,
+ * whereas `x-real-ip` and `x-forwarded-for` can carry whatever the client sent. With no usable value
+ * the result is null and the function fails closed (503 `rate`): requests never share one bucket
+ * and never get a free pass. See backend/README.md "first real deploy" item 4 for the header check.
+ */
+export function clientIp(headers: { get(name: string): string | null }): string | null {
+  const raw = headers.get('cf-connecting-ip');
+  return raw === null ? null : ipBucket(raw);
+}
+
+/** Chance that one call also prunes old attempt rows inside `submit_attempt` (B-3: no table-wide delete per call). */
+export const PRUNE_PROBABILITY = 0.02;
+export const shouldPrune = (random: number): boolean => random < PRUNE_PROBABILITY;
+
+/** Reads the answer of the SQL function `submit_attempt`; anything else (error, odd shape) fails closed. */
+export function attemptVerdict(data: unknown): RateVerdict {
+  return data === 'ok' ? 'ok' : data === 'limited' ? 'limited' : 'unavailable';
+}
+
+export interface RecordResult {
+  readonly stored: boolean;
+  readonly rank: number;
+  readonly total: number;
+}
+
+function toCount(v: unknown): number {
+  if (typeof v === 'number') return v;
+  return typeof v === 'string' && /^[0-9]{1,9}$/.test(v) ? Number(v) : Number.NaN; // bigint can arrive as a string
+}
+
+/** Reads the one row of the SQL function `record_run` (`was_stored`, `board_rank`, `board_total`); null if malformed. */
+export function parseRecordResult(data: unknown): RecordResult | null {
+  const row: unknown = Array.isArray(data) ? data[0] : data;
+  if (typeof row !== 'object' || row === null) return null;
+  const { was_stored: stored, board_rank: rank, board_total: total } = row as Record<string, unknown>;
+  const r = toCount(rank);
+  const t = toCount(total);
+  if (typeof stored !== 'boolean' || !Number.isInteger(r) || !Number.isInteger(t) || r < 1 || t < r) return null;
+  return { stored, rank: r, total: t };
 }
 
 /** Keyed hash of an IP (HMAC-SHA-256, hex), so raw addresses are never stored. */

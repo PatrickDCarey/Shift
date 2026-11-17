@@ -69,6 +69,14 @@ describe('tuningErrors (self-check)', () => {
     ['colorBandEdges', [0, 4.5, 7.5, 10.5]],
     ['colorBandEdges', [1.5, 4.5, 7.5, 7.5]],
     ['colorBandEdges', 'nope'],
+    ['runFramesPerTile', 0],
+    ['runFramesPerTile', 2.5],
+    ['runFramesPerTile', 13],
+    ['sprintFramesPerTile', -2],
+    ['sprintFramesPerTile', '2'],
+    ['cameraMaxApartTiles', 0],
+    ['cameraMaxApartTiles', 28.5],
+    ['cameraMaxApartTiles', 257],
   ])('rejects %s = %j', (key, value) => {
     const errors = tuningErrors({ ...valid, [key]: value });
     expect(errors).toHaveLength(1);
@@ -78,5 +86,12 @@ describe('tuningErrors (self-check)', () => {
 
   it('accepts zero ms (feature off) and band 0', () => {
     expect(tuningErrors({ ...valid, coyoteMs: 0, airDragMinBand: 0 })).toEqual([]);
+  });
+
+  it('accepts the render-rate bounds 1..12 frames and 1..256 tiles', () => {
+    const low = { ...valid, runFramesPerTile: 1, sprintFramesPerTile: 1, cameraMaxApartTiles: 1 };
+    const high = { ...valid, runFramesPerTile: 12, sprintFramesPerTile: 12, cameraMaxApartTiles: 256 };
+    expect(tuningErrors(low)).toEqual([]);
+    expect(tuningErrors(high)).toEqual([]);
   });
 });

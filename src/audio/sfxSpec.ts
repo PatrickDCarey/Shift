@@ -108,7 +108,7 @@ export const BAND_PITCH: readonly [number, number, number, number, number] = [
   Math.pow(2, 7 / 12),
 ];
 
-const LEVEL_COMPLETE_NOTES: readonly number[] = [523.25, 659.26, 783.99, 1046.5];
+const LEVEL_COMPLETE_NOTES: readonly number[] = [GEAR_NOTE_HZ[1], GEAR_NOTE_HZ[2], GEAR_NOTE_HZ[3], GEAR_NOTE_HZ[4]];
 const STING_STEP_SECONDS = 0.09;
 
 function layer(
@@ -178,7 +178,7 @@ function reset(): ToneLayer[] {
 /** Rising C major arpeggio C5 E5 G5 C6, the last note ringing: a resolved sting in the music's key. */
 function levelComplete(): ToneLayer[] {
   const n = LEVEL_COMPLETE_NOTES;
-  const top = n[n.length - 1] ?? 1046.5;
+  const top = GEAR_NOTE_HZ[4];
   const lastDelay = (n.length - 1) * STING_STEP_SECONDS;
   const layers = n.map((hz, i) =>
     i === n.length - 1 ? layer(hz, 0.55, 'square', 0.16, lastDelay) : layer(hz, 0.1, 'square', 0.15, i * STING_STEP_SECONDS),

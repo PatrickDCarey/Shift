@@ -47,6 +47,15 @@ export class TipLife {
     this.watch();
   }
 
+  /** The win step: gone at once and never back (the results panel replaces it). */
+  hideOnWin(): void {
+    this.timer?.remove(false);
+    this.timer = null;
+    this.budget = null;
+    this.tip?.hideOnWin();
+    this.tip = null;
+  }
+
   /** Leaving the level: hidden for good. */
   destroy(): void {
     this.timer?.remove(false);

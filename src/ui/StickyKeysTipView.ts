@@ -40,35 +40,59 @@ export interface StickyKeysTipOptions {
   readonly onHidden?: () => void;
 }
 
+/** Scenes whose current visit already hid the tip by winning: it never comes back in that visit (sticky-keys-tip.md 7a). */
+const wonScenes = new WeakSet<Phaser.Scene>();
+
 export class StickyKeysTip {
   private readonly container: Phaser.GameObjects.Container;
   private readonly scene: Phaser.Scene;
   private readonly options: StickyKeysTipOptions;
   private readonly onKeyDown: (event: KeyboardEvent) => void;
   private readonly autoHide: Phaser.Time.TimerEvent;
-  private hidden = false;
+  private hidden: boolean;
 
   constructor(scene: Phaser.Scene, options: StickyKeysTipOptions = {}) {
     this.scene = scene;
     this.options = options;
+    this.hidden = wonScenes.has(scene);
+    this.onKeyDown = (event) => {
+      if (isStickyTipDismissCode(event.code)) this.hide();
+    };
 
     const cx = scene.scale.width / 2;
     const top = scene.scale.height - PANEL_HEIGHT - PANEL_BOTTOM_MARGIN;
     this.container = scene.add.container(cx, top).setDepth(DEPTH).setScrollFactor(0);
+    this.autoHide = scene.time.delayedCall(STICKY_TIP_AUTO_HIDE_MS, () => this.hide());
+    if (this.hidden) {
+      // Won earlier in this visit (a pause/resume rebuilt the tip): stay gone.
+      this.autoHide.remove(false);
+      this.container.destroy();
+      return;
+    }
     this.container.add(this.buildPanel());
     this.container.add(this.buildTexts());
     this.container.add(this.buildKeyCaps());
 
-    this.onKeyDown = (event) => {
-      if (isStickyTipDismissCode(event.code)) this.hide();
-    };
     scene.input.keyboard?.on('keydown', this.onKeyDown);
-    this.autoHide = scene.time.delayedCall(STICKY_TIP_AUTO_HIDE_MS, () => this.hide());
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.hide());
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      wonScenes.delete(scene); // the next visit may show it again
+      this.hide();
+    });
   }
 
   isVisible(): boolean {
     return !this.hidden;
+  }
+
+  /** The win moment: gone at once, no fade, so it is not on screen behind the results panel. */
+  hideOnWin(): void {
+    wonScenes.add(this.scene);
+    if (this.hidden) return;
+    this.hidden = true;
+    this.scene.input.keyboard?.off('keydown', this.onKeyDown);
+    this.autoHide.remove(false);
+    this.container.destroy();
+    this.options.onHidden?.();
   }
 
   /** Hide and clean up. Safe to call more than once. */

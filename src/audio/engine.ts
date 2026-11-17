@@ -174,7 +174,8 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
 
   /** Voice counters must not stay at the cap when a suspended or interrupted context never fires onended. */
   function dropAllVoices(): void {
-    for (const v of sfxVoices.splice(0)) {
+    const dropped = sfxVoices.splice(0);
+    for (const v of dropped) {
       v.osc.onended = null;
       try {
         v.osc.stop(0);
@@ -183,7 +184,8 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
       }
       releaseNodes(v);
     }
-    voices = 0;
+    // Music voices are not stopped here and still end through onended, so only the SFX voices come off the count.
+    voices = Math.max(0, voices - dropped.length);
   }
 
   function watchContextState(ctx: AudioContextLike): void {

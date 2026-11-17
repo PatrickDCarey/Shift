@@ -61,7 +61,9 @@ We choose **(a): game config 480 x 270, `Scale.NONE` + `zoom: MAX_ZOOM`, re-zoom
   - If a playtest flags it, the deferred option is to render 2 px larger (482 x 272) and CSS-translate the canvas by the fractional scroll times the zoom. That gives smooth screen-resolution scrolling over a crisp grid (tech-lead plus scene lane, about 4 h). We will not build it unless asked.
 - **Animation frames come from sim state, not wall-clock time.**
   - Standing, jumping (`vy < 0`) and falling are read from state.
-  - The run frame is `floor(x * framesPerTile) mod 4`.
+  - The run and sprint frame index is `k mod 6` with `k = floor(x * framesPerTile)`, where 6 is the atlas frame count for `run` and `sprint` (`PLAYER_ANIMS` in `src/fx`, not a tuning value). `framesPerTile` is `tuning.runFramesPerTile` (3) for `run` (blue, green) and `tuning.sprintFramesPerTile` (2) for `sprint` (yellow, red); both are in the `Tuning` contract since B6-01. Each body (runner, twin) uses its own `x`.
+  - Facing left uses the mirrored index `(6 - k mod 6) mod 6`, so the legs never play backwards while the sprite is flipped.
+  - Decision record: `docs/design/decisions.md` 2026-11-16 (B6-03 replaced the earlier `mod 4`, written before the art had 6 frames).
 
   A replay therefore looks identical frame for frame, and no `Date` or timer is needed in rendering logic.
 

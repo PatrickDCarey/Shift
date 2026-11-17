@@ -3,6 +3,8 @@
  * or shared services by string literal. Owner: tech-lead.
  */
 import type { SaveStore } from '../save';
+import { requestedLevelId } from '../entities/levelSelect';
+import { parseReplayRequest } from '../entities/replay';
 
 /** Scene keys, so scenes never reference each other by string literal. */
 export const SCENE_KEYS = {
@@ -16,6 +18,19 @@ export const SCENE_KEYS = {
 } as const;
 
 export type SceneKey = (typeof SCENE_KEYS)[keyof typeof SCENE_KEYS];
+
+/**
+ * The scene Boot starts (B6-24). A deep link, `?level=<id>` or `?replay=1`,
+ * opens the game scene directly, exactly as before the menus existed: the QA
+ * hook, every Playwright spec and the replay tool rely on it, and GameScene
+ * still reads the level, `replay` and `speed` from the URL itself. Whether a
+ * replay is allowed stays GameScene's call (`REPLAY_AVAILABLE`). Anything else
+ * (a plain load, the itch.io page) opens the title.
+ */
+export function bootTarget(search: string): SceneKey {
+  const deepLink = requestedLevelId(search) !== null || parseReplayRequest(search).active;
+  return deepLink ? SCENE_KEYS.game : SCENE_KEYS.title;
+}
 
 /**
  * Keys of game-wide services in the Phaser registry (`game.registry`, the same

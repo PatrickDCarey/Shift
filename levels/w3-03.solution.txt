@@ -1,0 +1,12 @@
+level: w3-03
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.            stand
+# 1+ 1. 1+ 1. 1+ shift up to gear 4 standing
+# 71R 1RJ        sprint (red at x = 4.73) and jump at x = 12.70, the middle of the 18-step window (63-80)
+# 488R           the runner hits the block (step 112), drops and lands in gear 1 (x = 15.63, step 144);
+#                the twin drags to yellow (step 126) and lands yellow on its yellow floor (step 144);
+#                holding right: twin home at step 281, runner over its blue bridge and home at 585 (won)
+steps: 585
+---
+20. 1+ 1. 1+ 1. 1+ 71R 1RJ 488R

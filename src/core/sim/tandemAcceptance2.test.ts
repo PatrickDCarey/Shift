@@ -6,7 +6,8 @@
 import { describe, expect, it } from 'vitest';
 import type { InputFrame, Level, PlayerState, SimEvent, SimState } from '../types';
 import { createSim } from './create';
-import { at, cruise, eventTypes, firstStep, frame, gridLevel, params, repeat, row, runFrames, runFromSpawn, type Placement } from './testkit';
+import { step } from './step';
+import { at, cruise, cruiseFrames, eventTypes, firstStep, frame, gridLevel, params, repeat, row, runFrames, runFromSpawn, type Placement } from './testkit';
 
 const HALF = params.playerWidth / 2;
 const twinOf = (s: SimState): PlayerState => {
@@ -247,8 +248,8 @@ describe('tandem check 12: the twin falls, the run dies', () => {
   it('died with body 1 on the step the twin box top passes below the grid', () => {
     expect(died).toBeGreaterThan(0);
     expect(at(s, died).events).toEqual([{ type: 'died', body: 1 }]);
-    expect(twinOf(at(s, died)).y - 1.5).toBeGreaterThan(lvl.height);
-    expect(twinOf(at(s, died - 1)).y - 1.5).toBeLessThanOrEqual(lvl.height);
+    expect(twinOf(at(s, died)).y - params.playerHeight).toBeGreaterThan(lvl.height);
+    expect(twinOf(at(s, died - 1)).y - params.playerHeight).toBeLessThanOrEqual(lvl.height);
     expect(at(s, died).player.grounded).toBe(true);
   });
 
@@ -276,10 +277,34 @@ function homeOverBottom(): Level {
 
 describe('tandem check 13: home beats death', () => {
   const lvl = homeOverBottom();
-  const s = runFromSpawn(lvl, repeat(600, 'R'));
-  const h0 = firstStep(s, (t) => t.player.home);
+  const base = createSim(lvl, params);
+  /** Twin already home (frozen); the runner hangs over the last row at x `x`, falling at `vy`, `top` = its box top. */
+  const withRunner = (top: number, x: number): SimState => ({
+    ...base,
+    player: { ...base.player, x, y: top + params.playerHeight, vy: 0, grounded: false },
+    twin: { ...twinOf(base), home: true },
+  });
+  const exitX = 7.5;
 
-  it('a runner home over the bottom row never triggers died; the twin then wins the run', () => {
+  it('a run whose last body gets home while its box is at the bottom row is won, never died', () => {
+    const s = withRunner(13.9, exitX);
+    const next = step(s, frame(''), lvl, params);
+    expect(next.player.home).toBe(true);
+    expect(next.status).toBe('won');
+    expect(next.wonAtStep).toBe(s.step + 1);
+    expect(eventTypes(next)).toEqual(['home', 'won']);
+  });
+
+  it('the same body already past the grid bottom (off the exit) dies instead: death is live', () => {
+    const next = step(withRunner(14.5, exitX), frame(''), lvl, params);
+    expect(next.status).toBe('dead');
+    expect(onBody(next, 0, 'died')).toHaveLength(1);
+    expect(next.player.home).toBe(false);
+  });
+
+  it('through the real step: a runner home over the bottom row never triggers died; the twin then wins', () => {
+    const s = runFromSpawn(lvl, repeat(600, 'R'));
+    const h0 = firstStep(s, (t) => t.player.home);
     expect(h0).toBeGreaterThan(0);
     expect(at(s, h0).player.y).toBeGreaterThan(13);
     expect(s.some((t) => t.status === 'dead' || eventTypes(t).includes('died'))).toBe(false);
@@ -354,14 +379,18 @@ describe('tandem check 15: restart resets both', () => {
 });
 
 describe('tandem check 18 (checks 4-15): determinism', () => {
-  const scenarios: [string, Level, InputFrame[]][] = [
-    ['wall', stacked(120, fill([0, 1, 2, 3, 4, 5], 30, 'R')), [...repeat(6, 'R+'), ...repeat(250, 'R')]],
-    ['split', splitSetup().lvl, [...repeat(80, 'R+'), frame('RJ'), ...repeat(80, 'R')]],
-    ['ledge', ledgeLevel(8), repeat(200, 'R').map((f, i) => (i % 17 === 0 ? frame('RJ+') : f))],
-    ['home', homeOverBottom(), repeat(600, 'R')],
-    ['death', stacked(60, [], '#'.repeat(5) + '.'.repeat(55)), [...repeat(200, 'R'), frame('!'), ...repeat(10, 'R')]],
+  const scenarios: [string, Level, InputFrame[], string][] = [
+    ['wall', stacked(120, fill([0, 1, 2, 3, 4, 5], 30, 'R')), [...cruiseFrames(4), ...repeat(120, 'R')], 'wallStop'],
+    ['split', splitSetup().lvl, [...repeat(80, 'R+'), frame('RJ'), ...repeat(80, 'R')], 'shift'],
+    ['ledge', ledgeLevel(8), repeat(200, 'R').map((f, i) => (i % 17 === 0 ? frame('RJ+') : f)), 'jump'],
+    ['home', homeOverBottom(), repeat(600, 'R'), 'home'],
+    ['death', stacked(60, [], '#'.repeat(5) + '.'.repeat(55)), [...repeat(200, 'R'), frame('!'), ...repeat(10, 'R')], 'died'],
   ];
-  it.each(scenarios)('%s gives deep-equal states and events twice', (_n, lvl, frames) => {
-    expect(runFromSpawn(lvl, frames)).toEqual(runFromSpawn(lvl, frames));
+  it.each(scenarios)('%s gives deep-equal states and events twice', (_n, lvl, frames, expected) => {
+    const first = runFromSpawn(lvl, frames);
+    expect(first).toEqual(runFromSpawn(lvl, frames));
+    const events = first.flatMap((t) => t.events);
+    expect(events.length).toBeGreaterThan(0);
+    expect(events.some((e) => e.type === expected)).toBe(true);
   });
 });

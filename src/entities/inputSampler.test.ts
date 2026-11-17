@@ -169,4 +169,34 @@ describe('InputSampler while paused (pause.md)', () => {
     s.keyDown('Escape');
     expect(s.sample()).toEqual(EMPTY_INPUT);
   });
+
+  it('keeps two presses that land inside one rendered frame, in order', () => {
+    const s = new InputSampler();
+    s.keyDown('KeyP');
+    s.keyUp('KeyP');
+    s.keyDown('Escape');
+    s.keyUp('Escape');
+    s.keyDown('KeyR');
+    expect(s.takePresses()).toEqual(['pause', 'pause', 'restart']);
+    expect(s.takePresses()).toEqual([]);
+  });
+
+  it('queues nothing while paused (the overlay owns Esc/P/R) and drops the queue on a pause change', () => {
+    const s = new InputSampler();
+    s.keyDown('KeyP');
+    s.setPaused(true);
+    expect(s.takePresses()).toEqual([]);
+    s.keyDown('KeyR');
+    s.keyDown('Escape');
+    s.setPaused(false);
+    expect(s.takePresses()).toEqual([]);
+  });
+
+  it('a gear tap whose keydown and keyup share one frame still reaches the next step', () => {
+    const s = new InputSampler();
+    s.keyDown('KeyE');
+    s.keyUp('KeyE');
+    expect(s.sample().shiftUp).toBe(true);
+    expect(s.sample().shiftUp).toBe(false);
+  });
 });

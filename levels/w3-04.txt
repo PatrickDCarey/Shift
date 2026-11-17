@@ -1,0 +1,36 @@
+# World 3, level 4. Teach: pressing up past gear 4 brings split gears back together (the extra presses do
+#   nothing to the body already at the top).
+# Target first-time solve: 90-150 s.
+# Layout (66 x 15, scrolls). Runner lane on top (floor row 6), twin lane below (floor row 13).
+#   Section A, a short w3-03: the runner's hanging safe block (col 16, rows 1-3) and the twin's flat Coast
+#   (red runway cols 8-12, 7-tile gap, yellow from col 20). The runner's blue bridge (cols 17-19) sits over the
+#   twin's gap, so a runner that drops through it falls out of the level.
+#   Section B: runner safe pad cols 20-25 -> red bridge cols 26-31 (over the twin's yellow bridge: anything but
+#   yellow falls through both) -> safe, exit col 34. Twin: yellow cols 20-33 -> safe pad cols 34-49 (16) ->
+#   red bridge cols 50-60 (11) -> safe, exit col 63.
+# After the split the runner is gear 1, the twin gear 3. Once the runner is off its blue bridge, let go (the
+#   runner stops at once, the twin about 2.5 tiles later, both on safe ground), press up three times standing
+#   (runner 2/3/4, twin 4 then clamped), hold right: both red 3.23 tiles later. One press leaves the runner
+#   green on its red bridge; the twin's red bridge is long, so you cannot park the twin and press later.
+# No hints (levels-w3.md).
+id: w3-04
+title: Clamp
+world: 3
+teaches: pressing up past gear 4 brings split gears back together
+version: 1
+---
+#.................................................................
+#...............#.................................................
+#...............#.................................................
+#...............#.................................................
+#.................................E...............................
+#@................................E...............................
+#################BBB######RRRRRR##################################
+#.................................................................
+#.................................................................
+#.................................................................
+#.................................................................
+#..............................................................E..
+#&.............................................................E..
+########RRRRR.......YYYYYYYYYYYYYY################RRRRRRRRRRR#####
+########..........................################...........#####

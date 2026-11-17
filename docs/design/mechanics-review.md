@@ -1,6 +1,6 @@
 # Redshift — Puzzle depth review: which mechanics ship
 
-_Superseded in part by GDD v1.4 (2026-11-03): the owner picked Tandem as the core twist (`core-twists.md`, `features/tandem.md`). Colored walls stay in world 1; speed gates and ice became Should (world 4); this review's world 3 is the fallback if the Tandem decision gate fails on Nov 12. The ranking and cuts below still stand._
+_Superseded in part by GDD v1.4 (2026-11-03): the owner picked Tandem as the core twist (`core-twists.md`, `features/tandem.md`). Colored walls stay in world 1; speed gates and ice became Should (world 4); this review's world 3 was the fallback for the Tandem decision gate, which the owner closed on 2026-11-16 (Tandem stays; no fallback). The ranking and cuts below still stand._
 
 _Owner: design-lead. 2026-11-03. Input: the studio owner's verdict on the current build ("the mechanics need a lot of work to make the puzzles better"), the 2026-11-02 grey-box playtest, GDD v1.2. Output: the mechanic set for M2/M3, adopted in GDD v1.3 §7 and `level-plan.md` v2.0. All numbers come from GDD §5 (exact against the implemented sim) or are derived from the same step rules; derivations are noted where §5 has no row._
 

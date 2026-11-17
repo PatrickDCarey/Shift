@@ -7,7 +7,7 @@
  * tree-shaken: no recording text reaches dist/ (BUG-4, review F1).
  * Owner: gameplay-engineer [scene].
  */
-const QA_HOOK = import.meta.env.DEV || import.meta.env.VITE_QA_HOOK === '1';
+import { QA_HOOK } from './qaHook';
 
 export const SOLUTION_FILES: Readonly<Record<string, string>> = QA_HOOK
   ? (import.meta.glob('/levels/*.solution.txt', { query: '?raw', import: 'default', eager: true }) as Record<string, string>)

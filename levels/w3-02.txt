@@ -1,0 +1,39 @@
+# World 3, level 2. Teach: a wall in one lane holds that body still while the other walks on, so you choose
+#   how far out of step they are.
+# Target first-time solve: 60-120 s.
+# Layout (34 x 15, a short scroll): runner lane on top (floor row 6), a safe divider with a closed pocket under
+#   the runner's green bridge (rows 7-10), twin lane below (floor row 13) under a safe roof (row 10, 2 tiles of
+#   headroom, so the twin cannot jump its bridges).
+#   Runner: safe floor cols 0-9 with a 1-tile safe kerb at col 8 -> green bridge cols 10-25 -> safe ground, exit col 29.
+#   Twin: safe pad cols 0-2 -> blue bridge cols 3-13 -> safe pad Q cols 14-21 -> green bridge cols 22-27 -> safe, exit col 31.
+# Hold right in gear 1: the kerb stops the runner (x = 7.625) while the twin walks on across its blue bridge.
+#   Let go with the twin on Q, walk back about 4 tiles (the twin stays on Q), shift up once, hold right and
+#   jump the kerb green: the runner lands green on its green bridge, the twin walks green over its own.
+# Every x where the twin can stand on Q is over the runner's green bridge, so without the pin a shift that
+#   saves one body drops the other.
+# Deviation from levels-w3.md: the spec's full-height BLUE wall does not pin a walking body in the sim (the
+#   wall stop leaves it white, it steps into the wall and the no-embed rule lets it through blue). A safe kerb
+#   pins it for as long as you hold; you clear it with a green jump.
+# A runner that drops through its green bridge is caught in the divider pocket (restart with R).
+# No hints (levels-w3.md).
+id: w3-02
+title: Out of Step
+world: 3
+teaches: a wall in one lane holds that body while the other walks on
+version: 1
+---
+..................................
+..................................
+..................................
+..................................
+.............................E....
+.@......#....................E....
+##########GGGGGGGGGGGGGGGG########
+##########................########
+##########................########
+##########................########
+##################################
+...............................E..
+.&.............................E..
+###BBBBBBBBBBB########GGGGGG######
+###...........########......######

@@ -1,0 +1,14 @@
+level: w2-04
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand on P1
+# 1+ 1. shift up once while standing: gear 2 (cruise green)
+# 70R   walk right: green at x = 2.1, still on P1; onto the green floor at 6 tiles/s
+# 1R+   shift up at x = 8.11 (shift window x 5.8-9.8 with this jump delay)
+# 9R    yellow at x = 8.57 four steps later; the green floor holds you in grace
+# 1RJ   jump at x = 9.41, 6 steps after turning yellow (window: 4th-16th step after the press, 13 steps)
+# 122R  land yellow on the yellow ledge at x = 14.96 (5.55 tiles of flight, under drag), run into the exit
+# Fairness: jump 6/6 steps earlier/later, shift press 23/17 (with the jump moving with it), wins at step 225.
+steps: 225
+---
+20. 1+ 1. 70R 1R+ 9R 1RJ 122R

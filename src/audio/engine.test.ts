@@ -559,6 +559,19 @@ describe('audio engine: voice counters reset when the context leaves running (B1
     expect(ctx.oscs.every((o) => o.stopped !== null)).toBe(true);
   });
 
+  it('a context leaving running keeps counting music voices that are still alive (A6)', async () => {
+    const { engine, ctx } = setup();
+    await engine.unlock();
+    engine.tone({ freq: 220, duration: 2, bus: 'music' });
+    engine.tone({ freq: 440, duration: 1 });
+    engine.tone({ freq: 550, duration: 1 });
+    expect(engine.activeVoices()).toBe(3);
+    ctx.setState('suspended');
+    expect(engine.activeVoices()).toBe(1);
+    ctx.oscs[0]!.onended?.();
+    expect(engine.activeVoices()).toBe(0);
+  });
+
   it('onstatechange to interrupted also clears', async () => {
     const { engine, ctx } = await playing(3);
     ctx.setState('interrupted');

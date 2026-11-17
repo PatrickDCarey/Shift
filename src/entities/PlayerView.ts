@@ -10,7 +10,7 @@
 import type Phaser from 'phaser';
 import type { PlayerState } from '../core/types';
 import { PIXEL_KEYS, PLAYER_PIVOT } from '../fx';
-import { playerFrame, type BodyName, type Transient, type TransientAnim } from './playerFrame';
+import { playerFrame, type BodyName, type PlayerAnimTuning, type Transient, type TransientAnim } from './playerFrame';
 
 const DEPTH_RUNNER = 10;
 /** The twin is drawn behind the runner when they overlap (ADR "Tandem"). */
@@ -24,6 +24,7 @@ export class PlayerView {
   constructor(
     scene: Phaser.Scene,
     private readonly body: BodyName,
+    private readonly animTuning: PlayerAnimTuning,
     private readonly reducedMotion = false,
   ) {
     this.sprite = scene.add
@@ -42,7 +43,7 @@ export class PlayerView {
   draw(feetX: number, feetY: number, player: PlayerState, dead: boolean): void {
     this.deathAge = dead ? (this.deathAge ?? -1) + 1 : null;
     if (this.transient !== null) this.transient = { ...this.transient, age: this.transient.age + 1 };
-    const frame = playerFrame(player, this.body, { transient: this.transient, deathAge: this.deathAge });
+    const frame = playerFrame(player, this.body, { tuning: this.animTuning, transient: this.transient, deathAge: this.deathAge });
     this.sprite.setFrame(frame.name).setFlipX(frame.flipX).setPosition(feetX, feetY);
   }
 

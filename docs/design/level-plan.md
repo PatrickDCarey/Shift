@@ -1,6 +1,6 @@
 # Redshift — Level plan
 
-_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 3.4 (2026-11-13, batch 4A): w2-01 and w2-02 approved; w2-01's grace-and-coyote yellow line accepted as an expert line (drag-rescue exception); w2-02's pad 2 tiles lower adopted; Tandem gate Nov 17. Version 3.3 (2026-11-05, M1-52): fairness floor per level; w1-01/w1-02 P2 4 tiles, w1-04 pad 8 tiles, w1-05 fair line recorded; w1-04 roofless bridge accepted. Version 3.2 (2026-11-04, batch 2): world-1 low roofs adopted with conditions; "fastest known" step count per level for the leaderboard floor; w1-01 and w1-02 approved. Version 3.1 (2026-11-04): first level of every world open from the start; hint glyph placements per level; title length cap. Version 3.0 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`, `features/tandem.md`). World 3 becomes five Tandem levels; speed gates and ice move to a Should world 4. The v2.0 gates plan is kept below as the fallback._
+_Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/level-format.md`). Rules and numbers: `docs/design/gdd.md` (§5 sanity math, §6 rules of thumb). Version 3.5 (2026-11-16, batch 6): **Tandem stays (owner decision; the gates fallback is dropped)**; full specs for w3-02..w3-05 in `levels-w3.md` (w3-02 Out of Step revised to a blue-wall pin: the old sketch needed sub-tile bridges); w3-01 v1 accepted without roofs; w2-03 v2 (pit at the ledge foot); Tandem lane-colouring rule; HUD-area rule. Version 3.4 (2026-11-13, batch 4A): w2-01 and w2-02 approved; w2-01's grace-and-coyote yellow line accepted as an expert line (drag-rescue exception); w2-02's pad 2 tiles lower adopted; Tandem gate Nov 17. Version 3.3 (2026-11-05, M1-52): fairness floor per level; w1-01/w1-02 P2 4 tiles, w1-04 pad 8 tiles, w1-05 fair line recorded; w1-04 roofless bridge accepted. Version 3.2 (2026-11-04, batch 2): world-1 low roofs adopted with conditions; "fastest known" step count per level for the leaderboard floor; w1-01 and w1-02 approved. Version 3.1 (2026-11-04): first level of every world open from the start; hint glyph placements per level; title length cap. Version 3.0 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`, `features/tandem.md`). World 3 becomes five Tandem levels; speed gates and ice move to a Should world 4. The v2.0 gates plan is kept below as the fallback._
 
 18 levels in 4 worlds. Each level introduces **one** new idea (or combines known ones, marked COMBINE/TEST/TWIST). A level is rejected if:
 - it teaches two new ideas at once;
@@ -13,7 +13,7 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
 - Worlds 1–3 are **Must** (14 levels).
 - World 4 is **Should** (4 levels).
 - Milestones: worlds 1–2 in **M2** (Nov 15), worlds 3–4 in **M3** (Nov 22).
-- Tandem sim and scene: from Nov 9, decision gate **Tue Nov 17** (owner decision 2026-11-13, was Nov 12).
+- Tandem sim and scene: built; **Tandem stays as world 3** (owner decision 2026-11-16, gate closed, no fallback). Dates no longer drive the plan: build in priority order.
 
 ## Constraints for level-designer
 
@@ -32,7 +32,9 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
   - intended solutions keep the bodies within 26 tiles of each other;
   - every split comes from the level (a wall, an air stop, a gap, an exit), never from timing;
   - say in `levels/README.md` whether each split is undone (clamp) or final (park);
-  - every single-lane rule above applies to each lane.
+  - every single-lane rule above applies to each lane;
+  - spawn rows at least 3 apart, and every colored tile strictly nearer its own body's start row than the other's (v3.5; the scene colours tiles by nearer start row, `features/tandem.md`). With spawns on rows 5 and 12: no colored tile in twin-lane rows 7–8.
+- **HUD area (v3.5):** no colored tile, exit or hint box under the HUD panel at the top-left of the screen (the gear meter or the two Tandem strips: screen x 0–120, y 0–40 px of the 480 × 270 view, inset included). The camera scrolls horizontally, so any tile row that is drawn inside y 0–40 can pass under it: keep colored tiles, exits and hint boxes out of those rows. Safe tiles may pass under it (w1-01's roof, w1-04's pillar: accepted 2026-11-16).
 - **Prove the idea is needed:** for each level, record in `levels/README.md` that the level fails when the new piece is ignored (remove the wall, block or twin feature and show a non-intended line now wins, or show the intended line is the only one through).
 - Timing windows in intended solutions: at least 12 steps (0.2 s), or ≥ 3 tiles at sprint. Widen flight windows with lower landing pads (GDD §5.4) rather than shorter gaps.
 - **Fairness floor (v3.3, M1-52):** every level has at least one winning line whose timed inputs each have a window of **≥ 30 steps in world 1** (**≥ 18 steps from world 2 on**), or are position choices at walking pace with ≥ 1 tile of valid spots. Record that line and its windows in `levels/README.md`.
@@ -63,17 +65,17 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
 |---|---|---|---|
 | w2-01 | Commit | NEW: in the air nothing you press changes your speed; you land in the color you took off in. | Safe pad, a green runway, a 4-tile gap, a green landing pad. Being green is the only way to stand on the runway, so you take off green and land green; jump too early and steering back does nothing. |
 | w2-02 | Coast | NEW: air drag, every 6 tiles of flight costs one color. | Red runway, a 7-tile gap, a yellow landing pad 2 tiles lower (v3.4: lowered from flat to widen the jump window from 18 to 23 steps). A red takeoff flies about 9.6 tiles and turns yellow at 6, landing safely; a yellow takeoff lands green and drops through. |
-| w2-03 | Step Down | NEW: walking off a ledge is a shorter flight than jumping. | Sprint off a 4-tile-high ledge onto a long red floor below. Walking off lands 5.8 tiles out (29 airborne steps, under the 6-tile drag point), still red; jumping flies 10.65 tiles, turns yellow, and falls through the red floor. Keep the drop at exactly 4 tiles: a 5-tile drop makes the walk-off land yellow too. |
+| w2-03 | Step Down | NEW: walking off a ledge is a shorter flight than jumping. | Sprint off a 4-tile-high ledge onto a long red floor below. Walking off lands 5.8 tiles out (29 airborne steps, under the 6-tile drag point), still red; jumping flies 10.65 tiles, turns yellow, and falls through the red floor. Keep the drop at exactly 4 tiles: a 5-tile drop makes the walk-off land yellow too.<br>**v2 (2026-11-16 playtest: "teaches nothing new"):** open a 3-tile pit at the foot of the ledge (red floor starts 3 tiles past the edge column), so the drop reads as a gap to jump: the natural world-2 move. The red walk-off still lands about 3 tiles past the pit (x ≈ 17.1). |
 | w2-04 | Two Colors | COMBINE: runway, commit, color grace. | A green floor runs under a yellow ledge 2 tiles up: cruise green, shift up mid-run, and jump in the 12 steps after you turn yellow, before the green floor lets you go. |
 
 ## World 3 — Tandem (Must, M3)
 
-One throttle, two runners. Your runner's lane on top, the twin's below. Sim and scene are built Nov 9–13; **draw w3-01 to w3-03 on paper now** and build them when the sim lands. Numbers marked (derived) are pending tests in `features/tandem.md`.
+One throttle, two runners. Your runner's lane on top, the twin's below. Sim and scene are built; w3-01 is built. **Build specs for w3-02..w3-05: `levels-w3.md`** (it overrides the sketches below where they differ). Derived numbers are pinned by the sim tests in `features/tandem.md`.
 
 | Id | Title | Idea | Puzzle sketch |
 |---|---|---|---|
 | w3-01 | Two Lanes | NEW: a twin obeys the same keys on its own floor; both must reach home. | Identical lanes: safe pad, blue bridge, safe pad, green bridge, safe ground to an exit. Hold right in gear 1, both walk blue; shift up on the pad, both are green 0.6 tiles later.<br>• The runner's exit is 3 tiles nearer than the twin's, so the runner parks first and the twin walks on alone. This shows "home" without asking anything of it.<br>• Let go on the twin's bridge and it falls: the run dies and both respawn.<br>• The level fails if you play only your own lane. |
-| w3-02 | Out of Step | NEW: a wall that stops one body splits one input into two colors. | Both cruise red from a 6-tile runway. The runner's lane has a red wall at x = X; the twin's lane is open.<br>• The runner stops dead, then (still holding) restarts at blue, passes the red wall, and is green 0.60–1.88 tiles past its stop point (GDD §5.1). Meanwhile the twin, still red, is 2.0–4.6 tiles past the wall (derived).<br>• Runner lane: a green bridge from X+0.25 to X+1.5 (wholly on it 1.0–1.5 tiles past the stop: green). Twin lane: a red bridge from X+2 to X+5.<br>• Arrive yellow: the wall doesn't stop you, so you are yellow on green and fall.<br>• Tension: you must be red **so that** the wall stops you. Wall removed: no split, and no single pace satisfies both bridges. |
+| w3-02 | Out of Step | NEW: a wall in one lane holds that body still while the other walks on (v3.5: a blue-wall pin; full spec `levels-w3.md`, which replaces this sketch). | Both cruise red from a 6-tile runway. The runner's lane has a red wall at x = X; the twin's lane is open.<br>• The runner stops dead, then (still holding) restarts at blue, passes the red wall, and is green 0.60–1.88 tiles past its stop point (GDD §5.1). Meanwhile the twin, still red, is 2.0–4.6 tiles past the wall (derived).<br>• Runner lane: a green bridge from X+0.25 to X+1.5 (wholly on it 1.0–1.5 tiles past the stop: green). Twin lane: a red bridge from X+2 to X+5.<br>• Arrive yellow: the wall doesn't stop you, so you are yellow on green and fall.<br>• Tension: you must be red **so that** the wall stops you. Wall removed: no split, and no single pace satisfies both bridges. |
 | w3-03 | Gear Split | NEW: a stop in mid-air drops only that body's gear. | Both cruise gear 4 and jump together. A hanging safe block 3 tiles past launch, 2 tiles above the floor, in the runner's lane only, stops the runner on flight step 14 (derived): `vx` 0, gear 1, and it drops straight down. The twin flies 8.7 and lands yellow in gear 3 (§5.3).<br>• Then: runner lane a blue bridge, twin lane a yellow bridge, side by side. Holding right gives blue and yellow at once.<br>• Tension: take off at a place where the block catches the runner. Without the block, both land in gear 3. |
 | w3-04 | Clamp | NEW: pressing up past gear 4 brings split gears back together. | Starts split (a w3-03-style block early in the level), then both lanes must cross red bridges. Press up three times: runner 1→4, twin 3→4 then held at 4.<br>• The twin is red 0.66 tiles after the first press; the runner needs about 3.1 tiles from blue cruise (derived).<br>• Runner's red bridge starts ≥ 3.5 tiles after the last safe pad; the twin's may start sooner.<br>• Tension: where to press, set by the slower body. |
 | w3-05 | Redshift | COMBINE finale: runway, red wall, drag, split, clamp, park. | One long two-lane room. Split the bodies with a wall, then cross a blue/green pair of bridges out of step. Clamp both to red for a shared 7-tile gap (both land yellow, 8.7). Then park the runner at a mid-lane exit, walk the twin alone onto a blue bridge to its exit. Each section is a known idea; the difficulty is the order. |
@@ -91,9 +93,11 @@ Built only if Must is done. Specs: `features/speed-gates.md`, ice spec due Nov 1
 
 If gates are not built, world 4 is dropped. If ice is not built, w4-04 is dropped.
 
-## Fallback: if the Tandem decision gate fails (Nov 12)
+## Fallback (DROPPED 2026-11-16)
 
-World 3 reverts to the v2.0 Gates world (speed gates become Must again; `features/speed-gates.md`):
+_The owner closed the Tandem gate on 2026-11-16: Tandem stays as world 3 and this fallback will not be built. Kept as history and as a source of world-4 ideas._
+
+World 3 would have reverted to the v2.0 Gates world (speed gates Must again; `features/speed-gates.md`):
 
 | Id | Title | Idea | Sketch |
 |---|---|---|---|
@@ -121,6 +125,6 @@ World 3 reverts to the v2.0 Gates world (speed gates become Must again; `feature
 |---|---|---|---|---|
 | 1 Gears | 5 | Must | M2 | none |
 | 2 Flight | 4 | Must | M2 | none |
-| 3 Tandem | 5 | Must | M3 | Tandem (sim + scene Nov 9–13) |
+| 3 Tandem | 5 | Must | M3 | Tandem (sim + scene built; stays, owner 2026-11-16) |
 | 4 Gates | 4 | Should | M3 | speed gates, ice |
 | **Total** | **18** | 14 Must, 4 Should | | |

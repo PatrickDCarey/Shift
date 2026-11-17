@@ -5,7 +5,7 @@
 // FeedbackFx, GameHud).
 
 export { axisScroll, cameraFocus, cameraScroll, snapFeet, type CameraBody, type CameraFocus } from './camera';
-export { playerFrame, RUN_FRAMES_PER_TILE, type PlayerFrame } from './playerFrame';
+export { playerFrame, runCycleIndex, type PlayerAnimTuning, type PlayerFrame } from './playerFrame';
 export { embeddedMask, isEmbedded, type EmbeddedMask } from './embedded';
 export { FOCUS_PROMPT_TEXT, focusPromptVisible } from './focusPrompt';
 export { devLevel, DEV_LEVEL_ID } from './devLevel';

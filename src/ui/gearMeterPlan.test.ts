@@ -271,3 +271,12 @@ describe('key caps', () => {
     expect(p.hints.map((h) => h.side)).toEqual(['up']);
   });
 });
+
+describe('B6-20 filled backing', () => {
+  it('both layouts back the meter with an opaque panel and a 2 px inset', () => {
+    for (const l of [GEAR_METER_LAYOUT, COMPACT_STRIP_LAYOUT]) {
+      expect(l.panelAlpha).toBe(1);
+      expect(l.halo).toBe(2);
+    }
+  });
+});

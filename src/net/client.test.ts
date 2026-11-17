@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createNetClient } from './client';
+import { PUBLIC_BOARD_VERIFIED_ONLY, createNetClient } from './client';
 import type { NetConfig } from './types';
 
 const config: NetConfig = { baseUrl: 'https://abc.supabase.co', anonKey: 'anon-key-value' };
 
 const row = (over: Record<string, unknown> = {}) => ({
-  display_name: 'Ada',
+  display_name: 'ADA',
   steps: 1234,
   verified: false,
   created_at: '2026-11-04T12:00:00.000Z',
@@ -34,7 +34,7 @@ describe('fetchTopRuns: request', () => {
     const result = await client.fetchTopRuns('w1-03', 2, 20);
     expect(result).toEqual({
       ok: true,
-      data: [{ displayName: 'Ada', steps: 1234, verified: false, createdAt: '2026-11-04T12:00:00.000Z' }],
+      data: [{ displayName: 'ADA', steps: 1234, verified: false, createdAt: '2026-11-04T12:00:00.000Z' }],
     });
     const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
     const u = new URL(url);
@@ -132,6 +132,42 @@ describe('fetchTopRuns: failures resolve quietly', () => {
     expect(text).not.toHaveBeenCalled();
   });
 
+  it('cancels the stream once past the cap when there is no content-length', async () => {
+    const cancel = vi.fn();
+    const chunk = new Uint8Array(100 * 1024).fill(32);
+    let sent = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        sent += 1;
+        controller.enqueue(chunk); // endless: only a cap stops it
+      },
+      cancel,
+    });
+    const { client } = setup(async () => new Response(body, { status: 200 }));
+    const pending = client.fetchTopRuns('w1-01', 1, 10);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toEqual({ ok: false, reason: 'invalid-response' });
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(sent).toBeLessThan(10);
+  });
+
+  it('cancels the stream once past the cap when content-length lies', async () => {
+    const cancel = vi.fn();
+    const chunk = new Uint8Array(100 * 1024).fill(32);
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(chunk);
+      },
+      cancel,
+    });
+    const res = new Response(body, { status: 200, headers: { 'content-length': '10' } });
+    const { client } = setup(async () => res);
+    const pending = client.fetchTopRuns('w1-01', 1, 10);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toEqual({ ok: false, reason: 'invalid-response' });
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
   it('reports a 500 with its status', async () => {
     const { client } = setup(async () => new Response('boom', { status: 500 }));
     expect(await client.fetchTopRuns('w1-01', 1, 10)).toEqual({ ok: false, reason: 'http', status: 500 });
@@ -186,7 +222,7 @@ describe('fetchTopRuns: failures resolve quietly', () => {
     ['an object, not an array', () => json({ rows: [] })],
     ['null', () => json(null)],
     ['a row that is not an object', () => json([42])],
-    ['a missing field', () => json([{ display_name: 'Ada', steps: 5 }])],
+    ['a missing field', () => json([{ display_name: 'ADA', steps: 5 }])],
     ['a string for steps', () => json([row({ steps: '12' })])],
     ['negative steps', () => json([row({ steps: -1 })])],
     ['zero steps', () => json([row({ steps: 0 })])],
@@ -209,10 +245,9 @@ describe('fetchTopRuns: failures resolve quietly', () => {
     expect(await client.fetchTopRuns('w1-01', 1, 10)).toEqual({ ok: true, data: [] });
   });
 
-  it('returns names as plain data, unchanged', async () => {
+  it('refuses markup in names (not on the shared allow-list)', async () => {
     const { client } = setup(async () => json([row({ display_name: '<b>x</b>' })]));
-    const result = await client.fetchTopRuns('w1-01', 1, 10);
-    expect(result.ok && result.data[0]?.displayName).toBe('<b>x</b>');
+    expect(await client.fetchTopRuns('w1-01', 1, 10)).toEqual({ ok: false, reason: 'invalid-response' });
   });
 
   it('leaves no timer running after an answer', async () => {
@@ -251,5 +286,31 @@ describe('submitRun (stub until the submit-run edge function exists, M3-11)', ()
   it('never throws on garbage input', async () => {
     const { client } = setup(async () => json({}));
     await expect(client.submitRun(undefined as never)).resolves.toMatchObject({ ok: false });
+  });
+});
+
+describe('fetchTopRuns: verified-only switch (B-1)', () => {
+  it('ships OFF: no verified filter by default', async () => {
+    expect(PUBLIC_BOARD_VERIFIED_ONLY).toBe(false);
+    const { fetchMock, client } = setup(async () => json([row()]));
+    await client.fetchTopRuns('w1-01', 1, 10);
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).searchParams.has('verified')).toBe(false);
+  });
+  it('asks only for verified rows when switched on', async () => {
+    const { fetchMock, client } = setup(async () => json([row({ verified: true })]), { verifiedOnly: true });
+    expect((await client.fetchTopRuns('w1-01', 1, 10)).ok).toBe(true);
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).searchParams.get('verified')).toBe('eq.true');
+  });
+  it('an explicit false overrides the constant', async () => {
+    const { fetchMock, client } = setup(async () => json([row()]), { verifiedOnly: false });
+    await client.fetchTopRuns('w1-01', 1, 10);
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).searchParams.has('verified')).toBe(false);
+  });
+  it('rejects a row above the server step cap (B-8)', async () => {
+    const { client } = setup(async () => json([row({ steps: 36_001 })]));
+    expect(await client.fetchTopRuns('w1-01', 1, 10)).toEqual({ ok: false, reason: 'invalid-response' });
   });
 });

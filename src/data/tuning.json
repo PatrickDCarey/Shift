@@ -19,5 +19,8 @@
   "colorGraceMs": 100,
   "playerWidthTiles": 0.75,
   "playerHeightTiles": 1.5,
-  "deathFreezeMs": 400
+  "deathFreezeMs": 400,
+  "runFramesPerTile": 3,
+  "sprintFramesPerTile": 2,
+  "cameraMaxApartTiles": 28
 }

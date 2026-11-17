@@ -1,12 +1,9 @@
 /**
- * Timing maths for render-only feedback (flashes, ring bursts). Pure.
+ * Timing maths for render-only feedback (flashes, ring bursts; the 3-per-second cap is `requestFlash` in src/fx). Pure.
  * Effects never feed back into the sim.
  *
  * Owner: gameplay-engineer [scene].
  */
-
-/** docs/art/style.md: never flash more than 3 times per second. */
-export const MAX_FLASHES_PER_SECOND = 3;
 
 /** Linear fade from `peak` to 0 over `durationMs`. */
 export function flashAlpha(peak: number, elapsedMs: number, durationMs: number): number {
@@ -18,9 +15,4 @@ export function flashAlpha(peak: number, elapsedMs: number, durationMs: number):
 export function effectProgress(elapsedMs: number, durationMs: number): number | null {
   if (durationMs <= 0 || elapsedMs >= durationMs) return null;
   return Math.max(0, elapsedMs) / durationMs;
-}
-
-/** True if a new full-screen flash may start now (`lastAtMs` null = never flashed). */
-export function flashAllowed(lastAtMs: number | null, nowMs: number, maxPerSecond = MAX_FLASHES_PER_SECOND): boolean {
-  return lastAtMs === null || nowMs - lastAtMs >= 1000 / maxPerSecond;
 }

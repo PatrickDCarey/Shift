@@ -11,10 +11,10 @@
  */
 import type Phaser from 'phaser';
 import type { Band, ColoredBand, Level } from '../core/types';
-import { PIXEL_KEYS } from '../fx';
+import { exitPulseFrame, PIXEL_KEYS } from '../fx';
 import { isEmbedded, type EmbeddedMask } from './embedded';
 import { twinLaneTest } from './tandemView';
-import { exitFrame, planLevel, type LevelPlan } from './levelTiles';
+import { planLevel, type LevelPlan } from './levelTiles';
 
 const DEPTH_TILES = 0;
 const DEPTH_EXIT = 1;
@@ -107,7 +107,7 @@ export class LevelView {
   }
 
   private animateExits(timeMs: number): void {
-    const frame = exitFrame(timeMs, this.reducedMotion);
+    const frame = exitPulseFrame(timeMs, this.reducedMotion);
     if (frame === this.shownFrame) return;
     this.shownFrame = frame;
     for (const e of this.exits) {

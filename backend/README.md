@@ -10,6 +10,8 @@ Optional. The game plays fully offline; leaderboards switch on only when the two
 | `tests/0001_runs_rls.sql` | Checks that clients can read but never write. Run it right after the migration. |
 | `migrations/0002_submit_run.sql` | Name allow-list, step and log caps, and the service-only `submit_attempts` rate-limit table. Run after 0001. |
 | `migrations/0003_attempts_prune_index.sql` | Index on `submit_attempts(created_at)` for the per-call prune. Run after 0002. |
+| `migrations/0004_atomic_submit.sql` | Unique best-per-name key on `runs`; service-only SQL functions `submit_attempt` (atomic rate limit) and `record_run` (upsert keeping the lower time). Run after 0003. |
+| `tests/0004_atomic_checks.sql` | Checks for 0004 (limit, upsert, unique key, no client execute). Run it right after the migration. |
 | `tests/0002_submit_run_checks.sql` | Checks for 0002. Run it right after the migration. |
 | `functions/submit-run/` | The edge function (task M3-11): the only way to add a run. `rules.ts` holds the pure rules (unit tests: `scripts/submit-run.test.ts`), `index.ts` the Deno handler. Not deployed until M3-12. |
 
@@ -111,7 +113,7 @@ headers: apikey: <anon key> (plus Authorization: Bearer <anon key> only when the
 
 | Code | When |
 |---|---|
-| `rate` | more than 30 calls per minute from one IP (keyed hash of `cf-connecting-ip`; raw addresses are never stored) |
+| `rate` | 30 calls per minute or 200 per hour from one IP reached (keyed hash; raw addresses are never stored), the database could not be reached, there is no usable `cf-connecting-ip`, or `IP_HASH_SALT` is not set (all 503, fail closed). Rejected attempts count toward the hourly cap too. IPv4-mapped IPv6 is treated as the IPv4 address and other IPv6 is bucketed by /64. |
 | `invalid` | wrong shape or extra keys, unknown level (world 0 included), steps outside 1..36,000, a malformed log, or a log shorter than `steps`. Run counts are summed, never expanded. |
 | `version` | the level version is not the one the function knows |
 | `floor` | fewer steps than 85% of the fastest known (table in `rules.ts`, from `levels/README.md`) |
@@ -119,7 +121,33 @@ headers: apikey: <anon key> (plus Authorization: Bearer <anon key> only when the
 
 Deploy (M3-12): `supabase functions deploy submit-run`. No `supabase secrets set` is needed. The level table in `rules.ts` must be updated when a level is added or its version or fastest time changes.
 
-Not done: server-side replay (stretch, v2: set `verified` after re-running `input_log`) and keeping only the top N rows per level.
+Rate limit and best-per-name (0004): `submit_attempt` counts and records in one call, serialised per IP hash by an advisory lock, and prunes old rows on about 1 call in 50 (2%). `record_run` is one `insert ... on conflict (level_id, level_version, display_name) do update ... where runs.steps > excluded.steps`, so a tie or a slower run changes nothing and two parallel submits cannot leave two rows. Database faults answer 503 `rate`, not `invalid`.
+
+Not done: server-side replay (see below) and keeping only the top N rows per level.
+
+## Unverified times: the owner's decision (B-1)
+
+Today the function never replays `input_log`. It checks shape, the 85% floor and that the log is at least `steps` long, so a hand-made POST such as `{steps: <floor>, inputLog: "36000R"}` takes rank 1. Every run is stored `verified = false` (column exists since 0001; `record_run` takes `p_verified`).
+
+**Option A: server replay.** The function decodes `input_log`, runs the shared `src/core` sim (cap 36,000 steps, a few ms), stores `verified = true` only if the level is won at exactly `steps`, and rejects otherwise.
+- Cost: about 1 to 2 days: bundle `src/core` for Deno, a level-text loader inside the function (levels baked in at deploy, kept in step with `levels/`), tests that replay every shipped solution, a deploy check. Every level edit needs a redeploy.
+- Risk: sim and function drift (mitigated: same code, arch tests); a Deno bundling problem found only at first deploy; a bug rejects honest runs.
+
+**Option B: public board shows only verified runs.** Flip `PUBLIC_BOARD_VERIFIED_ONLY` in `src/net/client.ts` (default `false`); the board request then adds `verified=eq.true`.
+- Cost: minutes, but alone it shows an EMPTY board, because nothing sets `verified` until something replays. It is only useful together with A, or with the owner marking runs by hand (`update runs set verified = true where id = ...`, SQL editor).
+- Risk: a forged time is still stored (hidden, not refused), and the rank returned to a submitter counts all rows, forged ones included.
+
+Recommendation: A before the boards go public; B stays as the one-line fallback if A slips (then verify the top rows by hand). Neither is built.
+
+## First real deploy must check (nothing here has run on Supabase or Deno)
+
+1. Run 0001 to 0004 in order, then each `tests/*.sql`; 0004 has never executed (plpgsql, `returns table`, ON CONFLICT with an alias, advisory lock).
+2. `supabase functions deploy submit-run`; POST a good run twice and a slower one: rank, total and a single row per name.
+3. Fire 40 parallel POSTs from one machine: at most 30 accepted in a minute.
+4. **Client IP header (K1).** Only `cf-connecting-ip` is trusted (the function never reads `x-real-ip` or `x-forwarded-for`, which a client can forge). Deploy a throwaway echo function that returns all request headers and call it with forged `x-forwarded-for`, `x-real-ip` and `cf-connecting-ip` values: record which ones the platform overwrites. If `cf-connecting-ip` is missing, every submit is refused (503 `rate`); only then add a measured hop counted from the RIGHT of `x-forwarded-for`, never the first. This blocks turning submissions on, not the first deploy.
+7. **Secret:** `supabase secrets set IP_HASH_SALT=<long random string>` before the first call (without it every submit is refused 503). It is a function secret only: never in `.env`, the repo or a `VITE_` variable; rotating it resets the rate-limit buckets.
+5. `rpc` returns `board_rank` and `board_total` as bigint strings or numbers; `parseRecordResult` accepts both.
+6. Anon cannot call `/rest/v1/rpc/submit_attempt` or `record_run` (expect 401 or 403).
 
 ## Release build for itch.io
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tilesetIndex } from '../fx';
-import { exitFrame, planLevel } from './levelTiles';
+import { planLevel } from './levelTiles';
 import { gridLevel } from './testkit';
 
 describe('planLevel', () => {
@@ -33,14 +33,5 @@ describe('planLevel', () => {
 
   it('lists exits', () => {
     expect(plan.exits).toEqual([{ col: 4, row: 1 }]);
-  });
-});
-
-describe('exitFrame', () => {
-  it('loops through four frames and holds the first under reduced motion', () => {
-    expect(exitFrame(0, false)).toBe(0);
-    expect(exitFrame(150, false)).toBe(1);
-    expect(exitFrame(600, false)).toBe(0);
-    expect(exitFrame(450, true)).toBe(0);
   });
 });

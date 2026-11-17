@@ -12,11 +12,13 @@ import { PLAYER_ANIMS, playerFrameName } from '../fx';
 
 export type BodyName = 'runner' | 'twin';
 
-/** Placeholder (requests.md 2026-11-13): run-cycle frames advanced per tile travelled. Not in tuning.json yet. */
-export const RUN_FRAMES_PER_TILE = 3;
-
-/** Render rate the one-shot poses are timed against (they are cosmetic and not part of the sim). */
-const RENDER_HZ = 60;
+/** The tuning keys the frame choice reads (`runFramesPerTile`, `sprintFramesPerTile`, `stepHz`). */
+export interface PlayerAnimTuning {
+  readonly runFramesPerTile: number;
+  readonly sprintFramesPerTile: number;
+  /** Rate the one-shot poses are timed against (they are cosmetic and not part of the sim). */
+  readonly stepHz: number;
+}
 
 /** One-shot poses started by sim events; `age` counts render frames since the event. */
 export type TransientAnim = 'land' | 'jump' | 'shift';
@@ -27,6 +29,7 @@ export interface Transient {
 }
 
 export interface PlayerFrameOptions {
+  readonly tuning: PlayerAnimTuning;
   /** A one-shot pose in progress, or none. Ignored while home or dead. */
   readonly transient?: Transient | null;
   /** Render frames since the run died; present only while the run is dead. */
@@ -51,13 +54,13 @@ function animInfo(anim: string): AnimInfo {
   return info;
 }
 
-function rawIndex(anim: string, age: number): number {
-  return Math.floor((Math.max(0, age) * animInfo(anim).fps) / RENDER_HZ);
+function rawIndex(anim: string, age: number, stepHz: number): number {
+  return Math.floor((Math.max(0, age) * animInfo(anim).fps) / stepHz);
 }
 
 /** Frame index `age` render frames into `anim`, or null once a one-shot has finished. */
-export function oneShotIndex(anim: string, age: number): number | null {
-  const index = rawIndex(anim, age);
+export function oneShotIndex(anim: string, age: number, stepHz: number): number | null {
+  const index = rawIndex(anim, age, stepHz);
   return index < animInfo(anim).frames ? index : null;
 }
 
@@ -70,30 +73,37 @@ function isSkidding(p: PlayerState): boolean {
   return p.grounded && p.moveDir !== 0 && Math.abs(p.vx) > SIM_EPSILON && Math.sign(p.vx) !== p.moveDir;
 }
 
-function runFrame(p: PlayerState): string {
-  const anim = p.band >= 3 ? 'sprint' : 'run';
-  // Multiplying by facing makes the cycle advance with the direction of travel.
-  return `${anim}_${mod(Math.floor(p.x * p.facing * RUN_FRAMES_PER_TILE), animInfo(anim).frames)}`;
+/** `k = floor(x * framesPerTile)`; facing left plays the mirrored index so the legs never run backwards. */
+export function runCycleIndex(x: number, framesPerTile: number, frames: number, facingLeft: boolean): number {
+  const k = mod(Math.floor(x * framesPerTile), frames);
+  return facingLeft ? mod(frames - k, frames) : k;
+}
+
+function runFrame(p: PlayerState, t: PlayerAnimTuning): string {
+  const sprint = p.band >= 3;
+  const anim = sprint ? 'sprint' : 'run';
+  const perTile = sprint ? t.sprintFramesPerTile : t.runFramesPerTile;
+  return `${anim}_${runCycleIndex(p.x, perTile, animInfo(anim).frames, p.facing < 0)}`;
 }
 
 /** The `anim_n` part of the frame name. */
 function baseFrame(p: PlayerState, opts: PlayerFrameOptions): string {
   if (opts.deathAge !== undefined && opts.deathAge !== null) {
-    return `death_${Math.min(animInfo('death').frames - 1, rawIndex('death', opts.deathAge))}`;
+    return `death_${Math.min(animInfo('death').frames - 1, rawIndex('death', opts.deathAge, opts.tuning.stepHz))}`;
   }
   if (p.home) return 'park_0';
   const t = opts.transient;
   if (t !== undefined && t !== null) {
-    const n = oneShotIndex(t.anim, t.age);
+    const n = oneShotIndex(t.anim, t.age, opts.tuning.stepHz);
     if (n !== null) return `${t.anim}_${n}`;
   }
   if (!p.grounded) return p.vy < 0 ? 'jump_1' : 'fall_0';
   if (isSkidding(p)) return 'skid_0';
   if (Math.abs(p.vx) <= SIM_EPSILON) return 'idle_0';
-  return runFrame(p);
+  return runFrame(p, opts.tuning);
 }
 
-export function playerFrame(player: PlayerState, body: BodyName, opts: PlayerFrameOptions = {}): PlayerFrame {
+export function playerFrame(player: PlayerState, body: BodyName, opts: PlayerFrameOptions): PlayerFrame {
   return {
     name: playerFrameName(body, BAND_COLORS[player.band], baseFrame(player, opts)),
     flipX: player.facing < 0,

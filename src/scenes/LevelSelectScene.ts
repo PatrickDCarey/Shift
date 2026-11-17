@@ -11,8 +11,6 @@ import { levelSelectJump, parseLevelSelectData } from '../ui/menuNav';
 import { MenuCanvas, MenuKeys } from '../ui/MenuView';
 import { SCENE_KEYS, getSaveStore } from './keys';
 
-/** The first level of world 1; the spec's fallback focus. */
-const FALLBACK_ID = 'w1-01';
 const NUDGE_FRAMES = 6;
 
 /**
@@ -47,7 +45,7 @@ export class LevelSelectScene extends Phaser.Scene {
       progress: store.getProgress(),
       stepHz: loadGameParams().params.stepHz,
       focusId: this.focusId,
-      fallbackId: FALLBACK_ID,
+      fallbackId: order[0]?.id, // the first level in order, whatever world 1 is called
     });
     this.still = reducedMotion(store.getSettings(), prefersReducedMotion(window.matchMedia?.bind(window)));
     this.canvas = new MenuCanvas(this);

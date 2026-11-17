@@ -7,7 +7,7 @@ describe('titleJump', () => {
   it('maps every action', () => {
     expect(titleJump({ type: 'start', levelId: 'w1-03' })).toEqual({ target: 'game', data: { levelId: 'w1-03' } });
     expect(titleJump({ type: 'levels' })).toEqual({ target: 'levelSelect' });
-    expect(titleJump({ type: 'controls' })).toEqual({ target: 'controls' });
+    expect(titleJump({ type: 'controls' })).toEqual({ target: 'controls', data: { from: 'title' } });
   });
 });
 

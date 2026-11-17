@@ -52,12 +52,20 @@ export interface Tuning {
   readonly playerHeightTiles: number;
   /** Freeze between falling out and respawning, ms. */
   readonly deathFreezeMs: number;
+  /** Render only: run animation advances one frame per 1/this tile at run pace (integer 1..12). */
+  readonly runFramesPerTile: number;
+  /** Render only: same at sprint pace (integer 1..12). */
+  readonly sprintFramesPerTile: number;
+  /** Render only: Tandem camera keeps both bodies on screen up to this many tiles apart (integer 1..256). */
+  readonly cameraMaxApartTiles: number;
 }
 
 /** Runtime check applied to one tuning value. */
 export type TuningFieldKind =
   | 'positiveInteger' // integer > 0
   | 'positiveNumber' // finite > 0
+  | 'framesPerTile' // integer in 1..12 (render animation rate)
+  | 'tileCount' // integer in 1..256 (render distance in whole tiles)
   | 'ms' // finite >= 0, converted with round(ms * stepHz / 1000)
   | 'gear' // integer in GEARS
   | 'band' // integer in BANDS
@@ -73,7 +81,7 @@ type KindFor<T> = [T] extends [PerBand<number>]
       ? 'gear'
       : [T] extends [Band]
         ? 'band'
-        : 'positiveInteger' | 'positiveNumber' | 'ms';
+        : 'positiveInteger' | 'positiveNumber' | 'ms' | 'framesPerTile' | 'tileCount';
 
 /** One entry per `Tuning` key, no more, no fewer (enforced by the mapped type). */
 export const TUNING_SCHEMA: { readonly [K in keyof Tuning]-?: KindFor<Tuning[K]> } = {
@@ -98,7 +106,16 @@ export const TUNING_SCHEMA: { readonly [K in keyof Tuning]-?: KindFor<Tuning[K]>
   playerWidthTiles: 'positiveNumber',
   playerHeightTiles: 'positiveNumber',
   deathFreezeMs: 'ms',
+  runFramesPerTile: 'framesPerTile',
+  sprintFramesPerTile: 'framesPerTile',
+  cameraMaxApartTiles: 'tileCount',
 };
+
+const MAX_FRAMES_PER_TILE = 12;
+const MAX_TILE_COUNT = 256;
+
+const isIntegerIn = (v: unknown, min: number, max: number): boolean =>
+  Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
@@ -111,6 +128,8 @@ const isIncreasingList = (v: unknown, length: number): v is number[] =>
 const FIELD_CHECKS: Readonly<Record<TuningFieldKind, (v: unknown) => boolean>> = {
   positiveInteger: (v) => Number.isInteger(v) && (v as number) > 0,
   positiveNumber: (v) => isFiniteNumber(v) && v > 0,
+  framesPerTile: (v) => isIntegerIn(v, 1, MAX_FRAMES_PER_TILE),
+  tileCount: (v) => isIntegerIn(v, 1, MAX_TILE_COUNT),
   ms: (v) => isFiniteNumber(v) && v >= 0,
   gear: (v) => GEARS.includes(v as Gear),
   band: (v) => BANDS.includes(v as Band),

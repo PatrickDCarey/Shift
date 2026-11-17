@@ -37,4 +37,17 @@ describe('parseEntries display_name', () => {
   ])('rejects %s', (_label, name) => {
     expect(parseEntries(rows(name), 5)).toBeNull();
   });
+  it.each([
+    ['lower case', 'ace'],
+    ['punctuation', 'A.CE'],
+    ['non-ASCII', 'ACÉ'],
+    ['13 characters', 'A'.repeat(13)],
+    ['leading space', ' ACE'],
+    ['double space', 'A  CE'],
+  ])('rejects %s (the shared name rule)', (_label, name) => {
+    expect(parseEntries(rows(name), 5)).toBeNull();
+  });
+  it('accepts every name the shared rule accepts', () => {
+    for (const name of ['A', 'A-1', 'TWO WORDS', 'A'.repeat(12)]) expect(parseEntries(rows(name), 5)).toHaveLength(1);
+  });
 });

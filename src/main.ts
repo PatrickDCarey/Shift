@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
 import { setSaveStore } from './scenes/keys';
+import { MENU_SCENES } from './scenes/menuScenes';
 import { createSaveStore } from './save';
 
 /**
@@ -51,7 +52,11 @@ const config: Phaser.Types.Core.GameConfig = {
     // Runs before any scene boots, so every scene finds the store.
     preBoot: (game) => setSaveStore(game.registry, saveStore),
   },
-  scene: [BootScene, GameScene],
+  // Boot first (Phaser auto-starts only the first scene; Boot then starts the
+  // title, or the game on a `?level=` deep link). The menus come AFTER
+  // GameScene: Pause and Results are overlays launched over it and must draw
+  // on top (ui-engineer's launch contract, requests.md 2026-11-16).
+  scene: [BootScene, GameScene, ...MENU_SCENES],
 };
 
 /**

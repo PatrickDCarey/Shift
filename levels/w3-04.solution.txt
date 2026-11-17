@@ -1,0 +1,13 @@
+level: w3-04
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20. 1+ 1. 1+ 1. 1+   stand, shift up to gear 4
+# 71R 1RJ              sprint and jump at x = 12.70 (18-step window 63-80): runner caught by the block (gear 1),
+#                      twin drags to yellow and lands in gear 3 (both on step 144)
+# 164R                 runner walks blue over its blue bridge onto its safe pad; twin runs yellow onto its pad
+# 10.                  let go (step 262): runner stops at x = 21.48, twin brakes to x = 40.1 (let-go window 128-200)
+# 1+ 1. 1+ 1. 1+ 1.    press up three times: runner 2/3/4, twin 4 then clamped twice
+# 119R                 both red 3.23 tiles later; runner home at step 354, twin at 396 (won)
+steps: 396
+---
+20. 1+ 1. 1+ 1. 1+ 71R 1RJ 164R 10. 1+ 1. 1+ 1. 1+ 1. 119R

@@ -13,7 +13,7 @@ import { levelCaption } from './levelCaption';
 import { createList, focusedId, moveList } from './menuFocus';
 import type { ListItem, ListState, Transition } from './menuFocus';
 import type { MenuIntent, MenuKeyOptions } from './menuInput';
-import { ITEM_PITCH, SCREEN_H, SCREEN_W, box, centredText, truncate } from './menuLayout';
+import { SCREEN_H, SCREEN_W, box, centredText, truncate } from './menuLayout';
 import type { LayoutItem } from './menuLayout';
 
 export type ResultsItemId = 'next' | 'retry' | 'levels';
@@ -69,9 +69,9 @@ function markerFor(record: RunRecordResult): string | null {
 
 export function createResultsModel(input: ResultsInput): ResultsModel {
   const items: ListItem<ResultsItemId>[] = [
-    ...(input.nextLevelId === null ? [] : [{ id: 'next' as const, label: 'NEXT' }]),
-    { id: 'retry', label: 'RETRY' },
-    { id: 'levels', label: 'LEVELS' },
+    ...(input.nextLevelId === null ? [] : [{ id: 'next' as const, label: 'ENTER: NEXT LEVEL' }]),
+    { id: 'retry', label: 'R: RETRY' },
+    { id: 'levels', label: 'ESC: LEVELS' },
   ];
   const { record } = input;
   return {
@@ -113,6 +113,9 @@ function chosenAction(model: ResultsModel): ResultsAction | null {
   return id === 'levels' ? { type: 'levels' } : null;
 }
 
+/** Pitch of a 1x key-line item (7 px text, frames 2 px apart). */
+const KEY_LINE_PITCH = 14;
+
 const PANEL_W = 200;
 const PANEL_H = 140;
 
@@ -135,8 +138,11 @@ export function resultsLayout(model: ResultsModel): readonly LayoutItem[] {
   if (model.bestText !== null) out.push(centredText('best', model.bestText, py + ROW.best, 1));
   const note = model.marker ?? (model.notSaved ? NOT_SAVED : null);
   if (note !== null) out.push(centredText(model.marker === null ? 'notSaved' : 'marker', note, py + ROW.note, 1));
-  model.list.items.forEach((item, index) => {
-    out.push(centredText(`item:${item.id}`, item.label, py + ROW.items + index * ITEM_PITCH, 2));
-  });
+  let y = py + ROW.items;
+  for (const item of model.list.items) {
+    // The key line (results.md, B6-16): ENTER: NEXT LEVEL first in the primary colour, then R and ESC muted; all 1x.
+    out.push(centredText(`item:${item.id}`, item.label, y, 1));
+    y += KEY_LINE_PITCH;
+  }
   return out;
 }

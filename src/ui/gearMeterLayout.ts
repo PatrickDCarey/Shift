@@ -26,6 +26,8 @@ export interface GearMeterLayout {
   readonly panelH: number;
   readonly panelAlpha: number;
   readonly panelBorderWidth: number;
+  /** Extra px of panel colour outside the border, so the meter never touches level geometry beside it. */
+  readonly halo: number;
   /** Left and right padding inside the panel. */
   readonly pad: number;
 
@@ -78,8 +80,9 @@ export interface GearMeterLayout {
 export const GEAR_METER_LAYOUT: GearMeterLayout = {
   panelW: 110,
   panelH: 32,
-  panelAlpha: 0.92,
+  panelAlpha: 1,
   panelBorderWidth: 1,
+  halo: 2,
   pad: 4,
 
   cell: 9,

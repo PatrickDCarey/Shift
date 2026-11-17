@@ -19,6 +19,12 @@ import {
   WIPE_FRAMES,
   WIPE_H,
   WIPE_W,
+  WHY_BANDS,
+  WHY_SIZE,
+  WHY_STEPS,
+  bakeWhyFrame,
+  type WhyBand,
+  type WhyStep,
   bakeDustFrame,
   bakeRingFrame,
   bakeSpeedLine,
@@ -164,7 +170,7 @@ describe('atlas pixel-fx', () => {
 
   it('names every frame and carries pivots at the feet, the centre and the lead end', () => {
     const names = effectFrameNames();
-    expect(Object.keys(built.json.frames)).toHaveLength(DUST_FRAMES + RING_FRAMES + SPEED_LENGTHS.length * SPEED_PHASES.length + WIPE_FRAMES);
+    expect(Object.keys(built.json.frames)).toHaveLength(DUST_FRAMES + RING_FRAMES + SPEED_LENGTHS.length * SPEED_PHASES.length + WIPE_FRAMES + WHY_BANDS.length * WHY_STEPS.length);
     expect(built.json.frames[names.dust(0)]?.pivot).toEqual({ x: 0.5, y: 1 });
     expect(built.json.frames[names.ring(3)]?.pivot).toEqual({ x: 0.5, y: 0.5 });
     expect(built.json.frames[names.speed(32, 1)]?.pivot).toEqual({ x: 1, y: 0 });
@@ -225,5 +231,62 @@ describe('screen wipe frames', () => {
   it('are named fx/wipe/<n> in the atlas with origin (0, 0)', () => {
     const built = buildPixelAssets().fx;
     expect(built.json.frames[effectFrameNames().wipe(1)]?.pivot).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe('why-you-fell frames', () => {
+  const names = effectFrameNames();
+  const frameOf = (band: WhyBand, step: WhyStep): Raster => bakeWhyFrame(band, step);
+
+  it('are 16 x 16 pure-white masks', () => {
+    for (const band of WHY_BANDS) {
+      for (const step of WHY_STEPS) {
+        const r = frameOf(band, step);
+        expect([r.width, r.height]).toEqual([WHY_SIZE, WHY_SIZE]);
+        for (let y = 0; y < r.height; y++) {
+          for (let x = 0; x < r.width; x++) {
+            const p = getPixel(r, x, y);
+            if (p[3] > 0) expect(p).toEqual([255, 255, 255, 255]);
+          }
+        }
+      }
+    }
+  });
+
+  it('bold lights more than hold, hold more than fade', () => {
+    for (const band of WHY_BANDS) {
+      expect(lit(frameOf(band, 'bold'))).toBeGreaterThan(lit(frameOf(band, 'hold')));
+      expect(lit(frameOf(band, 'hold'))).toBeGreaterThan(lit(frameOf(band, 'fade')));
+    }
+  });
+
+  it('every hold frame has a full 1 px ring on the tile edge', () => {
+    for (const band of WHY_BANDS) {
+      const r = frameOf(band, 'hold');
+      for (let k = 0; k < WHY_SIZE; k++) {
+        for (const [x, y] of [[k, 0], [k, WHY_SIZE - 1], [0, k], [WHY_SIZE - 1, k]] as const) expect(getPixel(r, x, y)[3]).toBe(255);
+      }
+    }
+  });
+
+  it('the four bands differ on at least 20 interior pixels (the pattern names the gear, not the hue)', () => {
+    const inner = (r: Raster): boolean[] => {
+      const out: boolean[] = [];
+      for (let y = 2; y < WHY_SIZE - 2; y++) for (let x = 2; x < WHY_SIZE - 2; x++) out.push(getPixel(r, x, y)[3] > 0);
+      return out;
+    };
+    for (let a = 0; a < WHY_BANDS.length; a++) {
+      for (let b = a + 1; b < WHY_BANDS.length; b++) {
+        const ia = inner(frameOf(WHY_BANDS[a]!, 'hold'));
+        const ib = inner(frameOf(WHY_BANDS[b]!, 'hold'));
+        expect(ia.filter((v, i) => v !== ib[i]).length).toBeGreaterThanOrEqual(20);
+      }
+    }
+  });
+
+  it('are named fx/why/<band>/<step> and present in the committed atlas', () => {
+    expect(names.why('green', 'hold')).toBe('fx/why/green/hold');
+    const frames = (fxJson as { frames: Record<string, unknown> }).frames;
+    for (const band of WHY_BANDS) for (const step of WHY_STEPS) expect(frames[names.why(band, step)]).toBeDefined();
   });
 });

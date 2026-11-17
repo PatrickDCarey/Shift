@@ -90,3 +90,15 @@ export { RESULTS_BEAT_MS, RESULTS_MENU_KEYS, createResultsModel, resultsLayout, 
 export type { ResultsAction, ResultsInput, ResultsItemId, ResultsModel } from './resultsModel';
 export { CONTROL_ROWS, controlsLayout, controlsRows, controlsStep, createControlsModel } from './controlsModel';
 export type { ControlsAction, ControlsInput, ControlsItemId, ControlsModel, ControlsRow } from './controlsModel';
+export {
+  PAUSE_RESULT_EVENT,
+  controlsReturn,
+  parseControlsData,
+  parsePauseData,
+  parseResultsData,
+  pauseLaunchData,
+  pauseOutcome,
+  resultsLaunchData,
+  resultsOutcome,
+} from './menuFlow';
+export type { ControlsSceneData, FlowJump, PauseOutcome, PauseResult, PauseSceneData, WinLike } from './menuFlow';

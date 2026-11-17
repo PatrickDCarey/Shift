@@ -8,7 +8,7 @@ import { INITIAL_GEAR_METER_MODEL, type GearMeterModel } from './gearMeter';
 import { GEAR_METER_LAYOUT, type GearMeterLayout } from './gearMeterLayout';
 import { gearMeterPlan, type GearMeterPlan, type PlanCell, type PlanHint, type Rect } from './gearMeterPlan';
 import { arrowRects, chevronRects, dashedRingRects, needleRects, patternInk, patternRim, ringRects } from './meterPixels';
-import { cueView, updateCue, type CueView, type NeededColourCue, type NeededColourEvent } from './neededColourCue';
+import { CUE_FRAMES, cueView, updateCue, type CueView, type NeededColourCue, type NeededColourEvent } from './neededColourCue';
 
 /**
  * The HUD gear meter (docs/design/features/hud-gear-meter.md, clarity-fixes.md)
@@ -110,6 +110,15 @@ export class GearMeterView {
     this.last = null;
   }
 
+  /**
+   * "Why you fell": ring the cell of the colour that was needed for 45 frames
+   * (one ring at a time, a new call replaces it). `null` clears it (respawn).
+   */
+  setNeededCue(band: Band | null): void {
+    this.cue = band === null ? null : { band, framesLeft: CUE_FRAMES };
+    this.last = null; // force a redraw on the next update
+  }
+
   update(model: GearMeterModel, frame: GearMeterFrame = {}): void {
     this.pulse = updateDropPulse(this.pulse, this.last, model, this.scene.time.now, {
       reducedMotion: this.reducedMotion,
@@ -178,6 +187,9 @@ export class GearMeterView {
   }
 
   private drawPanel(r: Rect): void {
+    const h = this.layout.halo;
+    this.graphics.fillStyle(num(palette.ui.panel), this.layout.panelAlpha);
+    this.graphics.fillRect(r.x - h, r.y - h, r.w + 2 * h, r.h + 2 * h);
     this.graphics.fillStyle(num(palette.ui.panel), this.layout.panelAlpha);
     this.graphics.fillRect(r.x, r.y, r.w, r.h);
     this.fill(ringRects(r, this.layout.panelBorderWidth), palette.ui.panelBorder);

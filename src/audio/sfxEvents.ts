@@ -5,16 +5,8 @@
 import type { Band, BodyId, SimEvent } from '../core/types';
 import type { SfxCue } from './sfxSpec';
 
-/**
- * A body passed through a colored floor. The sim has no such event; the scene (or whoever
- * owns the shared predicate, see requests.md) builds one when the predicate fires.
- */
-export interface FallThroughEvent {
-  readonly type: 'fallThrough';
-  readonly body: BodyId;
-}
-
-export type SfxSourceEvent = SimEvent | FallThroughEvent;
+/** Events the SFX mapper reads: the sim's own events, including `fallThrough` (contract in core/types). */
+export type SfxSourceEvent = SimEvent;
 
 /** Optional read-only context from the scene: each body's current band, indexed by body id. */
 export interface SfxContext {

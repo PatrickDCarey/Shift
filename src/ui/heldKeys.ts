@@ -8,9 +8,12 @@
  */
 export class HeldKeys {
   private readonly down = new Set<string>();
+  private pressed = new Set<string>();
 
   keyDown(code: string, repeat = false): void {
-    if (!repeat) this.down.add(code);
+    if (repeat) return;
+    this.down.add(code);
+    this.pressed.add(code);
   }
 
   keyUp(code: string): void {
@@ -19,6 +22,14 @@ export class HeldKeys {
 
   clear(): void {
     this.down.clear();
+    this.pressed.clear();
+  }
+
+  /** Codes pressed since the last call (a keydown and keyup in one frame still show here). */
+  takePressed(): ReadonlySet<string> {
+    const taken = this.pressed;
+    this.pressed = new Set();
+    return taken;
   }
 
   snapshot(): ReadonlySet<string> {

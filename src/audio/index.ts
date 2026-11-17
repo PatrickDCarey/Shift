@@ -47,7 +47,6 @@ export { createSfx, playCue, type Sfx } from './sfx';
 export {
   sfxForEvent,
   sfxForEvents,
-  type FallThroughEvent,
   type SfxContext,
   type SfxSourceEvent,
 } from './sfxEvents';

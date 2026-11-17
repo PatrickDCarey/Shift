@@ -6,8 +6,7 @@
  * Owner: gameplay-engineer [scene].
  */
 
-/** On-screen text of the M1 pause stand-in (the real overlay is ui-engineer's, M2-12). */
-export const PAUSE_TEXT = 'PAUSED\nEsc / P: resume    R: restart';
+import type { PressKind } from './inputSampler';
 
 export type PauseChange = 'paused' | 'resumed' | null;
 
@@ -49,4 +48,13 @@ export class PauseState {
   reset(): void {
     this.on = false;
   }
+}
+
+/**
+ * Should this frame's queued presses open the pause? Any Esc/P press does, once,
+ * however many arrived; nothing while paused (the overlay owns the keys) or when
+ * pausing is off (after the win step). Pure.
+ */
+export function pauseWanted(presses: readonly PressKind[], paused: boolean, canPause: boolean): boolean {
+  return !paused && canPause && presses.includes('pause');
 }

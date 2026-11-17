@@ -1,0 +1,37 @@
+# World 3, level 3. Teach: a stop in mid-air drops only that body's gear, so one input now gives two colors.
+# Target first-time solve: 60-120 s.
+# Layout (47 x 15, a short scroll). Runner lane on top (floor row 6), twin lane below (floor row 13).
+#   Runner: safe floor to col 24 with a hanging safe block (cols 16-17, rows 1-3: 2 tiles of headroom under it)
+#   -> blue bridge cols 25-34 -> safe ground, exit col 38. Under the blue bridge the divider holds a closed
+#   pocket (rows 7-9, floor row 10): a runner that drops through is caught there (restart with R).
+#   Twin: w2-02's Coast, flat: safe runway cols 1-7 -> red runway cols 8-12 -> 7-tile gap -> yellow floor
+#   cols 20-39 (landing pad and the floor to the exit) -> safe, exit col 42.
+# Shift up to gear 4 standing, hold right, jump near the end of the twin's red runway (18-step window). The
+#   runner hits the block's face in the air: vx 0, gear 1, it drops onto safe floor. The twin flies on, drags to
+#   yellow and lands yellow in gear 3. Keep holding right: the runner walks blue over its blue bridge, the twin
+#   runs yellow to its exit and parks first.
+# The landing pad is flat (not 2 lower as in w2-02) so both bodies land on the same step: with a lower pad a
+#   shift pressed just before the runner lands reached only the runner (shift buffer), a second way to split.
+# The blue bridge is 10 tiles so a yellow runner cannot jump it (coyote included).
+# No hints (levels-w3.md).
+id: w3-03
+title: Gear Split
+world: 3
+teaches: a stop in mid-air drops only that body's gear
+version: 1
+---
+#..............................................
+#...............##.............................
+#...............##.............................
+#...............##.............................
+#.....................................E........
+#@....................................E........
+#########################BBBBBBBBBB############
+#.......................#..........############
+#.......................#..........############
+#.......................#..........############
+#.......................#######################
+#.........................................E....
+#&........................................E....
+########RRRRR.......YYYYYYYYYYYYYYYYYYYY#######
+########................................#######

@@ -1,14 +1,14 @@
 // Validation of everything that comes back from the network. The response is
 // untrusted: a wrong shape is a failure, never a crash. Owner: backend-engineer.
 
+import { isDisplayName } from '../core/types';
 import type { LeaderboardEntry } from './types';
 
 /** Shape of a level id, matching the `runs_level_id_format` check in 0001_runs.sql. */
 export const LEVEL_ID_PATTERN = /^w[0-5]-[0-9]{2}$/;
 export const MAX_LIMIT = 100;
 export const MAX_OFFSET = 10_000;
-const MAX_STEPS = 1_000_000; // MAX_REPLAY_STEPS, runs_steps_range
-const MAX_NAME_LENGTH = 24; // runs_display_name_shape
+const MAX_STEPS = 36_000; // the server's MAX_RUN_STEPS and runs_steps_range (0002)
 
 export function isLevelId(value: unknown): value is string {
   return typeof value === 'string' && LEVEL_ID_PATTERN.test(value);
@@ -24,9 +24,6 @@ export function clampInt(value: unknown, min: number, max: number, fallback: num
   return Math.min(max, Math.max(min, Math.floor(value)));
 }
 
-/** Control characters, zero-width (U+200B-200F), bidi embeds/overrides (U+202A-202E), isolates (U+2066-2069), U+2028/9, BOM. */
-const UNSAFE_NAME_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060\u2066-\u2069\ufeff]/;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -34,8 +31,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function parseEntry(row: unknown): LeaderboardEntry | null {
   if (!isRecord(row)) return null;
   const { display_name: name, steps, verified, created_at: createdAt } = row;
-  if (typeof name !== 'string' || name.length < 1 || name.length > MAX_NAME_LENGTH) return null;
-  if (UNSAFE_NAME_CHARS.test(name)) return null;
+  if (typeof name !== 'string' || !isDisplayName(name)) return null; // the shared allow-list: what the server can write
   if (typeof steps !== 'number' || !Number.isInteger(steps) || steps < 1 || steps > MAX_STEPS) return null;
   if (typeof verified !== 'boolean') return null;
   if (typeof createdAt !== 'string' || createdAt.length > 64 || Number.isNaN(Date.parse(createdAt))) {

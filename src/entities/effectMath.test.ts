@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { effectProgress, flashAllowed, flashAlpha } from './effectMath';
+import { effectProgress, flashAlpha } from './effectMath';
 
 describe('flashAlpha', () => {
   it('fades linearly from the peak to zero', () => {
@@ -20,16 +20,5 @@ describe('effectProgress', () => {
     expect(effectProgress(50, 200)).toBe(0.25);
     expect(effectProgress(200, 200)).toBeNull();
     expect(effectProgress(0, 0)).toBeNull();
-  });
-});
-
-describe('flashAllowed', () => {
-  it('allows the first flash', () => {
-    expect(flashAllowed(null, 0)).toBe(true);
-  });
-
-  it('allows at most 3 per second', () => {
-    expect(flashAllowed(0, 300)).toBe(false);
-    expect(flashAllowed(0, 334)).toBe(true);
   });
 });

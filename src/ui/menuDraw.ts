@@ -14,7 +14,7 @@ import type { LayoutItem, Rect } from './menuLayout';
 import { titleLayout } from './titleModel';
 import type { TitleModel } from './titleModel';
 
-export type ColourRole = 'text' | 'muted' | 'focus' | 'border';
+export type ColourRole = 'text' | 'muted' | 'focus' | 'border' | 'panel';
 
 export interface DrawText {
   readonly id: string;
@@ -49,7 +49,7 @@ export function outlineBars(r: Rect, t: number, role: ColourRole): readonly Draw
   ];
 }
 
-function asText(item: LayoutItem, role: ColourRole): DrawText {
+export function asText(item: LayoutItem, role: ColourRole): DrawText {
   return { id: item.id, text: item.text ?? '', x: item.x, y: item.y, scale: item.scale, role };
 }
 

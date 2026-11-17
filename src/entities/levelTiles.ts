@@ -8,10 +8,9 @@
  */
 import type { ColoredBand, Level, Tile, TilePos } from '../core/types';
 import { BAND_COLORS } from '../core/types';
-import { EXIT_FRAMES, neighbourMask, tilesetIndex, type ColoredBandColor } from '../fx';
+import { neighbourMask, tilesetIndex, type ColoredBandColor } from '../fx';
 
 const MAX_SAFE_DEPTH = 4;
-const EXIT_FRAME_MS = 150;
 
 export interface ColoredCell {
   readonly col: number;
@@ -75,10 +74,4 @@ export function planLevel(level: Level): LevelPlan {
     staticIndices.push(index);
   });
   return { staticIndices, colored, exits };
-}
-
-/** Exit door frame: a slow loop, or held on the first frame under reduced motion. */
-export function exitFrame(timeMs: number, reduced: boolean): number {
-  if (reduced) return 0;
-  return Math.floor(Math.max(0, timeMs) / EXIT_FRAME_MS) % EXIT_FRAMES;
 }

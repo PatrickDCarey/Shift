@@ -5,8 +5,12 @@
  * single colour swap, and every fade is Bayer dither (never alpha), so the frames stay 1-bit pixel
  * art. Owner: art-director.
  *
- * Names (atlas `pixel-fx`): `fx/dust/land_<0-3>`, `fx/ring/<0-3>`, `fx/speed/<12|20|32>_<a|b>`, `fx/wipe/<0|1>`.
+ * Names (atlas `pixel-fx`): `fx/dust/land_<0-3>`, `fx/ring/<0-3>`, `fx/speed/<12|20|32>_<a|b>`, `fx/wipe/<0|1>`,
+ * `fx/why/<blue|green|yellow|red>/<bold|hold|fade>`.
  */
+import type { BandColor } from '../../core/types';
+import { PIXEL_CELLS, pixelPatternOn } from '../patterns';
+import { patternOf } from '../palette';
 import { bayer, createRaster, setPixel, type Raster, type Rgba } from './raster';
 
 const WHITE: Rgba = [255, 255, 255, 255];
@@ -105,13 +109,51 @@ export function bakeWipeFrame(frame: number): Raster {
   return r;
 }
 
+/** The four colored bands that have tiles (white has none, so it never "fails" a body). */
+export type WhyBand = Exclude<BandColor, 'white'>;
+export const WHY_BANDS: readonly WhyBand[] = ['blue', 'green', 'yellow', 'red'];
+/** "Why you fell" frames: one per tile of the highlighted run, 16 x 16, drawn at the tile's top-left (origin (0, 0)). */
+export const WHY_STEPS = ['bold', 'hold', 'fade'] as const;
+export type WhyStep = (typeof WHY_STEPS)[number];
+export const WHY_SIZE = 16;
+/** Tile pattern cell offset inside a 16 px tile (the same as the tile art). */
+const WHY_PAT_X = 2;
+const WHY_PAT_Y = 4;
+
+/**
+ * One tile of the "why you fell" cue, a white mask to tint with `ui.text`: a ring on the tile's own
+ * edge plus the band's tile pattern (stripes, dots, chevrons, checker) over the tile, so the cue
+ * names the gear you needed by shape, not by hue. `bold` is a 2 px ring (first beat), `hold` a 1 px
+ * ring (steady; the whole cue under reduced motion), `fade` the same dithered to half (last beat).
+ * The ring sits on the tile's own edge, so neighbouring tiles of a run join into one outline.
+ */
+export function bakeWhyFrame(band: WhyBand, step: WhyStep): Raster {
+  const r = createRaster(WHY_SIZE, WHY_SIZE);
+  const thick = step === 'bold' ? 2 : 1;
+  const density = step === 'fade' ? 0.5 : 1;
+  const id = patternOf(band);
+  const p = PIXEL_CELLS.tile;
+  for (let y = 0; y < WHY_SIZE; y++) {
+    for (let x = 0; x < WHY_SIZE; x++) {
+      const ring = x < thick || y < thick || x >= WHY_SIZE - thick || y >= WHY_SIZE - thick;
+      const i = x - WHY_PAT_X;
+      const j = y - WHY_PAT_Y;
+      const mark = i >= 0 && j >= 0 && i < p.width && j < p.height && pixelPatternOn(id, i, j, p.width);
+      if ((ring || mark) && bayer(x, y) < density) setPixel(r, x, y, WHITE);
+    }
+  }
+  return r;
+}
+
 export function effectFrameNames(): {
   dust: (n: number) => string;
   ring: (n: number) => string;
   speed: (length: number, phase: number) => string;
   wipe: (n: number) => string;
+  why: (band: WhyBand, step: WhyStep) => string;
 } {
   return {
+    why: (band, step) => `fx/why/${band}/${step}`,
     wipe: (n) => `fx/wipe/${n}`,
     dust: (n) => `fx/dust/land_${n}`,
     ring: (n) => `fx/ring/${n}`,

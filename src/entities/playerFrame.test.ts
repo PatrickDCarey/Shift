@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { PlayerState } from '../core/types';
 import { PLAYER_ANIMS, PLAYER_FRAMES } from '../fx';
-import { oneShotIndex, playerFrame, RUN_FRAMES_PER_TILE } from './playerFrame';
+import { loadGameParams } from './params';
+import { oneShotIndex, playerFrame, runCycleIndex, type PlayerFrameOptions } from './playerFrame';
 
 function makePlayer(over: Partial<PlayerState> = {}): PlayerState {
   return {
@@ -26,21 +27,27 @@ function makePlayer(over: Partial<PlayerState> = {}): PlayerState {
   };
 }
 
+const T = loadGameParams().tuning;
+const TUNING = { runFramesPerTile: T.runFramesPerTile, sprintFramesPerTile: T.sprintFramesPerTile, stepHz: T.stepHz };
+const RUN_FRAMES_PER_TILE = T.runFramesPerTile;
+const SPRINT_FRAMES_PER_TILE = T.sprintFramesPerTile;
+const OPTS: PlayerFrameOptions = { tuning: TUNING };
+
 const frameNames = new Set(PLAYER_FRAMES.map((f) => f.name));
 const suffix = (name: string): string => name.split('/').slice(3).join('/');
-const frameOf = (p: PlayerState, opts = {}): string => suffix(playerFrame(p, 'runner', opts).name);
+const frameOf = (p: PlayerState, opts: Partial<PlayerFrameOptions> = {}): string => suffix(playerFrame(p, 'runner', { ...OPTS, ...opts }).name);
 
 describe('playerFrame', () => {
   it('stands on idle_0 in the white band', () => {
-    expect(playerFrame(makePlayer(), 'runner')).toEqual({ name: 'player/runner/white/idle_0', flipX: false });
+    expect(playerFrame(makePlayer(), 'runner', OPTS)).toEqual({ name: 'player/runner/white/idle_0', flipX: false });
   });
 
   it('names the body and the band of the actual speed', () => {
-    expect(playerFrame(makePlayer({ vx: 6, band: 2, x: 0 }), 'twin').name).toBe('player/twin/green/run_0');
+    expect(playerFrame(makePlayer({ vx: 6, band: 2, x: 0 }), 'twin', OPTS).name).toBe('player/twin/green/run_0');
   });
 
   it('flips when facing left', () => {
-    expect(playerFrame(makePlayer({ facing: -1 }), 'runner').flipX).toBe(true);
+    expect(playerFrame(makePlayer({ facing: -1 }), 'runner', OPTS).flipX).toBe(true);
   });
 
   it('runs in blue and green and sprints in yellow and red', () => {
@@ -58,11 +65,24 @@ describe('playerFrame', () => {
     expect(at(1.234)).toBe(at(1.234));
   });
 
-  it('cycles forward in the direction of travel when running left', () => {
+  it('uses the sprint stride in yellow and red', () => {
+    const at = (x: number): string => frameOf(makePlayer({ vx: 9, band: 3, x }));
+    expect(at(1 / SPRINT_FRAMES_PER_TILE)).toBe('sprint_1');
+    expect(at(1 / SPRINT_FRAMES_PER_TILE - 0.001)).toBe('sprint_0');
+  });
+
+  it('plays the mirrored index when facing left, per body, never backwards', () => {
     const left = (x: number): string => frameOf(makePlayer({ vx: -6, band: 2, x, facing: -1 }));
     expect(left(0)).toBe('run_0');
-    expect(left(-1 / RUN_FRAMES_PER_TILE)).toBe('run_1');
+    expect(left(1 / RUN_FRAMES_PER_TILE)).toBe('run_5');
+    expect(left(2 / RUN_FRAMES_PER_TILE)).toBe('run_4');
     expect(left(-100)).toMatch(/^run_[0-5]$/);
+  });
+
+  it('runCycleIndex wraps negatives and mirrors', () => {
+    expect(runCycleIndex(-1 / 3, 3, 6, false)).toBe(5);
+    expect(runCycleIndex(-1 / 3, 3, 6, true)).toBe(1);
+    expect(runCycleIndex(2, 3, 6, true)).toBe(0);
   });
 
   it('shows jump while rising and fall while falling or at the apex', () => {
@@ -79,7 +99,7 @@ describe('playerFrame', () => {
 
   it('parks a home body on park_0 and ignores one-shot poses', () => {
     const p = makePlayer({ home: true, vx: 9, band: 3, grounded: false });
-    expect(playerFrame(p, 'twin', { transient: { anim: 'land', age: 0 } }).name).toBe('player/twin/yellow/park_0');
+    expect(playerFrame(p, 'twin', { ...OPTS, transient: { anim: 'land', age: 0 } }).name).toBe('player/twin/yellow/park_0');
   });
 
   it('plays a one-shot pose, then falls back to the state frame', () => {
@@ -108,7 +128,7 @@ describe('playerFrame', () => {
     for (const p of cases) expect(frameNames.has(frameOf(p))).toBe(true);
     for (const a of PLAYER_ANIMS) {
       for (let age = 0; age < 40; age += 3) {
-        const n = oneShotIndex(a.name, age);
+        const n = oneShotIndex(a.name, age, TUNING.stepHz);
         if (n !== null) expect(frameNames.has(`${a.name}_${n}`)).toBe(true);
       }
     }

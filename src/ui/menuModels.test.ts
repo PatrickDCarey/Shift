@@ -156,7 +156,7 @@ describe('results (results.md)', () => {
   it('1: first clear shows TIME and BEST equal, FIRST CLEAR, focus on NEXT', () => {
     const model = results(record({}));
     expect(model).toMatchObject({ timeText: 'TIME 0:12.91', bestText: 'BEST 0:12.91', marker: 'FIRST CLEAR' });
-    expect(model.list.items.map((i) => i.label)).toEqual(['NEXT', 'RETRY', 'LEVELS']);
+    expect(model.list.items.map((i) => i.label)).toEqual(['ENTER: NEXT LEVEL', 'R: RETRY', 'ESC: LEVELS']);
     expect(model.list.focus).toBe(0);
   });
 
@@ -177,7 +177,7 @@ describe('results (results.md)', () => {
   it('6: NEXT starts the next level; on the last level NEXT is absent and focus is on LEVELS', () => {
     expect(resultsStep(results(record({})), CHOOSE).action).toEqual({ type: 'next', levelId: 'w1-02' });
     const last = results(record({}), null);
-    expect(last.list.items.map((i) => i.label)).toEqual(['RETRY', 'LEVELS']);
+    expect(last.list.items.map((i) => i.label)).toEqual(['R: RETRY', 'ESC: LEVELS']);
     expect(resultsStep(last, CHOOSE).action).toEqual({ type: 'levels' });
   });
 
@@ -342,5 +342,16 @@ describe('audio settings helper', () => {
     expect(engine.applySettings).toHaveBeenLastCalledWith(expect.objectContaining({ muted: false }));
     toggleMuted(store, engine);
     expect(createSaveStore(createSafeStorage(storage)).getSettings().muted).toBe(true);
+  });
+});
+
+describe('B6-16 results key line', () => {
+  it('ENTER: NEXT LEVEL stays in the primary colour, R and ESC are muted, even with focus elsewhere', async () => {
+    const { resultsDrawPlan } = await import('./panelDraw');
+    const model = resultsStep(results(record({})), move('down')).model;
+    const roles = Object.fromEntries(resultsDrawPlan(model).texts.map((t) => [t.id, t.role]));
+    expect(roles['item:next']).toBe('text');
+    expect(roles['item:levels']).toBe('muted');
+    expect(roles['item:retry']).toBe('text'); // focused
   });
 });

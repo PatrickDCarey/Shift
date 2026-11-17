@@ -22,7 +22,9 @@ It has three items: **NEXT** (focused), **RETRY** and **LEVELS**. This replaces 
    - `TIME 0:12.91` at 2×: this run, `formatTime(wonAtStep, stepHz)`;
    - `BEST 0:11.40` at 1×: the best after this run;
    - a marker at 1×: `FIRST CLEAR` on the first completion; `NEW BEST` with a star icon when this run beat an earlier best; nothing when it was slower or equal;
-   - the items at 2×.
+   - the items at 2×, NEXT first and focused, so **Enter (or Space) = next level is the primary action**;
+   - a key line at 1× under the items, in this order: `ENTER: NEXT LEVEL` in `ui.text`, then `R: RETRY` and `ESC: LEVELS` muted (ruled 2026-11-16 from the pixel-build playtest, where "press R" was the headline and "Enter: next level" was tiny). On the last level the line starts with `R: RETRY`.
+- **Sticky Keys card:** hidden on the win step itself (before the beat), not shown on the panel, and not shown again for that level visit (`sticky-keys-tip.md`).
 
 ## Items
 
@@ -61,6 +63,8 @@ None. Time comes from `wonAtStep / stepHz` (GDD §11). Steps stay the stored and
 10. A replay-mode win leaves storage untouched and shows no panel.
 11. A world 0 win leaves storage untouched, and NEXT is absent.
 12. Time format on the panel: 775 steps → `0:12.91`, 3600 → `1:00.00`.
+13. The key line reads `ENTER: NEXT LEVEL` first (primary colour) and `R: RETRY` after it (muted); Enter on the fresh panel starts the next level.
+14. Windows, fresh save, win w1-01 while the Sticky Keys card is still up: the card is gone on the win step and absent from the panel; `stickyKeysTipShown` stays true.
 
 ## Priority
 

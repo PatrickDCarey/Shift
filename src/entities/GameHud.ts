@@ -1,7 +1,7 @@
 /**
  * Text overlay at 480 x 270 on the 5 x 7 bitmap font (`pixel-font`, tinted from
- * palette.ui): level title, the win banner (2x), load/parse messages, pause and
- * focus prompts, and the dev debug overlay. The gear meter (ui-engineer) sits in
+ * palette.ui): level title, load/parse messages, the focus prompt and the dev
+ * debug overlay. The pause menu and the results panel are overlay scenes (ui-engineer). The gear meter (ui-engineer) sits in
  * GEAR_METER_AREA, top-left. All objects are fixed to the camera and sit on
  * whole pixels (layout in `hudText.ts`).
  *
@@ -11,19 +11,21 @@ import type Phaser from 'phaser';
 import { hexToNumber, palette, PIXEL_KEYS } from '../fx';
 import { FOCUS_PROMPT_TEXT } from './focusPrompt';
 import { blockHeight, blockWidth, centeredX, wrapText } from './hudText';
-import { PAUSE_TEXT } from './pauseState';
+import { GEAR_METER_LAYOUT } from '../ui';
 
 const DEPTH_HUD = 200;
 const MARGIN = 5;
 const MESSAGE_WRAP = 460;
 const PAD_X = 3;
 const PAD_Y = 2;
-const BIG_PAD_X = 8;
-const BIG_PAD_Y = 5;
-const NEXT_HINT_GAP = 20;
 
 /** Top-left rectangle (screen px) kept free for ui-engineer's GearMeterView. */
-export const GEAR_METER_AREA = { x: MARGIN, y: MARGIN, width: 110, height: 32 } as const;
+export const GEAR_METER_AREA = {
+  x: MARGIN,
+  y: MARGIN,
+  width: GEAR_METER_LAYOUT.panelW,
+  height: GEAR_METER_LAYOUT.panelH,
+} as const;
 
 export interface HudLayout {
   /** Level title: top centre, so it never sits under the gear meter. */
@@ -39,21 +41,7 @@ export function hudLayout(screenWidth: number): HudLayout {
   };
 }
 
-/** `M:SS.ss` from a step count, hundredths truncated (not rounded); `?` while unknown. */
-export function formatRunTime(steps: number | null, stepHz: number): string {
-  if (steps === null) return '?';
-  const hundredths = Math.floor((steps * 100) / stepHz);
-  const minutes = Math.floor(hundredths / 6000);
-  const seconds = Math.floor((hundredths % 6000) / 100);
-  const cs = hundredths % 100;
-  return `${minutes}:${String(seconds).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
-}
-
-export function winText(steps: number | null, stepHz: number): string {
-  return `Level complete — ${formatRunTime(steps, stepHz)} — press R`;
-}
-
-type Anchor = 'topCenter' | 'topLeft' | 'topRight' | 'center' | 'bottomCenter';
+type Anchor = 'topCenter' | 'topLeft' | 'topRight' | 'bottomCenter';
 
 interface TextOptions {
   readonly anchor: Anchor;
@@ -122,15 +110,12 @@ class HudText {
     const h = blockHeight(this.shown, this.scale);
     const boxW = w + 2 * padX;
     const boxH = h + 2 * padY;
-    const { width, height } = this.scene.scale;
+    const { width } = this.scene.scale;
     let left = x;
     let top = y;
     if (anchor === 'topCenter') left = centeredX(width, boxW);
     else if (anchor === 'topRight') left = x - boxW;
-    else if (anchor === 'center') {
-      left = centeredX(width, boxW);
-      top = y === 0 ? centeredX(height, boxH) : y;
-    } else if (anchor === 'bottomCenter') {
+    else if (anchor === 'bottomCenter') {
       left = centeredX(width, boxW);
       top = y - boxH;
     }
@@ -140,11 +125,8 @@ class HudText {
 }
 
 export class GameHud {
-  private readonly banner: HudText;
   private readonly debug: HudText;
   private readonly focusPrompt: HudText;
-  private readonly pauseLabel: HudText;
-  private readonly nextHint: HudText;
 
   constructor(scene: Phaser.Scene, title: string, messages: readonly string[]) {
     const { width, height } = scene.scale;
@@ -156,16 +138,9 @@ export class GameHud {
       return t;
     };
     shown(new HudText(scene, { anchor: 'topCenter', x: layout.title.x, y: layout.title.y, color: textMuted }), title);
-    this.banner = new HudText(scene, { anchor: 'center', x: 0, y: 0, color: text, scale: 2, padX: BIG_PAD_X, padY: BIG_PAD_Y });
     this.debug = new HudText(scene, { anchor: 'topRight', x: width - MARGIN, y: MARGIN, color: text });
     // Plain text, no input handling: it never blocks a key or a click.
     this.focusPrompt = new HudText(scene, { anchor: 'bottomCenter', x: 0, y: height - MARGIN, color: text });
-    // M1 stand-in for the results NEXT item (ui-engineer, M2-12).
-    this.nextHint = new HudText(scene, { anchor: 'center', x: 0, y: Math.floor(height / 2) + NEXT_HINT_GAP, color: textMuted });
-    this.nextHint.setText('Enter: next level');
-    // M1 stand-in for the pause overlay (ui-engineer, M2-12); plain text, no input handling.
-    this.pauseLabel = new HudText(scene, { anchor: 'center', x: 0, y: 0, color: text, scale: 2, padX: BIG_PAD_X, padY: BIG_PAD_Y });
-    this.pauseLabel.setText(PAUSE_TEXT);
     this.focusPrompt.setText(FOCUS_PROMPT_TEXT);
     if (messages.length > 0) {
       shown(
@@ -173,27 +148,6 @@ export class GameHud {
         wrapText(messages.join('\n'),MESSAGE_WRAP - 2 * PAD_X),
       );
     }
-  }
-
-  /** `steps` is the winning run's step count, or null while playing. */
-  setWon(steps: number | null, won: boolean, stepHz: number): void {
-    if (won) this.banner.setText(winText(steps, stepHz));
-    this.banner.setVisible(won);
-  }
-
-  /** The win banner text while it is showing, else null (read by the QA hook). */
-  get bannerText(): string | null {
-    return this.banner.visible ? this.banner.content : null;
-  }
-
-  /** Show the "Enter: next level" hint under the win banner. */
-  setNextHint(visible: boolean): void {
-    this.nextHint.setVisible(visible);
-  }
-
-  /** Show or hide the pause stand-in. */
-  setPaused(paused: boolean): void {
-    this.pauseLabel.setVisible(paused);
   }
 
   /** Show the "click to focus" prompt (the page has no keyboard focus yet) or hide it. */
