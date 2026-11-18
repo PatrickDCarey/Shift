@@ -35,6 +35,7 @@ Every menu is a list or grid with **exactly one focused item**, driven by the ke
 ## Edge cases
 
 - **Held key at open (fresh-press rule):** Space held for a jump when the run is won, R held through a restart, and Esc held from closing pause are all ignored until released. This is what stops the results screen from choosing NEXT by itself.
+- **Same frame as an overlay opens or closes (2026-11-17):** a key pressed on the frame Pause or Results opens or closes belongs to the overlay and is dropped, not queued for the game (`pause.md`).
 - **Canvas loses focus:** the existing "click to focus" prompt shows and the menu keeps its focus position. No key events arrive until the canvas has focus again.
 - **Screen opens while a fade is running:** the new screen waits for the fade to end. Inputs are dropped, not queued.
 - **Five Shift taps in a menu:** the OS may still open Sticky Keys (we can't stop it). The menu itself never reacts to Shift.

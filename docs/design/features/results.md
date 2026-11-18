@@ -23,7 +23,7 @@ It has three items: **NEXT** (focused), **RETRY** and **LEVELS**. This replaces 
    - `BEST 0:11.40` at 1×: the best after this run;
    - a marker at 1×: `FIRST CLEAR` on the first completion; `NEW BEST` with a star icon when this run beat an earlier best; nothing when it was slower or equal;
    - the items at 2×, NEXT first and focused, so **Enter (or Space) = next level is the primary action**;
-   - a key line at 1× under the items, in this order: `ENTER: NEXT LEVEL` in `ui.text`, then `R: RETRY` and `ESC: LEVELS` muted (ruled 2026-11-16 from the pixel-build playtest, where "press R" was the headline and "Enter: next level" was tiny). On the last level the line starts with `R: RETRY`.
+   - a key line at 1× under the items, in this order: `ENTER: NEXT LEVEL` in `ui.text`, then `R: RETRY` and `ESC: LEVELS` muted (ruled 2026-11-16 from the pixel-build playtest, where "press R" was the headline and "Enter: next level" was tiny). On the last level the line starts with `R: RETRY`. The key line stays at 1× inside the 200 px panel (confirmed 2026-11-17: at 2× it is about 204 px); its prominence comes from order, `ui.text` and the frame, and the 2× NEXT item above it.
 - **Sticky Keys card:** hidden on the win step itself (before the beat), not shown on the panel, and not shown again for that level visit (`sticky-keys-tip.md`).
 
 ## Items

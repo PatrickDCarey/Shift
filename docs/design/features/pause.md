@@ -19,6 +19,7 @@ Pressing **Esc or P** during play freezes the run and opens a pause menu over th
 - **No catch-up.** On resume the step accumulator starts empty. A 5-minute pause must not run 18,000 steps on the next frame.
 - **Keys held through the pause** (down at pause, still down at resume) count as held from the first step after resume, with no new press edge. Holding Right through a pause keeps you running.
 - **Keys pressed while paused** are ignored by the game until they are released. This covers Space or Enter used to choose RESUME, a Shift or Q tapped in the menu, and the P that closes pause. The scene masks them out of the frames it feeds the sim, so the recording shows exactly what the sim got.
+- **Keys pressed on the frame the pause opens or closes** (ruled 2026-11-17) belong to the overlay: they are dropped, never queued for the game. A Space pressed together with the Esc that opens pause does not jump, and nothing pressed with the closing Esc reaches the sim. Held keys still follow the rule above.
 - **R while paused:** the same as RESTART. The run restarts as in GDD §4.12 and the pause closes. The recording keeps appending, as with R in play.
 - **LEVELS:** abandons the run without saving anything, and opens level select focused on this level.
 - **CONTROLS:** opens the controls screen. Esc there returns to this pause menu with focus on CONTROLS, still paused.
@@ -48,6 +49,7 @@ None. The time display reads `stepHz`.
 10. Blur the window while holding Right: the game pauses. After refocus and RESUME, Right counts as held only if it is physically pressed again.
 11. Pause during the death freeze, wait, resume: the respawn happens on the same sim step as in an unpaused run.
 12. Esc on the results screen does not open pause.
+13. Space and Esc pressed on the same frame during play: pause opens, and after RESUME (Space released first) no jump has happened (`state.step` and `vy` as before the pause).
 
 ## Priority
 

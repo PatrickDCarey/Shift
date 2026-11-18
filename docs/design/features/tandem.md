@@ -1,6 +1,6 @@
 # Feature: Tandem (one throttle, two runners)
 
-_Owner: design-lead. Milestone: M3 content. GDD: §1, §4.15, §7, §11. Chosen by the studio owner on 2026-11-03 from `core-twists.md`. **Confirmed 2026-11-16 (owner decision): Tandem stays as world 3; the decision gate is closed and there is no fallback.**_
+_Owner: design-lead. Milestone: M3 content. GDD: §1, §4.15, §7, §11. Chosen by the studio owner on 2026-11-03 from `core-twists.md`. **Confirmed 2026-11-16 (owner decision): Tandem stays as world 3; the decision gate is closed and there is no fallback.** 2026-11-17: all five world-3 levels built and approved (`levels-w3.md`); pins are safe kerbs (Edge cases)._
 
 ## Rule
 
@@ -70,6 +70,7 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 ## Edge cases
 
 - **Walls:** a wall stops only the body that touches it. The stopped body keeps its gear on the ground; in the air it drops to `minGear` (air rule).
+- **Holding one body still (ruled 2026-11-17):** only a **safe** wall holds a body that keeps walking into it. After any wall stop the body is band 0 and, still holding, restarts at walking pace on the next step, so it passes every colored wall, blue included (it turns blue inside the wall and no-embed lets it through; check 4). Levels pin a body with a **1-tile safe kerb** on its floor: it holds the body in any gear for as long as the direction is held, and a jump clears it. No sim change.
 - **Gaps:** a body over a gap falls on its own; the other keeps running. A fall below the grid kills the run.
 - **One airborne, one grounded:** the grounded body shifts now, the airborne one buffers (6-step window). A jump launches the grounded body and is buffered for the airborne one.
 - **Both in coyote or grace:** per body, with their own windows.
@@ -100,6 +101,8 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 - Each body needs its own reachable exit.
 - Bodies start aligned in x unless the puzzle says otherwise.
 - The split must come from the level (a wall, an air stop, an exit, a gap), never from timing.
+- **Pins use a 1-tile safe kerb, never a colored wall** (see Edge cases). Coast pads in Tandem levels are flat, so both bodies land on the same step and a late air shift cannot split them (`levels-w3.md` "Common").
+- **Pockets:** if a body that falls through its own colored tile would land in the other lane and could finish there, close a pocket (≥ 3 rows) in the divider under that tile; the body waits there for R. Prefer an open drop out of the grid where the other lane allows it.
 - Every split a level needs must be undoable or final by design (say which in `levels/README.md`).
 - All existing rules (GDD §6, `level-plan.md`) apply to each lane.
 - **Lane colouring (2026-11-16):** the two start rows are at least 3 rows apart (no shared rooms in shipped levels; stacked lanes always meet this), and **every colored tile in a lane is strictly nearer its own body's start row than the other body's**. In practice: with the runner on the divider and the twin on its lane floor, the top rows of the twin's lane (those at or above the midpoint of the two start rows) carry no colored tiles; hanging blocks there are safe (`#`). Check it in `levels/README.md` per level.

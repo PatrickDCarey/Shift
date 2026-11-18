@@ -15,6 +15,7 @@ A colored tile (`B G Y R`) is solid on every face only while your band matches i
 ## Edge cases
 
 - **Matching wall as a brake:** the fastest stop in the game (one step), but the gear is kept. Holding on afterward starts at walking pace (blue, passes the wall) and ramps toward the kept gear.
+- **No colored wall holds a body (2026-11-17):** a blue wall included. After the stop the body is band 0, walks into the wall on the next step, turns blue inside it and passes (no-embed). To hold a body for as long as the player holds a direction, levels use a safe tile (a 1-tile kerb in Tandem, `tandem.md`).
 - **Changing color inside a wall:** allowed (no-embed): arriving yellow at a red wall and shifting up inside it never stops you.
 - **Drag mid-flight:** a wall in the air tests the band at the moment of contact, so a sprint jump is red for its first 6.0 tiles of flight and yellow after (GDD §5.3).
 - **Walls on colored floors:** a red wall standing on a red floor is fine for a red player only if they never touch the wall; levels should stand colored walls on safe tiles.

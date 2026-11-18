@@ -1,6 +1,6 @@
 # Redshift — Game Design Document
 
-_Owner: design-lead. Version 1.8 (2026-11-16, batch 6): **Tandem stays as world 3** (owner decision 2026-11-16: the gate is closed, the gates-world fallback is dropped, and calendar dates no longer drive the plan); three render/scene keys added to `tuning.json` (`runFramesPerTile` 3, `sprintFramesPerTile` 2, `cameraMaxApartTiles` 28, §9); no rule or gameplay-value change. Version 1.7 (2026-11-13, batch 4A): pixel cutover: `tileSize` 32 → 16 and the 480×270 base resolution noted (§4.1, §9, §11), no rule or level change; Tandem decision gate moved to Tue Nov 17 (owner decision, §10). Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
+_Owner: design-lead. Version 1.9 (2026-11-17, batch 6 closing): **all 14 Must levels built and approved** (§10 lists what is left on the Must list); Tandem pins are 1-tile safe kerbs, because no colored wall can hold a body (§4.11, §6, §8); w2-04's 13-step grace window is a stated fairness exception (§5.7); no rule or tuning-value change. Version 1.8 (2026-11-16, batch 6): **Tandem stays as world 3** (owner decision 2026-11-16: the gate is closed, the gates-world fallback is dropped, and calendar dates no longer drive the plan); three render/scene keys added to `tuning.json` (`runFramesPerTile` 3, `sprintFramesPerTile` 2, `cameraMaxApartTiles` 28, §9); no rule or gameplay-value change. Version 1.7 (2026-11-13, batch 4A): pixel cutover: `tileSize` 32 → 16 and the 480×270 base resolution noted (§4.1, §9, §11), no rule or level change; Tandem decision gate moved to Tue Nov 17 (owner decision, §10). Version 1.6 (2026-11-04, batch 2): the four cut tuning keys deleted (T-03); world-1 low roofs over bridges adopted as a level rule (§6); M3-02 specs written: `features/leaderboards.md` (rank by steps, show time), `adaptive-audio.md` (music per band, the ten SFX, per-body Tandem voices), `pixel-effects.md` (drop cue, reduced effects and reduced motion, Tandem per body). No rule or tuning-value change. Version 1.5 (2026-11-04): menus and onboarding specced for 480×270 (M2-34, M2-01); **the first level of every world is unlocked from the start** (owner decision), so a voter can reach w3-01 Tandem quickly; onboarding hints add `shiftDown` (w1-02) and `jump` (w2-01); the twin's art silhouette adopted. No rule or tuning change. Version 1.4 (2026-11-03): the studio owner picked **Tandem** as the core twist (`core-twists.md`): world 3 becomes five Tandem levels (Must, M3); speed gates and ice become Should; art direction C (Pixel Dither, 480×270 logical) noted in §11. Version 1.3 (2026-11-03): puzzle depth review (`docs/design/mechanics-review.md`): speed gates and colored walls come into worlds 1–2 (M2); worlds rebuilt (§7); mud, boost pads, conveyors, moving platforms, crates and afterimage cut. Core rules §4–5 unchanged except the gate tile (§4.7). Version 1.2 (2026-11-02): hold-to-move control model; sanity numbers and rule wording matched to the implemented M1 sim. Source of truth for how the game plays. Every gameplay number lives in `src/data/tuning.json`; this document names the keys and explains them. Decisions and their reasons are logged in `docs/design/decisions.md`._
 
 ## 1. Pitch
 
@@ -178,6 +178,7 @@ The player is airborne whenever not supported (after a jump, walking off a ledge
 
 - **Wall stop:** if horizontal movement is blocked by a solid tile (safe, or matching colored), the player stops at contact and `vx ← 0`. **The gear is unchanged.** Holding into a wall just pushes against it at speed 0 (white). Same on the ground and in the air (in the air the player then falls straight down, and the air rule lowers the gear to `minGear`).
 - Steps up are walls: no slopes, no automatic step-up.
+- **Only a safe wall holds you (noted 2026-11-17).** Pushing against a *colored* wall does not last: the step after the stop you restart at walking pace (blue), which passes any colored wall, a blue one included (you turn blue inside it; no-embed, §4.7). A wall meant to hold a body while the player keeps holding a direction must be safe tiles (in Tandem, a 1-tile kerb, cleared with a jump).
 - **Ceiling:** hitting a solid tile from below sets `vy ← 0`; horizontal speed and gear unchanged.
 - **Level bounds:** outside the grid left, right and top counts as safe solid. Below the grid is open.
 
@@ -319,7 +320,7 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 ### 5.7 Fairness windows
 
 - Color grace + coyote: 12 steps (0.2 s) from your color changing under you to the last valid jump.
-- Two Colors (shift green→yellow, then jump): yellow on the 5th step counting the press as step 1, then up to 12 steps to jump.
+- Two Colors (shift green→yellow, then jump): yellow on the 5th step counting the press as step 1, then up to 12 steps to jump (13 counting the turn-yellow step). As built, w2-04's window is 13 steps: a **stated exception** to the world-2 level floor below, because the window is the grace being taught and is timed from the player's own press (ruled 2026-11-17).
 - Brake (w1-04): the window to start slowing is ~3.5 tiles at sprint (≥ 17 steps). Since v2 (M1-52), the 8-tile pad gives ≥ 35 steps.
 - Level floor (M1-52, 2026-11-05): every level has one winning line whose timed inputs each have a window of ≥ 30 steps in world 1 (≥ 18 from world 2), or are position choices at walking pace with ≥ 1 tile of valid spots.
 
@@ -347,7 +348,8 @@ Widest flat gap you can just clear ≈ flight distance + 0.75 (player width). Re
 - **A good level puts two decisions in tension at nearby places** (where to build speed, where to shed it, what you are at a point, what you commit to at takeoff, where your color changes), so the answer is a place-and-pace pair, not "go fast" or "stop". Each level must fail when its new piece is removed (`mechanics-review.md` §1).
 - Gates: full-height columns as walls; `w` only as floors and ceilings; never spawn on or in a gate; the first gate is met at walking pace on safe ground.
 - A sprint jump is red for its first 6.0 tiles of flight and yellow after: a wall or gate 4 tiles out sees red, one 7 tiles out sees yellow.
-- **Tandem levels:** two lanes plus divider take at most 15 rows (the HUD sits above); lanes stacked with a safe divider at least 1 tile thick, each lane at most 7 rows; each body has its own reachable exit; intended solutions keep the bodies within 26 tiles in x; every split comes from the level (wall, air stop, gap, exit), never from timing.
+- **Tandem levels:** two lanes plus divider take at most 15 rows (the HUD sits above); lanes stacked with a safe divider at least 1 tile thick, each lane at most 7 rows; each body has its own reachable exit; intended solutions keep the bodies within 26 tiles in x; every split comes from the level (wall, air stop, gap, exit), never from timing; a body is pinned by a 1-tile safe kerb, never a colored wall (§4.11); Tandem Coast pads are flat (both bodies land on the same step).
+- **COMBINE levels** are removal-tested as built: no win may skip any of their ideas (each idea has its own removal-tested level).
 - Every level must ship a solution recording that passes the replay test.
 
 ## 7. Puzzle toolbox (teaching order)
@@ -360,7 +362,7 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 |---|---|---|---|---|---|
 | 1 Gears | moving, shifting, runway, braking, "not this color" | colored floors, safe tiles, **colored walls** | 5 | Must | M2 |
 | 2 Flight | decide your pace before takeoff | air commitment, air drag, walk-offs | 4 | Must | M2 |
-| 3 Tandem | one throttle, two runners | the twin; splitting by walls and air stops; resync by clamping; parking at exits | 5 | Must | M3 |
+| 3 Tandem | one throttle, two runners | the twin; splitting by kerbs (safe walls) and air stops; resync by clamping; parking at exits | 5 | Must | M3 |
 | 4 Gates | only this color here | speed gates, gate floors, ice | 4 | Should | M3 |
 
 ### 7.1 Pieces after M1
@@ -378,7 +380,7 @@ v1.4 (owner decision): the core twist is **Tandem** (`core-twists.md`). Worlds 1
 - **Step down:** sprint off a 4-tile ledge onto a red floor. Walking off keeps you red (5.8 tiles of flight); jumping lands yellow and drops you.
 - **Two colors:** a green floor under a yellow ledge 2 tiles up. Shift up mid-run and jump in the 12 steps after you turn yellow.
 - **Stop sign:** a green bridge ends at the exit ledge with no safe pad: let go on the bridge and you drop; hold through it.
-- **Out of Step (Tandem, revised 2026-11-16):** both walk blue; a full-height blue wall in your lane holds you (you restart at blue every step), while the twin walks on to a safe pad far ahead. Hold until the twin is on its pad, back up a tile, shift up: both are green 0.6 tiles later and you pass the wall. Spec: `levels-w3.md`.
+- **Out of Step (Tandem, w3-02 as built 2026-11-17):** both walk blue; a 1-tile safe kerb in your lane holds you for as long as you hold right, while the twin walks on over its blue bridge to a safe pad far ahead. Let go with the twin on its pad, walk back about 4 tiles, shift up once, run and jump the kerb green: you land green on your green bridge and the twin walks green over its own. Spec: `levels-w3.md`.
 - **Gear Split (Tandem):** both sprint-jump; a hanging block in your lane stops you in the air and drops your gear to 1, while the twin drags to gear 3. Holding right now gives you blue and the twin yellow. Press up three times and both clamp at gear 4.
 - **Red Wall (w1-05):** a red wall, 1 safe tile, a red bridge. Arrive red and the wall stops you; from its face red needs 3.23 tiles but only 2.75 remain. Arrive yellow and shift up: red 0.66 tiles later (shift window 2.75 tiles ≈ 18 steps).
 - **Gate (w4-01, Should):** a green gate, 2 safe tiles, a yellow bridge. Green at the gate, yellow 0.56 tiles after shifting up; shift window 3.75 tiles.
@@ -424,13 +426,27 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 - **Cut (2026-11-03):** mud, conveyors, moving platforms, crates, afterimage ghosts (`mechanics-review.md`); the Paint and Clock twists (`core-twists.md`).
 - **No fallback (owner decision 2026-11-16):** Tandem stays as world 3; the decision gate is closed and the gates-world fallback is off the table. Batches run in priority order; dates do not drive cuts (the owner cuts if and when they choose).
 
+### Must: status and what is left (2026-11-17)
+
+**Built:** core rules and Tandem (sim checks 1–18), all **14 levels built and approved** (w1-01..05, w2-01..04, w3-01..05; versions in `levels/README.md`), HUD for one or two bodies, title and level select, pause, results, controls screen, progress save, hint glyphs, alternate bindings and the Sticky Keys tip, color-blind patterns and the twin silhouette, packaging (`npm run package`). Batch 6 is still in tech-lead review and QA verification (B6-40..B6-43), so none of it is Done until those pass.
+
+**Left, in priority order (no dates):**
+1. **Verify batch 6 and fix what fails:** QA B6-41..B6-43, plus the scene's open review follow-ups (S1: no `preventDefault` while an overlay is open; S2 restart test), since pause and results are Must.
+2. **Fresh playtest of all 14 levels from the title** (B6-44 and, if it did not cover them, a second sitting on w2-04 and w3-02..w3-05, which no player has seen); design triages within the batch.
+3. **Tandem completion checklist line 5:** the owner wins w3-01 by hand in a browser (USER-9).
+4. **itch.io page copy** (`docs/design/itch-page.md`, design-lead) and the itch draft page with a packaged build (USER-3).
+5. **Release:** secrets scan (USER-8, SEC-3), freeze checklist, repo public (USER-6), submit (USER-4).
+
+First Should after these: leaderboards live (USER-2 deploy, backend K1 fix before `submitRun` is enabled). World 4 stays unscheduled.
+
 ### Design deliverables
 
 | Deliverable | File | Due |
 |---|---|---|
 | GDD | `docs/design/gdd.md` | M1 |
 | M1 feature specs | `docs/design/features/*.md` | M1 |
-| Level plan | `docs/design/level-plan.md` (v2.0, 2026-11-03) | M2 |
+| Level plan | `docs/design/level-plan.md` (v3.6, 2026-11-17) | M2 |
+| World 3 level specs | `docs/design/levels-w3.md` | done 2026-11-16, revised as built 2026-11-17 |
 | Puzzle depth review | `docs/design/mechanics-review.md` | done 2026-11-03 |
 | Speed gates and colored walls specs | `features/speed-gates.md` (Should), `features/colored-walls.md` (M2) | done 2026-11-03 |
 | Core twist candidates | `docs/design/core-twists.md` | done 2026-11-03; owner picked Tandem |
@@ -438,7 +454,7 @@ Derived at load (never stored): dt, ms→steps, `accel[n]`, `brake[n]`, gravity,
 | Ice spec (Should) | `docs/design/features/ice.md` | before M3 (Nov 15) |
 | Menu, progression and onboarding specs (M2-34, M2-01) | `features/menu-navigation.md`, `title-screen.md`, `level-select.md`, `pause.md`, `results.md`, `progress-save.md`, `level-loading.md`, `sticky-keys-tip.md`, `controls-screen.md`, `onboarding-hints.md` | done 2026-11-04 |
 | M3 specs (M3-02): leaderboard UX, adaptive audio, pixel effects | `features/leaderboards.md`, `adaptive-audio.md`, `pixel-effects.md` | done 2026-11-04 (due Nov 11) |
-| itch.io page copy | `docs/design/itch-page.md` | M4 (Nov 28) |
+| itch.io page copy | `docs/design/itch-page.md` | not written yet; next design sitting (Must) |
 | Decision log | `docs/design/decisions.md` | ongoing |
 
 ### Milestone mapping
