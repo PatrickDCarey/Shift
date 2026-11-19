@@ -1,9 +1,11 @@
-# Tandem decision gate: QA table (T-13), 2026-11-16 (for the owner's decision on Tue Nov 17)
+# Tandem: QA table (T-13, B6-41). Gate table 2026-11-16; scene checks S1-S4 verified 2026-11-18
+
+**Status 2026-11-18:** the gate decision is made (the owner kept Tandem on 2026-11-16). This table is now the Done checklist: sim checks 1-18 Pass (one gap on check 18), scene checks S1-S4 Pass (details at the bottom).
 
 **Summary**
 1. Sim checks 1-18 of `docs/design/features/tandem.md`: all have a named test and all pass (41 tests in two files, `npx vitest run src/core/sim/tandemAcceptance.test.ts src/core/sim/tandemAcceptance2.test.ts`, 2 files, 41 passed, run 2026-11-16). Gate checks 1-12: **12/12 Pass**.
 2. One gap on check 18 only: the run-twice test covers checks 3, 16, 17 and five scenarios (wall, split, ledge, home, death), not checks 7, 11, 14, 15 individually. Not a gate check; the sim has no randomness source, so risk is low.
-3. Scene checks S1-S4 are not verified: T-20 is being built in this batch. No `levels/w3-01` exists yet either, so Tandem has not been played in a browser. Verify after the batch lands (list at the bottom).
+3. Scene checks S1-S4: **4/4 Pass** on 2026-11-18 (T-20 landed in batch 5; w3-01 exists). S1-S3 ran on the dev-only room `w0-97` (the dev server), S4 and the two gear strips on `w3-01` in the e2e build. See the last section.
 
 Legend: Pass = a test asserts it and passes. Fail = a test asserts it and fails. Not-verified = no evidence yet. "Gate" = checks 1-12, the Nov 17 criterion.
 
@@ -36,20 +38,19 @@ Notes for the owner:
 - The two files pin the sim value where the spec said "(derived)" (checks 5 and 6). They pass at the spec numbers, so design-lead has no number to update.
 - These are unit tests through the real `step`. Nothing here proves the scene draws or steers two bodies correctly; that is S1-S4 and T-20.
 
-## Scene checks (pending T-20, verify after the batch)
+## Scene checks S1-S4 (verified 2026-11-18, HEAD 9f8ffb7 plus QA specs)
 
-| # | Check | Result |
-|---|---|---|
-| S1 | Bodies 20 tiles apart: both fully on screen | Not-verified: pending T-20, verify after the batch |
-| S2 | Runner home, twin moving: the camera follows the twin | Not-verified: pending T-20, verify after the batch |
-| S3 | Bodies 30 tiles apart: camera follows the runner, edge arrow points at the twin | Not-verified: pending T-20, verify after the batch |
-| S4 | Twin and runner distinguishable in a grayscale screenshot at 1x (480x270) | Not-verified: pending T-20, verify after the batch |
+Spec: `tests/e2e/tandem-scene.spec.ts` (5 tests). **Why two builds:** w3-01 keeps both bodies at the same x and is 28 tiles wide (under one 30-tile screen), so its camera never scrolls and "20 / 30 tiles apart" cannot occur in it. The scene lane's dev-only room `w0-97` (`src/entities/devLevel.ts`: the twin is held by a wall at column 20, the runner runs to its exit at column 57) is only in the dev server. In `npm run test:e2e` (production-like build) the three S1-S3 tests therefore **skip with a message**; QA ran them against `npm run dev` (5 of 5 pass; run recorded below). The same facts are pinned by the scene lane's pure `cameraFocus` tests (28-tile switch both sides).
 
-What I will look at once T-20 lands (and `levels/w3-01` exists; it is the only Tandem level, so the browser checks need it or a QA fixture):
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| S1 | Bodies 20 tiles apart: both fully on screen | **Pass** (dev room) | First frame with runner.x - twin.x >= 20: camera scrollX 233, twin sprite at screen x 81, runner sprite at screen x 400 (screen is 480 wide, sprites 16 px); no twin edge arrow on any frame under 28 tiles apart. Screenshot `docs/qa/evidence/tandem-s1-w0-97-run.png` (taken at the end of the run: by then the runner is home); the numbers are from the per-frame in-page record |
+| S2 | Runner home, twin moving: the camera follows the twin | **Pass** (dev room) | Runner home at step 385; camera eases to scrollX 74, twin sprite at screen x 240 (centre), the parked runner is at screen x 832 (off screen). `docs/qa/evidence/tandem-s2-camera-on-twin.png`. Not observable in w3-01 (camera clamped, level narrower than the screen) |
+| S3 | Bodies 30 tiles apart: camera follows the runner, edge arrow at the twin | **Pass** (dev room) | At 29.9 apart: twin sprite at screen x -166 (off screen left), runner at screen x 316 (camera at the level's right bound, 480), `hud/edge/twin/white` visible at the left edge (x 27, y 227, the twin's row); no twin arrow below 28 tiles. At 27.5 apart the twin was still on screen at x 19. Existing orchestrator screenshot `docs/qa/evidence/tandem-edge-arrow.png` |
+| S4 | Twin and runner distinguishable in a grayscale screenshot at 1x (480x270) | **Pass** (w3-01) | Greyscale 1x capture `docs/qa/evidence/tandem-s4-w3-01-greyscale-1x.png`; 4x crop of both sprites `docs/qa/evidence/tandem-s4-sprites-grey-4x.png`: the runner has a flat head with a dark visor slit, the twin has an antenna and two dot eyes; the test asserts more than 5% of sprite pixels differ by more than 24/255 grey levels. Band 0 only; a band-4 (red) greyscale pair was not captured: not verified |
 
-- **Unit side (from the scene lane's `npx vitest run src/entities`):** the pure camera-focus tests for S1-S3: `cameraFocus(...)` returns the midpoint at 20 tiles, the twin when the runner is home, the runner plus `edgeBody` at 30 tiles; and the 28-tile switch point on both sides (27.9 and 28.1).
-- **Browser, hook (`?level=w3-01`, QA hook build):** `window.__redshift.state.twin` is non-null; both bodies move on the same key press; hold R to the divider wall and watch the twin's x/vx diverge from the runner's. Camera and arrow have no hook field today (request line to the scene lane if S2/S3 need numbers).
-- **Browser, screenshots at 960x540:** S1 both bodies visible, no vertical scroll; S2 after the runner reaches the exit, the frame follows the twin; S3 the edge arrow appears (`hud/edge/twin/<band>`) with the twin's pattern ink; S4 a 2x crop of the canvas at 480x270 converted to grayscale: the twin's hollow outline must read apart from the filled runner, in both bands 0 and 4. Evidence goes to `docs/qa/evidence/`.
-- **HUD:** two gear strips (runner top, twin bottom), the home glyph and dimming on the strip of a home body, parked pose for the home body.
-- **Regression:** a level without `&` (w1-01, w0-02) renders and plays unchanged: the e2e suite stays green and `twin` is null in the hook.
-- **Smoke test already written:** `tests/e2e/tandem.spec.ts` (skips with a message until `levels/w3-01` and the hook's twin exist).
+Other things seen on w3-01 (from `tandem.md` verification item 3): both bodies are drawn (runner and twin sprites in the Game display list) and two gear strips exist (runner top, twin bottom) - `tandem-scene.spec.ts` "both bodies and a second gear strip are drawn". The orchestrator's hand-played win with both home: `docs/qa/evidence/tandem-w3-01-won.png`; `tandem.spec.ts` replays w3-01 to a win with both home.
+
+Not covered by an automated check: the home glyph and dimming on the strip of a home body, the parked pose frame (the sprite frame `park_0` was seen on the runner in the S2 run), the band-4 pair for S4.
+
+Run of 2026-11-18 against the dev server (copy of the config with `baseURL` 5173 and no web server): `tandem-scene.spec.ts` 5 passed. In `npm run test:e2e`: 2 passed, 3 skipped (S1-S3, dev only).

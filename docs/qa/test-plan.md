@@ -294,7 +294,7 @@ Assumptions that depend on the cutover lanes' exact output: (1) `main.ts` re-zoo
 - **G1:** Closed: six levels ship (`w0-02`, `w1-01` to `w1-05`); the replay spec globs `levels/*.solution.txt`, so new levels are picked up automatically (2026-11-04: 283, 444 and 139 steps for w1-03 to w1-05 pass).
 - **G2:** Closed 2026-11-04 (BUG-2): the viewport is on the chromium project after the device spread; specs have no `test.use`.
 - **G3:** No automated "inputs shifted by +-3 steps still win" check (M1-21 acceptance, level-format fairness). Proposal: a Vitest in `tests/levels/` that shifts each input transition by +-3 steps and runs `verifySolution`. Needs tech-lead (owns `tests/levels/**`).
-- **G4:** The pause menu, results, level select and title do not exist yet (only the M1 stand-ins), so no e2e for them until M2 (M2-28). Pause (Esc, P, R, blur), the win recording and the Sticky Keys mounting are covered since batch 2 (sections 2.9 to 2.12).
+- **G4:** Closed 2026-11-18 (batch 6): title, level select, controls, pause and results are covered in e2e (section 8). Still hand checks: how they look, audio.
 - **G5:** Closed 2026-11-04 (BUG-1): the hook is a build flag; e2e runs against the production build with `VITE_QA_HOOK=1`.
 - **G6:** No fps or performance measurement in e2e.
 - **G7:** No cross-browser run (Chromium only; Firefox and Safari left for M4 manual check on the itch embed).
@@ -445,3 +445,31 @@ Open: BUG-1 (hook in the production build), BUG-2 (config viewport), BUG-3 (4 wo
 ### Run 1: 2026-11-02
 
 _(superseded by run 2 for e2e)_
+
+## 8. Menus, overlays and clarity cues in e2e (added 2026-11-18, batch 6, B6-42)
+
+**How menu scenes are observed.** The QA hook (`window.__redshift`) belongs to the game scene only; it is absent on the title, level select and controls. `tests/e2e/helpers.ts` has an auto fixture (`gameProbe`) that keeps a handle on the `Phaser.Game` (an init script wraps `Phaser.Game` when the bundle assigns `window.Phaser`; `Phaser.GAMES` does not exist in 3.90). With it a spec reads, test-side only and never from product code: `activeScenes` / `pollScenes` (which scenes run), `menuFocus` (focused item or level id), `menuModel` (a menu scene's model as plain data), `resultsPanelUp` (the 0.6 s beat is over), `gameObjects` (the Game scene's display list: frame names, depth, visibility, bitmap text). Nothing in `src` changed for this.
+
+| Spec file | Covers |
+|---|---|
+| `smoke.spec.ts` | plain load = title only (no hook); `?level=` and `?replay=1` boot the game |
+| `menus.spec.ts` | title checks 1-2, 4-11 (PLAY target rules, LEVELS/CONTROLS round trips, storage blocked, Esc inert); controls check 1 and 3; level-select checks 1, 2, 12, 13 (down from world 1 lands on w2-01, then w3-01) and the unlock model; BUG-5 as `test.fail` |
+| `pause-menu.spec.ts` | one Esc or P opens Pause and one closes it, nothing re-toggles (review M1); ArrowUp/W/ArrowDown/S, no wrap; sim frozen under Pause and Controls (120 frames each); Pause > Controls > Esc returns to Pause with focus on CONTROLS (controls check 4); R and RESTART; LEVELS returns to level select focused on the level, game stopped, save unchanged (pause check 8); Esc+Space on one frame (check 13, first version); navigation after an R restart |
+| `pause.spec.ts` | pause checks 1, 2, 4-7, 10 (rewritten for overlays: checks 5 and 6 no longer tap Space/Enter, which now pick RESUME) |
+| `results.spec.ts` | live win opens Results after the beat (first clear, NEXT focused, save written once); Enter goes to the next level; R retries exactly once; Esc and LEVELS open level select focused on the level with its best time; Space held through the win chooses nothing; P and keys in the beat do nothing; last level has no NEXT (see limits); navigation after a retry |
+| `win.spec.ts` | updated: banner assertions replaced by the Results time line; replay mode opens no Results |
+| `embed-menus.spec.ts` | tall 3000 px host page, game iframe 960x540: arrows, Space, Enter, Esc, WASD never scroll the host or the frame on title, level select, controls, play, Pause, Results (review U1) |
+| `clarity.spec.ts` | hint key caps in w1-01, w1-02, w2-01 (text of every cap, present from the first frame, still drawn after a death and R, none in w1-04); "why you fell" ring frames `fx/why/blue/*` on the w1-01 bridge; exit arrow visible on the right edge in w1-04 and hidden in w1-01; reduced motion (door held on `door_0`, ridges do not parallax, ring still drawn; also via the OS setting); reduced effects (no horizon, no stars; plays through a fall and a restart without errors); both on |
+| `tandem-scene.spec.ts` | S1-S4 (see `tandem-gate.md`) |
+
+**Not asserted, and why** (human checks stay with the playtester and the owner):
+- How anything looks: dither quality, glyph legibility, ring size, colour. Only structure is read (frame names, depths, positions, text).
+- The drag **wipe** (`fx/wipe`, `airDrag`) and the death flash: no level in a production build gives a quick deterministic air-drag drop with a readable result, and the wipe image is always in the display list (alpha/frame changes within a few frames). The shared 3-per-second flash budget is unit-tested (`requestFlash`); not seen in a browser by QA. Under reduced motion "no wipe, no flash" is therefore **not verified**; what is verified is the door held, ridge parallax off, ring still drawn.
+- Audio (music, SFX, ducking on pause): not observable headless; the owner or playtester must listen.
+- The exit arrow on the left, top and bottom edges (tech-lead's list): no shipped level has the exit off screen in those directions; only the right edge (w1-04) is asserted. The twin edge arrow on the left edge is asserted in the dev room (tandem-gate.md S3).
+- Last level without NEXT: a live win of w3-05 is a 1364-step run. The test opens the real Results scene with launch data shaped like the game scene's (`nextLevelId` null), so the scene's own handling is exercised, but the game scene computing `null` for the last level is covered only by `resultsModel` / `nextLevel` unit tests.
+- Beat (0.6 s of ignored keys): asserted with an in-page keydown at the instant the panel is not yet drawn; on a fast machine the press can land after the beat, and the test then records a note instead of an assertion.
+- Sticky Keys card hidden on the win step (results check 14) and the pause-time tip (check 11): needs the tip visible in a Windows user agent flow, not covered.
+- Pause during the death freeze (pause check 11): timing-bound, unit-only.
+- Level-select greyscale distinguishability (check 15) and 8 px margins (check 16): visual; model/layout unit tests own the numbers.
+- 60 fps (G6) still not measured.

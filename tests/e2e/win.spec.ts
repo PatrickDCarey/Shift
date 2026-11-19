@@ -6,7 +6,7 @@
  * (src/save/store.ts). World 0 and replay mode write nothing (`recordRun`).
  */
 import type { Page } from '@playwright/test';
-import { TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
+import { POLL_TIMEOUT_MS, armLiveWin, finishLiveWin, TEST_TIMEOUT_MS, expect, menuModel, minStepSeen, nextFrames, pollScenes, pollState, resultsPanelUp, snapshot, test, waitForHook, watchSteps, winLiveHoldingRight } from './helpers';
 
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
@@ -25,25 +25,23 @@ function readSave(page: Page): Promise<SaveShape | null> {
   }, SAVE_KEY);
 }
 
-/** `Level complete — M:SS.hh — press R` for a win on `steps` (hundredths truncated; GDD 11, hud.test.ts). */
-function bannerFor(steps: number): string {
+/** The panel time line for a win on `steps` (hundredths truncated; results.md check 12). */
+function timeFor(steps: number): string {
   const minutes = Math.floor(steps / (STEP_HZ * 60));
   const seconds = Math.floor(steps / STEP_HZ) % 60;
   const hundredths = Math.floor(((steps % STEP_HZ) * 100) / STEP_HZ);
-  return `Level complete — ${minutes}:${String(seconds).padStart(2, '0')}.${String(hundredths).padStart(2, '0')} — press R`;
+  return `TIME ${minutes}:${String(seconds).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
 }
 
-/** Stand for `waitSteps` sim steps, then hold ArrowRight until the run is won. Returns the win step. */
-async function winLive(page: Page, waitSteps: number): Promise<number> {
-  const s0 = (await snapshot(page))?.state.step ?? 0;
-  if (waitSteps > 0) await pollState(page, (s) => s.state.step >= s0 + waitSteps, `stood ${waitSteps} steps`).toBe(true);
-  await page.keyboard.down('ArrowRight');
-  await pollState(page, (s) => (s.state.status === 'won' || s.state.status === 'dead' ? s.state.status : 'playing'), 'won (or died)', 90_000).toBe('won');
-  await page.keyboard.up('ArrowRight');
-  const won = (await snapshot(page))?.state.wonAtStep;
-  if (won === null || won === undefined) throw new Error('won without wonAtStep');
-  return won;
+/** Wait for the Results panel (after its 0.6 s beat) and check its time line. */
+async function expectResults(page: Page, steps: number): Promise<void> {
+  await pollScenes(page, ['Game', 'Results'], 'Results opened over the won game');
+  await expect.poll(() => resultsPanelUp(page), { message: 'results panel drawn (beat over)', timeout: POLL_TIMEOUT_MS }).toBe(true);
+  expect((await menuModel<{ timeText: string }>(page, 'Results'))?.timeText).toBe(timeFor(steps));
 }
+
+/** Stand for `waitSteps` sim steps, then hold ArrowRight until the run is won (in-page, see helpers). Returns the win step. */
+const winLive = winLiveHoldingRight;
 
 test.describe('live win recording', () => {
   test.beforeEach(async ({ page }) => {
@@ -61,26 +59,32 @@ test.describe('live win recording', () => {
   });
 
   test('a live w1-01 win stores completedLevels and bestSteps; slower wins keep the best, faster ones replace it', async ({ page }) => {
-    const first = await winLive(page, 60); // deliberately slow: 60 steps of standing first
-    await pollState(page, (s) => s.banner, 'win banner').toBe(bannerFor(first));
+    const first = await winLive(page, 60); // deliberately slow: stand until step 60 first
+    await expectResults(page, first);
     let save = await readSave(page);
     expect(save?.progress?.completedLevels, 'completed once').toEqual([LEVEL]);
     expect(save?.progress?.bestSteps, 'best = the win step count').toEqual({ [LEVEL]: first });
 
     // R restarts; a faster run improves the best.
-    await page.keyboard.press('KeyR');
-    await pollState(page, (s) => s.state.status === 'playing' && s.banner === null, 'restarted, banner gone').toBe(true);
-    const second = await winLive(page, 0);
+    await armLiveWin(page, 0); // armed before R so the key goes down in the first frames of the new run
+    await watchSteps(page);
+    await page.keyboard.press('KeyR'); // R on the panel retries
+    await expect.poll(() => minStepSeen(page), { message: 'restarted: the step counter went back to ~0', timeout: POLL_TIMEOUT_MS }).toBeLessThan(20);
+    await pollState(page, (s) => s.state.status === 'playing' && s.state.wonAtStep === null, 'restarted and playing').toBe(true);
+    const second = await finishLiveWin(page);
     expect(second, 'the straight run is faster than the stand-first run').toBeLessThan(first);
-    await pollState(page, (s) => s.banner, 'second banner').toBe(bannerFor(second));
+    await expectResults(page, second);
     save = await readSave(page);
     expect(save?.progress?.completedLevels, 'still listed once').toEqual([LEVEL]);
     expect(save?.progress?.bestSteps, 'faster win replaces the best').toEqual({ [LEVEL]: second });
 
     // A slower third win leaves the best alone.
-    await page.keyboard.press('KeyR');
-    await pollState(page, (s) => s.state.status === 'playing' && s.banner === null, 'restarted again').toBe(true);
-    const third = await winLive(page, 90);
+    await armLiveWin(page, 90);
+    await watchSteps(page);
+    await page.keyboard.press('KeyR'); // R on the panel retries
+    await expect.poll(() => minStepSeen(page), { message: 'restarted again', timeout: POLL_TIMEOUT_MS }).toBeLessThan(20);
+    await pollState(page, (s) => s.state.status === 'playing' && s.state.wonAtStep === null, 'restarted again and playing').toBe(true);
+    const third = await finishLiveWin(page);
     expect(third).toBeGreaterThan(second);
     save = await readSave(page);
     expect(save?.progress?.bestSteps, 'slower win does not replace the best').toEqual({ [LEVEL]: second });
@@ -101,6 +105,8 @@ test.describe('replay mode', () => {
     await waitForHook(page);
     await pollState(page, (s) => s.state.status, 'replay won', 90_000).toBe('won');
     await pollState(page, (s) => s.state.wonAtStep, 'win step').toBe(434);
+    await nextFrames(page, 90); // more than the 0.6 s beat in rendered frames: Results must still not open
+    await pollScenes(page, ['Game'], 'no Results scene in replay mode (results check 10)');
     // Give the scene a few more frames to (wrongly) write.
     await page.evaluate(() => new Promise<void>((done) => { let n = 0; const t = (): void => { n += 1; if (n >= 30) done(); else requestAnimationFrame(t); }; requestAnimationFrame(t); }));
     const save = await readSave(page);
@@ -174,8 +180,10 @@ test.describe('gear meter in the scene', () => {
     }
     expect(Math.max(...pairs.map((p) => p.lit)), 'the run left band 0 (the meter lit a cell)').toBeGreaterThan(0);
 
+    await watchSteps(page);
     await page.keyboard.press('KeyR');
-    await pollState(page, (s) => s.state.status === 'playing' && s.state.step < 30 && s.state.player.grounded, 'restarted').toBe(true);
+    await expect.poll(() => minStepSeen(page), { message: 'restarted', timeout: POLL_TIMEOUT_MS }).toBeLessThan(20);
+    await pollState(page, (s) => s.state.status === 'playing' && s.state.player.grounded, 'standing again').toBe(true);
     await pollState(page, (s) => s.meter, 'meter back to the initial model').toEqual({ litBand: 0, selectedGear: 1, needle: 0, dragFill: null, pendingGear: null });
   });
 

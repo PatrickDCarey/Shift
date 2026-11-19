@@ -1,14 +1,14 @@
 /**
- * Pause through the real scene (docs/design/features/pause.md, M2-06 scene lane; the M1 stand-in label is
- * the only overlay, the menu is M2-12). Read through `window.__redshift`: `paused`, `state`, plus per-frame
+ * Pause through the real scene (docs/design/features/pause.md). Since batch 6 Pause is an overlay scene that owns
+ * Esc, P, R, Enter and Space while it is open (menu flow: pause-menu.spec.ts). Read through `window.__redshift`: `paused`, `state`, plus per-frame
  * samples recorded in the page (`startTracker`), so a low headless frame rate cannot hide a step.
  *
  * Spec checks covered: 1 (Esc/P freeze, resume), 2 (no catch-up), 3 (partly: no frames reach the sim while
  * paused; recording equality is a unit test), 4 (keys held through the pause), 5 and 6 (keys pressed while
- * paused are ignored), 7 (R while paused), 10 (blur pauses and drops held keys). Checks 8, 9 and 12 need the
- * menus and results screen (M2-12); 11 (death freeze) is timing-bound and unit-tested.
+ * paused are ignored), 7 (R while paused), 10 (blur pauses and drops held keys), 13 (one-frame Esc/Space; part).
+ * Checks 8, 9, 12 are in pause-menu.spec.ts and results.spec.ts; 11 (death freeze) is timing-bound and unit-tested.
  */
-import { TEST_TIMEOUT_MS, expect, holdRightUntilPastX, pollState, snapshot, startTracker, stopTracker, test, waitForHook, type HookSnapshot } from './helpers';
+import { BOOT_TIMEOUT_MS, TEST_TIMEOUT_MS, expect, holdRightUntilPastX, minStepSeen, pollState, snapshot, startTracker, stopTracker, test, waitForHook, watchSteps, type HookSnapshot } from './helpers';
 
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
   await page.locator('#game canvas').click();
-  await pollState(page, (s) => s.state.player.grounded, 'player grounded at spawn').toBe(true);
+  await pollState(page, (s) => s.state.player.grounded, 'player grounded at spawn', BOOT_TIMEOUT_MS).toBe(true);
 });
 
 /** Resolve after `frames` animation frames AND at least `ms` of wall clock, both counted in the page. */
@@ -49,11 +49,35 @@ async function pause(page: import('@playwright/test').Page, key: string): Promis
   return s;
 }
 
+/**
+ * Hold ArrowRight and press `key` inside the very frame in which the runner is first seen running past x = 1.2, so the
+ * pause happens early on the spawn pad whatever the polling latency (w0-02 has a pit at x 11-13: a pause decided by a
+ * Playwright poll can arrive after the runner has walked into it, which was the flake of checks 1 and 4 on a loaded machine).
+ */
+async function holdRightThenPause(page: import('@playwright/test').Page, key: string): Promise<HookSnapshot> {
+  await page.evaluate((code) => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowRight', key: 'ArrowRight', bubbles: true }));
+    const t0 = performance.now();
+    const tick = (): void => {
+      const st = window.__redshift?.state;
+      if ((st && st.player.vx > 0 && st.player.x > 1.2) || performance.now() - t0 > 30_000) {
+        window.dispatchEvent(new KeyboardEvent('keydown', { code, key: code, bubbles: true }));
+        window.dispatchEvent(new KeyboardEvent('keyup', { code, key: code, bubbles: true }));
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, key);
+  await pollState(page, (s) => s.paused, `paused after ${key}`).toBe(true);
+  const s = await snapshot(page);
+  if (!s) throw new Error('no hook');
+  return s;
+}
+
 for (const key of ['Escape', 'KeyP'] as const) {
   test(`${key} pauses: no sim steps over 120 rendered frames; pressing it again resumes (pause check 1)`, async ({ page }) => {
-    await page.keyboard.down('ArrowRight');
-    await pollState(page, (s) => s.state.player.vx > 0 && s.state.player.x > 1, 'running').toBe(true);
-    const before = await pause(page, key);
+    const before = await holdRightThenPause(page, key);
     await idleFor(page, 120, 0);
     const during = await snapshot(page);
     expect(during?.paused, 'still paused').toBe(true);
@@ -88,9 +112,7 @@ test('no catch-up: 3 s paused, then the first live frame runs a normal frame of 
 });
 
 test('a key held through the pause keeps counting as held: no stop, no skid (pause check 4)', async ({ page }) => {
-  await page.keyboard.down('ArrowRight');
-  await pollState(page, (s) => s.state.player.vx > 0 && s.state.player.x > 1, 'running').toBe(true);
-  const before = await pause(page, 'Escape');
+  const before = await holdRightThenPause(page, 'Escape');
   await idleFor(page, 30, 0);
   await startTracker(page);
   await page.keyboard.press('Escape');
@@ -102,11 +124,10 @@ test('a key held through the pause keeps counting as held: no stop, no skid (pau
   expect(Math.min(...live.map((t) => t.vx)), 'vx never drops to 0 after resume').toBeGreaterThan(0);
 });
 
-test('Space held while paused does not jump until it is released and pressed again (pause check 5)', async ({ page }) => {
+test('Space held to choose RESUME does not jump until it is released and pressed again (pause check 5)', async ({ page }) => {
   await pause(page, 'Escape');
-  await page.keyboard.down('Space'); // as if Space picked RESUME
-  await page.keyboard.press('KeyP'); // the P that closes the pause is masked too
-  await pollState(page, (s) => !s.paused, 'resumed').toBe(true);
+  await page.keyboard.down('Space'); // Space chooses the focused item, RESUME
+  await pollState(page, (s) => !s.paused, 'Space on RESUME resumed the game').toBe(true);
   const at = (await snapshot(page))?.state.step ?? 0;
   await startTracker(page);
   await pollState(page, (s) => s.state.step >= at + 40, '40 steps with Space still held').toBe(true);
@@ -118,18 +139,33 @@ test('Space held while paused does not jump until it is released and pressed aga
   await page.keyboard.up('Space');
 });
 
+test('P held through the closing press does not re-pause', async ({ page }) => {
+  await pause(page, 'Escape');
+  await page.keyboard.down('KeyP'); // closes the pause; the held P must not toggle it again
+  await pollState(page, (s) => !s.paused, 'P resumed').toBe(true);
+  const at = (await snapshot(page))?.state.step ?? 0;
+  await pollState(page, (s) => s.state.step >= at + 30, '30 steps with P held').toBe(true);
+  expect((await snapshot(page))?.paused, 'P held did not re-pause').toBe(false);
+  await page.keyboard.up('KeyP');
+});
+
 test('keys tapped while paused never reach the sim: gear and position unchanged (pause check 6)', async ({ page }) => {
   await page.keyboard.press('KeyE');
   await page.keyboard.press('KeyE');
   await pollState(page, (s) => s.state.player.gear, 'gear 3').toBe(3);
   const before = await pause(page, 'Escape');
-  for (const key of ['KeyQ', 'ShiftLeft', 'ShiftRight', 'ArrowRight', 'Space']) await page.keyboard.press(key);
+  // Space and Enter are menu keys (they would pick RESUME), so they are left out here; check 5 covers Space.
+  for (const key of ['KeyQ', 'ShiftLeft', 'ShiftRight', 'KeyZ', 'KeyX', 'ArrowRight', 'ArrowLeft']) await page.keyboard.press(key);
+  await idleFor(page, 20, 0);
+  const still = await snapshot(page);
+  expect(still?.paused, 'the taps did not close the pause').toBe(true);
+  expect(still?.state.step, 'no sim steps while paused').toBe(before.state.step);
   await page.keyboard.press('Escape');
   await pollState(page, (s) => !s.paused && s.state.step >= before.state.step + 30, 'resumed, 30 steps').toBe(true);
   const after = await snapshot(page);
   expect(after?.state.player.gear, 'gear unchanged by Q / Shift tapped while paused').toBe(3);
   expect(after?.state.player.x, 'a tapped ArrowRight did not move the player').toBe(before.state.player.x);
-  expect(after?.state.player.grounded, 'a tapped Space did not jump').toBe(true);
+  expect(after?.state.player.grounded, 'nothing jumped').toBe(true);
 });
 
 test('R while paused restarts the run and closes the pause (pause check 7)', async ({ page }) => {
@@ -141,12 +177,13 @@ test('R while paused restarts the run and closes the pause (pause check 7)', asy
   const at = (await snapshot(page))?.state.step ?? 0;
   await pollState(page, (s) => s.state.step >= at + 30, 'some steps pass').toBe(true);
   const before = await pause(page, 'Escape');
+  await watchSteps(page);
   await page.keyboard.press('KeyR');
   await pollState(page, (s) => !s.paused, 'pause closed by R').toBe(true);
   const after = await snapshot(page);
   expect(after?.state.status).toBe('playing');
   expect(after?.state.player.gear, 'gear reset to 1').toBe(1);
-  expect(after?.state.step, 'step counter restarted').toBeLessThan(before.state.step);
+  expect(await minStepSeen(page), 'step counter restarted (lowest step seen on any frame since R)').toBeLessThan(Math.min(before.state.step, 20));
   expect(after?.state.player.x, 'back at the spawn').toBeCloseTo(spawn?.x ?? 0, 6);
 });
 

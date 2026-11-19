@@ -1,0 +1,61 @@
+# Observed 2026-11-18: boot with every pixel-* image failing to load (npm run test:e2e run 5, clarity.spec.ts 'full effects: the exit door pulses'; the same signature once earlier in a repeat run of pause.spec.ts check 4). Excerpt of the Playwright output:
+  1) [chromium] › tests\e2e\clarity.spec.ts:130:3 › reduced motion and reduced effects › full effects: the exit door pulses (more than one door frame over time) 
+
+    Error: window.__redshift never appeared
+
+    window.__redshift never appeared
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 45000ms exceeded while waiting on the predicate
+
+
+      128 | /** Wait until the scene has installed `window.__redshift`, then return its first snapshot. */
+      129 | export async function waitForHook(target: Page | Frame): Promise<HookSnapshot> {
+    > 130 |   await expect.poll(async () => (await snapshot(target)) !== null, { message: 'window.__redshift never appeared', timeout: BOOT_TIMEOUT_MS }).toBe(true);
+          |                                                                                                                                               ^
+      131 |   const snap = await snapshot(target);
+      132 |   if (!snap) throw new Error('window.__redshift disappeared');
+      133 |   return snap;
+
+    Error: page and console errors
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 22
+
+    - Array []
+    + Array [
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-player",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-player image pixel-player",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-player image pixel-player",
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-scenery",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-scenery image pixel-scenery",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-scenery image pixel-scenery",
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-fx",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-fx image pixel-fx",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-fx image pixel-fx",
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-tiles",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-tiles image pixel-tiles",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-tiles image pixel-tiles",
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-hud",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-hud image pixel-hud",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") atlasjson pixel-hud image pixel-hud",
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-tileset",
+    +   "console.error: Failed to process file: %s \"%s\" image pixel-font",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") bitmapfont pixel-font image pixel-font",
+    +   "console.error: File failed: %s \"%s\" (via %s \"%s\") bitmapfont pixel-font image pixel-font",
+    +   "pageerror: texture \"pixel-tileset\" is not loaded (BootScene must load it)",
+    + ]
+
+
+      184 |       });
+      185 |       await use(errors);
+    > 186 |       expect(errors, 'page and console errors').toEqual([]);
+          |                                                 ^
+      187 |     },

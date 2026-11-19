@@ -60,3 +60,25 @@ e2e `pause.spec.ts` "window blur pauses ...": after a blur the game is paused (`
 Found by a flaky test of mine: `page.keyboard.press` for E, Right Shift and X back to back (three different keys, all "shift up") reached gear 3, not 4, once in four full runs. `InputSampler` latches a key code once per sample and `heldActions` ORs the codes of one action, so two taps inside one rendered frame (under 17 ms at 60 fps, but 50 ms or more when headless Chromium or a slow laptop drops to ~20 fps) count as one. A human double-tap is never that fast, and a single tap is never lost (M1-14), so this is not filed as a bug; the tests now wait for each gear change before the next press. Worth knowing if a low-fps player reports "my second shift did not register".
 
 Update 2026-11-05: still open at 68bdce0 (orchestrator confirmed the solutions are in the bundle). Not a gate blocker (minor); it must be closed before the first public itch.io upload.
+
+### BUG-5: title -> LEVELS opens level select on w1-01 instead of the PLAY target
+Status: **OPEN**
+Severity: minor
+Owner: ui-engineer (`src/ui/menuNav.ts` `titleJump`, `src/scenes/TitleScene.ts`)
+Build/commit: 9f8ffb7 (batch 6)
+Steps: 1. Fresh load of the preview build with a save that has `w1-01` completed (or play and win w1-01, then reload). 2. On the title press Down, Enter (LEVELS). 3. Read which cell has focus.
+Expected: `docs/design/features/level-select.md` "Initial focus": from the title, the level `playTarget` returns (here w1-02), or w1-01 if it returns null.
+Actual: focus is on w1-01 whatever the save holds: `titleJump({ type: 'levels' })` returns `{ target: 'levelSelect' }` with no `focusId`, and `LevelSelectScene` falls back to the first level. (Coming back from Results/Pause LEVELS does focus the level just played; only the title route is wrong.)
+Evidence: `tests/e2e/menus.spec.ts` "initial focus from the title is the PLAY target (...; BUG-5)", marked `test.fail()` so the suite stays green and flips to a failure (remove the marker) when it is fixed; the same test with the save seed shows the model `playTargetId` is `w1-02` while the level select focus is `w1-01`.
+Note: low impact (one extra keypress); title check 7 and level-select check 12 (Esc returns to the title with LEVELS focused) are fine.
+
+### BUG-6: rare boot failure: every `pixel-*` image fails to load, the game stays black, no retry (seen 2 times in about 800 page loads)
+Status: **OPEN** (not reproduced on demand; filed so it is not lost)
+Severity: minor (polish if it only happens under test-machine CPU load; major if a real browser can hit it, since the player sees a black canvas and a reload is the only recovery)
+Owner: tech-lead (`src/scenes/BootScene.ts`, preload) to decide whether Boot should retry or show a message; no product change is certain to be needed
+Build/commit: 9f8ffb7 plus QA specs, `vite preview` of a `VITE_QA_HOOK=1` build, headless Chromium, 2 workers, machine busy (OneDrive and other background jobs)
+Steps: 1. `npm run test:e2e` repeatedly on a busy machine (2 of about 7 full runs had one occurrence). 2. Look for a test failing in its first seconds with `window.__redshift never appeared` and a console error list.
+Expected: every asset loads, or a failed load is retried or reported on screen.
+Actual: console shows `Failed to process file: ... image pixel-player` (then the same for pixel-scenery, pixel-fx, pixel-tiles, pixel-hud, pixel-font, pixel-tileset) and `pageerror: texture "pixel-tileset" is not loaded (BootScene must load it)`. The scene never starts; the test times out at 45 s. The same page loads fine on the next attempt (all other tests in the same run, and a reload).
+Evidence: `docs/qa/evidence/b6-asset-load-failure.txt` (Playwright output of run 5, 2026-11-18). Not seen in the 3 earlier full runs of the same day, nor in about 15 manual loads.
+Note: cause unknown (a transient fetch or blob-decode failure under load; Phaser's loader has no retry). No e2e test hides it: the shared fixture fails any test that logs a console error, so it shows up as one flaky failure per run. If tech-lead judges it test-machine noise, close it as such.

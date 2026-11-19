@@ -54,9 +54,9 @@ export interface RedshiftHook {
   readonly replay?: HookReplay;
   /** Read-only, QA hook builds only. */
   readonly meter?: HookMeter;
-  /** The win banner text while it is showing, else null. */
+  /** Always null since batch 6 (the win banner is gone; the Results scene replaced it). */
   readonly banner?: string | null;
-  /** True while the pause is on (Esc, P or focus loss). */
+  /** True from the moment Pause opens (Esc, P or focus loss) until resume or restart, also while Controls is open over it. */
   readonly paused?: boolean;
 }
 
@@ -148,7 +148,33 @@ export function pollState<T>(target: Page | Frame, pick: (s: HookSnapshot) => T,
  * Test fixture that fails any test which produced a page error or a console
  * error (CLAUDE.md: no console errors). `errors` is also readable by the test.
  */
-export const test = base.extend<{ errors: string[] }>({
+export const test = base.extend<{ errors: string[]; gameProbe: void }>({
+  // Test-side only: keeps a handle on the Phaser.Game so specs can ask which scenes are active and read a menu
+  // scene's model. The product exposes nothing for menus (the QA hook is the game scene's), and `Phaser.GAMES`
+  // does not exist in 3.90. The setter wraps `Phaser.Game` the moment the bundle assigns `window.Phaser`.
+  gameProbe: [
+    async ({ page }, use) => {
+      await page.addInitScript(() => {
+        let phaser: { Game: new (config: unknown) => object } | undefined;
+        Object.defineProperty(window, 'Phaser', {
+          configurable: true,
+          get: () => phaser,
+          set: (p: { Game: new (config: unknown) => object }) => {
+            phaser = p;
+            const Original = p.Game;
+            p.Game = class extends Original {
+              constructor(config: unknown) {
+                super(config);
+                (window as unknown as { __game: object }).__game = this;
+              }
+            };
+          },
+        });
+      });
+      await use();
+    },
+    { auto: true },
+  ],
   errors: [
     async ({ page }, use) => {
       const errors: string[] = [];
@@ -404,4 +430,226 @@ export async function jumpAndPressInAir(page: Page, code: string, trigger: AirTr
   const landed = track.find((t) => t.grounded && t.step > pressStep);
   if (!landed) throw new Error('jumpAndPressInAir: no grounded sample after the press');
   return { pressStep, track, lastAirStep, landedByStep: landed.step };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Menu scenes (batch 6). Read through the test-side Phaser handle installed by the `gameProbe` fixture above.
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Scene keys as in `src/scenes/keys.ts`. */
+export type SceneName = 'Boot' | 'Game' | 'Title' | 'LevelSelect' | 'Pause' | 'Results' | 'Controls';
+
+interface ProbeScene {
+  readonly sys: { readonly settings: { readonly key: string }; isActive(): boolean };
+  readonly model?: unknown;
+  readonly canvas?: unknown;
+}
+interface ProbeGame {
+  readonly scene: { readonly scenes: readonly ProbeScene[] };
+}
+
+/** Keys of every active scene, in registration order. */
+export function activeScenes(target: Page | Frame): Promise<string[]> {
+  return target.evaluate(() => {
+    const g = (window as unknown as { __game?: ProbeGame }).__game;
+    return g ? g.scene.scenes.filter((s) => s.sys.isActive()).map((s) => s.sys.settings.key) : [];
+  });
+}
+
+/** Poll until exactly this set of scenes is active (order-insensitive). */
+export function pollScenes(target: Page | Frame, expected: readonly SceneName[], message?: string, timeout = POLL_TIMEOUT_MS) {
+  const want = [...expected].sort().join(',');
+  return expect.poll(async () => (await activeScenes(target)).sort().join(','), { message: message ?? `active scenes ${want}`, timeout }).toBe(want);
+}
+
+/** What a menu scene has focused: a list item id (Title, Pause, Results, Controls) or a level id (LevelSelect). Null when the scene has no model yet. */
+export function menuFocus(target: Page | Frame, scene: SceneName): Promise<string | null> {
+  return target.evaluate((key) => {
+    const g = (window as unknown as { __game?: ProbeGame }).__game;
+    const m = g?.scene.scenes.find((s) => s.sys.settings.key === key)?.model as
+      | { list?: { items: { id: string }[]; focus: number }; rows?: { cells: { id: string }[] }[]; focus?: { row: number; col: number } }
+      | undefined;
+    if (!m) return null;
+    if (m.list) return m.list.items[m.list.focus]?.id ?? null;
+    if (m.rows && m.focus) return m.rows[m.focus.row]?.cells[m.focus.col]?.id ?? null;
+    return null;
+  }, scene);
+}
+
+/** A menu scene's model as plain data, or null. */
+export function menuModel<T = unknown>(target: Page | Frame, scene: SceneName): Promise<T | null> {
+  return target.evaluate((key) => {
+    const g = (window as unknown as { __game?: ProbeGame }).__game;
+    const m = g?.scene.scenes.find((s) => s.sys.settings.key === key)?.model;
+    return m === undefined ? null : (JSON.parse(JSON.stringify(m)) as unknown);
+  }, scene) as Promise<T | null>;
+}
+
+/** True once the Results scene has drawn its panel (the 0.6 s beat, during which every key is ignored, is over). */
+export function resultsPanelUp(target: Page | Frame): Promise<boolean> {
+  return target.evaluate(() => {
+    const g = (window as unknown as { __game?: ProbeGame }).__game;
+    const r = g?.scene.scenes.find((s) => s.sys.settings.key === 'Results');
+    return !!r && r.sys.isActive() && r.canvas !== null && r.canvas !== undefined;
+  });
+}
+
+/** Load a plain URL (no `?level=`) and wait for the title model. */
+export async function gotoTitle(page: Page, search = ''): Promise<void> {
+  await page.goto(`./${search}`);
+  await pollScenes(page, ['Title'], 'title screen after a plain load', BOOT_TIMEOUT_MS);
+  await expect.poll(async () => (await menuFocus(page, 'Title')) !== null, { message: 'title model built', timeout: POLL_TIMEOUT_MS }).toBe(true);
+}
+
+/** Completed levels and best steps from the save in localStorage (`redshift.save`), null without one. */
+export function readSaveProgress(target: Page | Frame): Promise<{ completedLevels: string[]; bestSteps: Record<string, number> } | null> {
+  return target.evaluate(() => {
+    const raw = window.localStorage.getItem('redshift.save');
+    if (raw === null) return null;
+    const p = (JSON.parse(raw) as { progress?: { completedLevels?: string[]; bestSteps?: Record<string, number> } }).progress;
+    return { completedLevels: p?.completedLevels ?? [], bestSteps: p?.bestSteps ?? {} };
+  });
+}
+
+/**
+ * Arm a live win of w1-01: hold ArrowRight the whole way (gear 1 is blue, walking holds the blue bridges, both pads
+ * are safe). The key goes down inside the page, in the first animation frame in which the run is playing and at least
+ * `standSteps` steps old, so the win step is 434 + standSteps (within one frame's steps) however slow the polling is.
+ * Not a replay: Results opens. Resolves to the win step.
+ */
+export async function armLiveWin(page: Page, standSteps = 0): Promise<void> {
+  await page.evaluate((stand) => {
+    const fire = (type: 'keydown' | 'keyup'): void => {
+      window.dispatchEvent(new KeyboardEvent(type, { code: 'ArrowRight', key: 'ArrowRight', bubbles: true }));
+    };
+    let down = false;
+    const tick = (): void => {
+      const st = window.__redshift?.state;
+      if (!down && st && st.status === 'playing' && st.wonAtStep === null && st.step >= stand) {
+        down = true;
+        fire('keydown');
+      } else if (down && st && (st.status === 'won' || st.status === 'dead')) {
+        fire('keyup');
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, standSteps);
+}
+
+/** Wait for the win armed by {@link armLiveWin}; resolves to the win step. */
+export async function finishLiveWin(page: Page): Promise<number> {
+  await pollState(page, (s) => s.state.status, 'won (or died)', 90_000).toBe('won');
+  const won = (await snapshot(page))?.state.wonAtStep;
+  if (won === null || won === undefined) throw new Error('won without wonAtStep');
+  return won;
+}
+
+/** {@link armLiveWin} then {@link finishLiveWin}. The watcher starts when called, so arm BEFORE a restart if the stand time must be exact (win.spec does). */
+export async function winLiveHoldingRight(page: Page, standSteps = 0): Promise<number> {
+  await armLiveWin(page, standSteps);
+  return finishLiveWin(page);
+}
+
+/** `levels/<id>.txt` ids for worlds 1-9, sorted: the levels level select lists. */
+export function shippedLevelIds(): readonly string[] {
+  return readdirSync(LEVELS_DIR)
+    .filter((f) => /^w[1-9]-\d{2}\.txt$/.test(f))
+    .map((f) => f.slice(0, -'.txt'.length))
+    .sort();
+}
+
+/** Display-list rows of the Game scene (everything Phaser draws there), for hint, cue and effect checks. */
+export interface DrawnObject {
+  readonly type: string;
+  readonly depth: number;
+  readonly visible: boolean;
+  readonly frame: string | null;
+  readonly text: string | null;
+  readonly x: number;
+  readonly y: number;
+}
+
+/** Everything on the Game scene's display list; null when the scene is not up. */
+export function gameObjects(target: Page | Frame): Promise<DrawnObject[] | null> {
+  return target.evaluate(() => {
+    const g = (window as unknown as { __game?: { scene: { getScene(k: string): unknown } } }).__game;
+    const s = g?.scene.getScene('Game') as { children?: { list: { type: string; depth: number; visible: boolean; x: number; y: number; frame?: { name: string }; text?: string }[] } } | undefined;
+    if (!s?.children) return null;
+    return s.children.list.map((o) => ({ type: o.type, depth: o.depth, visible: o.visible, frame: o.frame?.name ?? null, text: o.type === 'BitmapText' ? (o.text ?? '') : null, x: o.x, y: o.y }));
+  });
+}
+
+export interface SeedSave {
+  readonly settings?: Readonly<Record<string, boolean | number>>;
+  readonly completed?: readonly string[];
+  readonly bestSteps?: Readonly<Record<string, number>>;
+}
+
+/**
+ * Pre-seed `redshift.save` before the first script runs (only when no save exists yet, so a reload keeps what the
+ * game wrote). The Sticky Keys tip is marked shown so it never covers a check.
+ */
+export async function seedSave(page: Page, seed: SeedSave): Promise<void> {
+  const save = {
+    version: 1,
+    settings: { musicVolume: 0.7, sfxVolume: 1, reducedEffects: false, reducedMotion: false, muted: false, stickyKeysTipShown: true, ...seed.settings },
+    progress: { completedLevels: seed.completed ?? [], bestSteps: seed.bestSteps ?? {} },
+  };
+  await page.addInitScript((json: string) => {
+    try {
+      if (window.localStorage.getItem('redshift.save') === null) window.localStorage.setItem('redshift.save', json);
+    } catch {
+      /* storage blocked: the game falls back to memory */
+    }
+  }, JSON.stringify(save));
+}
+
+/** Resolve after `n` rendered frames, counted in the page. Menu scenes turn the keys of one frame into one intent, so give each press its own frame. */
+export function nextFrames(target: Page | Frame, n = 3): Promise<void> {
+  return target.evaluate(
+    (count) =>
+      new Promise<void>((resolve) => {
+        let i = 0;
+        const tick = (): void => {
+          i += 1;
+          if (i >= count) resolve();
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+    n,
+  );
+}
+
+/**
+ * Remember, in the page, the lowest sim step seen on any animation frame from now on. A restart shows as a low step for
+ * only a frame or a few, which a Playwright poll (whose interval backs off to 1 s) can miss entirely; this cannot.
+ * Survives scene restarts (it lives on `window`, not in a scene).
+ */
+export function watchSteps(page: Page): Promise<void> {
+  return page.evaluate(() => {
+    const w = window as unknown as { __minStep: number; __watchingSteps?: boolean };
+    w.__minStep = Number.POSITIVE_INFINITY;
+    if (w.__watchingSteps) return;
+    w.__watchingSteps = true;
+    const tick = (): void => {
+      const st = window.__redshift?.state;
+      if (st) w.__minStep = Math.min(w.__minStep, st.step);
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/** Lowest sim step seen since {@link watchSteps}. */
+export function minStepSeen(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as { __minStep: number }).__minStep);
+}
+
+/** Press a key, then let three frames pass: menu scenes turn the keys of one frame into one intent, so back-to-back taps would merge. */
+export async function tap(page: Page, key: string): Promise<void> {
+  await page.keyboard.press(key);
+  await nextFrames(page, 3);
 }

@@ -1,18 +1,18 @@
 /**
  * M2-60 additions. Written against the board's acceptance lines before the Batch 3 scene work lands:
- *  - `/` opens on w1-01 (the scene lane changes the default level from w0-02).
+ *  - `/` opens the title screen (batch 6, B6-24; it used to open w1-01).
  *  - a standing jump at the w0-02 spawn pad is a full 3-tile arc (headroom since w0-02 v2).
  *  - meter / banner fields: skipped with a message when the hook does not expose them yet.
  * w1-03..w1-05 replays need no case here: replay.spec.ts loops over every `levels/*.solution.txt`.
  */
-import { TEST_TIMEOUT_MS, expect, pollState, snapshot, startTracker, stopTracker, test, waitForHook } from './helpers';
+import { TEST_TIMEOUT_MS, activeScenes, expect, gotoTitle, pollState, snapshot, startTracker, stopTracker, test, waitForHook } from './helpers';
 
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
-test('plain URL "/" opens on w1-01 (depends on the scene lane default-level change)', async ({ page }) => {
-  await page.goto('./');
-  const first = await waitForHook(page);
-  expect(first.levelId, 'default level').toBe('w1-01');
+test('plain URL "/" opens the title screen, not a level (B6-24)', async ({ page }) => {
+  await gotoTitle(page);
+  expect(await activeScenes(page)).toEqual(['Title']);
+  expect(await page.evaluate(() => window.__redshift), 'no game scene, so no hook').toBeUndefined();
 });
 
 test('an explicit ?level=w0-02 still opens w0-02', async ({ page }) => {
@@ -36,7 +36,7 @@ test('a standing jump at the w0-02 spawn is a full 3-tile arc and lands back on 
   expect((await snapshot(page))?.state.player.y).toBeCloseTo(floorY, 6);
 });
 
-test.describe('HUD meter and banner fields (skip until the hook exposes them)', () => {
+test.describe('HUD meter and banner fields (the banner is always null since batch 6)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('./?level=w1-01');
     await waitForHook(page);

@@ -6,7 +6,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Page } from '@playwright/test';
-import { TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
+import { POLL_TIMEOUT_MS, TEST_TIMEOUT_MS, expect, pollState, snapshot, test, waitForHook } from './helpers';
 
 test.describe.configure({ timeout: TEST_TIMEOUT_MS });
 
@@ -37,7 +37,7 @@ for (const c of CASES) {
     await expect(canvas).toHaveCount(1);
     await expect(canvas).toHaveAttribute('width', String(W));
     await expect(canvas).toHaveAttribute('height', String(H));
-    await expect.poll(async () => (await cssBox(page)).width, { message: 'CSS width after boot zoom' }).toBeCloseTo(c.css, 0);
+    await expect.poll(async () => (await cssBox(page)).width, { message: 'CSS width after boot zoom', timeout: POLL_TIMEOUT_MS }).toBeCloseTo(c.css, 0);
     const box = await cssBox(page);
     expect(box.width % W, 'CSS width is a whole multiple of 480').toBeCloseTo(0, 5);
     expect(box.height).toBeCloseTo((box.width * H) / W, 0);
@@ -53,13 +53,13 @@ for (const c of CASES) {
 test('live resize 960x540 to 1920x1080 and back re-zooms the canvas (attributes stay 480x270)', async ({ page }) => {
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
-  await expect.poll(async () => (await cssBox(page)).width).toBeCloseTo(960, 0);
+  await expect.poll(async () => (await cssBox(page)).width, { timeout: POLL_TIMEOUT_MS }).toBeCloseTo(960, 0);
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await expect.poll(async () => (await cssBox(page)).width, { message: 'zoom 4 after growing' }).toBeCloseTo(1920, 0);
+  await expect.poll(async () => (await cssBox(page)).width, { message: 'zoom 4 after growing', timeout: POLL_TIMEOUT_MS }).toBeCloseTo(1920, 0);
   await expect(page.locator('#game canvas')).toHaveAttribute('width', String(W));
   await expect(page.locator('#game canvas')).toHaveAttribute('height', String(H));
   await page.setViewportSize({ width: 960, height: 540 });
-  await expect.poll(async () => (await cssBox(page)).width, { message: 'zoom 2 after shrinking' }).toBeCloseTo(960, 0);
+  await expect.poll(async () => (await cssBox(page)).width, { message: 'zoom 2 after shrinking', timeout: POLL_TIMEOUT_MS }).toBeCloseTo(960, 0);
   // the sim kept running through both resizes
   const before = (await snapshot(page))?.state.step ?? 0;
   await pollState(page, (s) => s.state.step, 'sim steps after resizes').toBeGreaterThan(before);
@@ -69,7 +69,7 @@ test('non-multiple viewports never give a fractional scale', async ({ page }) =>
   await page.setViewportSize({ width: 1000, height: 600 });
   await page.goto(`./?level=${LEVEL}`);
   await waitForHook(page);
-  await expect.poll(async () => (await cssBox(page)).width).toBeCloseTo(960, 0); // zoom 2, not 2.08
+  await expect.poll(async () => (await cssBox(page)).width, { timeout: POLL_TIMEOUT_MS }).toBeCloseTo(960, 0); // zoom 2, not 2.08
   await page.setViewportSize({ width: 1500, height: 1000 });
   await expect.poll(async () => (await cssBox(page)).width).toBeCloseTo(1440, 0); // zoom 3
 });
