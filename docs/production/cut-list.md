@@ -2,6 +2,8 @@
 
 **Update 2026-11-16 (owner decisions): every date, trigger and "decide by" line below is superseded.** Tandem stays as world 3 (no fallback; the "reverts to gates" lines are void). The owner said to ignore date and time deadlines and keep working, so nothing here fires on a date. The cuts stay undecided and do not block: world 4 (Should), the M3-18 effects reduction, roof-band art, and per-level online leaderboards (local best times until USER-2 exists). Work is ordered so the Must list comes first and these items come last; the owner cuts if and when they choose.
 
+**Update 2026-11-19 (producer):** 14 Must levels are done and approved. Current recommendations, owner still undecided and none blocks: (1) world 4 gates and ice: CUT, nothing is scheduled; (2) M3-18 effects reduction: CUT as new work (keep what is built and the reduced-effects path); (3) roof-band art: CUT; (4) leaderboards: ship local best times only unless the owner provides USER-2 and decides B-1 (then delete the LEADERBOARDS block of the itch copy); (5) M3-15 volume sliders: Could, cut; mute is Should (SOUND toggle); (6) settings screen: SIGNED OFF as the first Should, the first thing cut if Batch 7 slips; menu move/select sounds and the pause settings item are Should and go before it.
+
 Pre-ranked: cut from the top first. **Must** items are never cut by the producer; they go to the user. Triggers are checked at each milestone gate. Nothing in the Could and Should sections has been cut except what is listed under "Already cut". Updated 2026-11-03 for GDD v1.4 (Tandem), level plan v3.0 and art direction C.
 
 ## Never cut (Must, and protected small items)

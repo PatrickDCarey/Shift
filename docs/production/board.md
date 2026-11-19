@@ -2,7 +2,25 @@
 
 _Owner: producer. Last updated: 2026-11-16, after batch 5 (commit aa4c1ed: 2331 unit, 86 browser tests, package ok) and the owner's decisions of the same day. The jam closes 2026-12-01 13:37 PST (21:37 UTC). That is a fact, not a plan: work runs in priority order, batch after batch (owner: "ignore date and time deadlines, just keep working")._
 
-**Status (2026-11-16): building, in priority order.** Tandem is world 3 (decided; no fallback). Built: pixel cutover, worlds 1-2 except w2-04, w3-01 and the Tandem scene (T-20), `fallThrough` event, title and level select scenes (not yet reachable: not registered in `main.ts`), audio engine and music feed helper, leaderboard code (not deployed, USER-2). Not built: pause, results and controls screens, music wiring, "why you fell" cue, exit cue, horizon/pulse/wipe wiring, w2-04, w3-02..w3-05, leaderboard deploy. Unreviewed: all of batch 5. Never verified on screen: Tandem checks S1-S4. The proposed cuts in `cut-list.md` are undecided and do not block; the work is ordered so the Must list comes first and those items come last.
+## Road to submit (2026-11-19; no calendar gates, work runs wave after wave; the jam closes 2026-12-01 21:37 UTC, studio target 2026-11-30)
+
+**Status: on track.** Content is complete (14 Must levels approved, menus, pause, results, controls, Tandem, music built). What remains is clarity fixes, sound wiring, one Should (settings), verification, page art and release. Batch 7 below is the next work. Studio = S, owner = USER-n.
+
+1. **Must left in code (S):** restart card, 8 in-game SFX wired, three hint headers, BUG-5, BUG-6 boot retry (Batch 7 waves 1-2).
+2. **Should (S, cut first if waves slip):** settings screen (signed off 2026-11-19), menu move/select sounds, pause-menu settings item.
+3. **Verify (S):** tech-lead review, QA verification of Batch 7 (two full runs max), packaged build rebuilt.
+4. **Playtest (S):** cold play of w3-02..w3-05, w1-03, w2-04, w3-03 hints on the Batch 7 build (Must: nobody has finished w3-04 or w3-05); design-lead triage; one fix batch if needed.
+5. **Owner hand check (USER-9):** win w3-01 Tandem in a real browser; keyboard-only with Q/E and Z/X; SFX by ear; a non-Chromium browser.
+6. **Page (S + owner):** art-director cover, 5 screenshots, 1 GIF from the final build; design-lead re-checks the `itch-page.md` section 7 list; `CREDITS.md` team names (owner gives the names, tech-lead fills); USER-3 create the itch draft and upload `npm run package` zip; test in the itch iframe.
+7. **Leaderboards (owner decision):** USER-2 Supabase project plus the B-1 replay decision, or ship local best times only and delete the LEADERBOARDS block in the itch copy. Nothing in the studio plan assumes either.
+8. **Release (S then owner):** USER-8 install gitleaks, tech-lead SEC-3 full-history secret scan (clean or rotate), final `npm run check` and package; USER-6 make the repo public; push; USER-3 publish the page; USER-4 submit the entry to the jam with the repo link.
+9. **Freeze rule:** after the playtest triage only bug fixes; no new features.
+
+**Proposed cuts, owner has not decided (none blocks; recommendations given 14 levels are done):** (a) world 4 gates and ice: CUT, nothing is scheduled. (b) M3-18 effects reduction: CUT as a task (keep what is built plus the reduced-effects path; no new effects work). (c) roof-band art: CUT. Also moved down by the 2026-11-19 rulings: volume sliders (M3-15) are Could, mute is Should (the SOUND toggle), menu sounds Should, pause settings item Should.
+
+**Owner-only questions open:** (1) leaderboards: provide USER-2 and decide B-1, or ship local-only? (2) team names for `CREDITS.md` and the itch credits. (3) USER-9 hand checks and USER-8 gitleaks install, when convenient.
+
+_Older status (2026-11-16):_ Tandem is world 3 (decided; no fallback). Built: pixel cutover, worlds 1-2 except w2-04, w3-01 and the Tandem scene (T-20), `fallThrough` event, title and level select scenes (not yet reachable: not registered in `main.ts`), audio engine and music feed helper, leaderboard code (not deployed, USER-2). Not built: pause, results and controls screens, music wiring, "why you fell" cue, exit cue, horizon/pulse/wipe wiring, w2-04, w3-02..w3-05, leaderboard deploy. Unreviewed: all of batch 5. Never verified on screen: Tandem checks S1-S4. The proposed cuts in `cut-list.md` are undecided and do not block; the work is ordered so the Must list comes first and those items come last.
 
 **Milestones are checklists in priority order, not dates.** A milestone is met when every line is true, verified by qa-tester after tech-lead review.
 
@@ -120,7 +138,37 @@ Rules as Batch 3: one sitting per owner area, no shared files, no in-batch depen
 
 *Tandem decision:* closed by the owner on 2026-11-16 (Tandem stays as world 3; no fallback).
 
-**Batch 6 (planned 2026-11-16, starts after batch 5 at aa4c1ed; runs back to back, no dates)**
+**Batch 7 (planned 2026-11-19, after batch 6 at 373236e; runs back to back, no dates)**
+
+Rulings (producer, 2026-11-19): **settings screen: YES, signed off as the first Should** (three toggles plus BACK from the title; the saved flags already exist, reduced motion is an accessibility item, it is a one-sitting M; cut first if a wave slips, and the itch page claims it only once it ships). **M3-15 volume sliders: Could** (cut); mute is Should and is the SOUND toggle. **Restart card: not new scope**, a clarity fix to Must levels w3-02/w3-03, render-only (no sim, contract or format change); it is Must. **SFX call:** audio-designer owns and exposes the one call in `src/audio` (takes a step's event list; Tandem once per body, `won` plays only the sting); [scene] owns the single call site next to `music.update`. **`BootScene.ts`: tech-lead owns it explicitly** (USER-7 still wants the `CLAUDE.md` roster row added by the owner or orchestrator). Level count stays 14; no `tuning.json`, contract or `LEVELS` change anywhere in this batch.
+
+Rules as batch 6: one sitting per owner area and gameplay lane, no shared files inside a wave, touch only the files listed, parallel agents run only `npx vitest run <single path>`; the orchestrator runs `npm run check` and commits between waves; QA alone on 4173. Ports: art 5185, ui 5186, level 5187, audio 5188, scene 5190, playtester 5191. Nothing is Done until tech-lead reviewed it and qa-tester verified it.
+
+*Wave 1 (start at once; independent)*
+1. **[scene] gameplay-engineer sitting 1** — **B7-01** restart card per `features/restart-prompt.md`: pure `sealedPockets(level)` and 60-step trap timer, the `[R] RESTART` card (key cap from `DEFAULT_BINDINGS`, Sticky Keys tip placement), cleared by restart, respawn, leaving. Files: new files in `src/entities/` (`sealedPockets.ts`, `restartCard.ts`, tests) and the one mount line in `GameScene.ts` (stay at or under 400 lines); plus `restartCard: boolean` on the QA hook under `QA_HOOK`. Accept: `restart-prompt.md` 1-8 (unit where pure), `npx vitest run src/entities` green, no sim or contract change. Needs: none.
+2. **audio-designer** (5188) — **B7-02** the one SFX entry point `playStepEvents(events)` (name is theirs) exported from `src/audio/index.ts`: once per event in order, `won` step plays only the sting, Tandem once per body, nothing for a frame with no steps. First action: a requests line to [scene] giving the exact import and call. Files: `src/audio/**`. Accept: `adaptive-audio.md` 13 (fake engine) green, `npx vitest run src/audio` green. Needs: none.
+3. **tech-lead** — **B7-03** BUG-6: `BootScene.ts` retries failed preloads once (Phaser loader `loaderror`) and, if the retry also fails, shows `COULD NOT LOAD THE GAME. RELOAD THE PAGE TO TRY AGAIN.` at 1x instead of a black canvas; never an uncaught exception. Files: `src/scenes/BootScene.ts` (pure retry/message helper plus tests in the same folder or `tests/arch`). Accept: unit test of the retry policy (fail once then succeed; fail twice then message); `npx vitest run tests/arch` green; the on-screen look is QA's. **B7-04** add `SCENE_KEYS.settings` to `src/scenes/keys.ts` (needed by wave 2 ui). **B7-05** `CREDITS.md` team names: write once the owner gives the names (owner question 2); until then audit that every third-party item is listed. Files: `src/scenes/BootScene.ts`, `src/scenes/keys.ts`, `CREDITS.md`, `docs/tech/**`. Needs: none (B7-05 names: owner).
+4. **ui-engineer** (5186) — **B7-06** BUG-5: `titleJump({ type: 'levels' })` returns `{ focusId: model.playTargetId }`, passed through `TitleScene`; unit case added. Files: `src/ui/menuNav.ts`, `src/scenes/TitleScene.ts`, their tests. Accept: new unit case green, `npx vitest run src/ui src/save` green; QA removes the `test.fail` marker in `tests/e2e/menus.spec.ts` in wave 3. Needs: none.
+5. **level-designer** (5187) — **B7-07** hint headers only, no `version` bump, no re-record, no `LEVELS` change: w1-03 `hint: shiftUp 2 6`; w2-04 `hint: shiftUp 8 4` and `hint: jump 8 6`; w3-03 `hint: jump 12 3`. Update each file's "No hint glyph" comment and the README sections; README status table: w2-03 v2, w2-04 v1, w3-02..w3-05 v1 APPROVED (design-lead 2026-11-17). Files: `levels/**`. Accept: `npx vitest run tests/levels` green (hint placement tests), replay and +-3 unchanged, by-hand check that no glyph box passes under the HUD at any camera position (w2-04 scrolls 2 tiles, w3-03 scrolls), `onboarding-hints.md` 10. Needs: none.
+6. **art-director** (5185) — **B7-08** S4: ridge parallax (far 0.15, near 0.3) moves into `RIDGES` in `src/fx/pixel` as a per-layer `parallax`; `WHY_FELL_MS` stays as is (the matching `CUE_FRAMES` pin is ui's, wave 2). Rerun `npm run art:build`, commit sheets. Files: `src/fx/**`, `assets/art/**`, `docs/art/**`, `src/data/palette.json`. Accept: drift test green, `npx vitest run src/fx` green, no API rename. Page art is wave 4 (needs the final build). Needs: none.
+7. **qa-tester** — **B7-09** test-plan additions for `restart-prompt.md` 1-8, `adaptive-audio.md` 13-15 (by ear via the audio debug state, headless cannot hear), `onboarding-hints.md` 10-11, `settings.md` 1-8, `pause.md` 13 and the dropped-key-on-overlay-frame edge case. Files: `docs/qa/test-plan.md` only (no runs). Accept: each check listed once with how it is verified. Needs: none.
+
+*Wave 2 (after wave 1 landed and `npm run check` is green)*
+1. **[scene] gameplay-engineer sitting 2** (5190) — **B7-10** one call to audio's step-events entry per rendered frame next to `music.update` (events of every step run that frame, none while paused); import the parallax from `RIDGES` (S4); confirm the scene reads the saved reduced-motion, reduced-effects and mute flags at level start and wire it if not. Files: `GameScene.ts`, `src/entities/**`. Accept: `adaptive-audio.md` 14 (grep finds the caller), unit test of the per-frame events helper, `npx vitest run src/entities` green. Needs: B7-02, B7-08, and B7-01 landed (same files).
+2. **ui-engineer** (5186) — **B7-11** settings per `features/settings.md`: SOUND, REDUCED MOTION, REDUCED EFFECTS, BACK; title item after CONTROLS; saved at once; `settings.muted` through the audio engine's existing `setMuted`; reduced motion with no saved value reads the OS flag. Then, Should and cut first: pause item, menu move/select sounds, `CUE_FRAMES` = `WHY_FELL_MS` pin test. Files: `src/ui/**`, `src/save/**`, `src/scenes/SettingsScene.ts`, `TitleScene.ts`, `menuScenes.ts`. Accept: `settings.md` 5, 6 as unit tests, keyboard-only nav model tests, integer positions at 480x270, `npx vitest run src/ui src/save` green. Needs: B7-04, B7-06 landed (same files).
+3. **tech-lead** — **B7-12** review of wave 1 (B7-01..B7-08; security read not needed) into `docs/tech/reviews/2026-11-batch7-review.md`. Accept: Approve or file:line per item. Needs: wave 1.
+
+*Wave 3 (verify)*
+1. Orchestrator: `npm run check`, `npm run test:e2e`, `npm run package`. 2. **tech-lead** **B7-13** review of wave 2, appended. 3. **qa-tester** (4173 alone, two full runs max) **B7-14** verdicts for B7-01..B7-12: restart card (QA hook field), SFX through the audio debug state, settings flips with keys only, BUG-5 (remove the `test.fail`), pause.md 13, hint placement; files `docs/qa/**`, `tests/e2e/**`.
+
+*Wave 4 (final build exists)*
+1. **playtester** (5191) **B7-15** cold play of w3-02..w3-05 (first play of w3-04/05), w1-03, w2-04, w3-03 hints, clunk vs shift-down by ear, per request 2026-11-19 (no README; Must before submit). 2. **art-director** **B7-16** itch page art per `itch-page.md` section 5 from the packaged build (cover 630x500, 5 screenshots, 1 GIF, optional greyscale); files `assets/art/page/**`, `docs/art/**`. 3. **design-lead** **B7-17** triage of the playtest and the re-check of `itch-page.md` section 7; any fix is a request line, then one small fix batch (reserved, not planned).
+
+*Wave 5 (release; mostly owner)* USER-8 gitleaks, **tech-lead** SEC-3 scan, final check and package, USER-3 draft page and zip upload, USER-9 hand checks, USER-6 repo public, push, USER-3 publish, USER-4 submit.
+
+Backend-engineer: no sitting this batch (leaderboard deploy needs USER-2 and the B-1 decision).
+
+**Batch 6 (planned 2026-11-16, starts after batch 5 at aa4c1ed; runs back to back, no dates) — LANDED in 9f8ffb7..373236e; history**
 
 Rules for every sitting: one sitting per owner area (and per gameplay lane), no two sittings in a wave share a file; touch only the files listed. Parallel agents run only `npx vitest run <single path>`, never `npm run check`, `npm run build`, `npm run test:e2e`, `npm test` or coverage. Dev-server ports: art 5185, ui 5186, level-designer 5187, audio 5188, backend 5189, scene 5190, playtester 5191; QA alone uses 4173 at the end. After each wave the orchestrator runs `npm run check`, fixes only wiring (for example a missing `LEVELS` row, see below) and commits before the next wave. `LEVELS` rows (`backend/functions/submit-run/rules.ts`): backend-engineer adds w3-01 in wave 1; for every level made later the level-designer files the row in `requests.md` and the orchestrator adds it before verification (the drift test fails otherwise); there is no second backend sitting. Nothing is Done until tech-lead has reviewed it and qa-tester has verified it.
 
@@ -185,7 +233,7 @@ One sitting per owner area and lane, no shared files, no in-batch dependencies. 
 
 ## Doing
 
-Nothing. Batch 5 landed in aa4c1ed; Batch 6 (above) is next.
+Nothing (2026-11-19). Batch 6 landed (9f8ffb7, 09cb31b, 373236e; 14 Must levels approved by design-lead 2026-11-17). Batch 7 wave 1 is next.
 
 ## Moved on 2026-11-16 (files checked in 2eb0527 per the orchestrator; all Review until tech-lead's batch 4A review and QA run 5/6)
 
@@ -443,7 +491,7 @@ Done when: Tandem world 3 (5 levels), leaderboards live, adaptive audio, pixel e
 - [M3] M3-12 · Deploy migration and function to the user's Supabase project — owner: backend-engineer — est: 2 h — accept: submit and read round trip; direct client insert denied — needs: M3-11, USER-2
 - [M3] M3-13 · Wire `src/net` to the real endpoints — owner: backend-engineer — est: 2 h — accept: offline, slow and error responses never block play (tests) — needs: M3-11, M2-18
 - [M3] M3-14 · Results leaderboard panel, name entry, quiet offline state, best times in level select (480×270) — owner: ui-engineer — est: 5 h — accept: works with the network off; name rules shown — needs: M3-13, M3-02, M2-12
-- [M3] M3-15 · Settings: reduced effects, music and SFX volume, mute, reduced motion — owner: ui-engineer — est: 3 h — accept: all persist; mute works before the first gesture — needs: M2-13, M3-02
+- [M3] M3-15 · (2026-11-19: now B7-11, Should; volume sliders are Could and cut; mute is the SOUND toggle) Settings: reduced effects, music and SFX volume, mute, reduced motion — owner: ui-engineer — est: 3 h — accept: all persist; mute works before the first gesture — needs: M2-13, M3-02
 
 ### Art and audio
 - [M3] M3-16 · Adaptive music engine: pitch and filter glide with band (a prototype can start once M3-02 is in) — owner: audio-designer — est: 5 h — accept: low and muffled at white, bright at red; no throw before a gesture — needs: M3-02, M2-17
