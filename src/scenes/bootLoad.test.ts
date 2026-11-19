@@ -5,6 +5,7 @@ import {
   captureLoaderErrors,
   isLoaderFailureLog,
   nextBootStep,
+  runBootSideJob,
 } from './bootLoad';
 
 /** Runs the boot policy over a scripted list of "missing after attempt n" results. */
@@ -80,5 +81,50 @@ describe('Phaser loader console errors', () => {
     sink.error = later;
     capture.release();
     expect(sink.error).toBe(later);
+  });
+});
+
+describe('boot side jobs (B7-13: saved audio settings at boot)', () => {
+  it('runs the job and reports success without logging', () => {
+    const job = vi.fn();
+    const log = { warn: vi.fn() };
+    expect(runBootSideJob('audio settings', job, log)).toBe(true);
+    expect(job).toHaveBeenCalledTimes(1);
+    expect(log.warn).not.toHaveBeenCalled();
+  });
+
+  it('a job that throws cannot stop the boot: one warning, no rethrow, and the code after it still runs', () => {
+    const log = { warn: vi.fn() };
+    const failure = new Error('engine not ready');
+    let reachedAfterLoad = false;
+    const create = (): void => {
+      runBootSideJob(
+        'audio settings',
+        () => {
+          throw failure;
+        },
+        log,
+      );
+      reachedAfterLoad = true;
+    };
+    expect(create).not.toThrow();
+    expect(reachedAfterLoad).toBe(true);
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    expect(log.warn.mock.calls[0]).toContain('audio settings');
+    expect(log.warn.mock.calls[0]).toContain(failure);
+  });
+
+  it('also survives a non-Error throw', () => {
+    const log = { warn: vi.fn() };
+    expect(
+      runBootSideJob(
+        'x',
+        () => {
+          throw 'plain string';
+        },
+        log,
+      ),
+    ).toBe(false);
+    expect(log.warn).toHaveBeenCalledTimes(1);
   });
 });

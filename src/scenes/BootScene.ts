@@ -7,6 +7,7 @@ import {
   LOADER_REQUEST_RETRIES,
   captureLoaderErrors,
   nextBootStep,
+  runBootSideJob,
   type LoaderErrorCapture,
 } from './bootLoad';
 import { applyAudioSettings } from '../ui/audioSettings';
@@ -88,6 +89,8 @@ export class BootScene extends Phaser.Scene {
     this.attempt = 0;
     this.retried = [];
     this.capture = captureLoaderErrors(console);
+    // Boot is stopped (SHUTDOWN) when it hands off, never destroyed; release on both.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.releaseCapture());
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.releaseCapture());
     this.load.maxRetries = LOADER_REQUEST_RETRIES;
     for (const asset of BOOT_ASSETS) asset.queue(this.load);
@@ -97,7 +100,8 @@ export class BootScene extends Phaser.Scene {
     // Fail at boot, not at the first level complete, if main.ts did not share the store.
     const store = getSaveStore(this.registry);
     // Saved mute must reach the engine before any gesture (settings.md check 1, after a reload).
-    applyAudioSettings(store.getSettings());
+    // Guarded: it must never stop Boot before the load check and the BUG-6 message (B7-13).
+    runBootSideJob('applying the saved audio settings', () => applyAudioSettings(store.getSettings()));
     this.afterLoad();
   }
 

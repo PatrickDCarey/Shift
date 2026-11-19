@@ -1,8 +1,7 @@
 /**
  * Bridges the saved audio settings to the audio engine. Pure apart from the
- * engine call. Not wired into any scene yet: the scene lane calls
- * `applyAudioSettings(store.getSettings())` once on boot and
- * `updateAudioSetting(store, patch)` from the settings screen or a mute hotkey.
+ * engine call. Boot and GameScene call `applyAudioSettings(store.getSettings())`;
+ * the settings screen applies a mute flip through `applySettingsAction`.
  *
  * Owner: ui-engineer.
  */

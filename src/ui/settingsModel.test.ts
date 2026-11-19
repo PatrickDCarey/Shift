@@ -120,6 +120,13 @@ describe('applySettingsAction', () => {
   });
 });
 
+describe('settings save defaults', () => {
+  it('uses the specced default volumes (settings.md: music 0.6, SFX 0.8)', () => {
+    expect(DEFAULT_SETTINGS.musicVolume).toBe(0.6);
+    expect(DEFAULT_SETTINGS.sfxVolume).toBe(0.8);
+  });
+});
+
 describe('settings layout (check 7: shape plus word)', () => {
   it('is on integer pixels inside the margin, with a glyph box and word per row', () => {
     const layout = settingsLayout(model({ muted: true }));
@@ -136,7 +143,13 @@ describe('settings layout (check 7: shape plus word)', () => {
   it('fills the glyph when ON and leaves it hollow when OFF', () => {
     const on = settingsDrawPlan(model());
     const off = settingsDrawPlan(model({ muted: true }));
-    expect(on.rects.length).toBeGreaterThan(off.rects.length);
+    const glyph = { x: 320, y: 62, w: 9, h: 9 };
+    const inGlyph = (plan: typeof on): typeof on.rects => plan.rects.filter((r) => r.x >= glyph.x && r.x < glyph.x + glyph.w && r.y >= glyph.y && r.y < glyph.y + glyph.h);
+    const centre = (plan: typeof on): boolean => inGlyph(plan).some((r) => r.x <= 324 && r.x + r.w > 324 && r.y <= 66 && r.y + r.h > 66);
+    expect(centre(on)).toBe(true);
+    expect(centre(off)).toBe(false);
+    expect(inGlyph(off).length).toBe(4); // the frame only
+    expect(inGlyph(on).length).toBe(5); // frame plus fill
     expect(on.texts.find((t) => t.id === 'value:sound')?.text).toBe('ON');
   });
 });

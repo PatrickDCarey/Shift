@@ -10,6 +10,7 @@ import {
   pauseOutcome,
   resultsLaunchData,
   resultsOutcome,
+  settingsReturn,
 } from './menuFlow';
 import { createMenuInput, stepMenuInput } from './menuInput';
 import type { Direction, MenuIntent } from './menuInput';
@@ -183,5 +184,15 @@ describe('layouts', () => {
       for (const r of plan.rects) expect([r.x, r.y, r.w, r.h].every(Number.isInteger)).toBe(true);
       for (const t of plan.texts) expect([t.x, t.y].every(Number.isInteger)).toBe(true);
     }
+  });
+});
+
+describe('settingsReturn', () => {
+  it('from the title goes back to the title with SETTINGS focused', () => {
+    expect(settingsReturn({ from: 'title' })).toEqual({ target: 'title', data: { focusId: 'settings' } });
+  });
+
+  it('from pause goes back to pause, rebuilt from its data, with SETTINGS focused', () => {
+    expect(settingsReturn({ from: 'pause', pause })).toEqual({ target: 'pause', data: { ...pause, focusId: 'settings' } });
   });
 });

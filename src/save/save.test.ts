@@ -53,6 +53,17 @@ describe('parseSave', () => {
     expect(parseSave(serializeSave(save))).toEqual(save);
   });
 
+  it('reads a save written before reducedMotionChosen existed as not chosen', () => {
+    const old = JSON.stringify({
+      version: 1,
+      settings: { musicVolume: 0.5, sfxVolume: 0.5, reducedEffects: false, reducedMotion: true, muted: false, stickyKeysTipShown: true },
+      progress: { completedLevels: [], bestSteps: {} },
+    });
+    const save = parseSave(old);
+    expect(save.settings.reducedMotionChosen).toBe(false);
+    expect(save.settings.reducedMotion).toBe(true);
+  });
+
   it('validates field by field and keeps the good fields', () => {
     const text = JSON.stringify({
       version: 1,

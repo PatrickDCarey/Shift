@@ -6,7 +6,7 @@
  * Owner: ui-engineer.
  */
 
-/** Bump when the stored shape changes, and add a step to `MIGRATIONS`. */
+/** Bump when the stored shape changes, and add a step to `MIGRATIONS` (policy: docs/tech/architecture.md section 9). Additive fields do not need a bump: missing ones read as their default. */
 export const SAVE_VERSION = 1;
 
 export interface Settings {
@@ -40,7 +40,7 @@ export interface SaveData {
 }
 
 export const DEFAULT_SETTINGS: Settings = Object.freeze({
-  musicVolume: 0.7,
+  musicVolume: 0.6,
   sfxVolume: 0.8,
   reducedEffects: false,
   reducedMotion: false,

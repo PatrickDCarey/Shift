@@ -70,8 +70,9 @@ export interface LoaderErrorCapture {
 /**
  * Holds Phaser's loader errors back while Boot loads, so a failure the retry
  * then fixes does not end up as a console error; every other error passes
- * straight through. Boot logs the held calls as a warning if the retry
- * recovers, or as errors if it does not.
+ * straight through. If the retry recovers, Boot drops the held calls and logs
+ * one summary `console.warn` naming the keys that needed it; if it does not,
+ * Boot logs the held calls as errors, then its own error line.
  */
 export function captureLoaderErrors(sink: ErrorSink): LoaderErrorCapture {
   const original = sink.error;
@@ -87,4 +88,26 @@ export function captureLoaderErrors(sink: ErrorSink): LoaderErrorCapture {
       if (sink.error === filter) sink.error = original;
     },
   };
+}
+
+/** The part of `console` a side job's failure goes to; a fake in tests. */
+export interface WarnSink {
+  warn: (...args: unknown[]) => void;
+}
+
+/**
+ * Runs a boot side job (B7-13: pushing the saved audio settings into the
+ * engine) so it can never stop the boot. Boot must always reach its load check
+ * and either start a scene or show `BOOT_FAILURE_MESSAGE` (BUG-6); a side job
+ * that throws is logged as one `console.warn` and skipped. Returns whether the
+ * job ran cleanly.
+ */
+export function runBootSideJob(label: string, job: () => void, log: WarnSink = console): boolean {
+  try {
+    job();
+    return true;
+  } catch (error) {
+    log.warn('Boot: %s failed; continuing without it', label, error);
+    return false;
+  }
 }

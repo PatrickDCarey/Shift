@@ -24,8 +24,6 @@ import {
  */
 
 const PANEL_WIDTH = 340;
-
-
 const DEPTH = 1000;
 const FADE_MS = 250;
 const CAP_SIZE = 14;

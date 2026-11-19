@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createSafeStorage, createSaveStore, levelOrder, recordRun } from '../save';
+import { DEFAULT_SETTINGS, createSafeStorage, createSaveStore, levelOrder, recordRun } from '../save';
 import type { KeyValueStorage, LevelSource, RunRecordResult } from '../save';
 import { applyAudioSettings, toggleMuted, updateAudioSetting } from './audioSettings';
 import { DEFAULT_BINDINGS, withBinding } from './bindings';
@@ -331,7 +331,7 @@ describe('audio settings helper', () => {
     const store = memoryStore();
     updateAudioSetting(store, { sfxVolume: 9 }, engine); // out of range: the store clamps it
     expect(store.getSettings().sfxVolume).toBe(1);
-    expect(engine.applySettings).toHaveBeenCalledWith({ musicVolume: 0.7, sfxVolume: 1, muted: false });
+    expect(engine.applySettings).toHaveBeenCalledWith({ musicVolume: DEFAULT_SETTINGS.musicVolume, sfxVolume: 1, muted: false });
   });
 
   it('toggleMuted flips, persists and applies', () => {

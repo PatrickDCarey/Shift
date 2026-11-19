@@ -15,7 +15,7 @@ export const SCENE_KEYS = {
   pause: 'Pause',
   results: 'Results',
   controls: 'Controls',
-  /** B7-04: reserved for ui-engineer's settings screen (B7-11, `SettingsScene.ts`); not registered yet. */
+  /** B7-04: ui-engineer's settings screen (`SettingsScene.ts`, B7-11), registered in `MENU_SCENES`. */
   settings: 'Settings',
 } as const;
 
