@@ -83,7 +83,7 @@ Node ≥ 22.12 (`.nvmrc`). Run from the project root.
 | `npm run dev` | Dev server with hot reload at http://localhost:5173. |
 | `npm run build` | Production build to `dist/` (relative paths; zip the folder's contents for itch.io). |
 | `npm run preview` | Serve `dist/` at http://localhost:4173. |
-| `npm run package` | Production build, checked and zipped to `release/redshift-<version>.zip` plus `.sha256` (the itch.io upload). Builds in a temp folder, never `dist/`; refuses the QA hook, unknown `VITE_` variables, secret keys, source maps and `.env` files. Options: `-- --out <file.zip>`, `-- --build-dir <empty dir>`. |
+| `npm run package` | Production build, checked and zipped to `release/redshift-<version>.zip` plus `.sha256` (the itch.io upload). The zip includes a generated `LICENSES.txt` (game, Phaser and eventemitter3 MIT notices; packaging fails without it). Builds in a temp folder, never `dist/`; refuses the QA hook, unknown `VITE_` variables, secret keys, source maps and `.env` files. Options: `-- --out <file.zip>`, `-- --build-dir <empty dir>`. |
 | `npm run typecheck` | `tsc` on browser code (`tsconfig.json`) and configs/tests (`tsconfig.node.json`). |
 | `npm test` | All unit, architecture, level and `scripts/` tests once (Vitest). |
 | `npm run test:watch` | Vitest in watch mode. |
