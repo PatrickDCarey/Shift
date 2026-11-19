@@ -68,7 +68,7 @@ One loop, always playing during a level once audio is unlocked. Targets per band
 
 ## Settings (M3-15)
 
-Music volume, SFX volume and mute (`settings.muted`, requested by audio-designer 2026-11-04). Defaults: music 0.6, SFX 0.8, not muted. Mute silences both buses and works before the first gesture. Reduced effects and reduced motion do **not** change audio.
+_Amended 2026-11-19: the screen is specced in `settings.md` (SOUND on/off only; volume sliders are Could)._ Music volume, SFX volume and mute (`settings.muted`, requested by audio-designer 2026-11-04). Defaults: music 0.6, SFX 0.8, not muted. Mute silences both buses and works before the first gesture. Reduced effects and reduced motion do **not** change audio.
 
 ## Edge cases
 
@@ -78,6 +78,15 @@ Music volume, SFX volume and mute (`settings.muted`, requested by audio-designer
 - **Tab hidden:** the game pauses on blur (`pause.md`); music ducks as in pause.
 - **Rapid presses:** each press that produces a `shift` event plays; two presses on consecutive steps both sound.
 - **Death on the same step as a clunk:** both play (clunk first in event order).
+
+## Wiring into the game scene (2026-11-19)
+
+Found 2026-11-18: `src/scenes/GameScene.ts` feeds `music` but never calls `sfx`, so no game sound plays, the clunk included. Ruling (`decisions.md` 2026-11-19): **wiring the in-game SFX is Must**, before the next playtest.
+
+- **Events, Must:** `shift` (up and down), `jump`, `land`, `fallThrough`, `airDrag` (the clunk), `died` and `restart` (reset), `won` (level complete). That is eight of the ten sounds; the existing mapping `sfxForEvent` in `src/audio` already covers them.
+- **Once per event:** every sim step that runs in a rendered frame passes its events, in order, to the mapping exactly once. Two steps in one frame play both steps' events; a frame with no steps plays nothing. Nothing plays while paused (no steps run).
+- **Shape:** audio-designer exposes one call that takes a step's event list and applies the rules above (the `won` step plays only the sting, Tandem events once per body; unison and the twin voice are Should). [scene] calls it from the same place it feeds `music.update`, and adds nothing else.
+- **Should, ui-engineer:** UI move and UI select (sounds 8 and 9) on menu focus moves and choices. Menus already show focus by shape, so these carry no information.
 
 ## Tuning
 
@@ -97,9 +106,12 @@ No `tuning.json` keys (not gameplay). Audio constants (glide 150 ms, drop snap 3
 10. Mute on before any gesture: no error, no sound after the first gesture until unmuted; volumes and mute survive a reload.
 11. No audio call ever changes sim state (arch test: `src/audio` imports only types from `src/core`).
 12. Voice cap: 30 SFX requested in one frame never exceed 24 voices and never stop the music.
+13. Wiring (unit, fake engine, 2026-11-19): a frame that ran two steps with `[jump]` and `[airDrag]` calls jump once and the clunk once, in that order; a frame with no steps calls nothing; while paused nothing is called; `[home 0, home 1, won]` plays only the sting.
+14. Wiring (code): `src/scenes/GameScene.ts` (or a helper in `src/entities/`) calls the audio event call each frame; a grep finds a caller of the SFX path outside `src/audio`.
+15. Wiring (browser, qa, by ear, after a first key press): w1-02, E and Q play the shift up and shift down clicks; w2-01, Space plays the jump blip and the landing the thump; w1-01, letting go on a bridge plays the fall-through, then the reset on death; R plays the reset; w2-02, the red takeoff's drop plays the clunk on the frame the wipe shows, and it is clearly not the shift-down click; a win plays the sting. `?replay=1` plays the same sounds.
 
 ## Priority
 
-- **Must:** the ten SFX, the event mapping, clunk ≠ shift down, mute and volumes, no sound before a gesture, Tandem events once per body.
-- **Should:** adaptive music per band (M3-16), the twin voice, unison merging, the `home` chime, pause duck, `shiftBuffered` soft click, wall/ceiling thump.
-- **Could:** grace crackle, blocked-press tick, menu music.
+- **Must:** the ten SFX exist; the eight in-game sounds are **wired into the game scene** (2026-11-19); the event mapping, clunk ≠ shift down, no sound before a gesture, Tandem events once per body.
+- **Should:** adaptive music per band (M3-16), the twin voice, unison merging, the `home` chime, pause duck, `shiftBuffered` soft click, wall/ceiling thump; **UI move/select wired in menus**; **mute, through the settings screen** (`settings.md`; needs producer sign-off, because GDD §10's Must list has no settings screen).
+- **Could:** grace crackle, blocked-press tick, menu music; **music and SFX volume sliders** (changed 2026-11-19 from Must: the smallest honest settings screen is three toggles, and the browser's tab mute already covers a player who needs silence today).

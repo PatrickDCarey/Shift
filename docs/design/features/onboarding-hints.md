@@ -1,6 +1,6 @@
 # Feature: onboarding hint glyphs
 
-_Owner: design-lead. Milestone: **M2** (M2-01). GDD: §3, pillar 2. Builders: tech-lead (M2-03: hint headers in `level-format.md` and `LevelMeta`, done), gameplay-engineer [level] (M2-04: parse them, done), **gameplay-engineer [scene] (B6-31, Batch 6 wave 2: layout and drawing, both in `src/entities/`; the M2-36 ui renderer was never built and is folded into B6-31)**, level-designer (placement, done for w1-01, w1-02, w2-01, w3-01). Revised 2026-11-16 for the pixel build: nothing drew `level.meta.hints` in the 2026-11-16 playtest build, and the cap labels below now match what the 5×7 font has._
+_Owner: design-lead. Milestone: **M2** (M2-01). GDD: §3, pillar 2. Builders: tech-lead (M2-03: hint headers in `level-format.md` and `LevelMeta`, done), gameplay-engineer [level] (M2-04: parse them, done), **gameplay-engineer [scene] (B6-31, Batch 6 wave 2: layout and drawing, both in `src/entities/`; the M2-36 ui renderer was never built and is folded into B6-31)**, level-designer (placement, done for w1-01, w1-02, w2-01, w3-01). Revised 2026-11-16 for the pixel build: nothing drew `level.meta.hints` in the 2026-11-16 playtest build, and the cap labels below now match what the 5×7 font has. **Revised 2026-11-19** (batch 6 cold playtest, `decisions.md` 2026-11-19): three more placements, all with the existing four ids (no new glyph, no contract or parser change): `shiftUp` at the back wall of w1-03, a stacked `shiftUp` over `jump` on w2-04's green floor, and `jump` at w3-03's takeoff. Hints now reach past w2-01 where a level's idea cannot be guessed from the screen._
 
 ## Rule
 
@@ -11,9 +11,16 @@ Some levels show small **key-cap icons fixed in the level** that say "press this
 | Id | Shows | Placed in |
 |---|---|---|
 | `move` | top row `[←][→]`, bottom row `[A][D]` | **w1-01** above the spawn (Must); **w3-01** above the runner's spawn (Should) |
-| `shiftUp` | top row ▲ `[R⇧]`, bottom row `[E][X]` | **w1-02** above the first safe pad (Must); **w2-01** above the start pad (Should); **w3-01** above the runner lane's shift pad (Should) |
+| `shiftUp` | top row ▲ `[R⇧]`, bottom row `[E][X]` | **w1-02** above the first safe pad (Must); **w2-01** above the start pad (Should); **w3-01** above the runner lane's shift pad (Should); **w1-03** over the back wall, `shiftUp 2 6` (Must, 2026-11-19); **w2-04** over the green floor, `shiftUp 8 4`, stacked above its `jump` (Must, 2026-11-19) |
 | `shiftDown` | top row ▼ `[L⇧]`, bottom row `[Q][Z]` | **w1-02** above the second safe pad (Must) |
-| `jump` | top row `[SPACE]`, bottom row `[W][↑]` | **w2-01** above the start pad, before the gap (Must) |
+| `jump` | top row `[SPACE]`, bottom row `[W][↑]` | **w2-01** above the start pad, before the gap (Must); **w2-04** `jump 8 6`, directly under its `shiftUp` (Must, 2026-11-19); **w3-03** over the middle of the takeoff window, `jump 12 3`, runner lane (Must, 2026-11-19) |
+
+### The 2026-11-19 placements, and why
+
+- **w1-03 Runway, `shiftUp 2 6`** (box cols 1–3, rows 5–6, over the back wall; floor row 9). The playtester stood at the spawn with 2.5 tiles of runway and no clue that the room behind it was the run-up; it took about 5 tries. The glyph marks *where* to shift, which in this room is the lesson (start from the back), and it sits away from the spawn, so the cheap first fall from the spawn still happens. It follows w1-02's grammar: a glyph over the place you press.
+- **w2-04 Two Colors, `shiftUp 8 4` above `jump 8 6`** (one column, boxes cols 7–9, rows 3–4 and 5–6; floor row 9; ledge from col 13). The level is the only one whose lesson is color grace, and grace is taught nowhere else, so its idea could not be guessed from the screen (playtest: about 6 failed jumps, then the README). The two glyphs are **stacked at one x on purpose**: they read top to bottom as "shift up, then jump, here". Side by side they would read as two places, and a jump 2 tiles after the shift is about 18 steps late. Pressed as a deliberate two-key sequence (about 100–250 ms apart, 6–15 steps), the jump lands inside the window (steps 4–16 after the press). The glyph column sits over the recorded shift (x 8.11) and jump (x 9.41).
+- **w3-03 Gear Split, `jump 12 3`** (box x 11.4–13.6 tiles, y 2.5–4 tiles, over the middle of the 18-step takeoff window x 11.10–14.50; block at cols 16–17, rows 1–3; runner floor row 6). The playtester did not see the hanging block as the tool and tried shift-downs in the air. A jump glyph at the takeoff, 3 tiles before the block and at its height, says "jump here"; the block then does the rest in front of the player, and the runner's HUD strip drops to gear 1. Runner lane only (placement rule).
+- **Not hinted:** w3-04 and w3-05 open with the same block section, which w3-03 now teaches; hints stop after the teach level, as they do after w2-01. Pre-approved fallback: if the next cold playtest (after a hinted w3-03) fails w3-04's opening more than 3 times, add the same `jump 12 3` to w3-04 and w3-05 (same block and Coast columns). w2-03 gets no hint (`decisions.md` 2026-11-19).
 
 Why the set grew beyond "arrow in w1-01, Shift/E/X in w1-02":
 - **`shiftDown`:** w1-02 asks you to shift **back down** on its second pad, and nothing else on screen says which keys do that. The HUD key-cap hints are only Should.
@@ -51,7 +58,9 @@ Why the set grew beyond "arrow in w1-01, Shift/E/X in w1-02":
 - The anchor row is **at least 3 rows above the floor row under it**. The glyph's bottom edge is then 2 tiles above the floor, clear of the player's 1.5-tile head.
 - At most **3 hints per level**.
 - In Tandem levels, hints go in the **runner's lane only**.
-- Hints are a pure overlay: a level must replay identically with and without its hint headers.
+- Hints are a pure overlay: a level must replay identically with and without its hint headers. **Adding or moving a hint header does not bump `version`** and needs no re-recording or `LEVELS` change, because the run is identical (2026-11-19).
+- **Stacked pair (2026-11-19):** two glyphs may share a column when they mean "press these in this order, here" (w2-04 only today): the upper one is pressed first, and the boxes are at least 8 px apart vertically.
+- Every box stays out of the HUD area at every camera position (level plan v3.5).
 
 ## Edge cases
 
@@ -78,9 +87,12 @@ None. The glyphs are UI and level data, not gameplay numbers.
 7. Screenshot on w1-02 at the white and red background tints: caps readable, and in greyscale too.
 8. Should check: w3-01 has `move` and `shiftUp` in the runner lane only, and w2-01 has `shiftUp`.
 9. Browser (qa, B6-42/B6-44): on a fresh load of w1-01, w1-02, w2-01 and w3-01 every hint in the level file is visible on the first frame, still there after a death and after R, and drawn behind the player.
+10. Level review (qa, 2026-11-19 placements, from the parsed level): w1-03 has exactly `shiftUp 2 6`; w2-04 has exactly `shiftUp 8 4` and `jump 8 6`; w3-03 has exactly `jump 12 3`. Each anchor is empty, each box covers only empty cells, and each anchor is at least 3 rows above the floor under it. `npx vitest run tests/levels` passes (replay identical with and without hints, HUD area at the starting camera), and the level's `version` is unchanged.
+11. Browser (qa): on a fresh load of w1-03, w2-04 and w3-03 the new glyphs are visible on the first frame. In w2-04 the `shiftUp` box is directly above the `jump` box in one column. In w3-03 the `jump` box is in the runner's lane, left of the hanging block. Scrolling to the far right of w2-04 and w3-03, no glyph passes under the HUD panel.
+12. Playtest (playtester, cold, no README): w1-03 solved within 3 falls; w2-04's shift-then-jump lands within 5 failed jumps; in w3-03 the player jumps near the glyph and can say the block took the runner's gear. A miss is a finding for design-lead, not a pass/fail for engineering.
 
 ## Priority
 
-- **Must:** the four glyph ids; `move` in w1-01; `shiftUp` and `shiftDown` in w1-02; `jump` in w2-01; placement rules; generated caps.
+- **Must:** the four glyph ids; `move` in w1-01; `shiftUp` and `shiftDown` in w1-02; `jump` in w2-01; placement rules; generated caps; the 2026-11-19 placements (`shiftUp` in w1-03; `shiftUp` over `jump` in w2-04; `jump` in w3-03).
 - **Should:** `shiftUp` in w2-01; `move` and `shiftUp` in w3-01.
 - **Could:** dimming after use, the 1 px bob.

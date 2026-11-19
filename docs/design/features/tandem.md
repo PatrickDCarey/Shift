@@ -102,7 +102,7 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 - Bodies start aligned in x unless the puzzle says otherwise.
 - The split must come from the level (a wall, an air stop, an exit, a gap), never from timing.
 - **Pins use a 1-tile safe kerb, never a colored wall** (see Edge cases). Coast pads in Tandem levels are flat, so both bodies land on the same step and a late air shift cannot split them (`levels-w3.md` "Common").
-- **Pockets:** if a body that falls through its own colored tile would land in the other lane and could finish there, close a pocket (≥ 3 rows) in the divider under that tile; the body waits there for R. Prefer an open drop out of the grid where the other lane allows it.
+- **Pockets:** if a body that falls through its own colored tile would land in the other lane and could finish there, close a pocket (≥ 3 rows) in the divider under that tile; the body waits there for R, and the scene shows a `[R] RESTART` card after 1 s (`restart-prompt.md`, 2026-11-19). Prefer an open drop out of the grid where the other lane allows it.
 - Every split a level needs must be undoable or final by design (say which in `levels/README.md`).
 - All existing rules (GDD §6, `level-plan.md`) apply to each lane.
 - **Lane colouring (2026-11-16):** the two start rows are at least 3 rows apart (no shared rooms in shipped levels; stacked lanes always meet this), and **every colored tile in a lane is strictly nearer its own body's start row than the other body's**. In practice: with the runner on the divider and the twin on its lane floor, the top rows of the twin's lane (those at or above the midpoint of the two start rows) carry no colored tiles; hanging blocks there are safe (`#`). Check it in `levels/README.md` per level.

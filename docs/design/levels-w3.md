@@ -10,10 +10,18 @@ Only mechanics the sim already has are used (`features/tandem.md` checks 1–18;
 - **Lane colouring (scene, `tandem.md`):** every colored tile must be strictly nearer its own body's start row than the other's. With spawns on rows 5 and 12 the midpoint is 8.5: **no colored tile in twin-lane rows 7–8**. Automated in `tests/levels/levelRules.test.ts`.
 - **Holding one body still (ruled 2026-11-17): use a 1-tile safe kerb, never a colored wall.** After any wall stop a body is band 0 and restarts at walking pace on the next step, so it passes every colored wall, blue included (no-embed: it turns blue inside the wall). A safe kerb (one `#` on the lane's floor) holds a walking body for as long as you hold the direction, in any gear, and is cleared with a jump.
 - **Coast pads in Tandem are flat (ruled 2026-11-17).** With w2-02's pad 2 tiles lower the twin lands 7 steps after the runner, and a shift pressed late in the flight is buffered for only one body: an untaught second way to split. Flat, both land on the same step. The window is then 18 steps, the world-2 floor.
-- **Pockets:** where a body that falls through its own colored tile would land in the other lane and could finish there, the divider closes a pocket under that tile (at least 3 rows tall, so no jump climbs back out). A body in a pocket waits for R. Prefer an open drop out of the grid when the other lane is a hole or a non-matching color below it.
+- **Pockets:** where a body that falls through its own colored tile would land in the other lane and could finish there, the divider closes a pocket under that tile (at least 3 rows tall, so no jump climbs back out). A body in a pocket waits for R; since 2026-11-19 the scene shows a `[R] RESTART` card 1 s after a body is stuck there (`features/restart-prompt.md`), so a pocket must be a region its helper finds as sealed (no spawn, no exit, not reaching the grid's top or bottom row). Prefer an open drop out of the grid when the other lane is a hole or a non-matching color below it.
 - **README per level:** fair line with windows (≥ 18 steps or a walking-pace position choice with ≥ 1 tile of spots), removal test, whether each split is undone (clamp) or final (park), spread (≤ 26 tiles between non-home bodies on the intended line), `Fastest known`, and a request line to backend for its `LEVELS` row.
 - **Removal tests must include the park line:** when one body is home the other is played alone, so for each level show that "get one body home first, then solve the other lane alone" cannot skip the new idea.
-- **No hints** in w3-02..w3-05.
+- **Hints (amended 2026-11-19):** w3-03 gets one `jump` glyph at its takeoff, `jump 12 3` in the runner's lane (`features/onboarding-hints.md`); w3-02, w3-04 and w3-05 have none. Pre-approved: the same `jump 12 3` in w3-04 and w3-05 if the next cold playtest fails w3-04's opening more than 3 times.
+
+### Cold-play checks before submit (2026-11-19)
+
+No player has finished w3-04 or w3-05 cold (the batch 6 playtest stopped at w3-04's first half). A cold playtest of w3-02..w3-05 with the 2026-11-19 changes in is **Must before submit**. No README reads; if stuck after 10 tries on one level, the playtester may read only that level's "**The idea:**" line and must say so. Findings for design-lead (not engineering pass/fail):
+- **w3-02:** if the runner lands in the pocket, does the `[R] RESTART` card appear and is R pressed within about 5 s of it? Did the kerb read as "holds my runner while the twin walks on"?
+- **w3-03:** with the jump glyph, does the first jump come near it, and can the player say the block took the runner's gear? Solved within 6 tries?
+- **w3-04:** is the opening recognised from w3-03 (≤ 3 failed openings, else add the glyph, above)? Do they find "press up until both are red" (the clamp), and how many tries?
+- **w3-05:** does the blue strip read as the reason for the down presses? Is the order readable? Time to solve (target 3–5 min) and whether they quit.
 
 Known numbers used below (GDD §5, `tandem.md`, `levels/README.md`):
 
