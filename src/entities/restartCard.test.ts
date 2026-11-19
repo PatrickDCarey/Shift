@@ -70,9 +70,10 @@ describe('bodyPocket', () => {
   const pockets = sealedPockets(gridLevel(['.@...E', '######', '#....#', '#....#', '######', '......']));
 
   it('uses the cell of the body centre, 0.75 tiles above the feet', () => {
-    expect(bodyPocket(pockets, { x: 2.5, y: 4 })).toBe(0); // centre row 3.25 -> row 3
-    expect(bodyPocket(pockets, { x: 2.5, y: 2.5 })).toBe(-1); // centre row 1.75 -> row 1, a wall
-    expect(bodyPocket(pockets, { x: 0.5, y: 4 })).toBe(-1);
+    expect(bodyPocket(pockets, { x: 2.5, y: 4 }, 1.5)).toBe(0); // centre row 3.25 -> row 3
+    expect(bodyPocket(pockets, { x: 2.5, y: 2.5 }, 1.5)).toBe(-1); // centre row 1.75 -> row 1, a wall
+    expect(bodyPocket(pockets, { x: 0.5, y: 4 }, 1.5)).toBe(-1);
+    expect(bodyPocket(pockets, { x: 2.5, y: 4 }, 6)).toBe(-1); // a body 6 tiles tall: centre 3 above the feet, row 1, a wall
   });
 });
 
@@ -91,9 +92,17 @@ describe('RestartCardModel', () => {
 
   it('counts steps, not rendered frames (a frame may run several steps)', () => {
     const m = new RestartCardModel(60);
-    expect(m.update(frame(30, [stuck()]))).toBeNull();
-    expect(m.update(frame(59, [stuck()]))).toBeNull();
-    expect(m.update(frame(61, [stuck()]))).not.toBeNull();
+    expect(m.update(frame(30, [stuck()]))).toBeNull(); // new stay: 1 step
+    expect(m.update(frame(88, [stuck()]))).toBeNull(); // 59 counted
+    expect(m.update(frame(89, [stuck()]))).not.toBeNull(); // 60
+  });
+
+  it('credits only one step to the frame a body enters the pocket on (5 steps per frame)', () => {
+    const m = new RestartCardModel(60);
+    expect(m.update(frame(100, [stuck({ pocket: -1 })]))).toBeNull();
+    expect(m.update(frame(105, [stuck()]))).toBeNull(); // entered on the last of 5 steps: 1 counted, not 5
+    expect(m.update(frame(163, [stuck()]))).toBeNull(); // 59
+    expect(m.update(frame(164, [stuck()]))).not.toBeNull(); // 60
   });
 
   it('does not count steps that do not run (pause, death freeze)', () => {

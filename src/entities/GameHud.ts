@@ -27,6 +27,9 @@ export const GEAR_METER_AREA = {
   height: GEAR_METER_LAYOUT.panelH,
 } as const;
 
+/** Pixels below the top edge used by the HUD (gear meter plus margin); HUD messages start here. */
+export const HUD_BOTTOM = GEAR_METER_AREA.y + GEAR_METER_AREA.height + MARGIN;
+
 export interface HudLayout {
   /** Level title: top centre, so it never sits under the gear meter. */
   readonly title: { readonly x: number; readonly y: number };
@@ -37,7 +40,7 @@ export interface HudLayout {
 export function hudLayout(screenWidth: number): HudLayout {
   return {
     title: { x: screenWidth / 2, y: MARGIN },
-    messages: { x: MARGIN, y: GEAR_METER_AREA.y + GEAR_METER_AREA.height + MARGIN },
+    messages: { x: MARGIN, y: HUD_BOTTOM },
   };
 }
 

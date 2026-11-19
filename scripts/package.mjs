@@ -7,7 +7,7 @@
 // The build goes to a throwaway temp directory, never to `dist/` (the e2e suite rebuilds
 // `dist/` with the QA hook), and the temp directory is deleted afterwards. The zip has
 // index.html at its root, relative asset paths and no source maps, `.env` files or
-// `window.__redshift` hook. The script refuses to package if any of that is not true.
+// `window.__redshift` hook, and a LICENSES.txt (game, Phaser, eventemitter3 MIT notices). The script refuses to package if any of that is not true.
 //
 // Only the Supabase URL and anon key may be baked into the client (CLAUDE.md, "Secrets").
 // Vite reads them from `.env` (or the environment) at build time, so for a build that has
@@ -19,6 +19,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { build, loadEnv } from 'vite';
 import { PackageError, checkEnv, scanFile } from './lib/checks.mjs';
+import { LICENSES_NAME, buildLicensesText, checkLicenses } from './lib/licenses.mjs';
 import { createZip, readZip } from './lib/zip.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -57,6 +58,17 @@ function listFiles(dir) {
   });
 }
 
+/** The generated LICENSES.txt: the game's LICENSE plus Phaser's and eventemitter3's (Vite strips their comments). */
+function licensesEntry() {
+  const read = (path) => readFileSync(join(ROOT, path), 'utf8');
+  const text = buildLicensesText({
+    game: read('LICENSE'),
+    phaser: read('node_modules/phaser/LICENSE.md'),
+    eventemitter3: read('node_modules/eventemitter3/LICENSE'),
+  });
+  return { name: LICENSES_NAME, data: Buffer.from(text, 'utf8') };
+}
+
 /** Inspect the finished build. Returns the entries to zip. */
 function collectAndCheck(buildDir) {
   const problems = [];
@@ -67,6 +79,8 @@ function collectAndCheck(buildDir) {
     entries.push({ name, data });
     problems.push(...scanFile(name, data));
   }
+  entries.push(licensesEntry());
+  problems.push(...checkLicenses(entries));
   if (!entries.some((e) => e.name === 'index.html')) problems.push('index.html is not at the build root');
   if (problems.length > 0) throw new PackageError(`package check failed:\n  - ${problems.join('\n  - ')}`);
   return entries;

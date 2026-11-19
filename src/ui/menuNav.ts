@@ -8,7 +8,7 @@
 import type { LevelSelectAction } from './levelSelectModel';
 import type { TitleAction, TitleItemId } from './titleModel';
 
-export type SceneTarget = 'game' | 'title' | 'levelSelect' | 'controls';
+export type SceneTarget = 'game' | 'title' | 'levelSelect' | 'controls' | 'settings';
 
 export interface SceneJump {
   readonly target: SceneTarget;
@@ -32,6 +32,8 @@ export function titleJump(action: TitleAction, playTargetId: string | null = nul
       return playTargetId === null ? { target: 'levelSelect' } : { target: 'levelSelect', data: { focusId: playTargetId } };
     case 'controls':
       return { target: 'controls', data: { from: 'title' } };
+    case 'settings':
+      return { target: 'settings', data: { from: 'title' } };
   }
 }
 
@@ -50,7 +52,7 @@ export function levelSelectJump(action: LevelSelectAction): SceneJump | null {
 /** Keep only values of the right shape from scene data (it crosses a scene boundary). */
 export function parseTitleData(data: unknown): TitleSceneData {
   const id = (data as { focusId?: unknown } | null | undefined)?.focusId;
-  return id === 'play' || id === 'levels' || id === 'controls' ? { focusId: id } : {};
+  return id === 'play' || id === 'levels' || id === 'controls' || id === 'settings' ? { focusId: id } : {};
 }
 
 export function parseLevelSelectData(data: unknown): LevelSelectSceneData {

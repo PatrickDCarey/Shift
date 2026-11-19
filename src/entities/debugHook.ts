@@ -6,6 +6,8 @@
 import type { SimState } from '../core/types';
 import type { RestartCardSnapshot } from './RestartCardController';
 import type { GearMeterModel } from '../ui';
+import { debugCues } from '../audio';
+import type { CueLogEntry } from '../audio';
 import { QA_HOOK } from './qaHook';
 
 /** Read-only snapshot for QA and debugging in the browser console. */
@@ -21,6 +23,8 @@ export interface DebugHook {
   readonly paused: boolean;
   /** The restart card while it shows: its screen rectangle in 480 x 270 px. Null while hidden. */
   readonly restartCard: RestartCardSnapshot | null;
+  /** Audio QA state: `cues()` is the last 64 SFX cues requested, oldest first. */
+  readonly audio: { readonly cues: () => CueLogEntry[] };
 }
 
 /** What the scene reads live each time QA touches the hook. */
@@ -57,6 +61,7 @@ export function installDebugHook(source: DebugSource): void {
     get restartCard() {
       return read().restartCard;
     },
+    audio: { cues: () => debugCues() },
   };
   if (QA_HOOK) Object.defineProperty(window, '__redshift', { value: hook, configurable: true });
 }

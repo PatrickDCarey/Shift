@@ -34,7 +34,10 @@ export type ControlsSceneData =
   | { readonly from: 'title' }
   | { readonly from: 'pause'; readonly pause: PauseSceneData };
 
-export type FlowTarget = 'game' | 'title' | 'levelSelect' | 'pause' | 'controls';
+/** Same opener shape as Controls: the title, or the pause menu with the data to rebuild it. */
+export type SettingsSceneData = ControlsSceneData;
+
+export type FlowTarget = 'game' | 'title' | 'levelSelect' | 'pause' | 'controls' | 'settings';
 
 /** A scene change: start `target` with `data`; `stopGame` first stops the (still running) game scene. */
 export interface FlowJump {
@@ -52,7 +55,7 @@ const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const isRate = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;
 
-const PAUSE_ITEMS: readonly string[] = ['resume', 'restart', 'controls', 'levels'];
+const PAUSE_ITEMS: readonly string[] = ['resume', 'restart', 'controls', 'settings', 'levels'];
 
 /** Typed builder for the game scene's `scene.launch('Pause', ...)`. */
 export function pauseLaunchData(levelId: string, title: string, step: number, stepHz: number): PauseSceneData {
@@ -67,7 +70,7 @@ export function parsePauseData(data: unknown): PauseSceneData | null {
   return { levelId, title, step, stepHz, ...focus };
 }
 
-/** RESUME and RESTART go back to the game scene; CONTROLS and LEVELS leave. */
+/** RESUME and RESTART go back to the game scene; CONTROLS, SETTINGS and LEVELS leave. */
 export function pauseOutcome(action: PauseItemId, data: PauseSceneData): PauseOutcome {
   switch (action) {
     case 'resume':
@@ -76,6 +79,8 @@ export function pauseOutcome(action: PauseItemId, data: PauseSceneData): PauseOu
       return { kind: 'report', result: { action: 'restart' } };
     case 'controls':
       return { kind: 'goto', jump: { target: 'controls', data: { from: 'pause', pause: data } } };
+    case 'settings':
+      return { kind: 'goto', jump: { target: 'settings', data: { from: 'pause', pause: data } } };
     case 'levels':
       return { kind: 'goto', jump: { target: 'levelSelect', data: { focusId: data.levelId }, stopGame: true } };
   }
@@ -138,4 +143,13 @@ export function parseControlsData(data: unknown): ControlsSceneData {
 export function controlsReturn(data: ControlsSceneData): FlowJump {
   if (data.from === 'pause') return { target: 'pause', data: { ...data.pause, focusId: 'controls' } };
   return { target: 'title', data: { focusId: 'controls' } };
+}
+
+/** Opened from nothing known (a dev start): the title. */
+export const parseSettingsData = parseControlsData;
+
+/** Back goes to whoever opened the screen, with focus on SETTINGS. */
+export function settingsReturn(data: SettingsSceneData): FlowJump {
+  if (data.from === 'pause') return { target: 'pause', data: { ...data.pause, focusId: 'settings' } };
+  return { target: 'title', data: { focusId: 'settings' } };
 }

@@ -9,6 +9,7 @@ import {
   nextBootStep,
   type LoaderErrorCapture,
 } from './bootLoad';
+import { applyAudioSettings } from '../ui/audioSettings';
 import { SCENE_KEYS, bootTarget, getSaveStore } from './keys';
 // The pixel sheets (art-director, `npm run art:build`; docs/art/style.md "Assets").
 // PNG and XML come in as `?url`: Vite copies them to dist/assets with relative
@@ -94,7 +95,9 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     // Fail at boot, not at the first level complete, if main.ts did not share the store.
-    getSaveStore(this.registry);
+    const store = getSaveStore(this.registry);
+    // Saved mute must reach the engine before any gesture (settings.md check 1, after a reload).
+    applyAudioSettings(store.getSettings());
     this.afterLoad();
   }
 

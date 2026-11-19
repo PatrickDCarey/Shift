@@ -19,6 +19,7 @@ export type { Action, Bindings, HeldActions, SimButtons } from './bindings';
 export {
   STICKY_TIP_AUTO_HIDE_MS,
   STICKY_TIP_DISMISS_CODES,
+  STICKY_TIP_PANEL_TOP,
   isStickyTipDismissCode,
   isWindows,
   readPlatform,
@@ -102,3 +103,7 @@ export {
   resultsOutcome,
 } from './menuFlow';
 export type { ControlsSceneData, FlowJump, PauseOutcome, PauseResult, PauseSceneData, WinLike } from './menuFlow';
+export { applySettingsAction, createSettingsModel, settingsLayout, settingsStep, shownReducedMotion } from './settingsModel';
+export type { SettingsAction, SettingsInput, SettingsItemId, SettingsModel, SettingsPatch, SettingsValues } from './settingsModel';
+export { parseSettingsData, settingsReturn } from './menuFlow';
+export type { SettingsSceneData } from './menuFlow';

@@ -18,14 +18,14 @@ const ORDER = levelOrder([...ids(1, 5), ...ids(2, 4), ...ids(3, 5)].map((id) => 
 const move = (dir: Direction): MenuIntent => ({ kind: 'move', dir });
 const CHOOSE: MenuIntent = { kind: 'choose' };
 
-function title(completed: string[] = [], persistent = true, focusId?: 'play' | 'levels' | 'controls'): TitleModel {
+function title(completed: string[] = [], persistent = true, focusId?: 'play' | 'levels' | 'controls' | 'settings'): TitleModel {
   return createTitleModel({ order: ORDER, completed, persistent, focusId });
 }
 
 describe('title (title-screen.md checks)', () => {
-  it('1: an empty save shows PLAY, LEVELS, CONTROLS with focus on PLAY', () => {
+  it('1: an empty save shows PLAY, LEVELS, CONTROLS, SETTINGS with focus on PLAY', () => {
     const model = title();
-    expect(model.list.items.map((i) => i.label)).toEqual(['PLAY', 'LEVELS', 'CONTROLS']);
+    expect(model.list.items.map((i) => i.label)).toEqual(['PLAY', 'LEVELS', 'CONTROLS', 'SETTINGS']);
     expect(model.list.focus).toBe(0);
     expect(titleLayout(model).find((i) => i.id === 'name')?.text).toBe('REDSHIFT');
   });
@@ -58,6 +58,12 @@ describe('title (title-screen.md checks)', () => {
     expect(titleStep(title([], true, 'controls'), CHOOSE).action).toEqual({ type: 'controls' });
   });
 
+  it('SETTINGS is the fourth item and opens the settings screen', () => {
+    const third = [move('down'), move('down'), move('down')].reduce((m, i) => titleStep(m, i).model, title());
+    expect(titleStep(third, CHOOSE).action).toEqual({ type: 'settings' });
+    expect(titleStep(title([], true, 'settings'), CHOOSE).action).toEqual({ type: 'settings' });
+  });
+
   it('with no levels PLAY and LEVELS both open level select', () => {
     const model = createTitleModel({ order: [], completed: [], persistent: true });
     expect(model.noLevels).toBe(true);
@@ -79,8 +85,8 @@ describe('title (title-screen.md checks)', () => {
 
   it('does not wrap at either end', () => {
     expect(titleStep(title(), move('up')).model.list.focus).toBe(0);
-    const last = [move('down'), move('down'), move('down')].reduce((m, i) => titleStep(m, i).model, title());
-    expect(last.list.focus).toBe(2);
+    const last = [move('down'), move('down'), move('down'), move('down')].reduce((m, i) => titleStep(m, i).model, title());
+    expect(last.list.focus).toBe(3);
   });
 
   it('layout: integer positions, 8 px margins, 20 px item pitch, items at 2x', () => {
@@ -89,7 +95,7 @@ describe('title (title-screen.md checks)', () => {
       expect(layoutViolations([...layout, ...decorationRects(layout.filter((i) => i.id.startsWith('item:')))])).toEqual([]);
     }
     const items = titleLayout(title()).filter((i) => i.id.startsWith('item:'));
-    expect(items.map((i) => i.y)).toEqual([140, 160, 180]);
+    expect(items.map((i) => i.y)).toEqual([140, 160, 180, 200]);
     expect(items.every((i) => i.scale === 2)).toBe(true);
   });
 });
@@ -98,7 +104,7 @@ describe('pause (pause.md)', () => {
   const model = createPauseModel({ levelId: 'w1-03', title: 'Runway', step: 440, stepHz: 60 });
 
   it('has RESUME (focused), RESTART, CONTROLS, LEVELS with the caption and run time', () => {
-    expect(model.list.items.map((i) => i.label)).toEqual(['RESUME', 'RESTART', 'CONTROLS', 'LEVELS']);
+    expect(model.list.items.map((i) => i.label)).toEqual(['RESUME', 'RESTART', 'CONTROLS', 'SETTINGS', 'LEVELS']);
     expect(model.list.focus).toBe(0);
     expect(model.caption).toBe('1-3 RUNWAY');
     expect(model.timeText).toBe('TIME 0:07.33');
@@ -110,11 +116,11 @@ describe('pause (pause.md)', () => {
   });
 
   it('choosing each item returns its action, in order', () => {
-    const actions = [0, 1, 2, 3].map((n) => {
+    const actions = [0, 1, 2, 3, 4].map((n) => {
       const m = Array.from({ length: n }, () => move('down')).reduce((acc, i) => pauseStep(acc, i).model, model);
       return pauseStep(m, CHOOSE).action;
     });
-    expect(actions).toEqual(['resume', 'restart', 'controls', 'levels']);
+    expect(actions).toEqual(['resume', 'restart', 'controls', 'settings', 'levels']);
   });
 
   it('returns from CONTROLS with focus on CONTROLS', () => {
@@ -127,12 +133,12 @@ describe('pause (pause.md)', () => {
     expect(long.caption.length).toBeLessThanOrEqual(24);
   });
 
-  it('layout: everything is inside the panel (160x120 at most) and the screen margins', () => {
+  it('layout: everything is inside the panel (160x140 at most) and the screen margins', () => {
     const layout = pauseLayout(model);
     expect(layoutViolations([...layout, ...decorationRects(layout.filter((i) => i.id.startsWith('item:')))])).toEqual([]);
     const panel = layout.find((i) => i.id === 'panel')!;
     expect(panel.w).toBeLessThanOrEqual(160);
-    expect(panel.h).toBeLessThanOrEqual(120);
+    expect(panel.h).toBeLessThanOrEqual(140);
     for (const item of layout.filter((i) => i.id !== 'panel')) {
       expect(item.x).toBeGreaterThanOrEqual(panel.x);
       expect(item.x + item.w).toBeLessThanOrEqual(panel.x + panel.w);

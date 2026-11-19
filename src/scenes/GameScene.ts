@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { SimEvent } from '../core/types';
 import { effectModes } from '../fx';
-import { audio, music, musicFeed } from '../audio';
+import { audio, bodiesOf, music, musicFeed, playStepEvents } from '../audio';
 import { snapFeet, type CameraBody } from '../entities/camera';
 import { CameraRig } from '../entities/cameraRig';
 import { installDebugHook, removeDebugHook, type DebugSnapshot } from '../entities/debugHook';
@@ -39,6 +39,7 @@ import { loadLevelSet, nextLevelId, requestedLevelId, selectLevel } from '../ent
 import { LEVEL_COMPLETE_EVENT, recordWin, type LevelCompleteEvent } from '../entities/winFlow';
 import type { SaveStore } from '../save';
 import {
+  applyAudioSettings,
   COMPACT_STRIP_LAYOUT,
   gearMeterModel,
   INITIAL_GEAR_METER_MODEL,
@@ -128,6 +129,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.cfg = loadGameParams();
     this.store = getSaveStore(this.registry);
+    applyAudioSettings(this.store.getSettings()); // saved mute and volumes, read afresh on every level start
     this.pause = new PauseState();
     this.gate = new OverlayGate();
     this.levelSet = null;
@@ -175,6 +177,7 @@ export class GameScene extends Phaser.Scene {
     this.drawBodies(time, delta, paused, events);
     this.drawHud();
     music.update(musicFeed(this.driver.state, events, paused));
+    playStepEvents(events, { bands: bodiesOf(this.driver.state).map((b) => b.band) }); // [] while paused: silent
   }
 
   /** Esc/P (from the keydown queue, so two presses in one slow frame are not lost) opens the pause overlay. */

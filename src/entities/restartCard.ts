@@ -11,20 +11,20 @@
  * Owner: gameplay-engineer [scene].
  */
 import { ADVANCE, textWidth } from '../fx';
+import { VIEW_H, VIEW_W } from '../fx/pixel';
 import { DEFAULT_BINDINGS, type Bindings } from '../ui';
+import { HUD_BOTTOM } from './GameHud';
 import { hintCapLabel, HINT_CAP_H } from './hintLayout';
 import { pocketAt, type SealedPocket } from './sealedPockets';
 
 /** The canvas the card is placed on. */
-export const VIEW = { w: 480, h: 270 } as const;
-/** Pixels below the top edge that the HUD (title, gear meter) may use; the raised card sits here. */
-export const HUD_BOTTOM = 42;
+export const VIEW = { w: VIEW_W, h: VIEW_H } as const;
+/** The raised card sits just under the HUD. */
+export { HUD_BOTTOM };
 const EDGE_MARGIN = 8;
 const TIP_GAP = 4;
 const PAD = 4;
 const CAP_GAP = 4;
-/** The body centre sits this far above the feet (restart-prompt.md). */
-const CENTRE_RISE_TILES = 0.75;
 export const CARD_WORD = 'RESTART';
 
 export interface Rect {
@@ -71,9 +71,13 @@ export function cardPlacement(size: { readonly w: number; readonly h: number }, 
   return bodies.some((b) => overlaps(lowRect, b)) ? { ...lowRect, y: HUD_BOTTOM } : lowRect;
 }
 
-/** Pocket index holding the body's centre, or -1. `x`, `y` are the feet in tiles. */
-export function bodyPocket(pockets: readonly SealedPocket[], body: { readonly x: number; readonly y: number }): number {
-  return pocketAt(pockets, Math.floor(body.x), Math.floor(body.y - CENTRE_RISE_TILES));
+/** Pocket index holding the body's centre (half the body height above the feet), or -1. `x`, `y` are the feet in tiles. */
+export function bodyPocket(
+  pockets: readonly SealedPocket[],
+  body: { readonly x: number; readonly y: number },
+  playerHeightTiles: number,
+): number {
+  return pocketAt(pockets, Math.floor(body.x), Math.floor(body.y - playerHeightTiles / 2));
 }
 
 export interface CardBody {
@@ -111,6 +115,10 @@ export class RestartCardModel {
   /** Feed one rendered frame; returns the card's rectangle while it shows, else null. */
   update(f: CardFrame): Rect | null {
     if (f.reset || f.step < this.lastStep) this.clear();
+    if (f.reset) {
+      this.lastStep = f.step; // the reset frame itself counts nothing: stays start from the next step
+      return null;
+    }
     const delta = Math.max(0, f.step - this.lastStep);
     this.lastStep = f.step;
     this.stays = f.bodies.map((b, i) => this.advance(this.stays[i] ?? null, b, delta));
@@ -124,7 +132,8 @@ export class RestartCardModel {
 
   private advance(stay: Stay | null, body: CardBody, delta: number): Stay | null {
     if (body.home || body.pocket < 0) return null;
-    return { pocket: body.pocket, steps: (stay !== null && stay.pocket === body.pocket ? stay.steps : 0) + delta };
+    // A new stay starts at 1 (the step this frame ends on); only a continuing stay adds the frame's steps.
+    return { pocket: body.pocket, steps: stay !== null && stay.pocket === body.pocket ? stay.steps + delta : 1 };
   }
 
   private clear(): void {

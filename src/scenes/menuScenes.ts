@@ -2,6 +2,7 @@ import { ControlsScene } from './ControlsScene';
 import { LevelSelectScene } from './LevelSelectScene';
 import { PauseScene } from './PauseScene';
 import { ResultsScene } from './ResultsScene';
+import { SettingsScene } from './SettingsScene';
 import { TitleScene } from './TitleScene';
 
 /**
@@ -10,4 +11,4 @@ import { TitleScene } from './TitleScene';
  *
  * Owner: ui-engineer.
  */
-export const MENU_SCENES = [TitleScene, LevelSelectScene, PauseScene, ResultsScene, ControlsScene] as const;
+export const MENU_SCENES = [TitleScene, LevelSelectScene, PauseScene, ResultsScene, ControlsScene, SettingsScene] as const;

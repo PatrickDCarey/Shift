@@ -1,5 +1,5 @@
 /**
- * Reduced motion: the player's saved setting OR the OS preference.
+ * Reduced motion: the player's saved choice if they made one, else the OS preference.
  * Owner: gameplay-engineer [scene].
  */
 export interface MediaQueryLike {
@@ -18,6 +18,10 @@ export function prefersReducedMotion(matchMedia: MatchMediaLike | undefined): bo
   }
 }
 
-export function reducedMotion(settings: { readonly reducedMotion: boolean }, osPrefers: boolean): boolean {
-  return settings.reducedMotion || osPrefers;
+export function reducedMotion(
+  settings: { readonly reducedMotion: boolean; readonly reducedMotionChosen: boolean },
+  osPrefers: boolean,
+): boolean {
+  // Same rule as `shownReducedMotion` in src/ui/settingsModel.ts (duplicated: this module stays import-free).
+  return settings.reducedMotionChosen ? settings.reducedMotion : osPrefers;
 }

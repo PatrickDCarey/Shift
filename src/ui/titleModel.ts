@@ -1,6 +1,6 @@
 /**
- * Title screen model (docs/design/features/title-screen.md): three items,
- * PLAY / LEVELS / CONTROLS, the PLAY target, and the not-saved notice. Pure;
+ * Title screen model (docs/design/features/title-screen.md): four items,
+ * PLAY / LEVELS / CONTROLS / SETTINGS, the PLAY target, and the not-saved notice. Pure;
  * the scene draws `titleLayout(model)` and applies the returned action.
  *
  * Owner: ui-engineer.
@@ -14,7 +14,7 @@ import type { MenuIntent } from './menuInput';
 import { FRAME_PAD, ITEM_PITCH, MARGIN, SCREEN_H, centredText, textItem } from './menuLayout';
 import type { LayoutItem } from './menuLayout';
 
-export type TitleItemId = 'play' | 'levels' | 'controls';
+export type TitleItemId = 'play' | 'levels' | 'controls' | 'settings';
 
 export const TITLE_NAME = 'REDSHIFT';
 export const TITLE_FOOTER = 'GAME OFF 2026';
@@ -24,6 +24,7 @@ const ITEMS: readonly ListItem<TitleItemId>[] = [
   { id: 'play', label: 'PLAY' },
   { id: 'levels', label: 'LEVELS' },
   { id: 'controls', label: 'CONTROLS' },
+  { id: 'settings', label: 'SETTINGS' },
 ];
 
 export interface TitleModel {
@@ -41,7 +42,8 @@ export interface TitleModel {
 export type TitleAction =
   | { readonly type: 'start'; readonly levelId: string }
   | { readonly type: 'levels' }
-  | { readonly type: 'controls' };
+  | { readonly type: 'controls' }
+  | { readonly type: 'settings' };
 
 export interface TitleInput {
   readonly order: readonly LevelEntry[];
@@ -71,6 +73,8 @@ function chosen(model: TitleModel): TitleAction | null {
       return { type: 'levels' };
     case 'controls':
       return { type: 'controls' };
+    case 'settings':
+      return { type: 'settings' };
     default:
       return null;
   }

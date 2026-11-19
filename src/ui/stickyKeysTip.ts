@@ -10,6 +10,7 @@
  *
  * Owner: ui-engineer.
  */
+import { SCREEN_H } from './menuLayout';
 import { DEFAULT_BINDINGS } from './bindings';
 
 export interface PlatformInfo {
@@ -76,3 +77,10 @@ export function readPlatform(nav: NavigatorLike | undefined = globalThis.navigat
     return { userAgent: '' };
   }
 }
+
+/** Sticky Keys tip panel height and gap under it, in game pixels (drawn by `StickyKeysTipView`). */
+export const PANEL_HEIGHT = 46;
+export const PANEL_BOTTOM_MARGIN = 12;
+
+/** Top edge of the tip panel on the 270 px tall game: other bottom-edge UI (the restart card) sits above it. */
+export const STICKY_TIP_PANEL_TOP = SCREEN_H - PANEL_HEIGHT - PANEL_BOTTOM_MARGIN;

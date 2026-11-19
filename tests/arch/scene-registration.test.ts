@@ -23,14 +23,14 @@ const KEY_USE_DIRS = [join(SRC_DIR, 'scenes'), join(SRC_DIR, 'ui')];
 type KeyName = keyof typeof SCENE_KEYS;
 
 /**
- * Keys added ahead of their scene so another lane can build against them
- * (B7-04: `settings` for B7-11). Nothing may use one yet: the "menus can jump
- * to" check below still fails on any `SCENE_KEYS.<reserved>` in scenes or ui,
- * so the scene must be registered in the same change that first uses its key.
- * Once it is registered the entry is harmless; tech-lead removes it at review
- * (ui-engineer does not edit this file).
+ * Keys added ahead of their scene so another lane can build against them.
+ * Nothing may use one yet: the "menus can jump to" check below still fails on
+ * any `SCENE_KEYS.<reserved>` in scenes or ui, so the scene must be registered
+ * in the same change that first uses its key. Once it is registered the entry
+ * is harmless; tech-lead removes it at review (other lanes do not edit this
+ * file). Empty since B7-12: `settings` (B7-04) is registered by B7-11.
  */
-const RESERVED_KEYS: readonly string[] = ['settings'];
+const RESERVED_KEYS: readonly string[] = [];
 
 const read = (file: string): string => stripComments(readFileSync(file, 'utf8'));
 

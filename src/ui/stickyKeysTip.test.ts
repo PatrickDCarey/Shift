@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_BINDINGS } from './bindings';
-import { STICKY_TIP_DISMISS_CODES, isStickyTipDismissCode, isWindows, readPlatform, shouldShowStickyKeysTip } from './stickyKeysTip';
+import {
+  PANEL_BOTTOM_MARGIN,
+  PANEL_HEIGHT,
+  STICKY_TIP_DISMISS_CODES,
+  STICKY_TIP_PANEL_TOP,
+  isStickyTipDismissCode,
+  isWindows,
+  readPlatform,
+  shouldShowStickyKeysTip,
+} from './stickyKeysTip';
 import type { PlatformInfo } from './stickyKeysTip';
 
 const WIN_CHROME: PlatformInfo = {
@@ -86,5 +95,12 @@ describe('dismiss keys and platform reading', () => {
       },
     };
     expect(readPlatform(hostile)).toEqual({ userAgent: '' });
+  });
+});
+
+describe('STICKY_TIP_PANEL_TOP', () => {
+  it('is the drawn panel top on the 270 px game (the restart card relies on 212)', () => {
+    expect(STICKY_TIP_PANEL_TOP).toBe(270 - PANEL_HEIGHT - PANEL_BOTTOM_MARGIN);
+    expect(STICKY_TIP_PANEL_TOP).toBe(212);
   });
 });

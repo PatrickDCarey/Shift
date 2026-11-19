@@ -16,9 +16,9 @@ import type { MenuIntent, MenuKeyOptions } from './menuInput';
 import { ITEM_PITCH, SCREEN_H, SCREEN_W, box, centredText, truncate } from './menuLayout';
 import type { LayoutItem } from './menuLayout';
 
-export type PauseItemId = 'resume' | 'restart' | 'controls' | 'levels';
+export type PauseItemId = 'resume' | 'restart' | 'controls' | 'settings' | 'levels';
 
-export type PauseAction = 'resume' | 'restart' | 'controls' | 'levels';
+export type PauseAction = 'resume' | 'restart' | 'controls' | 'settings' | 'levels';
 
 /** Key switches for `stepMenuInput` on this screen: R restarts, P closes. */
 export const PAUSE_MENU_KEYS: MenuKeyOptions = { retryKey: true, pauseKey: true };
@@ -27,6 +27,7 @@ const ITEMS: readonly ListItem<PauseItemId>[] = [
   { id: 'resume', label: 'RESUME' },
   { id: 'restart', label: 'RESTART' },
   { id: 'controls', label: 'CONTROLS' },
+  { id: 'settings', label: 'SETTINGS' },
   { id: 'levels', label: 'LEVELS' },
 ];
 
@@ -74,10 +75,10 @@ export function pauseStep(model: PauseModel, intent: MenuIntent): Transition<Pau
 }
 
 const PANEL_W = 160;
-const PANEL_H = 120;
+const PANEL_H = 140;
 const PAD = 8;
 
-/** Panel box (id `panel`), caption, time and the four items, all inside the 160x120 panel. */
+/** Panel box (id `panel`), caption, time and the five items, all inside the 160x140 panel. */
 export function pauseLayout(model: PauseModel): readonly LayoutItem[] {
   const px = (SCREEN_W - PANEL_W) / 2;
   const py = (SCREEN_H - PANEL_H) / 2;

@@ -16,9 +16,6 @@ import { RIDGES, VIEW_W } from '../fx/pixel';
 /** Below the tiles (depth 0) and the hints. */
 const DEPTH = -30;
 
-/** Camera scroll to ridge scroll; far moves less than near. Visual constants, not gameplay. */
-const PARALLAX = { far: 0.15, near: 0.3 } as const;
-
 type Layer = keyof typeof RIDGES;
 
 /** The x of the left copy of a repeating ridge: the camera scroll scaled, wrapped to one tile width, whole pixels. */
@@ -63,7 +60,7 @@ export class BackdropView {
       this.ridges.near.forEach((i) => i.setTint(num(c.ridgeNear)));
     }
     for (const layer of ['far', 'near'] as const) {
-      const x = this.modes.ridgeParallax ? ridgeOffset(scrollX, PARALLAX[layer]) : 0;
+      const x = this.modes.ridgeParallax ? ridgeOffset(scrollX, RIDGES[layer].parallax) : 0;
       this.ridges[layer].forEach((img, i) => img.setX(x + i * VIEW_W));
     }
   }

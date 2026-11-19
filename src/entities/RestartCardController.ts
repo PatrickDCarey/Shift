@@ -8,13 +8,11 @@
  */
 import type Phaser from 'phaser';
 import type { Level, PlayerState, SimEvent, SimState, SimStatus } from '../core/types';
-import { bodyPocket, RestartCardModel, VIEW, type CardBody, type Rect } from './restartCard';
+import { STICKY_TIP_PANEL_TOP } from '../ui';
+import { bodyPocket, RestartCardModel, type CardBody, type Rect } from './restartCard';
 import { RestartCardView } from './RestartCardView';
 import { sealedPockets, type SealedPocket } from './sealedPockets';
 import { isRespawn } from './whyFell';
-
-/** Top edge of the Sticky Keys tip panel (`StickyKeysTipView`: 46 px high, 12 px above the bottom edge). */
-const STICKY_TIP_TOP = VIEW.h - 46 - 12;
 
 /** What `window.__redshift.restartCard` reports while the card shows (null while hidden). */
 export interface RestartCardSnapshot extends Rect {
@@ -51,7 +49,7 @@ export class RestartCardController {
     const reset = isRespawn(this.prevStatus, state.status, events);
     this.prevStatus = state.status;
     const bodies = [state.player, ...(state.twin === null ? [] : [state.twin])].map((b) => this.cardBody(b, scroll));
-    this.shown = this.model.update({ step: state.step, reset, bodies, tipTop: tipShowing ? STICKY_TIP_TOP : null });
+    this.shown = this.model.update({ step: state.step, reset, bodies, tipTop: tipShowing ? STICKY_TIP_PANEL_TOP : null });
     this.view.update(this.shown);
   }
 
@@ -68,6 +66,6 @@ export class RestartCardController {
     const w = Math.round(playerWidthTiles * ts);
     const h = Math.round(playerHeightTiles * ts);
     const rect = { x: Math.round(b.x * ts - w / 2 - scroll.x), y: Math.round(b.y * ts - h - scroll.y), w, h };
-    return { pocket: bodyPocket(this.pockets, b), home: b.home, rect };
+    return { pocket: bodyPocket(this.pockets, b, playerHeightTiles), home: b.home, rect };
   }
 }

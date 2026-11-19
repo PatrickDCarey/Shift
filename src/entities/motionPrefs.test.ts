@@ -2,10 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { prefersReducedMotion, reducedMotion } from './motionPrefs';
 
 describe('reducedMotion', () => {
-  it('is on if either the saved setting or the OS preference is on', () => {
-    expect(reducedMotion({ reducedMotion: false }, false)).toBe(false);
-    expect(reducedMotion({ reducedMotion: true }, false)).toBe(true);
-    expect(reducedMotion({ reducedMotion: false }, true)).toBe(true);
+  const s = (reducedMotion: boolean, reducedMotionChosen: boolean) => ({ reducedMotion, reducedMotionChosen });
+
+  it('uses the saved choice when one was made, even against the OS', () => {
+    expect(reducedMotion(s(true, true), false)).toBe(true);
+    expect(reducedMotion(s(false, true), true)).toBe(false);
+  });
+
+  it('follows the OS preference when nothing was chosen', () => {
+    expect(reducedMotion(s(false, false), true)).toBe(true);
+    expect(reducedMotion(s(false, false), false)).toBe(false);
   });
 });
 

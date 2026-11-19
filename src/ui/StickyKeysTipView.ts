@@ -3,6 +3,7 @@ import palette from '../data/palette.json';
 import { PIXEL_KEYS, textWidth } from '../fx/pixel';
 import type { SaveStore } from '../save';
 import { keyLabel } from './bindings';
+import { PANEL_BOTTOM_MARGIN, PANEL_HEIGHT } from './stickyKeysTip';
 import {
   STICKY_TIP_AUTO_HIDE_MS,
   isStickyTipDismissCode,
@@ -23,8 +24,8 @@ import {
  */
 
 const PANEL_WIDTH = 340;
-const PANEL_HEIGHT = 46;
-const PANEL_BOTTOM_MARGIN = 12;
+
+
 const DEPTH = 1000;
 const FADE_MS = 250;
 const CAP_SIZE = 14;

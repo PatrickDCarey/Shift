@@ -55,8 +55,12 @@ describe('pause flow', () => {
   it('does not wrap past the ends', () => {
     let m = createPauseModel(pause);
     for (let i = 0; i < 6; i++) m = pauseStep(m, down).model;
-    expect(m.list.focus).toBe(3);
-    expect(pauseStep(m, { kind: 'move', dir: 'up' }).model.list.focus).toBe(2);
+    expect(m.list.focus).toBe(4);
+    expect(pauseStep(m, { kind: 'move', dir: 'up' }).model.list.focus).toBe(3);
+  });
+
+  it('routes SETTINGS with the pause data to come back to', () => {
+    expect(pauseOutcome('settings', pause)).toEqual({ kind: 'goto', jump: { target: 'settings', data: { from: 'pause', pause } } });
   });
 
   it('routes each item', () => {
