@@ -15,6 +15,8 @@ export const SCENE_KEYS = {
   pause: 'Pause',
   results: 'Results',
   controls: 'Controls',
+  /** B7-04: reserved for ui-engineer's settings screen (B7-11, `SettingsScene.ts`); not registered yet. */
+  settings: 'Settings',
 } as const;
 
 export type SceneKey = (typeof SCENE_KEYS)[keyof typeof SCENE_KEYS];

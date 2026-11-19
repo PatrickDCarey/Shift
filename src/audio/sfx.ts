@@ -3,17 +3,19 @@
 
 import type { Band, BodyId, Gear } from '../core/types';
 import type { AudioEngine } from './engine';
+import type { CueLog } from './cueLog';
 import { sfxForEvents, type SfxContext, type SfxSourceEvent } from './sfxEvents';
 import { describeSfx, type SfxCue } from './sfxSpec';
 
 type ToneEngine = Pick<AudioEngine, 'tone'>;
 
 /** Play one cue. Returns how many layers were scheduled (0 when locked, muted or at the voice cap). */
-export function playCue(engine: ToneEngine, cue: SfxCue): number {
+export function playCue(engine: ToneEngine, cue: SfxCue, log?: CueLog): number {
   let scheduled = 0;
   for (const layer of describeSfx(cue)) {
     if (engine.tone({ ...layer, bus: 'sfx' })) scheduled += 1;
   }
+  log?.record(cue, scheduled > 0);
   return scheduled;
 }
 
@@ -35,8 +37,8 @@ export interface Sfx {
 }
 
 /** One function per sound, bound to an engine. Every call is a no-op before the first gesture. */
-export function createSfx(engine: ToneEngine): Sfx {
-  const play = (cue: SfxCue): number => playCue(engine, cue);
+export function createSfx(engine: ToneEngine, log?: CueLog): Sfx {
+  const play = (cue: SfxCue): number => playCue(engine, cue, log);
   return {
     shiftUp: (from, to) => play({ id: 'shiftUp', from, to }),
     shiftDown: (from, to) => play({ id: 'shiftDown', from, to }),

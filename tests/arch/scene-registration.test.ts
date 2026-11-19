@@ -22,6 +22,16 @@ const KEY_USE_DIRS = [join(SRC_DIR, 'scenes'), join(SRC_DIR, 'ui')];
 
 type KeyName = keyof typeof SCENE_KEYS;
 
+/**
+ * Keys added ahead of their scene so another lane can build against them
+ * (B7-04: `settings` for B7-11). Nothing may use one yet: the "menus can jump
+ * to" check below still fails on any `SCENE_KEYS.<reserved>` in scenes or ui,
+ * so the scene must be registered in the same change that first uses its key.
+ * Once it is registered the entry is harmless; tech-lead removes it at review
+ * (ui-engineer does not edit this file).
+ */
+const RESERVED_KEYS: readonly string[] = ['settings'];
+
 const read = (file: string): string => stripComments(readFileSync(file, 'utf8'));
 
 /** Names inside `<anchor> [ ... ]`, spreads kept as `...NAME`. */
@@ -86,8 +96,13 @@ describe('scene registration (B6-24)', () => {
     expect(registered.every((k) => k in SCENE_KEYS)).toBe(true);
   });
 
-  it('every SCENE_KEYS entry is registered', () => {
-    expect(Object.keys(SCENE_KEYS).filter((k) => !registered.includes(k))).toEqual([]);
+  it('every SCENE_KEYS entry is registered, except keys reserved for a scene still being built', () => {
+    const unregistered = Object.keys(SCENE_KEYS).filter((k) => !registered.includes(k));
+    expect(unregistered.filter((k) => !RESERVED_KEYS.includes(k))).toEqual([]);
+  });
+
+  it('every reserved key is a real SCENE_KEYS entry', () => {
+    expect(RESERVED_KEYS.every((k) => k in SCENE_KEYS)).toBe(true);
   });
 
   it('every scene the menus can jump to is registered (menuNav SceneTarget, menuFlow FlowTarget, SCENE_KEYS uses)', () => {

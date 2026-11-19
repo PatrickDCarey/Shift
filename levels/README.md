@@ -7,18 +7,18 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w0-02 | Grey Box | 0 (test) | combine (M1 test room): hold to move, runway to red, air drag, letting go to drop through | 60–90 s | M1 playtest room (M1-20, M1-21), version 2 |
 | w1-01 | First Steps | 1 | NEW: hold a direction to walk; blue floors hold you only while you walk | 15–30 s | approved, version 2 (PT-6: P2 4 tiles, same room as w1-02; level plan v3.2) |
 | w1-02 | Shift | 1 | NEW: Shift changes your cruise gear, and with it your color | 30–60 s | approved, version 2 (PT-6: P2 4 tiles; level plan v3.2) |
-| w1-03 | Runway | 1 | NEW: running speed takes distance to build | 30–60 s | approved (2026-11-05) |
+| w1-03 | Runway | 1 | NEW: running speed takes distance to build | 30–60 s | approved (2026-11-05); `shiftUp` hint header over the back wall (design-lead 2026-11-19) |
 | w1-04 | Brake | 1 | NEW: slowing down takes distance too | 45–90 s | version 2 (PT-6: pad 8 tiles); approved subject to v2's numbers, which are met; roofless blue bridge accepted (level plan v3.3) |
 | w1-05 | Red Wall | 1 | NEW: a colored wall stops only its own color | 60–120 s | approved (2026-11-05); fair line recorded (PT-6) |
 | w2-01 | Commit | 2 | NEW: in the air nothing you press changes your speed; you land in the color you took off in | 30–60 s | approved (level plan v3.4, 2026-11-13); grace-and-coyote yellow line accepted as an expert line; `shiftUp` and `jump` hint headers |
 | w2-02 | Coast | 2 | NEW: air drag: every 6 tiles of flight costs one color | 45–90 s | approved (level plan v3.4, 2026-11-13); landing pad 2 tiles lower adopted |
-| w2-03 | Step Down | 2 | NEW: walking off a ledge is a shorter flight than jumping | 30–60 s | version 2 (B6-06: 3-tile pit at the foot of the ledge), awaiting design-lead approval; v1 approved 2026-11-16 |
-| w2-04 | Two Colors | 2 | combine: runway + commit + color grace (turn yellow on green, jump before the floor lets you go) | 60–120 s | built (B6-22), version 1, awaiting design-lead approval |
+| w2-03 | Step Down | 2 | NEW: walking off a ledge is a shorter flight than jumping | 30–60 s | approved, version 2 (B6-06: 3-tile pit at the foot of the ledge; design-lead 2026-11-17, re-stated 2026-11-19); no hint |
+| w2-04 | Two Colors | 2 | combine: runway + commit + color grace (turn yellow on green, jump before the floor lets you go) | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); `shiftUp` stacked over `jump` hint headers (2026-11-19) |
 | w3-01 | Two Lanes | 3 | NEW: a twin obeys the same keys on its own floor; both must reach home | 30–60 s | approved, version 1, no roofs (design-lead, 2026-11-16); first Tandem level and the T-20 test level; `move` and `shiftUp` hint headers |
-| w3-02 | Out of Step | 3 | NEW: a wall in one lane holds that body while the other walks on, so you choose how far out of step they are | 60–120 s | built (B6-32), version 1, awaiting design-lead approval; safe kerb instead of the spec's blue wall (see section) |
-| w3-03 | Gear Split | 3 | NEW: a stop in mid-air drops only that body's gear | 60–120 s | built (B6-33), version 1, awaiting design-lead approval; flat landing pad (18-step window) |
-| w3-04 | Clamp | 3 | NEW: pressing up past gear 4 brings split gears back together | 90–150 s | built (B6-34), version 1, awaiting design-lead approval |
-| w3-05 | Redshift | 3 | combine: air-stop split + clamp down + pin + shared drag jump + park + brake | 3–5 min | built (B6-35), version 1, awaiting design-lead approval; safe kerbs instead of blue walls |
+| w3-02 | Out of Step | 3 | NEW: a wall in one lane holds that body while the other walks on, so you choose how far out of step they are | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); safe kerb instead of the spec's blue wall (see section) |
+| w3-03 | Gear Split | 3 | NEW: a stop in mid-air drops only that body's gear | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); flat landing pad (18-step window); `jump` hint header in the runner lane (2026-11-19) |
+| w3-04 | Clamp | 3 | NEW: pressing up past gear 4 brings split gears back together | 90–150 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); no hint (pre-approved fallback: w3-03's `jump 12 3`) |
+| w3-05 | Redshift | 3 | combine: air-stop split + clamp down + pin + shared drag jump + park + brake | 3–5 min | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); safe kerbs instead of blue walls; no hint (pre-approved fallback: w3-03's `jump 12 3`) |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
 
@@ -104,6 +104,7 @@ One screen (23 × 13): a walled safe room (cols 1–10, open sky) → red bridge
 - **Cheese check:** 42,864 runs, 1,643 wins, 0 that skip the bridge. **The roof is needed:** with it removed, 518 of 22,864 runs jump the bridge from near the spawn in green or yellow (e.g. `1+ 1. 32R 1R+ 1RJ`).
 - **Fair line:** walk back in gear 1, shift up standing, hold right. Only a position choice at walking pace: any standing start at x ≤ 8.3 wins (6.8 tiles of spots).
 - **Safe spots:** the whole room (spawn included) and the exit pad.
+- **Hint (design-lead 2026-11-19):** `hint: shiftUp 2 6`, over the back wall: it says where to shift, which here is the lesson (start from the back), and sits away from the spawn, so the cheap first fall still happens. Its 3 × 2 box (cols 1–3, rows 5–6) is empty sky, 3 rows above the floor row 9. Render-only: no version bump, same recording.
 
 **Fastest known:** 77 steps (`4L 1R+ 1R 1R+ 1R 1R+ 300R`: back up 0.2 tiles, shift while starting the run).
 
@@ -220,7 +221,8 @@ One screen (32 × 13): left wall, safe pad P1 (cols 1–3, spawn at col 1, open 
 - **Under the ledge (alternate, same idea):** shift up under the overhang (cols 13–14) and you turn yellow inside the ledge, so yellow is a ghost to you (no-embed, GDD §4.7); a jump in the same 13 steps rises through it and lands on top. Not cheese: it is the same turn-yellow-then-jump.
 - **Removing the idea breaks it:** paint the ledge green and a plain gear-2 jump with no shift wins (27 of 140 jump steps); in the real level the same 140 jumps win 0. With color grace and coyote both set to 0 (scratch tuning, tests only), the shift-then-jump sweep drops from 846 to 126 wins of 2,886, and those 126 are frame-exact jumps on the step you turn yellow (about one step per shift spot).
 - **Cheese check:** 80,936 structured runs (walk back 0 or 20 steps, 0–3 standing presses, a 1-up / 2-up / 1-down press cluster at 22 points, no / single / double jump at 75 points): 432 wins, **every one a yellow takeoff from the green floor**, 0 from P1 (a gear-3 player is yellow at the end of P1, but the ledge starts 9 tiles out). A green jump onto the safe block is impossible: a draft with the floor ending 2 tiles before the block let a gear-2 jump land on it, so the floor ends at col 14 and the block starts at col 22. 20,000 random input logs: 0 wins (dies first; uninformative).
-- **Checks:** intended flight 5.55 tiles (≤ 6, lands yellow). Climb 2 tiles. No yellow tile over a yellow floor (no-embed rule). No roof (world 2). No hint glyph (none in the plan).
+- **Checks:** intended flight 5.55 tiles (≤ 6, lands yellow). Climb 2 tiles. No yellow tile over a yellow floor (no-embed rule). No roof (world 2).
+- **Hints (design-lead 2026-11-19):** `hint: shiftUp 8 4` stacked over `hint: jump 8 6`, one column over the green floor, read top to bottom as "shift up, then jump, here" (the recording shifts at x 8.11 and jumps at 9.41). Boxes cols 7–9, rows 3–4 and 5–6, empty sky, 8 px apart; the floor under them is row 9. Grace is taught nowhere else, so this combine level is hinted (playtest: about 6 failed jumps). Render-only: no version bump, same recording.
 - **Fair line:** shift up to gear 2 standing (no time limit), shift up again anywhere in 41 steps / 4 tiles of the floor, jump in the 13-step window. **Below the fairness floor (flagged for design-lead):** the jump window is grace + coyote (6 + 6 steps, plus the step you turn yellow), set by tuning, not geometry; the plan row names 12 steps. No layout widens it without letting the player jump from safe ground, which removes grace from the lesson. The ±3 robustness test passes (the recording jumps 6 steps after turning yellow, in the middle of the window).
 - **Safe spots:** P1 (spawn, right before the floor) and the exit block.
 
@@ -298,6 +300,7 @@ One screen (28 × 15), two identical lanes stacked: runner on top (floor row 6),
 - **Cheese check:** the same 71,568-run sweep on the real level: 4,992 wins, **0 without the runner's air wall stop**.
 - **Lane rules:** spawn rows 5 and 12; colored tiles only in rows 6 (runner) and 13 (twin). HUD area clear. 15 rows. Spread on the intended line at most 19.2 (sweep max 21.4; rule ≤ 26).
 - **Safe spots:** both runways (spawns), the runner's floor before its blue bridge, the ground before both exits. The twin has no stop spot after the jump (it is yellow on yellow to its exit), as in the spec.
+- **Hint (design-lead 2026-11-19, runner lane only):** `hint: jump 12 3`, over the middle of the takeoff window (box x 11.4–13.6 tiles, cols 11–13, rows 2–3, empty sky), 3 tiles before the block and at its height; the runner floor under it is row 6. It says "jump here" and the block does the rest. w3-04 and w3-05 stay unhinted (pre-approved fallback: the same glyph if a cold play fails w3-04's opening more than 3 times). Render-only: no version bump, same recording.
 - **Seen on screen:** dev build on port 5187.
 
 **Fastest known:** 552 steps (`1R+ 1R 1R+ 1R 1R+ 58R 1RJ 600R`: shift while starting the run, earliest jump). The runner's blue walk is most of it.

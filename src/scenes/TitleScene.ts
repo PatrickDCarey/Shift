@@ -50,7 +50,7 @@ export class TitleScene extends Phaser.Scene {
     const next = titleStep(this.model, intent);
     this.model = next.model;
     if (next.action !== null) {
-      const jump = titleJump(next.action);
+      const jump = titleJump(next.action, this.model.playTargetId);
       this.scene.start(SCENE_KEYS[jump.target], jump.data);
       return;
     }

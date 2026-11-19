@@ -8,7 +8,10 @@
 # Any standing start at x <= 8.3 works (about 0.2 tiles behind the spawn), so this is a lesson, not a test.
 # The roof (end faces flush with the bridge's first and last columns) stops green and yellow jumps
 # from skipping the bridge: without it, 518 sweep runs jump it from the spawn.
-# No hint glyph (the plan places none here; shift up was taught by w1-02's glyph).
+# Hint (design-lead 2026-11-19): shiftUp at col 2, row 6, over the back wall: it marks where to shift (start
+#   from the back), away from the spawn so the cheap first fall still happens. 3x2 box cols 1-3, rows 5-6,
+#   empty sky; the floor under it is row 9. Render-only: no version bump, same solution.
+hint: shiftUp 2 6
 id: w1-03
 title: Runway
 world: 1

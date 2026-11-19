@@ -26,6 +26,11 @@ export class TipLife {
     if (tip !== null) this.watch();
   }
 
+  /** The tip is on screen now (not paused, not hidden). */
+  isShowing(): boolean {
+    return this.tip?.isVisible() ?? false;
+  }
+
   pause(): void {
     this.timer?.remove(false);
     this.timer = null;

@@ -103,6 +103,7 @@
   "ridges": {
    "far": {
     "top": 128,
+    "parallax": 0.15,
     "height": 88,
     "base": 168,
     "amp": 26,
@@ -112,6 +113,7 @@
    },
    "near": {
     "top": 160,
+    "parallax": 0.3,
     "height": 56,
     "base": 190,
     "amp": 18,

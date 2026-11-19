@@ -4,6 +4,7 @@
  * Owner: gameplay-engineer [scene].
  */
 import type { SimState } from '../core/types';
+import type { RestartCardSnapshot } from './RestartCardController';
 import type { GearMeterModel } from '../ui';
 import { QA_HOOK } from './qaHook';
 
@@ -18,6 +19,8 @@ export interface DebugHook {
   readonly banner: null;
   /** The game's own pause flag; true from the moment Pause is launched until resume or restart. */
   readonly paused: boolean;
+  /** The restart card while it shows: its screen rectangle in 480 x 270 px. Null while hidden. */
+  readonly restartCard: RestartCardSnapshot | null;
 }
 
 /** What the scene reads live each time QA touches the hook. */
@@ -26,6 +29,7 @@ export interface DebugSnapshot {
   readonly replay: DebugHook['replay'];
   readonly meter: GearMeterModel;
   readonly paused: boolean;
+  readonly restartCard: RestartCardSnapshot | null;
 }
 
 export interface DebugSource {
@@ -49,6 +53,9 @@ export function installDebugHook(source: DebugSource): void {
     banner: null,
     get paused() {
       return read().paused;
+    },
+    get restartCard() {
+      return read().restartCard;
     },
   };
   if (QA_HOOK) Object.defineProperty(window, '__redshift', { value: hook, configurable: true });

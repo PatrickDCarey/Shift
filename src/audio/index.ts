@@ -3,7 +3,9 @@
 
 import { createAudioEngine } from './engine';
 import { createMusic } from './music';
+import { createCueLog, type CueLogEntry } from './cueLog';
 import { createSfx } from './sfx';
+import { createStepEventPlayer } from './sfxStep';
 
 export {
   MAX_TONE_SECONDS,
@@ -28,7 +30,18 @@ export {
 export const audio = createAudioEngine();
 
 /** The ten sound effects on the shared engine, plus `sfx.playEvents(events, ctx)` for the scene. */
-export const sfx = createSfx(audio);
+/** Last 64 SFX cues requested, for QA (the scene exposes it on the QA hook only). */
+const cueLog = createCueLog();
+export const debugCues = (): CueLogEntry[] => cueLog.recent();
+
+export const sfx = createSfx(audio, cueLog);
+
+/**
+ * The one in-game SFX call: `playStepEvents(events, { bands })` once per rendered frame with the
+ * flat list of sim events from every step that frame (`[]` while paused). Plays each event's
+ * sound in order; `won` plays only the sting; honours mute and the saved volumes.
+ */
+export const playStepEvents = createStepEventPlayer(audio, cueLog);
 
 /** The adaptive music on the shared engine: call `music.update(frame)` once per rendered frame. */
 export const music = createMusic(audio);
@@ -44,6 +57,8 @@ export {
   type MusicLayerId,
 } from './musicSpec';
 export { createSfx, playCue, type Sfx } from './sfx';
+export { createCueLog, CUE_LOG_SIZE, type CueLog, type CueLogEntry } from './cueLog';
+export { createStepEventPlayer } from './sfxStep';
 export {
   sfxForEvent,
   sfxForEvents,

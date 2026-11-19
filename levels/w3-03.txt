@@ -13,7 +13,11 @@
 # The landing pad is flat (not 2 lower as in w2-02) so both bodies land on the same step: with a lower pad a
 #   shift pressed just before the runner lands reached only the runner (shift buffer), a second way to split.
 # The blue bridge is 10 tiles so a yellow runner cannot jump it (coyote included).
-# No hints (levels-w3.md).
+# Hint (design-lead 2026-11-19, runner lane only): jump at col 12, row 3, over the middle of the takeoff
+#   window (x 11.10-14.50), 3 tiles before the block and at its height: "jump here", then the block takes
+#   the runner's gear. 3x2 box cols 11-13, rows 2-3, empty sky; the runner floor under it is row 6.
+#   Render-only: no version bump, same solution.
+hint: jump 12 3
 id: w3-03
 title: Gear Split
 world: 3

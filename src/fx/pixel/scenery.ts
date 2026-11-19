@@ -15,6 +15,8 @@ const WHITE_PX = rgba({ r: 255, g: 255, b: 255 });
 export interface RidgeSpec {
   /** Where this layer's top edge sits in the 270 px view when the camera is at rest. */
   readonly top: number;
+  /** Camera scroll factor for this layer (0 = fixed, 1 = locked to the world). */
+  readonly parallax: number;
   readonly height: number;
   readonly base: number;
   readonly amp: number;
@@ -24,8 +26,8 @@ export interface RidgeSpec {
 }
 
 export const RIDGES = {
-  far: { top: 128, height: 88, base: 168, amp: 26, k1: 2, k2: 5, phase: 0.9 },
-  near: { top: 160, height: 56, base: 190, amp: 18, k1: 3, k2: 8, phase: 1.7 },
+  far: { top: 128, parallax: 0.15, height: 88, base: 168, amp: 26, k1: 2, k2: 5, phase: 0.9 },
+  near: { top: 160, parallax: 0.3, height: 56, base: 190, amp: 18, k1: 3, k2: 8, phase: 1.7 },
 } as const satisfies Record<string, RidgeSpec>;
 
 /** Ridge height (view y) at column x. Integer wave counts make it repeat every `VIEW_W` px. */

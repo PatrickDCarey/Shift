@@ -187,7 +187,6 @@ test.describe('level select', () => {
 
   // BUG-5: title -> LEVELS opens level select on w1-01, not on the PLAY target (level-select.md, Initial focus).
   test('initial focus from the title is the PLAY target (level-select.md, Initial focus; BUG-5)', async ({ page }) => {
-    test.fail(true, 'BUG-5: titleJump(levels) passes no focusId, so focus starts on w1-01');
     await seedSave(page, { completed: ['w1-01'], bestSteps: { 'w1-01': 775 } });
     await gotoTitle(page);
     await openLevelSelectFromTitle(page);

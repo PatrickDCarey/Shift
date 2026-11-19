@@ -473,3 +473,109 @@ _(superseded by run 2 for e2e)_
 - Pause during the death freeze (pause check 11): timing-bound, unit-only.
 - Level-select greyscale distinguishability (check 15) and 8 px margins (check 16): visual; model/layout unit tests own the numbers.
 - 60 fps (G6) still not measured.
+
+## 9. Batch 7 additions (B7-09, added 2026-11-19; plan only, nothing run yet)
+
+Verification sitting: **B7-14** (wave 3; port 4173 alone, two full e2e runs at most). Hand checks go to the owner (**USER-9**). Kinds: **E** = Playwright e2e, **U** = unit/level test (the owner's; QA only confirms it exists and passes in the suite), **H** = hand.
+
+**Hook dependency.** The restart card checks read a new field `window.__redshift.restartCard` that [scene] is adding. QA assumes `null` when hidden and an object with at least `{ visible, x, y, w, h }` (480x270 screen px) when shown. If the shape differs, the specs are adjusted at B7-14; if the field is missing, R-2 (e2e half) to R-8 are blocked and filed as a bug against [scene].
+
+### 9.1 restart-prompt.md (8 checks)
+
+| ID | Check | How verified | Spec check | Kind |
+|---|---|---|---|---|
+| R-1 | `sealedPockets` finds exactly w3-02 rows 7-9 cols 10-25, w3-03 rows 7-9 cols 25-34, none in the other 12 levels (w0-02 too); inline-grid cases | Confirm the unit test exists and passes in `npm test`; QA cross-checks the two rectangles by reading the level rows | 1 | U + QA read |
+| R-2 | 59 steps no card, 60 steps card; restart or respawn clears and recounts; pause steps do not count; a home body never counts | Unit test present and green. E2E side: after landing in the pocket (R-4), poll `state.step` and `restartCard` every frame; assert null until step - landStep reaches 60, shown within 1-2 rendered frames after | 2 | U + E |
+| R-3 | Card 64x19, integer px, 8 px margins, clear of the HUD, y 42 when a body is at the bottom, 4 px above the Sticky Keys tip | Unit (placement helper). E2E: from the R-4 hook rectangle assert w = 64, h = 19, integer x/y, x + w/2 = 240, y + h = 262, no overlap with the HUD rectangle | 3 | U + E |
+| R-4 | w3-02 repro: card within about 1 s of landing, centred at the bottom; R clears it on the first frame of the new run; `state.step` near 0 | E2E, `?level=w3-02`, the spec's input script (Right 4.8 s, E, Right 4.5 s, Q, Left 0.9 s, Right 0.75 s, Space) as real key events. Timing-driven: if the run does not end in the pocket the test fails showing the observed position instead of passing | 4 | E |
+| R-5 | w3-03: solution until the twin is home (step 281), hold Right until runner x >= 26, release; card about 1 s later; pause and resume keeps it; R clears | E2E. Solution inputs to step 281, then poll the hook and release Right on the frame x >= 26. Pause via Esc; assert `restartCard` non-null after resume and `state.step` frozen during the pause | 5 | E |
+| R-6 | No false card: w1-01 let go on a bridge (death, respawn); w3-01 both bodies fall; w3-02 won by its solution | E2E: poll `restartCard` every frame through each scenario, assert never non-null; reuse the existing solution/replay helpers | 6 | E |
+| R-7 | Same look with reduced motion and with reduced effects on | E2E: R-4 repeated with both settings seeded in the save; assert the hook rectangle equals R-4's and a clipped screenshot of the card rectangle is pixel-equal to R-4's. **One screenshot check:** `docs/qa/evidence/b7-restart-card.png` (default) judged by eye at B7-14: one row, `[R]` cap, word RESTART, bordered panel, centred at the bottom | 7 | E + H (look) |
+| R-8 | `?replay=1` with a recording ending in the w3-02 pocket shows the card | E2E if a recording can be built from the R-4 inputs with the existing replay helper; no shipped file holds one. If it cannot be built without a new fixture it is a hand check and reported | 8 | E (or H) |
+
+### 9.2 adaptive-audio.md 13-15 (in-game SFX)
+
+Headless Chromium cannot be heard. Today `src/audio` exposes `audio.state`, `audio.getSettings()` and `audio.activeVoices()` (a count at one instant) and `MusicSnapshot`, but **no record of which cue played**, and the QA hook does not expose the engine. A voice count sampled at poll time cannot show that one particular cue played once. See request A-1.
+
+| ID | Check | How verified | Spec check | Kind |
+|---|---|---|---|---|
+| A-13 | Per-frame wiring: two steps `[jump]`,`[airDrag]` give jump once then clunk once; no steps nothing; paused nothing; `[home 0, home 1, won]` only the sting | Confirm the fake-engine unit test exists and passes | 13 | U |
+| A-14 | A caller of the SFX path exists outside `src/audio` | grep `src/scenes/GameScene.ts` and `src/entities` for the events call; paste the output into the B7-14 report | 14 | QA read |
+| A-15a | Each named action produces its cue (w1-02 E and Q; w2-01 jump and land; w1-01 bridge fall-through then reset; R reset; w2-02 clunk; win sting; `?replay=1` the same) | If A-1 is delivered: E2E reads the cue log and asserts names and order per scenario, after a first key press to unlock. If not: hand only | 15 | E (if A-1) else H |
+| A-15b | Clunk clearly not the shift-down click; the sounds sound right | By ear, owner (USER-9) | 15 | H |
+| A-15c | `audio.state` is `locked` before the first key and `running` after; `activeVoices()` never above 24 over a full w1-02 run | E2E through the page if the engine is reachable (A-1), else skipped | 15 / 12 | E (if A-1) |
+
+### 9.3 onboarding-hints.md 10-11
+
+| ID | Check | How verified | Spec check | Kind |
+|---|---|---|---|---|
+| H-10 | w1-03 exactly `shiftUp 2 6`; w2-04 exactly `shiftUp 8 4` and `jump 8 6`; w3-03 exactly `jump 12 3`; anchors empty, boxes over empty cells, anchors >= 3 rows above the floor; `version` unchanged; `npx vitest run tests/levels` passes | QA reads the three level headers and grids, and `git diff` for the `version` line; the levels test runs inside the full unit run | 10 | QA read + U |
+| H-11a | On a fresh load of w1-03, w2-04, w3-03 the new glyphs are visible on the first frame, and still after a death and after R | E2E, extension of `clarity.spec.ts` (hint key caps already read through `gameObjects`) | 11 | E |
+| H-11b | w2-04: `shiftUp` box directly above `jump` box in one column, boxes at least 8 px apart | E2E: compare x and y of the two cap objects: equal x, vertical gap >= 8 | 11 | E |
+| H-11c | w3-03: `jump` box in the runner's lane, left of the hanging block | E2E: y inside the runner lane band, x less than the block's x read from the level file | 11 | E |
+| H-11d | Scrolled to the far right of w2-04 and w3-03, no glyph passes under the HUD panel | E2E: run the solution and sample every glyph box against the HUD rectangle (screen space) every 10th frame | 11 | E |
+| H-12 | Cold playtest of the three hints | Playtester (B7-15), not QA | 12 | H |
+
+### 9.4 settings.md 1-8 (keys only)
+
+| ID | Check | How verified | Spec check | Kind |
+|---|---|---|---|---|
+| S-1 | SOUND OFF: silent in a level; persists over reload | E2E: flip with keys, read the saved `muted` flag, reload, read again (and `audio.getSettings().muted` if A-1). The silence itself by ear | 1 | E (state) + H (ear) |
+| S-2 | REDUCED MOTION ON: no wipe or ring on the w2-02 red takeoff; with the OS flag and no saved value the row reads ON | E2E: row value through `menuModel`; OS flag via `emulateMedia({ reducedMotion: 'reduce' })` on a fresh context with no save, row reads ON. Wipe and ring are not assertable (section 8 limits): hand | 2 | E (row, OS) + H (wipe) |
+| S-3 | REDUCED EFFECTS ON: no stars, afterimages, speed lines at red | E2E: flag set through the screen, then `gameObjects` shows no star or afterimage objects (extends the existing reduced-effects test). Speed lines only if distinguishable by frame name, else hand | 3 | E + H |
+| S-4 | Esc returns to the title with SETTINGS focused; from pause (if built) back to pause, SETTINGS focused, `state.step` unchanged | E2E: `menuFocus` after Esc. Pause variant only if the pause item ships (Should); otherwise skipped and recorded | 4 | E |
+| S-5 | Left/Right Shift, Q, E, Z, X change no row and no focus | E2E: press each, assert `menuModel` and `menuFocus` unchanged | 5 | E + U |
+| S-6 | Model flips on Enter, Space, Left, Right; one save write per change; reduced motion with no saved value reads the OS flag | Unit (ui-engineer's), confirm present and green. E2E adds: flip one row, read the stored JSON before and after each key, assert exactly one change | 6 | U + E |
+| S-7 | Greyscale: every row's value reads by box shape plus word | Hand, greyscale screenshot `docs/qa/evidence/b7-settings-grey.png`; the model unit test owns glyph and word | 7 | H |
+| S-8 | Reachable from boot; every row flipped with arrows/WASD, Enter/Space, Esc only | E2E with no mouse calls: boot, title, SETTINGS, flip each row twice, Esc. A second run with storage blocked: toggles still work for the session | 8 | E |
+
+### 9.5 pause.md 13 and the dropped-key edge case
+
+| ID | Check | How verified | Spec check | Kind |
+|---|---|---|---|---|
+| P-13 | Space and Esc on one frame: pause opens; after RESUME (Space released first) no jump, `state.step` and `vy` as before the pause | E2E: one `page.evaluate` dispatches both keydowns in the same task (the technique of the existing Esc+Space test in `pause-menu.spec.ts`), release Space, resume, step a few frames, assert vy unchanged and the body still on the floor | 13 | E |
+| P-13b | Closing frame: Space pressed with the closing Esc never reaches the sim | E2E, same helper reversed (rule text: "nothing pressed with the closing Esc reaches the sim") | rule | E |
+| P-13c | Held keys still follow the held rule: Right held through open and close keeps running | Existing check 4; confirm it still passes | rule | E (existing) |
+| P-13d | **Dropped-key edge case:** a key that goes down on the opening frame and is still held at resume | E2E asserting the literal reading: dropped until released and pressed again (see ambiguity in 9.8) | rule | E |
+| P-13e | Other overlay frames: a key pressed on the win step does not reach Results; Controls round trip | Existing results and pause-menu specs; confirm green | rule | E (existing) |
+
+### 9.6 BUG-5 and BUG-6
+
+| ID | Check | How verified | Kind |
+|---|---|---|---|
+| B5-1 | BUG-5: with a save holding w1-01 cleared, title Down, Enter opens level select focused on the `playTarget` (w1-02) | At B7-14, remove `test.fail()` from `tests/e2e/menus.spec.ts` only once the fix is landed; the test must then pass in both full runs. If the fix has not landed, leave the marker and report | E |
+| B5-2 | Other save shapes: fresh save opens on w1-01; all cleared opens on what `playTarget` returns (null falls back to w1-01) | Small extension of B5-1 using the existing save seed helper | E |
+| B6-1 | BUG-6, one failed load recovers: no black screen | New `tests/e2e/boot-retry.spec.ts`. `page.route` on the `pixel-*` image URLs (pattern confirmed from the build output) aborts the first request of one texture (counter in the handler), then `route.continue()`. Expect the Title scene reached (`pollScenes`), a non-black canvas screenshot, and no console error other than the allow-listed loader warning for that URL | E |
+| B6-2 | BUG-6, failing twice shows `COULD NOT LOAD THE GAME. RELOAD THE PAGE TO TRY AGAIN.` | Same spec, `route.abort()` for every request of that texture. Expect the message text (read through `gameObjects` if it is bitmap text, else DOM text), Title never reached, and a bounded request count (no endless retry) | E |
+| B6-3 | Normal boot unaffected | Existing smoke spec, plus one assert that no asset URL is fetched twice on a clean boot | E |
+
+### 9.7 Automate at B7-14, and hand checks for the owner (USER-9)
+
+**Automate at B7-14** (two full runs at most; each new spec is first run alone with `--grep`, so no extra full runs): R-2 (e2e half), R-3, R-4, R-5, R-6, R-7 (state and clip compare), R-8 (if a recording can be built), H-11a to H-11d, S-1 (state half), S-2 (row, OS flag), S-3, S-4, S-5, S-6 (e2e half), S-8, P-13, P-13b to P-13e, B5-1, B5-2, B6-1 to B6-3; A-15a and A-15c only if request A-1 is delivered.
+**QA reads or greps, no new test:** R-1 and A-13 (unit tests exist and pass), A-14, H-10.
+
+**Hand, owner (USER-9):**
+- A-15b, and the audible halves of A-15a and S-1: every SFX heard, the clunk clearly not the shift-down click, SOUND OFF silent before and after reload, `?replay=1` plays the same sounds.
+- Visual halves of S-2 and S-3: wipe and ring gone under reduced motion; stars, afterimages and speed lines gone under reduced effects.
+- S-7 greyscale legibility; the look of the restart card (QA captures the screenshot, the owner judges it).
+- H-12 stays with the playtester (B7-15). 60 fps (G6) is not measured in this batch.
+
+### 9.8 Ambiguous or untestable as written (for design-lead)
+
+- restart-prompt 4: "the card shows within about 1 s of landing". The rule is 60 sim steps, so the test asserts 60 steps plus 1-2 rendered frames. Say whether the tolerance is frames or seconds.
+- restart-prompt 5: "until the runner is wholly on its blue bridge (x >= 26)". Which body, and which edge of it: assumed the runner's `x` in tiles from the hook.
+- restart-prompt 7: "the card looks the same". A look check; e2e proves only equal rectangle and equal clipped pixels.
+- restart-prompt 8: "a recording that ends with the runner in the w3-02 pocket". No such recording ships and the spec does not say who produces it.
+- restart-prompt placement: "If that would overlap any non-home body's sprite on screen" needs a body at the bottom of the view; no level does it, so unit only.
+- adaptive-audio 15: "plays the shift up and shift down clicks" is by ear only without a cue log (A-1).
+- settings 3: "no stars, afterimages or speed lines" is assertable only if each has a distinct display-list name.
+- settings 4: "From pause (if built)" is conditional; skipped and recorded if the pause item is not built.
+- pause 13 and the edge case: "Keys pressed on the frame the pause opens or closes ... are dropped" versus "Held keys still follow the rule above" (held through a pause counts as held after resume). A key down on the opening frame and still held at resume fits both. P-13d asserts "dropped until released and pressed again" (the Space example). If the other reading is meant, Right held with Esc keeps running after resume.
+- onboarding 11: "left of the hanging block": no reference point given; assumed the block's column in the level file.
+
+### 9.9 Requests to other owners (the requester adds the line to `docs/production/requests.md`; QA does not edit it)
+
+- **A-1, audio-designer:** an inspectable record of played cues, for example `audio.debugCues()` returning the last 64 `{ cue, body?, atMs, audible }` (recorded where `sfx` schedules a tone, also when muted or locked). It must be reachable from the page under the `VITE_QA_HOOK` guard only, either as `window.__redshift.audio = { cues, state, activeVoices, settings }` (with [scene]) or as `window.__redshiftAudio`. Without it A-15a, A-15c and the state half of S-1 are hand checks.
+- **A-2, gameplay-engineer [scene]:** `window.__redshift.restartCard`: `null` when hidden, else `{ visible: true, x, y, w, h }` in 480x270 screen px. Confirm the shape before B7-14.
+- **A-3, tech-lead (BUG-6 fix):** state the asset URL pattern, the retry count, and where the failure message is drawn (Phaser bitmap text so `gameObjects` can read it, or a DOM element with an id). Otherwise B6-2 reads pixels.
+- **A-4, design-lead:** answer the dropped-key ambiguity and the "x" in restart-prompt 5; name who records the restart-prompt 8 recording (level-designer) or drop to hand.

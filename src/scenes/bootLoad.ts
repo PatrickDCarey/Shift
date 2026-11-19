@@ -1,0 +1,90 @@
+/**
+ * Boot load policy (B7-03, BUG-6). Pure: no Phaser, no DOM, so it is unit
+ * tested; `BootScene` wires it to the loader. Owner: tech-lead.
+ *
+ * Two layers of retry, each for a different failure (Phaser 3.90 source,
+ * `node_modules/phaser/src/loader`):
+ *
+ * 1. A network error on a request (`File.onError`) is retried by Phaser itself,
+ *    `LoaderPlugin.maxRetries` times, silently. Only when those run out does it
+ *    emit `loaderror` and count the file in `complete`'s `totalFailed`.
+ * 2. A file that downloaded but failed to decode (`File.onProcessError`, the
+ *    "Failed to process file" in BUG-6's evidence) is never retried by Phaser,
+ *    emits no `loaderror`, is not counted in `totalFailed`, and logs
+ *    `console.error`. So the scene cannot trust the events; it checks the
+ *    texture and font caches after `complete` instead, and this policy decides.
+ */
+
+/** The first load plus one retry of whatever is still missing. */
+export const BOOT_LOAD_ATTEMPTS = 2;
+
+/** Phaser's own per-request retries on a network error, within each attempt (its default, made explicit). */
+export const LOADER_REQUEST_RETRIES = 2;
+
+/** Design-lead copy, `docs/design/decisions.md` 2026-11-19. */
+export const BOOT_FAILURE_MESSAGE = 'COULD NOT LOAD THE GAME. RELOAD THE PAGE TO TRY AGAIN.';
+
+/** DOM id of the failure message, so the page and Playwright can find it without the QA hook. */
+export const BOOT_ERROR_ELEMENT_ID = 'boot-error';
+
+export type BootStep =
+  | { readonly kind: 'start' }
+  | { readonly kind: 'retry'; readonly keys: readonly string[] }
+  | { readonly kind: 'fail'; readonly keys: readonly string[] };
+
+/**
+ * What Boot does after load attempt `attempt` (1-based) finished with the asset
+ * keys in `missing` still absent from the caches.
+ */
+export function nextBootStep(attempt: number, missing: readonly string[]): BootStep {
+  if (!Number.isInteger(attempt) || attempt < 1) throw new RangeError(`attempt must be an integer >= 1, got ${attempt}`);
+  if (missing.length === 0) return { kind: 'start' };
+  const keys = [...missing];
+  return attempt < BOOT_LOAD_ATTEMPTS ? { kind: 'retry', keys } : { kind: 'fail', keys };
+}
+
+/** The format strings Phaser 3.90's loader passes to `console.error` (File.js, MultiFile.js). */
+const LOADER_ERROR_FORMATS: ReadonlySet<string> = new Set([
+  'Failed to process file: %s "%s"',
+  'File failed: %s "%s" (via %s "%s")',
+]);
+
+/** True for a `console.error` call made by Phaser's loader on a failed file. */
+export function isLoaderFailureLog(args: readonly unknown[]): boolean {
+  const first = args[0];
+  return typeof first === 'string' && LOADER_ERROR_FORMATS.has(first);
+}
+
+/** The part of `console` the capture touches; a fake in tests. */
+export interface ErrorSink {
+  error: (...args: unknown[]) => void;
+}
+
+export interface LoaderErrorCapture {
+  /** Loader error calls held back so far, arguments as logged. */
+  readonly captured: ReadonlyArray<readonly unknown[]>;
+  /** Puts the original `error` back (once; a later replacement is left alone). */
+  release(): void;
+}
+
+/**
+ * Holds Phaser's loader errors back while Boot loads, so a failure the retry
+ * then fixes does not end up as a console error; every other error passes
+ * straight through. Boot logs the held calls as a warning if the retry
+ * recovers, or as errors if it does not.
+ */
+export function captureLoaderErrors(sink: ErrorSink): LoaderErrorCapture {
+  const original = sink.error;
+  const captured: unknown[][] = [];
+  const filter = (...args: unknown[]): void => {
+    if (isLoaderFailureLog(args)) captured.push(args);
+    else original.apply(sink, args);
+  };
+  sink.error = filter;
+  return {
+    captured,
+    release: () => {
+      if (sink.error === filter) sink.error = original;
+    },
+  };
+}

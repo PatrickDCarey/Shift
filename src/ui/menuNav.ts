@@ -23,12 +23,13 @@ export interface LevelSelectSceneData {
   readonly focusId?: string;
 }
 
-export function titleJump(action: TitleAction): SceneJump {
+/** `playTargetId` is the level PLAY would start; LEVELS opens level select focused on it (level-select.md, Initial focus). */
+export function titleJump(action: TitleAction, playTargetId: string | null = null): SceneJump {
   switch (action.type) {
     case 'start':
       return { target: 'game', data: { levelId: action.levelId } };
     case 'levels':
-      return { target: 'levelSelect' };
+      return playTargetId === null ? { target: 'levelSelect' } : { target: 'levelSelect', data: { focusId: playTargetId } };
     case 'controls':
       return { target: 'controls', data: { from: 'title' } };
   }

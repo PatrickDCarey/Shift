@@ -30,6 +30,7 @@ import { OverlayGate } from '../entities/overlayGate';
 import { PauseState, pauseWanted, type PauseChange } from '../entities/pauseState';
 import { PlayerView } from '../entities/PlayerView';
 import { QA_HOOK } from '../entities/qaHook';
+import { RestartCardController } from '../entities/RestartCardController';
 import { chooseFrameSource, parseReplayRequest, type FrameSource } from '../entities/replay';
 import { RunControl } from '../entities/runControl';
 import type { RunDriver } from '../entities/runDriver';
@@ -86,6 +87,7 @@ export class GameScene extends Phaser.Scene {
   /** The twin's view, created on first sight of `state.twin` (one instance per body). */
   private twinView: PlayerView | null = null;
   private hintView: HintView | null = null;
+  private restartCard!: RestartCardController;
   private rig!: CameraRig;
   private reduced = false;
   private fx!: FeedbackFx;
@@ -146,6 +148,7 @@ export class GameScene extends Phaser.Scene {
     this.twinView = null;
     this.levelView = new LevelView(this, level, tuning.tileSize, this.reduced);
     this.hintView = new HintView(this, hintPlans(level.meta.hints, tuning.tileSize));
+    this.restartCard = new RestartCardController(this, level, { ...tuning, stepHz: params.stepHz });
     this.playerView = new PlayerView(this, 'runner', tuning, this.reduced);
     const settings = this.store.getSettings();
     const modes = effectModes({ reducedEffects: settings.reducedEffects, reducedMotion: this.reduced }, level.twinStart !== null);
@@ -288,6 +291,8 @@ export class GameScene extends Phaser.Scene {
     if (twin !== null && state.twin !== null) bodies.push({ ...twin, home: state.twin.home });
     this.rig.follow(level, bodies, twin, state.twin, bodyHeightPx);
     this.rig.applyTint(Math.abs(state.player.vx), delta);
+    const cam = this.cameras.main;
+    this.restartCard.update(state, events, { x: cam.scrollX, y: cam.scrollY }, this.tip?.isShowing() ?? false);
     this.backdrop.update(this.rig.tintedSpeed, this.cameras.main.scrollX);
     if (!paused) this.fx.update(delta);
   }
@@ -339,6 +344,7 @@ export class GameScene extends Phaser.Scene {
       replay: replay === null ? { active: false, done: false, frames: 0 } : { active: true, done: replay.feed.isDone(state), frames: replay.feed.frames.length },
       meter: this.meter,
       paused: this.pause.paused,
+      restartCard: this.restartCard.snapshot(),
     };
   }
 
@@ -351,6 +357,7 @@ export class GameScene extends Phaser.Scene {
     this.levelView.destroy();
     this.hintView?.destroy();
     this.hintView = null;
+    this.restartCard.destroy();
     this.playerView.destroy();
     this.twinView?.destroy();
     this.twinView = null;

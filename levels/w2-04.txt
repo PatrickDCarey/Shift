@@ -12,7 +12,13 @@
 #   reach of any jump from safe ground (0 wins from P1 in the sweep, levels/README.md).
 # Why the floor ends at col 14 and the safe block starts at col 22: a green jump from the end of the floor
 #   cannot reach the safe block (a draft with a 2-tile gap let a green jump land on it).
-# No roof (world 2). No hint glyph (none in the plan).
+# No roof (world 2).
+# Hints (design-lead 2026-11-19): shiftUp at col 8, row 4 stacked over jump at col 8, row 6, one column over
+#   the green floor: read top to bottom, "shift up, then jump, here" (recorded shift x 8.11, jump x 9.41).
+#   3x2 boxes cols 7-9, rows 3-4 and 5-6, empty sky, 8 px apart; the floor under them is row 9.
+#   Render-only: no version bump, same solution.
+hint: shiftUp 8 4
+hint: jump 8 6
 id: w2-04
 title: Two Colors
 world: 2
