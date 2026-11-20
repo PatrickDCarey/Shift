@@ -65,8 +65,11 @@ test('menus in a 960x540 iframe in a tall host page: arrows, Space, Enter, Esc a
   await pollScenes(frame, ['Title']);
 
   // Controls.
+  // (batch 7: SETTINGS is the 4th title item, so from LEVELS two Downs land on it and one Up on CONTROLS)
   await pressNoScroll(page, frame, 'ArrowDown');
   await pressNoScroll(page, frame, 'ArrowDown');
+  await expect.poll(() => menuFocus(frame, 'Title')).toBe('settings');
+  await pressNoScroll(page, frame, 'ArrowUp');
   await expect.poll(() => menuFocus(frame, 'Title')).toBe('controls');
   await pressNoScroll(page, frame, 'Enter');
   await pollScenes(frame, ['Controls']);

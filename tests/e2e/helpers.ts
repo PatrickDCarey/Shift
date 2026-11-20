@@ -437,7 +437,7 @@ export async function jumpAndPressInAir(page: Page, code: string, trigger: AirTr
 // ---------------------------------------------------------------------------------------------------------------------
 
 /** Scene keys as in `src/scenes/keys.ts`. */
-export type SceneName = 'Boot' | 'Game' | 'Title' | 'LevelSelect' | 'Pause' | 'Results' | 'Controls';
+export type SceneName = 'Boot' | 'Game' | 'Title' | 'LevelSelect' | 'Pause' | 'Results' | 'Controls' | 'Settings';
 
 interface ProbeScene {
   readonly sys: { readonly settings: { readonly key: string }; isActive(): boolean };
@@ -594,7 +594,17 @@ export interface SeedSave {
 export async function seedSave(page: Page, seed: SeedSave): Promise<void> {
   const save = {
     version: 1,
-    settings: { musicVolume: 0.7, sfxVolume: 1, reducedEffects: false, reducedMotion: false, muted: false, stickyKeysTipShown: true, ...seed.settings },
+    // Since batch 7 a saved `reducedMotion` counts only with `reducedMotionChosen` (else the OS flag decides), so a seed that sets one sets the other.
+    settings: {
+      musicVolume: 0.6,
+      sfxVolume: 0.8,
+      reducedEffects: false,
+      reducedMotion: false,
+      reducedMotionChosen: seed.settings?.['reducedMotion'] !== undefined,
+      muted: false,
+      stickyKeysTipShown: true,
+      ...seed.settings,
+    },
     progress: { completedLevels: seed.completed ?? [], bestSteps: seed.bestSteps ?? {} },
   };
   await page.addInitScript((json: string) => {
@@ -652,4 +662,93 @@ export function minStepSeen(page: Page): Promise<number> {
 export async function tap(page: Page, key: string): Promise<void> {
   await page.keyboard.press(key);
   await nextFrames(page, 3);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Batch 7: restart card and cue log (B7-14). Everything is sampled inside the page, per rendered frame.
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** The restart card rectangle on the QA hook, 480x270 screen px (null while hidden). */
+export interface CardRect {
+  readonly visible: true;
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+}
+
+/** One rendered frame as seen by {@link startCardTracker}. */
+export interface CardSample {
+  readonly step: number;
+  readonly x: number;
+  readonly y: number;
+  readonly status: string;
+  readonly paused: boolean;
+  readonly card: CardRect | null;
+}
+
+/** Record (step, runner position, card) on EVERY animation frame into `window.__cards`, so the 60-step rule can be judged to the frame. */
+export function startCardTracker(page: Page): Promise<void> {
+  return page.evaluate(() => {
+    const w = window as unknown as { __cards: unknown[]; __cardsOn: boolean };
+    w.__cards = [];
+    w.__cardsOn = true;
+    const tick = (): void => {
+      const h = window.__redshift as unknown as { state: { step: number; status: string; player: { x: number; y: number } }; paused: boolean; restartCard: unknown } | undefined;
+      if (h) w.__cards.push({ step: h.state.step, x: h.state.player.x, y: h.state.player.y, status: h.state.status, paused: h.paused, card: h.restartCard });
+      if (w.__cardsOn) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/** Stop the card tracker and return every frame it saw. */
+export function stopCardTracker(page: Page): Promise<readonly CardSample[]> {
+  return page.evaluate(() => {
+    const w = window as unknown as { __cards: CardSample[]; __cardsOn: boolean };
+    w.__cardsOn = false;
+    return w.__cards;
+  });
+}
+
+/** From the first page script on, remember whether the restart card was EVER non-null (`window.__cardSeen`) on any frame. */
+export async function watchCardFromBoot(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __cardSeen: boolean };
+    w.__cardSeen = false;
+    const tick = (): void => {
+      const h = window.__redshift as unknown as { restartCard: unknown } | undefined;
+      if (h && h.restartCard !== null) w.__cardSeen = true;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+export function cardEverSeen(page: Page): Promise<boolean> {
+  return page.evaluate(() => (window as unknown as { __cardSeen: boolean }).__cardSeen);
+}
+
+/** The Game scene's camera scroll, px. */
+export function cameraScroll(page: Page): Promise<{ x: number; y: number }> {
+  return page.evaluate(() => {
+    const g = (window as unknown as { __game: { scene: { getScene(k: string): { cameras: { main: { scrollX: number; scrollY: number } } } } } }).__game;
+    const c = g.scene.getScene('Game').cameras.main;
+    return { x: c.scrollX, y: c.scrollY };
+  });
+}
+
+/** The cue log on the QA hook (last 64 SFX cues requested, oldest first). */
+export interface CueEntry {
+  readonly cue: string;
+  readonly body?: number | 'both';
+  readonly atMs: number;
+  readonly audible: boolean;
+}
+
+export function readCues(page: Page): Promise<CueEntry[]> {
+  return page.evaluate(() => {
+    const h = window.__redshift as unknown as { audio?: { cues(): CueEntry[] } } | undefined;
+    return h?.audio ? JSON.parse(JSON.stringify(h.audio.cues())) as CueEntry[] : [];
+  });
 }

@@ -62,7 +62,7 @@ Found by a flaky test of mine: `page.keyboard.press` for E, Right Shift and X ba
 Update 2026-11-05: still open at 68bdce0 (orchestrator confirmed the solutions are in the bundle). Not a gate blocker (minor); it must be closed before the first public itch.io upload.
 
 ### BUG-5: title -> LEVELS opens level select on w1-01 instead of the PLAY target
-Status: **OPEN**
+Status: **CLOSED 2026-11-20** (verified at b8196e2: the test has no `test.fail`, passes alone and in both full runs; B5-2 save shapes pass too)
 Severity: minor
 Owner: ui-engineer (`src/ui/menuNav.ts` `titleJump`, `src/scenes/TitleScene.ts`)
 Build/commit: 9f8ffb7 (batch 6)
@@ -73,7 +73,7 @@ Evidence: `tests/e2e/menus.spec.ts` "initial focus from the title is the PLAY ta
 Note: low impact (one extra keypress); title check 7 and level-select check 12 (Esc returns to the title with LEVELS focused) are fine.
 
 ### BUG-6: rare boot failure: every `pixel-*` image fails to load, the game stays black, no retry (seen 2 times in about 800 page loads)
-Status: **OPEN** (not reproduced on demand; filed so it is not lost)
+Status: **OPEN, partly fixed (2026-11-20, b8196e2).** The black screen is gone: Boot now retries once and otherwise shows `#boot-error` (B6-1..B6-3 pass). But the retry does NOT recover the real failure. In full run 2 of B7-14, 3 of about 190 page boots (audio-cues "live win of w1-01", restart-card "check 7: reduced effects", tandem-scene "S4 greyscale") failed with every sheet failing decode on BOTH attempts (`Failed to process file ... image pixel-*` twice, then `Boot: ... still missing after 2 load attempts pixel-player, pixel-tiles, pixel-scenery, pixel-hud, pixel-fx, pixel-tileset, pixel-font`). Each of the three passes when re-run alone (run 1 had none). So the cause persists within that page (decode of all images failing), not a one-off. Evidence: `window.__redshift never appeared` plus the error list in the run 2 output. Needs tech-lead: probably still a test-machine-load effect (software WebGL, 2 workers), but a player on a loaded machine would now see the message and have to reload. Not closed.
 Severity: minor (polish if it only happens under test-machine CPU load; major if a real browser can hit it, since the player sees a black canvas and a reload is the only recovery)
 Owner: tech-lead (`src/scenes/BootScene.ts`, preload) to decide whether Boot should retry or show a message; no product change is certain to be needed
 Build/commit: 9f8ffb7 plus QA specs, `vite preview` of a `VITE_QA_HOOK=1` build, headless Chromium, 2 workers, machine busy (OneDrive and other background jobs)
@@ -82,3 +82,14 @@ Expected: every asset loads, or a failed load is retried or reported on screen.
 Actual: console shows `Failed to process file: ... image pixel-player` (then the same for pixel-scenery, pixel-fx, pixel-tiles, pixel-hud, pixel-font, pixel-tileset) and `pageerror: texture "pixel-tileset" is not loaded (BootScene must load it)`. The scene never starts; the test times out at 45 s. The same page loads fine on the next attempt (all other tests in the same run, and a reload).
 Evidence: `docs/qa/evidence/b6-asset-load-failure.txt` (Playwright output of run 5, 2026-11-18). Not seen in the 3 earlier full runs of the same day, nor in about 15 manual loads.
 Note: cause unknown (a transient fetch or blob-decode failure under load; Phaser's loader has no retry). No e2e test hides it: the shared fixture fails any test that logs a console error, so it shows up as one flaky failure per run. If tech-lead judges it test-machine noise, close it as such.
+
+### BUG-7: a key that goes down on the frame Pause opens, and is still held at resume, keeps running the player
+Status: **OPEN**
+Severity: minor
+Owner: gameplay-engineer [scene] (input sampling / pause hand-off in `src/scenes/GameScene.ts`, `src/entities/inputSampler.ts`, `overlayGate.ts`)
+Build/commit: b8196e2
+Steps: 1. `?level=w1-02`, wait until standing. 2. In one task dispatch keydown `Escape` and keydown `ArrowRight` (same frame). 3. Pause opens. Keyup `Escape`, keep Right down. 4. Press Esc to resume. 5. Read `state.player.vx` after 40 more steps.
+Expected: `docs/design/features/pause.md` check 14 and the ruling in `docs/design/decisions.md` (2026-11-19): a key that goes down on the opening frame is a pressed key and is ignored until released and pressed again; after RESUME `vx` is 0 and `x` unchanged until Right is released and pressed again.
+Actual: after resume `vx` is 3 and the runner runs. (The closing-frame twin of the rule passes: Space down with the closing Esc never jumps, P-13b.)
+Evidence: `tests/e2e/pause-keys.spec.ts` "P-13d / pause 14", marked `test.fail()` (BUG-7) so the suite stays green; remove the marker when fixed. Single run: `Expected: 0 Received: 3` at the `vx` assertion.
+Note: needs two keydowns in one task, which a human can only approach (Esc and a movement key within one 16 ms frame), so impact is low. Check 13 (Space with Esc) passes in `pause-menu.spec.ts`.

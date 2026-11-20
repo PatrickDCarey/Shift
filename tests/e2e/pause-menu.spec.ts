@@ -130,7 +130,7 @@ test('RESTART (Enter on the item) behaves like R and does not leave Pause open',
 
 test('LEVELS leaves the level: level select opens focused on this level, the game is stopped, the save is unchanged (pause check 8)', async ({ page }) => {
   await openPause(page, 'Escape');
-  for (let i = 0; i < 3; i += 1) {
+  for (let i = 0; i < 4; i += 1) { // RESUME, RESTART, CONTROLS, SETTINGS, LEVELS (batch 7 added SETTINGS)
     await page.keyboard.press('ArrowDown');
     await frames(page, 3); // taps inside one frame merge into one move
   }

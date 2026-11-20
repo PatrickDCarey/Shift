@@ -193,6 +193,21 @@ test.describe('level select', () => {
     expect(await menuFocus(page, 'LevelSelect'), 'focus starts on the PLAY target').toBe('w1-02');
   });
 
+  // B5-2 (test-plan 9.6): other save shapes.
+  test('fresh save: LEVELS from the title opens on w1-01', async ({ page }) => {
+    await gotoTitle(page);
+    await openLevelSelectFromTitle(page);
+    expect(await menuFocus(page, 'LevelSelect')).toBe('w1-01');
+  });
+
+  test('every shipped level cleared: LEVELS from the title opens on the PLAY target, or w1-01 when there is none', async ({ page }) => {
+    await seedSave(page, { completed: [...ids], bestSteps: Object.fromEntries(ids.map((id) => [id, 600])) });
+    await gotoTitle(page);
+    const target = (await menuModel<TitleModel>(page, 'Title'))?.playTargetId ?? null;
+    await openLevelSelectFromTitle(page);
+    expect(await menuFocus(page, 'LevelSelect'), `playTargetId was ${String(target)}`).toBe(target ?? 'w1-01');
+  });
+
   test('Esc from level select goes back to the title with focus on LEVELS; Backspace too', async ({ page }) => {
     await gotoTitle(page);
     await openLevelSelectFromTitle(page);
