@@ -12,11 +12,35 @@
  *    "Failed to process file" in BUG-6's evidence) is never retried by Phaser,
  *    emits no `loaderror`, is not counted in `totalFailed`, and logs
  *    `console.error`. So the scene cannot trust the events; it checks the
- *    texture and font caches after `complete` instead, and this policy decides.
+ *    texture and font caches after `complete` instead, and this policy decides
+ *    (`BOOT_LOAD_PLAN`: when to retry, after what wait, and over which path).
  */
 
-/** The first load plus one retry of whatever is still missing. */
-export const BOOT_LOAD_ATTEMPTS = 2;
+/** How Phaser 3.90's loader fetches an image (`LoaderPlugin.imageLoadType`). */
+export type ImageLoadType = 'XHR' | 'HTMLImageElement';
+
+/** One boot load attempt: how long to wait before it, and how images are fetched. */
+export interface BootAttempt {
+  readonly delayMs: number;
+  readonly imageLoadType: ImageLoadType;
+}
+
+/**
+ * The first load, then up to two retries of whatever is still missing
+ * (BUG-6, tech-lead notes in `docs/tech/reviews/2026-11-bug6-boot-load.md`).
+ * The reproduced failure: the XHR answered 200 `image/png` but its response
+ * blob was 0 bytes, for every sheet, on the first load and on an immediate
+ * retry in the same page. So the retries wait a moment and skip XHR + blob
+ * entirely: `HTMLImageElement` loads each sheet with a plain `<img src=url>`.
+ * Worst case before the failure message: 2.5 s of waiting plus the loads.
+ */
+export const BOOT_LOAD_PLAN: readonly BootAttempt[] = [
+  { delayMs: 0, imageLoadType: 'XHR' },
+  { delayMs: 500, imageLoadType: 'HTMLImageElement' },
+  { delayMs: 2000, imageLoadType: 'HTMLImageElement' },
+];
+
+export const BOOT_LOAD_ATTEMPTS = BOOT_LOAD_PLAN.length;
 
 /** Phaser's own per-request retries on a network error, within each attempt (its default, made explicit). */
 export const LOADER_REQUEST_RETRIES = 2;
@@ -29,7 +53,7 @@ export const BOOT_ERROR_ELEMENT_ID = 'boot-error';
 
 export type BootStep =
   | { readonly kind: 'start' }
-  | { readonly kind: 'retry'; readonly keys: readonly string[] }
+  | { readonly kind: 'retry'; readonly keys: readonly string[]; readonly delayMs: number; readonly imageLoadType: ImageLoadType }
   | { readonly kind: 'fail'; readonly keys: readonly string[] };
 
 /**
@@ -37,10 +61,14 @@ export type BootStep =
  * keys in `missing` still absent from the caches.
  */
 export function nextBootStep(attempt: number, missing: readonly string[]): BootStep {
-  if (!Number.isInteger(attempt) || attempt < 1) throw new RangeError(`attempt must be an integer >= 1, got ${attempt}`);
+  if (!Number.isInteger(attempt) || attempt < 1 || attempt > BOOT_LOAD_ATTEMPTS) {
+    throw new RangeError(`attempt must be an integer in 1..${BOOT_LOAD_ATTEMPTS}, got ${attempt}`);
+  }
   if (missing.length === 0) return { kind: 'start' };
   const keys = [...missing];
-  return attempt < BOOT_LOAD_ATTEMPTS ? { kind: 'retry', keys } : { kind: 'fail', keys };
+  // `attempt` is 1-based, so BOOT_LOAD_PLAN[attempt] is the next attempt.
+  const next = BOOT_LOAD_PLAN[attempt];
+  return next ? { kind: 'retry', keys, ...next } : { kind: 'fail', keys };
 }
 
 /** The format strings Phaser 3.90's loader passes to `console.error` (File.js, MultiFile.js). */

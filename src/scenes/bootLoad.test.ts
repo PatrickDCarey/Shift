@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   BOOT_FAILURE_MESSAGE,
   BOOT_LOAD_ATTEMPTS,
+  BOOT_LOAD_PLAN,
   captureLoaderErrors,
   isLoaderFailureLog,
   nextBootStep,
@@ -28,22 +29,53 @@ describe('boot load policy (BUG-6)', () => {
     expect(simulateBoot([['pixel-player', 'pixel-font'], []])).toEqual(['retry:pixel-player,pixel-font', 'start']);
   });
 
-  it('fail twice: shows the message after exactly one retry, never a third attempt', () => {
-    const steps = simulateBoot([['pixel-tileset'], ['pixel-tileset'], ['pixel-tileset']]);
-    expect(steps).toEqual(['retry:pixel-tileset', 'fail:pixel-tileset']);
-    expect(BOOT_LOAD_ATTEMPTS).toBe(2);
+  it('three attempts in all: the message comes after the second retry, never a fourth attempt', () => {
+    const steps = simulateBoot([['pixel-tileset'], ['pixel-tileset'], ['pixel-tileset'], ['pixel-tileset']]);
+    expect(steps).toEqual(['retry:pixel-tileset', 'retry:pixel-tileset', 'fail:pixel-tileset']);
+    expect(BOOT_LOAD_ATTEMPTS).toBe(3);
+    expect(BOOT_LOAD_PLAN).toHaveLength(BOOT_LOAD_ATTEMPTS);
   });
 
-  it('a retry that fixes some files but not all still fails, naming what is left', () => {
-    expect(simulateBoot([['pixel-player', 'pixel-hud'], ['pixel-hud']])).toEqual(['retry:pixel-player,pixel-hud', 'fail:pixel-hud']);
+  it('a retry that fixes some files but not all retries only what is left, then fails naming it', () => {
+    expect(simulateBoot([['pixel-player', 'pixel-hud'], ['pixel-hud'], ['pixel-hud']])).toEqual([
+      'retry:pixel-player,pixel-hud',
+      'retry:pixel-hud',
+      'fail:pixel-hud',
+    ]);
+  });
+
+  it('the first load is the normal one: XHR + blob, no wait', () => {
+    expect(BOOT_LOAD_PLAN[0]).toEqual({ delayMs: 0, imageLoadType: 'XHR' });
+  });
+
+  it('retries wait first (500 ms, then 2 s) and load images through <img src>, not XHR + blob', () => {
+    // The reproduced failure (tech-lead BUG-6 notes): every XHR blob came back 0 bytes, twice, in the same page.
+    const first = nextBootStep(1, ['pixel-player']);
+    const second = nextBootStep(2, ['pixel-player']);
+    expect(first).toEqual({ kind: 'retry', keys: ['pixel-player'], delayMs: 500, imageLoadType: 'HTMLImageElement' });
+    expect(second).toEqual({ kind: 'retry', keys: ['pixel-player'], delayMs: 2000, imageLoadType: 'HTMLImageElement' });
+  });
+
+  it('the whole retry budget stays short: under 3 s of waiting before the message', () => {
+    const waited = BOOT_LOAD_PLAN.reduce((sum, a) => sum + a.delayMs, 0);
+    expect(waited).toBeLessThan(3000);
+    for (const a of BOOT_LOAD_PLAN) expect(Number.isInteger(a.delayMs) && a.delayMs >= 0).toBe(true);
+  });
+
+  it('the returned keys are a copy, not the array passed in', () => {
+    const missing = ['pixel-fx'];
+    const step = nextBootStep(1, missing);
+    expect(step.kind === 'retry' && step.keys !== missing).toBe(true);
   });
 
   it('the message is the design-lead copy (decisions.md 2026-11-19)', () => {
     expect(BOOT_FAILURE_MESSAGE).toBe('COULD NOT LOAD THE GAME. RELOAD THE PAGE TO TRY AGAIN.');
   });
 
-  it('rejects an attempt number below 1', () => {
+  it('rejects an attempt number below 1 or past the plan', () => {
     expect(() => nextBootStep(0, [])).toThrow(RangeError);
+    expect(() => nextBootStep(1.5, [])).toThrow(RangeError);
+    expect(() => nextBootStep(BOOT_LOAD_ATTEMPTS + 1, ['pixel-hud'])).toThrow(RangeError);
   });
 });
 

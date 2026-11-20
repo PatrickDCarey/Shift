@@ -4,10 +4,12 @@ import {
   BOOT_ERROR_ELEMENT_ID,
   BOOT_FAILURE_MESSAGE,
   BOOT_LOAD_ATTEMPTS,
+  BOOT_LOAD_PLAN,
   LOADER_REQUEST_RETRIES,
   captureLoaderErrors,
   nextBootStep,
   runBootSideJob,
+  type BootStep,
   type LoaderErrorCapture,
 } from './bootLoad';
 import { applyAudioSettings } from '../ui/audioSettings';
@@ -72,9 +74,11 @@ const BOOT_ASSETS: readonly BootAsset[] = [
  *
  * BUG-6 (B7-03): after the load, Boot checks the caches (Phaser does not report
  * a file that downloaded but failed to decode; see `bootLoad.ts`). Anything
- * missing is queued once more; if it is still missing, Boot shows
- * `BOOT_FAILURE_MESSAGE` in a DOM element and starts no other scene, instead of
- * a black canvas and a texture error in the next scene.
+ * missing is queued again per `BOOT_LOAD_PLAN` (after a short wait, loading
+ * images through `<img src>` instead of XHR + blob); if it is still missing
+ * after the last attempt, Boot shows `BOOT_FAILURE_MESSAGE` in a DOM element
+ * and starts no other scene, instead of a black canvas and a texture error in
+ * the next scene.
  */
 export class BootScene extends Phaser.Scene {
   private attempt = 0;
@@ -93,6 +97,7 @@ export class BootScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.releaseCapture());
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.releaseCapture());
     this.load.maxRetries = LOADER_REQUEST_RETRIES;
+    this.load.imageLoadType = BOOT_LOAD_PLAN[0]?.imageLoadType ?? 'XHR';
     for (const asset of BOOT_ASSETS) asset.queue(this.load);
   }
 
@@ -111,7 +116,7 @@ export class BootScene extends Phaser.Scene {
     const missing = BOOT_ASSETS.filter((asset) => !asset.isLoaded(this)).map((asset) => asset.key);
     const step = nextBootStep(this.attempt, missing);
     if (step.kind === 'retry') {
-      this.retry(step.keys);
+      this.retry(step);
       return;
     }
     const held = this.releaseCapture();
@@ -122,17 +127,23 @@ export class BootScene extends Phaser.Scene {
       return;
     }
     if (this.retried.length > 0) {
-      console.warn('Boot: %s failed to load the first time and loaded on retry', this.retried.join(', '));
+      console.warn('Boot: %s failed to load the first time and loaded on attempt %d', this.retried.join(', '), this.attempt);
     }
     // The title on a normal load; `?level=` / `?replay=1` still open the game directly.
     this.scene.start(bootTarget(window.location.search));
   }
 
-  private retry(keys: readonly string[]): void {
-    this.retried = keys;
-    for (const asset of BOOT_ASSETS) if (keys.includes(asset.key)) asset.queue(this.load);
-    this.load.once(Phaser.Loader.Events.COMPLETE, () => this.afterLoad());
-    this.load.start();
+  /** Queues the missing keys again after the step's wait, over the step's image path. */
+  private retry(step: Extract<BootStep, { kind: 'retry' }>): void {
+    // Name what failed the first time; a later retry only narrows it.
+    if (this.retried.length === 0) this.retried = step.keys;
+    this.time.delayedCall(step.delayMs, () => {
+      // Read by each ImageFile when it is created (atlas, image and bitmap-font images alike).
+      this.load.imageLoadType = step.imageLoadType;
+      for (const asset of BOOT_ASSETS) if (step.keys.includes(asset.key)) asset.queue(this.load);
+      this.load.once(Phaser.Loader.Events.COMPLETE, () => this.afterLoad());
+      this.load.start();
+    });
   }
 
   /** Restores `console.error` and returns the loader errors it held back. */
