@@ -31,7 +31,12 @@ A **SETTINGS** screen with three on/off rows and BACK. Each change applies on th
 
 ## Edge cases
 
-- **Opened from pause:** the run stays frozen; BACK returns to pause with focus on SETTINGS. A setting changed there applies to the frozen frame at once (reduced motion stops the parallax drawn under the pause dither, and so on). Nothing restarts.
+- **Opened from pause:** the run stays frozen; BACK returns to pause with focus on SETTINGS. Nothing restarts. **When a change made there takes effect (ruled 2026-11-20, deviation W7):**
+  - **SOUND** applies at once (built).
+  - **REDUCED MOTION and REDUCED EFFECTS:** the shipped floor is the **next level load**, because the scene reads them in `create()`. This is accepted.
+  - **Should ([scene]):** re-read both flags when the run resumes from pause and on R, so they apply from the first unpaused frame.
+  - Not wanted: re-reading them under the frozen pause frame.
+  - Why the floor is acceptable: the flash cap (3 per second), no screen shake and the OS preference apply from the first frame in every mode, so no player goes below them while the change waits.
 - **Storage blocked:** toggles work for the session and the title's not-saved line already says so.
 - **Sound OFF before the first gesture:** no sound ever starts; turning it ON later starts music at the current band on the next gesture (`adaptive-audio.md` "Before the first gesture").
 - **Restart prompt and the "why you fell" cue:** unaffected by either effects setting (they are gameplay information, `restart-prompt.md`, `clarity-fixes.md` PT-3).
@@ -45,7 +50,7 @@ None.
 1. Title → SETTINGS → SOUND to OFF → BACK → PLAY: no music and no SFX in the level (QA by ear). Reload: SOUND still shows OFF and the level is still silent.
 2. REDUCED MOTION ON: on w2-02 the red takeoff's drop shows no screen wipe and no ring (`pixel-effects.md` check 3). With the OS set to reduce motion and no saved value, the row shows ON on first open.
 3. REDUCED EFFECTS ON: no stars, afterimages or speed lines at red (`pixel-effects.md` check 4); the drag-drop cue is unchanged.
-4. Esc on SETTINGS returns to the title with focus on SETTINGS. From pause (if built): returns to pause with focus on SETTINGS and `state.step` unchanged.
+4. Esc on SETTINGS returns to the title with focus on SETTINGS. From pause (if built): returns to pause with focus on SETTINGS and `state.step` unchanged. Turn REDUCED MOTION on from pause in w2-02, then go to LEVELS and reopen w2-02: the red takeoff's drop shows no wipe and no ring (the shipped floor). Should (W7, once [scene] builds it): the same without leaving the level, from the first frame after RESUME and after R.
 5. Pressing Left Shift, Right Shift, Q, E, Z or X on the screen changes no row and no focus.
 6. Unit: the settings model flips each value on Enter, Space, Left and Right, and writes the save once per change; reduced motion with no saved value reads the OS flag.
 7. Greyscale screenshot: every row's value can be read (box shape plus word).
@@ -54,6 +59,7 @@ None.
 ## Priority
 
 - **Should (needs producer sign-off):** the screen from the title with the three toggles and BACK.
-- **Should:** reachable from pause.
+- **Should:** reachable from pause (built). Effects settings changed from pause apply on resume and on R ([scene], W7, 2026-11-20); until then, from the next level load.
+- **Could (2026-11-20, was Should):** menu move/select sounds. `src/audio` has no menu call, and menus show focus by shape.
 - **Could:** music and SFX volume sliders, reset progress, a free key-remap screen (GDD §3).
 - **If not signed off:** nothing ships; the itch page keeps claiming only the OS-driven reduced motion, and the unreachable `reducedEffects` flag stays unclaimed.

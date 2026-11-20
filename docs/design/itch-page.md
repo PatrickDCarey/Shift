@@ -1,6 +1,6 @@
 # itch.io page copy
 
-_Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6, 14 levels). Every claim was checked in the repo on that date; the checklist at the bottom lists what to re-check at submit. Spelling: **American ("color")**. The game's on-screen text never uses the word, so this follows the GDD and the code, which both say "color"._
+_Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6, 14 levels). Every claim was checked in the repo on that date; the checklist at the bottom lists what to re-check at submit. **Re-checked 2026-11-20 (B7-17)** against the batch 7 build: the settings screen, the wired sound effects, the restart card and the page art (`docs/art/itch/`) are now in the copy, §5 and §7. Spelling: **American ("color")**. The game's on-screen text never uses the word, so this follows the GDD and the code, which both say "color"._
 
 Paste each section into the itch.io field named in its heading. Lines in `> NOTE` blocks are instructions, not copy: do not paste them.
 
@@ -26,11 +26,17 @@ A puzzle-platformer where your speed sets your color, and only platforms of your
 
 ## 3. Page body (itch "Description" field)
 
+> NOTE: insert `docs/art/itch/redshift-runway.gif` (480×270, 7.1 s loop, 0.25 MB) as the first thing in the description, above the first line. It shows the whole idea with no text. Leave it at its own size if the editor would blur it when scaled.
+
 **Your pace is your color.** Stand still and you are white. Walk and you are blue. Sprint and you are red. Colored platforms and walls are only solid while your color matches them, so every room is a question of where to speed up, where to slow down, and where to jump.
 
 Speed takes distance to build and distance to lose, and nothing you press in the air changes your speed. Plan the run, then make it.
 
 **Game Off theme, SHIFT:** you change gear with the Shift keys, and in world 3 you shift two runners out of step with each other.
+
+> NOTE: paste the next line only after the owner has listened to the packaged build (USER check, 2026-11-20): the music changes with your pace, the clunk is heard on w2-02's long jump and sounds different from a shift down, and SOUND OFF silences everything. Otherwise delete it. No other line on the page claims audio.
+
+Listen for the music: it follows your pace. A heavy clunk means a long flight just cost you a gear.
 
 ### In this build
 
@@ -64,12 +70,17 @@ All the keys work at once. Use whichever pair suits your hand: Q/E with WASD, Z/
 
 - Color is never the only signal. Each color has its own pattern on you and on the tiles: white plain, blue stripes, green dots, yellow chevrons, red checker. Tiles you cannot stand on right now are drawn hollow with a dashed outline.
 - In Tandem, the second runner has a different shape, not just a different color.
-- No screen shake. Flashes are capped at 3 per second. If your system is set to reduce motion, the game turns off flashes, wipes, parallax and pulsing.
+- No screen shake. Flashes are capped at 3 per second.
+- **Settings** (from the title or the pause menu):
+  - **Reduced motion** turns off flashes, screen wipes, parallax and pulsing. It starts on if your system is set to reduce motion.
+  - **Reduced effects** removes decoration such as stars, speed lines and afterimages.
+  - **Sound** turns all audio on or off.
+  - Settings are saved in your browser.
 - Keyboard only. No mouse needed. Jumps have generous coyote time and buffering, and there is no time limit.
 
 ### Stuck?
 
-Press **R** to restart the room at any time. **Esc** or **P** pauses; the pause menu also shows the controls. Most rooms are solved by backing up, or by slowing down earlier than you think.
+Press **R** to restart the room at any time. If a runner gets trapped, the game shows **[R] RESTART**. **Esc** or **P** pauses; the pause menu also shows the controls. Most rooms are solved by backing up, or by slowing down earlier than you think.
 
 Progress is saved in your browser.
 
@@ -142,6 +153,23 @@ All shots from a real build in the 960×540 frame (2×), HUD visible, no debug o
 
 Nice to have: one screenshot in greyscale (any of the above) to show the patterns carry the rule without color.
 
+### Delivered (B7-16, 2026-11-20; files in `docs/art/itch/`, how they were made in its `README.md`)
+
+Design accepts the set as delivered. Upload in this order:
+
+| itch field | File | Notes |
+|---|---|---|
+| Cover image | `cover-630x500.png` | w1-05: a red runner on the red bridge by the solid red wall, title in the game's font. It is not the shot-list scene (no hollow blue bridge), but it says "color and speed" just as well. |
+| Screenshot 1 | `shot-1-w1-02-shift.png` | As listed. |
+| Screenshot 2 | `shot-2-w1-05-red-wall.png` | As listed. |
+| Screenshot 3 | `shot-3-w2-02-coast.png` | As listed. |
+| Screenshot 4 | `shot-4-w3-03-gear-split.png` | As listed. |
+| Screenshot 5 | `shot-5-w3-05-redshift.png` | Runner white, twin yellow in flight. |
+| Screenshot 6 (optional) | `shot-greyscale-w1-05.png` | The greyscale nice-to-have. Upload it last so it never becomes the thumbnail. |
+| Description (top) | `redshift-runway.gif` | See the note at the top of §3. |
+
+The screenshots come from the batch 7 package, before the 2026-11-20 hint glyphs and the 2× restart card. Shot 4 is unaffected: w3-03's new spawn glyph is off its left edge. Shot 5 is near w3-05's block and was taken before that level's `jump 12 3` glyph existed, so a reshoot would add one key cap. **No reshoot needed**: a missing hint misrepresents nothing about the game. Reshoot only if a later art or level change alters what a shot shows (`docs/art/itch/README.md` "Remaking").
+
 ---
 
 ## 6. Jam submission form (free text on the theme)
@@ -157,8 +185,10 @@ In Redshift, your pace is your color, and colored platforms are only solid while
 - [ ] **Controls table** matches the controls screen (`src/ui/bindings.ts` `DEFAULT_BINDINGS`, `src/ui/controlsModel.ts`).
 - [ ] **Sticky Keys tip** still shows once on Windows.
 - [ ] **Leaderboards:** live and tested on the itch build? If not, delete the optional block. If yes, check the wording against what the results screen actually shows (rank and name prompt).
-- [ ] **Reduced motion:** still follows the OS setting only? If an in-game settings screen has shipped (reduced motion, reduced effects, volume or mute), add one line saying so. Do not add it before it exists.
-- [ ] **Audio:** the copy makes no audio claim. If music and sound effects are both in and working on the itch build, a line "music shifts with your speed" may be added.
+- [ ] **Settings (copy updated 2026-11-20):** SETTINGS is on the title and in the pause menu, with SOUND, REDUCED MOTION and REDUCED EFFECTS (`src/ui/titleModel.ts`, `src/ui/pauseModel.ts`, `features/settings.md`). The copy names exactly those three; there are no volume sliders, so don't mention volume. Reduced motion starts on with the OS setting, and all three survive a reload (`settings.md` checks 1–2, QA).
+- [ ] **Audio (copy written 2026-11-20, held):** the one audio line under the theme paragraph goes in **only** after the owner has heard the packaged build: music changes with pace, the w2-02 clunk is distinct from a shift down, and SOUND OFF silences all of it. If any of that fails, delete the line; the page then makes no audio claim.
+- [ ] **Restart card:** the "Stuck?" line names `[R] RESTART`. It still shows in w3-02's pocket, and the cap still reads R (`DEFAULT_BINDINGS`).
+- [ ] **Page art (delivered 2026-11-20, `docs/art/itch/`):** cover `cover-630x500.png`; screenshots `shot-1-w1-02-shift.png`, `shot-2-w1-05-red-wall.png`, `shot-3-w2-02-coast.png`, `shot-4-w3-03-gear-split.png`, `shot-5-w3-05-redshift.png`, optional `shot-greyscale-w1-05.png` last; `redshift-runway.gif` at the top of the description. Re-check that no shot shows something the final build has changed: a level geometry change, a palette change, or the HUD.
 - [ ] **Pattern list** (white plain, blue stripes, green dots, yellow chevrons, red checker) still matches `src/data/palette.json`.
 - [ ] **Flash cap and no screen shake** still true (`src/fx/effectsPolicy.ts`).
 - [ ] **Progress saves in the browser** (and the title's "not saved" notice covers browsers that block storage).

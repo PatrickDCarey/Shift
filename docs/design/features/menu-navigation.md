@@ -59,5 +59,6 @@ None. Sizes and timings are UI constants in `src/ui/`. Menus read no `tuning.jso
 ## Priority
 
 - **Must:** the key table, the fresh-press rule, focus by shape, no Shift needed, 480×270 integer layout.
-- **Should:** fades (≤ 200 ms), menu move/choose/back SFX hooks for audio-designer.
+- **Should:** fades (≤ 200 ms).
+- **Could (2026-11-20, was Should):** menu move/choose/back SFX hooks for audio-designer.
 - **Could:** mouse menus, auto-repeat.

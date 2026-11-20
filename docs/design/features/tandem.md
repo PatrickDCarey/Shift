@@ -157,6 +157,10 @@ Test conventions: see `movement-and-gears.md`. "Lane" = a row of tiles holding o
 - S2. Runner home, twin moving: the camera follows the twin.
 - S3. Bodies 30 tiles apart: the camera follows the runner and an edge arrow points at the twin.
 - S4. Twin and runner distinguishable in a grayscale screenshot at 1× (480×270).
+- S5 (2026-11-20, browser, qa). w3-04 by its recording at the let-go (runner x 21.48, twin x 40.1, 18.6 apart, both non-home): both bodies are wholly on screen, neither sprite overlaps the HUD panel, and there is no edge arrow. Any failure is a [scene] bug against "Camera framing", not a design change.
+- S6 (2026-11-20, browser, qa). w3-04 by its recording from the runner's home step (354) to the win (396): the camera follows the twin, the runner may leave the screen (intended: a home body is frozen and out of the framing), the runner's HUD strip is dimmed with the home glyph, and no twin edge arrow shows.
+
+**Camera answers from the batch 7 playtest (2026-11-20):** the playtester's "camera tracks the twin, runner off screen" in w3-04 matches S6, the runner having parked. No off-screen marker for a home body and no change to `cameraMaxApartTiles`. **Could:** when a park switches the framing from the midpoint to the remaining body, pan over about 0.25 s instead of snapping about 9 tiles in one frame (an instant cut under reduced motion). Render-only, [scene].
 
 ## Priority
 
