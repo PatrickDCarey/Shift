@@ -22,7 +22,7 @@ export class FallCue {
   constructor(
     scene: Phaser.Scene,
     private readonly tileSize: number,
-    private readonly reducedMotion: boolean,
+    private reducedMotion: boolean,
   ) {
     this.view = new WhyFellView(scene);
   }
@@ -41,6 +41,10 @@ export class FallCue {
   meterFrame(body: 0 | 1): GearMeterFrame {
     const event = this.events.find((e) => e.type === 'fallThrough' && e.body === body) ?? null;
     return { event, body, respawn: this.respawn };
+  }
+
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced;
   }
 
   destroy(): void {

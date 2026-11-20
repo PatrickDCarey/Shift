@@ -44,4 +44,4 @@ No third-party fonts. The in-game 5 x 7 bitmap font (`assets/art/pixel/pixel-fon
 |---|---|---|---|
 | _none_ | | | |
 
-_Last audit: 2026-11-19 (B7-05): every git-tracked file by type (no font, audio, SVG or GIF files are tracked), `package.json` runtime dependencies (Phaser only) and Phaser's own dependencies, and every external URL in `src/`, `assets/` and `index.html` (none)._
+_Last audit: 2026-11-20 (B8-07): every git-tracked file by type. No font, audio or SVG files are tracked. The one GIF (`docs/art/itch/redshift-runway.gif`), the itch page PNGs in `docs/art/itch/` and the JPG/PNG evidence under `docs/` are the team's own captures of the game (`docs/art/itch/README.md`); ffmpeg was used to encode the GIF and is not shipped. `package.json` runtime dependencies are Phaser 3.90.0 only, and Phaser's only runtime dependency is eventemitter3. No external URL in `src/`, `assets/` or `index.html`. Previous audit: 2026-11-19 (B7-05)._

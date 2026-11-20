@@ -24,6 +24,8 @@ export { HUD_BOTTOM };
 const EDGE_MARGIN = 8;
 const TIP_GAP = 4;
 const PAD = 4;
+/** The card is drawn at 2x (restart-prompt.md, 2026-11-20). */
+export const CARD_SCALE = 2;
 const CAP_GAP = 4;
 export const CARD_WORD = 'RESTART';
 
@@ -37,6 +39,10 @@ export interface Rect {
 export interface CardLayout {
   readonly w: number;
   readonly h: number;
+  /** Pixels per 1x pixel (the card is the 1x design doubled, nearest-neighbour). */
+  readonly scale: number;
+  /** Outline thickness, px. */
+  readonly border: number;
   /** Key cap rectangle, relative to the card's top-left. */
   readonly cap: Rect;
   readonly capLabel: string;
@@ -44,17 +50,20 @@ export interface CardLayout {
   readonly word: { readonly x: number; readonly y: number };
 }
 
-/** Cap for the `restart` action's first binding, then the word; padding 4 px (border included). */
+/** Cap for the `restart` action's first binding, then the word; 1x padding 4 px (border included), all doubled. */
 export function cardLayout(bindings: Bindings = DEFAULT_BINDINGS): CardLayout {
+  const s = CARD_SCALE;
   const capLabel = hintCapLabel(bindings.restart[0] ?? 'KeyR');
   const capW = ADVANCE * capLabel.length + 5;
   const wordX = PAD + capW + CAP_GAP;
   return {
-    w: wordX + textWidth(CARD_WORD) + PAD,
-    h: PAD + HINT_CAP_H + PAD,
-    cap: { x: PAD, y: PAD, w: capW, h: HINT_CAP_H },
+    w: s * (wordX + textWidth(CARD_WORD) + PAD),
+    h: s * (PAD + HINT_CAP_H + PAD),
+    scale: s,
+    border: s,
+    cap: { x: s * PAD, y: s * PAD, w: s * capW, h: s * HINT_CAP_H },
     capLabel,
-    word: { x: wordX, y: PAD + 2 },
+    word: { x: s * wordX, y: s * (PAD + 2) },
   };
 }
 

@@ -24,7 +24,8 @@ import { pageLevelStarts } from '../entities/levelStart';
 import { LEVEL_FILES } from '../entities/levelFiles';
 import { LevelView } from '../entities/LevelView';
 import { planLevel } from '../entities/levelTiles';
-import { prefersReducedMotion, reducedMotion } from '../entities/motionPrefs';
+import { applyEffectPrefs, readEffectPrefs, type EffectPrefs, type PrefTargets } from '../entities/effectPrefs';
+import { prefersReducedMotion } from '../entities/motionPrefs';
 import { loadGameParams, type GameParams } from '../entities/params';
 import { OverlayGate } from '../entities/overlayGate';
 import { PauseState, pauseWanted, type PauseChange } from '../entities/pauseState';
@@ -91,6 +92,7 @@ export class GameScene extends Phaser.Scene {
   private restartCard!: RestartCardController;
   private rig!: CameraRig;
   private reduced = false;
+  private prefs: EffectPrefs = { reducedMotion: false, reducedEffects: false };
   private fx!: FeedbackFx;
   private backdrop!: BackdropView;
   private fall!: FallCue;
@@ -146,14 +148,14 @@ export class GameScene extends Phaser.Scene {
     this.sampler = new InputSampler();
     this.run = new RunControl(level, params, this.sampler, source.kind === 'replay' ? { feed: source.feed, speed: source.speed } : null);
     const osReduced = prefersReducedMotion(typeof window.matchMedia === 'function' ? (q) => window.matchMedia(q) : undefined);
-    this.reduced = reducedMotion(this.store.getSettings(), osReduced);
+    this.prefs = readEffectPrefs(this.store.getSettings(), osReduced);
+    this.reduced = this.prefs.reducedMotion;
     this.twinView = null;
     this.levelView = new LevelView(this, level, tuning.tileSize, this.reduced);
     this.hintView = new HintView(this, hintPlans(level.meta.hints, tuning.tileSize));
     this.restartCard = new RestartCardController(this, level, { ...tuning, stepHz: params.stepHz });
     this.playerView = new PlayerView(this, 'runner', tuning, this.reduced);
-    const settings = this.store.getSettings();
-    const modes = effectModes({ reducedEffects: settings.reducedEffects, reducedMotion: this.reduced }, level.twinStart !== null);
+    const modes = effectModes(this.prefs, level.twinStart !== null);
     this.backdrop = new BackdropView(this, modes, Math.max(...tuning.gearSpeeds));
     this.fall = new FallCue(this, tuning.tileSize, this.reduced);
     this.fx = new FeedbackFx(this, modes);
@@ -161,6 +163,7 @@ export class GameScene extends Phaser.Scene {
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
     this.mountGearMeters(level.twinStart !== null);
     this.rig = new CameraRig(this, tuning, planLevel(level).exits);
+    this.rig.setReducedMotion(this.reduced);
     this.attachInput();
     this.installAudioUnlock();
     this.mountStickyKeysTip();
@@ -173,6 +176,7 @@ export class GameScene extends Phaser.Scene {
     this.takePauseRequest();
     const paused = this.pause.paused;
     const events = paused ? [] : this.run.advance(delta);
+    if (events.some((e) => e.type === 'restart')) this.refreshPrefs();
     this.handleWins();
     this.drawBodies(time, delta, paused, events);
     this.drawHud();
@@ -203,7 +207,23 @@ export class GameScene extends Phaser.Scene {
       this.gate.closed(performance.now());
       this.tip?.resume();
       this.driver.resetClock(); // no catch-up after a long pause
+      this.refreshPrefs();
     }
+  }
+
+  /** Settings changed from pause apply on resume and on R, without a level reload (settings.md W7). */
+  private refreshPrefs(): void {
+    const os = prefersReducedMotion(typeof window.matchMedia === 'function' ? (q) => window.matchMedia(q) : undefined);
+    this.prefs = applyEffectPrefs(this.prefs, readEffectPrefs(this.store.getSettings(), os), this.driver.level.twinStart !== null, this.prefTargets());
+    this.reduced = this.prefs.reducedMotion;
+  }
+
+  private prefTargets(): PrefTargets {
+    const motion = [this.levelView, this.playerView, this.twinView, this.fall, this.tip, this.gearMeter, this.twinMeter, this.rig];
+    return {
+      setReducedMotion: (r) => motion.forEach((t) => t?.setReducedMotion(r)),
+      setModes: (m) => [this.backdrop, this.fx].forEach((t) => t.setModes(m)),
+    };
   }
 
   /** The Pause overlay closed into the game: RESUME, or RESTART (as R in play does). */
@@ -292,7 +312,7 @@ export class GameScene extends Phaser.Scene {
     }
     const bodies: CameraBody[] = [{ ...runner, home: state.player.home }];
     if (twin !== null && state.twin !== null) bodies.push({ ...twin, home: state.twin.home });
-    this.rig.follow(level, bodies, twin, state.twin, bodyHeightPx);
+    this.rig.follow(level, bodies, twin, state.twin, bodyHeightPx, delta);
     this.rig.applyTint(Math.abs(state.player.vx), delta);
     const cam = this.cameras.main;
     this.restartCard.update(state, events, { x: cam.scrollX, y: cam.scrollY }, this.tip?.isShowing() ?? false);

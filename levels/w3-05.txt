@@ -16,7 +16,19 @@
 #       runner ignores it).
 # Deviation from levels-w3.md: safe kerbs instead of full-height blue walls (a blue wall cannot hold a walking
 #   body in the sim, see w3-02), so the walls are passed with the shared jump instead of a run-up.
-# No hints (levels-w3.md).
+# Hints (design-lead 2026-11-20, batch 7 playtest: not finished in about 14 tries, stuck at the kerbs with the
+#   twin waiting white), runner lane only, three (the maximum), read left to right like w1-03 + w2-01:
+#   jump at col 12, row 3: the opening, as in w3-04 (takeoff window x 11.10-14.50; box cols 11-13).
+#   shiftUp at col 36, row 3: "walk back to here, shift up". Measured: the recording stops at x 36.13; with
+#     its run of 43 steps fixed, stops at x 34.68-38.23 win (walk back 128-199 steps), centre 36.46. Box cols 35-37.
+#   jump at col 41, row 3: "jump here". Measured from the recorded stop: takeoffs at x 39.54-43.72 win (32-53
+#     steps of running), centre 41.63; the recording jumps at 41.72. Box cols 40-42 (world px 647-682, left of
+#     the kerb at 720).
+#   All three boxes are rows 2-3, empty sky, runner floor row 6 under them. The down presses are not hinted.
+#   Render-only: no version bump, same solution.
+hint: jump 12 3
+hint: shiftUp 36 3
+hint: jump 41 3
 id: w3-05
 title: Redshift
 world: 3

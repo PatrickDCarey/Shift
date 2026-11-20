@@ -46,7 +46,7 @@ export class LevelView {
     scene: Phaser.Scene,
     level: Level,
     private readonly tileSize: number,
-    private readonly reducedMotion = false,
+    private reducedMotion = false,
   ) {
     this.inTwinLane = twinLaneTest(level);
     this.plan = planLevel(level);
@@ -70,6 +70,11 @@ export class LevelView {
       this.swapColored({ band, graceBand, embedded }, twin);
     }
     this.animateExits(timeMs);
+  }
+
+  /** Settings changed while paused: the exit pulse follows from the next frame. */
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced;
   }
 
   destroy(): void {

@@ -1,6 +1,6 @@
 /**
  * Draws the `[R] RESTART` card (layout from `restartCard.ts`): a `ui.panel` plate
- * with a 1 px `ui.panelBorder` edge, a key cap (`ui.panel` fill, 1 px `ui.focus`
+ * with a 2 px `ui.focus` (white) outline, a key cap (`ui.panel` fill, 2 px `ui.focus`
  * outline, label in `ui.text`) and the word in `ui.text`. Screen space, whole
  * pixels, above tiles, bodies and effects and below the HUD (200) and the Sticky
  * Keys tip (1000). Static: no blink, no pulse, no fade, in every motion setting.
@@ -24,7 +24,7 @@ export class RestartCardView {
     const ink = hexToNumber(palette.ui.text);
     this.gfx = scene.add.graphics().setScrollFactor(0).setDepth(DEPTH_CARD).setVisible(false);
     const text = (value: string): Phaser.GameObjects.BitmapText =>
-      scene.add.bitmapText(0, 0, PIXEL_KEYS.font, value).setOrigin(0, 0).setTint(ink).setScrollFactor(0).setDepth(DEPTH_CARD + 1).setVisible(false);
+      scene.add.bitmapText(0, 0, PIXEL_KEYS.font, value).setOrigin(0, 0).setScale(cardLayout().scale).setTint(ink).setScrollFactor(0).setDepth(DEPTH_CARD + 1).setVisible(false);
     this.capLabel = text(this.layout.capLabel);
     this.word = text(CARD_WORD);
   }
@@ -50,13 +50,15 @@ export class RestartCardView {
   }
 
   private draw({ x, y, w, h }: Rect): void {
-    const { cap, word } = this.layout;
+    const { cap, word, border: b, scale } = this.layout;
+    const white = hexToNumber(palette.ui.focus);
+    const panel = hexToNumber(palette.ui.panel);
     const g = this.gfx.clear();
-    g.fillStyle(hexToNumber(palette.ui.panelBorder), 1).fillRect(x, y, w, h);
-    g.fillStyle(hexToNumber(palette.ui.panel), 1).fillRect(x + 1, y + 1, w - 2, h - 2);
-    g.fillStyle(hexToNumber(palette.ui.focus), 1).fillRect(x + cap.x, y + cap.y, cap.w, cap.h);
-    g.fillStyle(hexToNumber(palette.ui.panel), 1).fillRect(x + cap.x + 1, y + cap.y + 1, cap.w - 2, cap.h - 2);
-    this.capLabel.setPosition(x + cap.x + 2, y + cap.y + 2);
+    g.fillStyle(white, 1).fillRect(x, y, w, h);
+    g.fillStyle(panel, 1).fillRect(x + b, y + b, w - 2 * b, h - 2 * b);
+    g.fillStyle(white, 1).fillRect(x + cap.x, y + cap.y, cap.w, cap.h);
+    g.fillStyle(panel, 1).fillRect(x + cap.x + b, y + cap.y + b, cap.w - 2 * b, cap.h - 2 * b);
+    this.capLabel.setPosition(x + cap.x + 2 * scale, y + cap.y + 2 * scale);
     this.word.setPosition(x + word.x, y + word.y);
   }
 }

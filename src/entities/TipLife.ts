@@ -19,7 +19,7 @@ export class TipLife {
   constructor(
     private readonly scene: Phaser.Scene,
     tip: StickyKeysTip | null,
-    private readonly reducedMotion: boolean,
+    private reducedMotion: boolean,
   ) {
     this.tip = tip;
     this.budget = tip === null ? null : startTipBudget(STICKY_TIP_AUTO_HIDE_MS, scene.time.now);
@@ -62,6 +62,11 @@ export class TipLife {
   }
 
   /** Leaving the level: hidden for good. */
+  /** Applies to a tip shown from now on. */
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced;
+  }
+
   destroy(): void {
     this.timer?.remove(false);
     this.timer = null;

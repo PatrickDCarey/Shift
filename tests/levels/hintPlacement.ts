@@ -13,8 +13,14 @@
  *   glyph clears the player's 1.5-tile head. No tile below (a pit) passes.
  * - Overlap: two hints' boxes never share a cell (the parser allows two
  *   different glyphs on one anchor; this catches it and near misses).
+ * - HUD at any camera (onboarding-hints.md checks 11 and 14): no scroll the
+ *   camera can take (clamped to the level, or centred when the level is
+ *   smaller than the view) puts the widest glyph box under the HUD area.
+ *   Conservative: each axis takes its whole range, even pairs no body reaches.
  */
 import type { Level, LevelHint, Tile } from '../../src/core';
+import { axisScroll } from '../../src/entities/camera';
+import { HUD_AREA, VIEW, hintBoxPx, type RuleConfig } from './levelRules';
 
 /** Cells covered by a glyph, around its anchor (onboarding-hints.md "Drawing"). */
 export const HINT_BOX = { colsLeft: 1, colsRight: 1, rowsAbove: 1 } as const;
@@ -90,4 +96,26 @@ function singleHintProblems(level: Level, hint: LevelHint): readonly string[] {
       ? [`${where}: anchor is ${gap} row(s) above the floor (row ${floor}); needs at least ${MIN_ROWS_ABOVE_FLOOR}`]
       : [];
   return [...box, ...head];
+}
+
+/** Some scroll in the axis' reachable range puts world span [lo, hi) over screen span [from, to). */
+function reachesOnAxis(lo: number, hi: number, from: number, to: number, view: number, world: number): boolean {
+  const min = axisScroll(Number.NEGATIVE_INFINITY, view, world);
+  const max = axisScroll(Number.POSITIVE_INFINITY, view, world);
+  return max > lo - to && min < hi - from;
+}
+
+/** Hints whose box can pass under the HUD area at some camera position; [] when none can. */
+export function hintHudReachProblems(level: Level, cfg: RuleConfig): readonly string[] {
+  const ts = cfg.tileSize;
+  const [worldW, worldH] = [level.width * ts, level.height * ts];
+  return (level.meta.hints ?? [])
+    .filter((hint) => {
+      const b = hintBoxPx(hint, ts);
+      return (
+        reachesOnAxis(b.left, b.right, HUD_AREA.left, HUD_AREA.right, VIEW.width, worldW) &&
+        reachesOnAxis(b.top, b.bottom, HUD_AREA.top, HUD_AREA.bottom, VIEW.height, worldH)
+      );
+    })
+    .map((h) => `${level.meta.id}: hint ${h.glyph} at (${h.anchor.col}, ${h.anchor.row}) can pass under the HUD area at some camera position`);
 }

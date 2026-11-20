@@ -11,6 +11,7 @@ import { hudFrameNames } from '../fx/pixel';
 import { exitCue } from './exitCue';
 import { cameraScroll, type CameraBody } from './camera';
 import { EdgeArrowView } from './EdgeArrowView';
+import { FocusPan } from './focusPan';
 import { easeToward } from './interpolation';
 import { edgeArrowPlacement, tandemCamera } from './tandemView';
 
@@ -30,6 +31,8 @@ export class CameraRig {
   private readonly exitArrow: EdgeArrowView;
   /** Last whole-pixel camera focus; kept when every body is home. */
   private lastFocus: { readonly x: number; readonly y: number } | null = null;
+  private readonly pan = new FocusPan();
+  private reducedMotion = false;
   private tintSpeed = 0;
   private lastBackground = -1;
 
@@ -43,19 +46,25 @@ export class CameraRig {
   }
 
   /** Scroll from the snapped integer bodies; keeps the last scroll when every body is home. Then the edge arrow. */
-  follow(level: Level, bodies: readonly CameraBody[], twin: Feet | null, twinState: SimState['twin'], bodyHeightPx: number): void {
+  follow(level: Level, bodies: readonly CameraBody[], twin: Feet | null, twinState: SimState['twin'], bodyHeightPx: number, deltaMs = 0): void {
     const ts = this.tuning.tileSize;
     const cam = this.scene.cameras.main;
     const framed = tandemCamera(bodies, bodyHeightPx, ts, this.tuning.cameraMaxApartTiles);
-    const focus = framed ?? this.lastFocus;
-    if (focus !== null) {
-      this.lastFocus = { x: focus.x, y: focus.y };
+    const target = framed ?? this.lastFocus;
+    if (target !== null) {
+      const active = framed === null ? 0 : bodies.filter((b) => !b.home).length;
+      const focus = framed === null ? target : this.pan.apply(target, active, deltaMs, this.reducedMotion);
+      this.lastFocus = { x: target.x, y: target.y };
       const s = cameraScroll(focus.x, focus.y, cam.width, cam.height, level.width * ts, level.height * ts);
       cam.setScroll(s.x, s.y);
     }
     this.updateEdgeArrow(framed?.edgeBody ?? null, twin, twinState, bodyHeightPx);
     const cue = exitCue(this.exits, { x: cam.scrollX, y: cam.scrollY }, { w: cam.width, h: cam.height }, ts);
     this.exitArrow.update(cue, hudFrameNames().exitEdge);
+  }
+
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced;
   }
 
   /** The eased speed the world tint follows (the backdrop tints from the same value). */

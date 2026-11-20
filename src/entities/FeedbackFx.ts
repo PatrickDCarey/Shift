@@ -41,7 +41,7 @@ export class FeedbackFx {
 
   constructor(
     scene: Phaser.Scene,
-    private readonly modes: EffectModes,
+    private modes: EffectModes,
   ) {
     const { width, height } = scene.scale;
     this.flash = scene.add.rectangle(0, 0, width, height, 0xffffff, 0).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH_FLASH);
@@ -53,6 +53,10 @@ export class FeedbackFx {
       .setTint(hexToNumber(this.flashSpec.color))
       .setVisible(false);
     this.ringGfx = scene.add.graphics().setDepth(DEPTH_RING);
+  }
+
+  setModes(modes: EffectModes): void {
+    this.modes = modes;
   }
 
   /** A body's air drag dropped a band: the ring at its centre (pixels), and the screen wipe in a single-body level. */

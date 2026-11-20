@@ -19,7 +19,7 @@
  *   allows (`onboarding-hints.md` "Drawing": at most 48 x 24 px, centred on
  *   the anchor column, bottom on the anchor row's bottom).
  */
-import type { Level, TilePos } from '../../src/core';
+import type { Level, LevelHint, TilePos } from '../../src/core';
 import { cameraFocus, cameraScroll, snapFeet, type CameraBody } from '../../src/entities/camera';
 
 /** Two lanes plus the divider take at most this many rows (`tandem.md`). */
@@ -44,6 +44,15 @@ interface Rect {
   readonly top: number;
   readonly right: number;
   readonly bottom: number;
+}
+
+export type HintBoxPx = Rect;
+
+/** World-pixel box of the widest glyph a hint may draw: centred on the anchor column, bottom on the anchor row's bottom. */
+export function hintBoxPx(hint: LevelHint, tileSize: number): HintBoxPx {
+  const centre = hint.anchor.col * tileSize + tileSize / 2;
+  const bottom = (hint.anchor.row + 1) * tileSize;
+  return { left: centre - HINT_PX.maxWidth / 2, top: bottom - HINT_PX.height, right: centre + HINT_PX.maxWidth / 2, bottom };
 }
 
 const overlaps = (a: Rect, b: Rect): boolean => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
@@ -118,9 +127,8 @@ export function hudAreaProblems(level: Level, cfg: RuleConfig): readonly string[
     }
   }
   for (const hint of level.meta.hints ?? []) {
-    const centre = hint.anchor.col * ts + ts / 2 - s.x;
-    const bottom = (hint.anchor.row + 1) * ts - s.y;
-    const rect = { left: centre - HINT_PX.maxWidth / 2, top: bottom - HINT_PX.height, right: centre + HINT_PX.maxWidth / 2, bottom };
+    const b = hintBoxPx(hint, ts);
+    const rect = { left: b.left - s.x, top: b.top - s.y, right: b.right - s.x, bottom: b.bottom - s.y };
     if (overlaps(rect, HUD_AREA)) problems.push(`${id}: hint ${hint.glyph} at (${hint.anchor.col}, ${hint.anchor.row}) is under the HUD area at the starting camera`);
   }
   return problems;

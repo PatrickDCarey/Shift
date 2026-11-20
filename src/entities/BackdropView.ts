@@ -34,7 +34,7 @@ export class BackdropView {
 
   constructor(
     scene: Phaser.Scene,
-    private readonly modes: EffectModes,
+    private modes: EffectModes,
     private readonly topSpeed: number,
   ) {
     const fixed = (frame: string, depth: number, y = 0, x = 0): Phaser.GameObjects.Image =>
@@ -63,6 +63,13 @@ export class BackdropView {
       const x = this.modes.ridgeParallax ? ridgeOffset(scrollX, RIDGES[layer].parallax) : 0;
       this.ridges[layer].forEach((img, i) => img.setX(x + i * VIEW_W));
     }
+  }
+
+  /** Settings changed while paused: layers show or hide now, parallax follows from the next frame. */
+  setModes(modes: EffectModes): void {
+    this.modes = modes;
+    this.horizon.setVisible(modes.horizonDither);
+    this.stars.setVisible(modes.stars);
   }
 
   destroy(): void {

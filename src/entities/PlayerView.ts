@@ -25,12 +25,17 @@ export class PlayerView {
     scene: Phaser.Scene,
     private readonly body: BodyName,
     private readonly animTuning: PlayerAnimTuning,
-    private readonly reducedMotion = false,
+    private reducedMotion = false,
   ) {
     this.sprite = scene.add
       .sprite(0, 0, PIXEL_KEYS.player, `player/${body}/white/idle_0`)
       .setOrigin(PLAYER_PIVOT.x, PLAYER_PIVOT.y)
       .setDepth(body === 'runner' ? DEPTH_RUNNER : DEPTH_TWIN);
+  }
+
+  /** Settings changed while paused: applies from the next pulse. */
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced;
   }
 
   /** Start a one-shot pose (land, jump, band-change flash). Reduced motion skips the flash. */

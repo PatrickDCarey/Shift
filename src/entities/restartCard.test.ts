@@ -23,26 +23,33 @@ const frame = (step: number, bodies: readonly CardBody[], over: Partial<CardFram
 });
 
 describe('cardLayout', () => {
-  it('is 64 x 19 with the default binding, with an 11 x 11 cap', () => {
+  it('is 128 x 38 with the default binding (the 1x card doubled), with a 22 x 22 cap', () => {
     const l = cardLayout();
-    expect([l.w, l.h]).toEqual([64, 19]);
-    expect(l.cap).toEqual({ x: 4, y: 4, w: 11, h: 11 });
+    expect([l.w, l.h]).toEqual([128, 38]);
+    expect(l.scale).toBe(2);
+    expect(l.border).toBe(2);
+    expect(l.cap).toEqual({ x: 8, y: 8, w: 22, h: 22 });
     expect(l.capLabel).toBe('R');
-    expect(l.word.x).toBe(4 + 11 + 4);
+    expect(l.word.x).toBe(2 * (4 + 11 + 4));
+  });
+
+  it('keeps whole pixels in every part', () => {
+    const l = cardLayout({ restart: ['Space'] } as never);
+    for (const v of [l.w, l.h, l.cap.x, l.cap.y, l.cap.w, l.cap.h, l.word.x, l.word.y]) expect(Number.isInteger(v)).toBe(true);
   });
 
   it('follows the binding: a longer key label makes a wider card', () => {
     const wide = cardLayout({ restart: ['Space'] } as never);
-    expect(wide.w).toBeGreaterThan(64);
+    expect(wide.w).toBeGreaterThan(128);
     expect(wide.capLabel).toBe('SPACE');
   });
 });
 
 describe('cardPlacement', () => {
-  const size = { w: 64, h: 19 };
+  const size = { w: 128, h: 38 };
 
   it('centres at the bottom, 8 px up, on whole pixels', () => {
-    expect(cardPlacement(size, [], null)).toEqual({ x: 208, y: 243, w: 64, h: 19 });
+    expect(cardPlacement(size, [], null)).toEqual({ x: 176, y: 224, w: 128, h: 38 });
   });
 
   it('keeps 8 px from every edge and clear of the HUD', () => {
@@ -54,15 +61,15 @@ describe('cardPlacement', () => {
   });
 
   it('goes to y 42 when a body sits where the card would be', () => {
-    expect(cardPlacement(size, [{ x: 230, y: 236, w: 10, h: 24 }], null).y).toBe(42);
+    expect(cardPlacement(size, [{ x: 230, y: 230, w: 10, h: 24 }], null).y).toBe(42);
   });
 
   it('ignores a body that is elsewhere', () => {
-    expect(cardPlacement(size, [{ x: 20, y: 236, w: 10, h: 24 }], null).y).toBe(243);
+    expect(cardPlacement(size, [{ x: 20, y: 236, w: 10, h: 24 }], null).y).toBe(224);
   });
 
   it('sits 4 px above the Sticky Keys tip', () => {
-    expect(cardPlacement(size, [], 212)).toEqual({ x: 208, y: 212 - 4 - 19, w: 64, h: 19 });
+    expect(cardPlacement(size, [], 212)).toEqual({ x: 176, y: 212 - 4 - 38, w: 128, h: 38 });
   });
 });
 
@@ -153,7 +160,7 @@ describe('RestartCardModel', () => {
   it('decides the placement once, when the card appears', () => {
     const m = new RestartCardModel(60);
     const first = run(m, 1, 60, [stuck()]);
-    expect(first?.y).toBe(243);
+    expect(first?.y).toBe(224);
     const later = m.update(frame(61, [stuck({ rect: { x: 220, y: 240, w: 10, h: 24 } })], { tipTop: 212 }));
     expect(later).toEqual(first);
   });
