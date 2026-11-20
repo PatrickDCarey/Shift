@@ -110,6 +110,29 @@ describe('InputSampler while paused (pause.md)', () => {
     expect(s.sample().jump).toBe(true);
   });
 
+  it('a key that went down on the opening frame (since the last sample) counts as pressed: ignored until released and pressed again (check 14)', () => {
+    const s = new InputSampler();
+    s.keyDown('Escape');
+    s.keyDown('ArrowRight'); // same task as the opening Esc, before the scene saw the pause
+    s.setPaused(true);
+    s.setPaused(false);
+    expect(s.sample().right).toBe(false);
+    expect(s.sample().right).toBe(false);
+    s.keyUp('ArrowRight');
+    s.keyDown('ArrowRight');
+    expect(s.sample().right).toBe(true);
+  });
+
+  it('a key held from before the opening frame still counts as held after resume (check 14 counterpart)', () => {
+    const s = new InputSampler();
+    s.keyDown('ArrowRight');
+    s.sample(); // an earlier frame consumed the press
+    s.keyDown('Escape');
+    s.setPaused(true);
+    s.setPaused(false);
+    expect(s.sample().right).toBe(true);
+  });
+
   it('masks a gear key tapped in the menu (no latch survives the resume)', () => {
     const s = new InputSampler();
     s.setPaused(true);

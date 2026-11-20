@@ -55,8 +55,13 @@ export class InputSampler {
     this.presses = [];
   }
 
-  /** Enter or leave the pause. Latched taps never survive either change. */
+  /**
+   * Enter or leave the pause. Latched taps never survive either change. Opening: a key still down that
+   * went down since the last sample (the opening frame, pause.md check 14) is a press, so it is masked
+   * until released; keys held from earlier frames stay held.
+   */
   setPaused(paused: boolean): void {
+    if (paused && !this.paused) for (const code of this.latched) if (this.held.has(code)) this.masked.add(code);
     this.paused = paused;
     this.latched.clear();
     this.presses = [];

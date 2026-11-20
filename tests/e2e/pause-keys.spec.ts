@@ -41,8 +41,6 @@ test('P-13b closing frame: Space pressed with the closing Esc never reaches the 
 });
 
 test('P-13d / pause 14: Right down on the opening frame and still held at resume does not move the runner until it is pressed again', async ({ page }) => {
-  // BUG-7: Right that goes down with the opening Esc is treated as held at resume. Marked test.fail() so the suite stays green; remove the marker when fixed.
-  test.fail(true, 'BUG-7 (pause check 14)');
   await together(page, 'keydown', ['Escape', 'ArrowRight']);
   await pollScenes(page, ['Game', 'Pause']);
   await pollState(page, (s) => s.paused, 'paused').toBe(true);
