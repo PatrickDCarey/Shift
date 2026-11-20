@@ -205,9 +205,9 @@ export class GameScene extends Phaser.Scene {
     } else if (change === 'resumed') {
       this.sampler.setPaused(false);
       this.gate.closed(performance.now());
+      this.refreshPrefs(); // before the tip rebuilds, so it takes the new reduced-motion flag
       this.tip?.resume();
       this.driver.resetClock(); // no catch-up after a long pause
-      this.refreshPrefs();
     }
   }
 

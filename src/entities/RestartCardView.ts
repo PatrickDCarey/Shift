@@ -24,7 +24,7 @@ export class RestartCardView {
     const ink = hexToNumber(palette.ui.text);
     this.gfx = scene.add.graphics().setScrollFactor(0).setDepth(DEPTH_CARD).setVisible(false);
     const text = (value: string): Phaser.GameObjects.BitmapText =>
-      scene.add.bitmapText(0, 0, PIXEL_KEYS.font, value).setOrigin(0, 0).setScale(cardLayout().scale).setTint(ink).setScrollFactor(0).setDepth(DEPTH_CARD + 1).setVisible(false);
+      scene.add.bitmapText(0, 0, PIXEL_KEYS.font, value).setOrigin(0, 0).setScale(this.layout.scale).setTint(ink).setScrollFactor(0).setDepth(DEPTH_CARD + 1).setVisible(false);
     this.capLabel = text(this.layout.capLabel);
     this.word = text(CARD_WORD);
   }

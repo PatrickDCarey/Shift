@@ -57,6 +57,10 @@ export class FeedbackFx {
 
   setModes(modes: EffectModes): void {
     this.modes = modes;
+    // Effects already in flight stop when their mode turns off (update does not run while paused).
+    if (!modes.ringBurst) this.rings = [];
+    if (!modes.screenWipe) this.wipeStart = null;
+    if (!modes.deathFlash) this.flashPeak = 0;
   }
 
   /** A body's air drag dropped a band: the ring at its centre (pixels), and the screen wipe in a single-body level. */

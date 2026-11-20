@@ -57,4 +57,12 @@ describe('FocusPan', () => {
     pan.apply(B, 1, 16, false);
     expect(pan.apply(B, 1, 16, true)).toEqual(B);
   });
+
+  it('a respawn within the pan cuts to the new focus', () => {
+    const pan = new FocusPan();
+    pan.apply(A, 2, 16, false);
+    pan.apply(B, 1, 16, false); // pan running
+    expect(pan.apply(A, 2, 16, false)).toEqual(A);
+    expect(pan.apply(A, 2, 16, false)).toEqual(A);
+  });
 });

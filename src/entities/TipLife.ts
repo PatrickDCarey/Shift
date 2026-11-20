@@ -61,12 +61,12 @@ export class TipLife {
     this.tip = null;
   }
 
-  /** Leaving the level: hidden for good. */
   /** Applies to a tip shown from now on. */
   setReducedMotion(reduced: boolean): void {
     this.reducedMotion = reduced;
   }
 
+  /** Leaving the level: hidden for good. */
   destroy(): void {
     this.timer?.remove(false);
     this.timer = null;

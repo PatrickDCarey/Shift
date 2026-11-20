@@ -29,7 +29,7 @@ export class FocusPan {
    */
   apply(target: Focus, active: number, deltaMs: number, reduced: boolean): Focus {
     const shown = this.shown;
-    if (reduced || shown === null) this.from = null;
+    if (reduced || shown === null || active > this.activeBodies) this.from = null;
     else if (active > 0 && active < this.activeBodies && (shown.x !== target.x || shown.y !== target.y)) {
       this.from = shown;
       this.elapsed = 0;
