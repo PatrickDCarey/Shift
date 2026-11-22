@@ -42,7 +42,7 @@ async function load(page: Page, level: string): Promise<void> {
 const CASES: readonly (readonly [string, readonly string[]])[] = [
   ['w1-03', SHIFT_UP],
   ['w2-04', [...SHIFT_UP, ...JUMP]],
-  ['w3-03', JUMP],
+  ['w3-03', [...SHIFT_UP, ...JUMP]],
 ];
 
 for (const [level, want] of CASES) {

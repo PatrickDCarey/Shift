@@ -7,12 +7,12 @@ import { CameraRig } from '../entities/cameraRig';
 import { installDebugHook, removeDebugHook, type DebugSnapshot } from '../entities/debugHook';
 import { DEV_TANDEM_ID, devTandemLevel } from '../entities/devLevel';
 import { TipLife } from '../entities/TipLife';
-import { TANDEM_STRIPS } from '../entities/tandemView';
+import { GearMeters } from '../entities/GearMeters';
 import { debugText } from '../entities/debugText';
 import { BackdropView } from '../entities/BackdropView';
 import { FallCue } from '../entities/FallCue';
 import { FeedbackFx } from '../entities/FeedbackFx';
-import { GameHud, GEAR_METER_AREA } from '../entities/GameHud';
+import { GameHud } from '../entities/GameHud';
 import { hintPlans } from '../entities/hintLayout';
 import { HintView } from '../entities/HintView';
 import { InputSampler } from '../entities/inputSampler';
@@ -41,8 +41,6 @@ import { LEVEL_COMPLETE_EVENT, recordWin, type LevelCompleteEvent } from '../ent
 import type { SaveStore } from '../save';
 import {
   applyAudioSettings,
-  COMPACT_STRIP_LAYOUT,
-  gearMeterModel,
   INITIAL_GEAR_METER_MODEL,
   pauseLaunchData,
   PAUSE_RESULT_EVENT,
@@ -50,7 +48,6 @@ import {
   type GearMeterModel,
   type PauseResult,
 } from '../ui';
-import { GearMeterView } from '../ui/GearMeterView';
 import { showStickyKeysTipIfDue } from '../ui/StickyKeysTipView';
 import { getSaveStore, SCENE_KEYS } from './keys';
 
@@ -97,9 +94,7 @@ export class GameScene extends Phaser.Scene {
   private backdrop!: BackdropView;
   private fall!: FallCue;
   private hud!: GameHud;
-  private gearMeter!: GearMeterView;
-  /** Tandem only: the twin's compact strip (the runner's `gearMeter` is compact too then). */
-  private twinMeter: GearMeterView | null = null;
+  private meters!: GearMeters;
   /** B1: the Sticky Keys tip across pauses. */
   private tip: TipLife | null = null;
   private detachKeyboard: () => void = () => undefined;
@@ -161,7 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.fx = new FeedbackFx(this, modes);
     const { id, title } = level.meta;
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
-    this.mountGearMeters(level.twinStart !== null);
+    this.meters = new GearMeters(this, level.twinStart !== null, this.reduced);
     this.rig = new CameraRig(this, tuning, planLevel(level).exits);
     this.rig.setReducedMotion(this.reduced);
     this.attachInput();
@@ -219,7 +214,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private prefTargets(): PrefTargets {
-    const motion = [this.levelView, this.playerView, this.twinView, this.fall, this.tip, this.gearMeter, this.twinMeter, this.rig];
+    const motion = [this.levelView, this.playerView, this.twinView, this.fall, this.tip, this.meters, this.rig];
     return {
       setReducedMotion: (r) => motion.forEach((t) => t?.setReducedMotion(r)),
       setModes: (m) => [this.backdrop, this.fx].forEach((t) => t.setModes(m)),
@@ -323,12 +318,7 @@ export class GameScene extends Phaser.Scene {
   /** Gear meters and the text overlay. The win banner and pause menu are overlay scenes now. */
   private drawHud(): void {
     const { state } = this.driver;
-    this.meter = gearMeterModel(state.player, this.cfg.params);
-    this.gearMeter.update(this.meter, this.fall.meterFrame(0));
-    if (this.twinMeter !== null && state.twin !== null) {
-      this.twinMeter.setParked(state.twin.home);
-      this.twinMeter.update(gearMeterModel(state.twin, this.cfg.params), this.fall.meterFrame(1));
-    }
+    this.meter = this.meters.update(state, this.cfg.params, this.fall);
     this.hud.setFocusPrompt(focusPromptVisible(document.hasFocus()));
     this.hud.setDebug(this.debugOn && this.showDebug ? debugText(state, this.game.loop.actualFps) : null);
   }
@@ -343,20 +333,6 @@ export class GameScene extends Phaser.Scene {
       else if (e.type === 'jump') this.viewFor(e.body)?.pulse('jump');
       else if (e.type === 'bandChange') this.viewFor(e.body)?.pulse('shift');
     }
-  }
-
-  /** One full meter, or in a Tandem level two compact strips (runner on top, twin below). */
-  private mountGearMeters(tandem: boolean): void {
-    if (!tandem) {
-      this.gearMeter = new GearMeterView(this, GEAR_METER_AREA.x, GEAR_METER_AREA.y);
-      this.twinMeter = null;
-    } else {
-      const { runner, twin } = TANDEM_STRIPS;
-      this.gearMeter = new GearMeterView(this, runner.x, runner.y, { layout: COMPACT_STRIP_LAYOUT, body: 'runner' });
-      this.twinMeter = new GearMeterView(this, twin.x, twin.y, { layout: COMPACT_STRIP_LAYOUT, body: 'twin' });
-      this.twinMeter.setReducedMotion(this.reduced);
-    }
-    this.gearMeter.setReducedMotion(this.reduced);
   }
 
   private debugSnapshot(): DebugSnapshot {
@@ -387,9 +363,7 @@ export class GameScene extends Phaser.Scene {
     this.fx.destroy();
     this.fall.destroy();
     this.backdrop.destroy();
-    this.gearMeter.destroy();
-    this.twinMeter?.destroy();
-    this.twinMeter = null;
+    this.meters.destroy();
     this.rig.destroy();
     if (QA_HOOK) removeDebugHook();
   }

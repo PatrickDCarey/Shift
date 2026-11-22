@@ -1,7 +1,7 @@
 /**
  * The settings screen, keys only (docs/design/features/settings.md checks 1-6, 8; test-plan 9.4, B7-14).
  * Rows SOUND, REDUCED MOTION, REDUCED EFFECTS, BACK. No mouse calls anywhere in this file.
- * Known deviation, not a failure (tech-lead wave 2 W7): changes made from the pause menu apply at the next level start.
+ * Since batch 8 (W7) a change made from the pause menu also applies on RESUME and on R: see batch8.spec.ts.
  */
 import type { Page } from '@playwright/test';
 import { TEST_TIMEOUT_MS, activeScenes, expect, gameObjects, gotoTitle, menuFocus, menuModel, nextFrames, pollScenes, pollState, seedSave, tap, test, waitForHook } from './helpers';

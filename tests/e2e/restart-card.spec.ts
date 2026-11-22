@@ -18,6 +18,7 @@ import {
   TEST_TIMEOUT_MS,
   cardEverSeen,
   expect,
+  minStepSeen,
   nextFrames,
   pollScenes,
   pollState,
@@ -28,6 +29,7 @@ import {
   test,
   waitForHook,
   watchCardFromBoot,
+  watchSteps,
   type CardRect,
   type CardSample,
 } from './helpers';
@@ -158,7 +160,7 @@ test('the pocket rectangles in the QA read match the level files (restart-prompt
 });
 
 test.describe('w3-02 (checks 2, 3, 4)', () => {
-  test('59 pocket steps no card, 60 shows it within 2 frames; 64x19, centred at the bottom, clear of the HUD; R clears it on the first frame', async ({ page }) => {
+  test('59 pocket steps no card, 60 shows it within 2 frames; 128x38, centred at the bottom, clear of the HUD; R clears it on the first frame', async ({ page }) => {
     await seedSave(page, {}); // defaults, with the Sticky Keys tip marked shown so the evidence screenshot is clean
     await loadW302(page);
     await startCardTracker(page);
@@ -167,17 +169,17 @@ test.describe('w3-02 (checks 2, 3, 4)', () => {
     await waitForCard(page);
     await nextFrames(page, 4);
     const card = await cardNow(page);
-    await page.screenshot({ path: `${EVIDENCE}b7-restart-card.png` });
+    await page.screenshot({ path: `${EVIDENCE}b8-restart-card-2x.png` });
     const samples = await stopCardTracker(page);
 
     const j = judgeTiming(samples, W302);
     test.info().annotations.push({ type: 'observed', description: `${how}; entry step ${j.entryMin}..${j.entryMax}, card first seen at step ${j.firstCardStep} (frame ${j.firstCardIndex}); card ${JSON.stringify(card)}` });
     expect(j.problems, 'timing against the 60-step rule').toEqual([]);
 
-    // check 3 on screen: 64 x 19, integer px, centred (x + w/2 = 240), 8 px above the bottom edge (y + h = 262), clear of the HUD
+    // check 3 on screen (2x, 2026-11-20): 128 x 38, integer px, centred (x + w/2 = 240), 8 px above the bottom edge (y + h = 262), clear of the HUD
     expect(card).not.toBeNull();
     const c = card as CardRect;
-    expect([c.w, c.h], 'size').toEqual([64, 19]);
+    expect([c.w, c.h], 'size').toEqual([128, 38]);
     expect(Number.isInteger(c.x) && Number.isInteger(c.y), 'integer px').toBe(true);
     expect(c.x + c.w / 2, 'centred').toBe(240);
     // Placement is decided when the card appears: 8 px above the bottom edge, or y = 42 when a body's sprite is in that spot (the twin, on its pad, can be).
@@ -188,8 +190,9 @@ test.describe('w3-02 (checks 2, 3, 4)', () => {
     // R: the card is gone on the first frame of the new run, and the step is near 0
     const before = (await snapshot(page))?.state.step ?? 0;
     await startCardTracker(page);
+    await watchSteps(page);
     await page.keyboard.press('KeyR');
-    await expect.poll(() => page.evaluate(() => (window.__redshift?.state.step ?? 1e9) < 30), { message: 'restarted', timeout: POLL_TIMEOUT_MS }).toBe(true);
+    await expect.poll(() => minStepSeen(page), { message: 'restarted (lowest step seen on any frame since R)', timeout: POLL_TIMEOUT_MS }).toBeLessThan(30);
     await nextFrames(page, 3);
     const after = await stopCardTracker(page);
     const firstNew = after.findIndex((s) => s.step < before);
@@ -311,8 +314,9 @@ test.describe('w3-03 (check 5)', () => {
     await nextFrames(page, 5);
     expect(await cardNow(page), 'card still showing after resume, same place').toEqual(card);
 
+    await watchSteps(page);
     await page.keyboard.press('KeyR');
-    await expect.poll(() => page.evaluate(() => (window.__redshift?.state.step ?? 1e9) < 30), { message: 'restarted', timeout: POLL_TIMEOUT_MS }).toBe(true);
+    await expect.poll(() => minStepSeen(page), { message: 'restarted (lowest step seen on any frame since R)', timeout: POLL_TIMEOUT_MS }).toBeLessThan(30);
     await nextFrames(page, 3);
     expect(await cardNow(page), 'R clears it').toBeNull();
   });
