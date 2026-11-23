@@ -94,6 +94,21 @@ sweep: x0=-6 speed=2 delay=90
 - **Version rule:** unlike `hint:`, these lines change the simulation. **Any change to a `mover:`, `emitter:` or `sweep:` line bumps `version`** (and the solution is re-recorded), exactly like a grid change; the backend `LEVELS` row follows.
 - **Level rules, not parser rules** (`tests/levels/kineticRules.ts`, tech-lead, B11-15; a planted fixture per rule proves it fails): slab speed ∈ {1, 2}, slab width 2–8; shot speed ∈ {2, 4}, period ≥ 12; a slab's **swept area** (bounding box of its `moverCorners`, width × 1) holds only empty cells and has ≥ 2 empty in-grid rows above every cell; every end of a horizontal leg (two consecutive moves, cyclic, either `l`/`r`, not the same direction) rests ≥ 30 steps, unless the end is listed in `REST_EXEMPT` with its `levels/README.md` line (an end no line uses); an emitter's **lane** (its cell up to the end cell = cell + `range` along `dir`) crosses no non-empty tile, and the end cell, where the bolt sinks, is a wall (non-empty, not an exit); swept areas and lanes overlap no spawn box (`@`, `&`: the spawn column, `ceil(playerHeight)` rows up from the spawn row), exit, hint box, or the HUD area at **any** camera position the level allows (as hints); recordings ≤ 5,400 steps (every level). Not yet enforced, with the piece that needs them: sweep speed ∈ {2, 4}, delay ≥ 60, `x0 ≤` spawn x − 6 (B12-01); no slab box over a spawn box at `t = 0` and no shot reaching a spawn box in the first 60 steps are implied by the keep-out rule. Design's per-level pacing rules (crossing windows ≥ 18 steps, w2-05's 4,800-step clean run) stay in `levels/README.md`.
 
+### Checkpoint headers (long levels, 2026-11-24)
+
+Posts for long levels (`docs/design/features/checkpoints.md`; rules in `src/core/contracts/checkpoints.ts`, sim behaviour in `architecture.md` §3.7). A header line, not a grid glyph.
+
+```
+checkpoint: 120 11
+checkpoint: 236 9 clock=0
+```
+
+- **`checkpoint: <col> <row> [clock=<n>]`**: the post's cell. The body respawns standing in it (feet x = col + 0.5, y = row + 1, as `@`). `clock=` (optional, default 0, 0–36000): the kinetic clock on the respawn step at this post; with 0 every bolt lane is empty and every slab is at its origin, as at the spawn.
+- Parsed into `Level.checkpoints` in file order (the index is the post's id); **absent** when the file has none.
+- **Version rule:** a `checkpoint:` line changes the simulation: adding, moving or removing one bumps `version` and the solution is re-recorded (as `mover:`).
+- **Parser validation** (file, line, column as for `hint`): not 3 or 4 tokens; a key other than `clock`, or `clock` out of range; non-integer or negative col/row; a cell outside the grid; a cell that is not `.` in the file; the cell directly below not `#` (or below the grid); more than 4 (`MAX_CHECKPOINTS`); columns not strictly increasing in file order; the first post fewer than 20 columns right of `@` (`CHECKPOINT_MIN_FROM_START`); consecutive posts fewer than 40 columns apart (`CHECKPOINT_MIN_SPACING`); any `checkpoint:` in a level with `&` (Tandem never has posts) or with a `sweep:` line (the error names the later of the two lines).
+- **Level rules** (`tests/levels`, tech-lead; a planted fixture per rule): the post's **respawn box** (the post column, `ceil(playerHeight)` rows up from the post row) holds only empty cells and overlaps no slab swept area, no shot lane, no exit, no hint box and no HUD area at any camera x; a post stands ≥ 4 columns before the next non-safe floor cell in the row below it (a recovery stretch); the shipped recording of a level with posts is deathless from load (`wonAtStep === steps`) and lights every post in order; a ±3 robustness trial fails on its first `died` event in a level with posts (a post respawn must never rescue a perturbed run).
+
 ### Grid
 
 Everything after the `---` line, until end of file. One character per tile.
@@ -134,6 +149,7 @@ Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X`
 - `mover`: fewer than 5 tokens or an unknown, repeated or missing required key; a non-integer number or one out of the ranges in §2 "Kinetic headers"; a size not `<w>x1`; a kind not `safe B G Y R`; a speed not in {1, 2, 4, 8}; a path token not `[rlud][1-9][0-9]*` or `w[1-9][0-9]*`; a path with no move or a net displacement ≠ 0; `phase ≥ cycle`; any cell of the slab at any track corner (origin + every prefix sum of the moves) outside the grid; any cell of the slab at its origin (all `w` cells) that is not `.` in the file; more than 16 (`MAX_MOVERS`).
 - `emitter`: an unknown, repeated or missing required key; a number out of range; `dir` not `l r u d`; `band` not `W B G Y R`; `phase ≥ period`; a cell outside the grid or not `.` in the file; a lane end (cell centre + range along `dir`) outside `[0, width] × [0, height]`; more than 16 (`MAX_EMITTERS`).
 - `sweep`: a second `sweep:` line (its own message, naming the line of the first); an unknown, repeated or missing key; a number out of range, including `x0` below −64 or above the level width.
+- `checkpoint`: the list in §2 "Checkpoint headers" (token count, `clock` range, cell `.` with `#` below, at most 4, increasing columns, spacing, not with `&` or `sweep:`).
 - *Readings confirmed by tech-lead (B11-15, 2026-11-23), as the [level] lane built them in `src/core/level/kinetics.ts`:* (1) every origin cell of a slab must be `.`, not only its top-left (the slab is drawn there at `t = 0`); (2) a second `sweep:` line has its own message; (3) `x0` is range-checked on both sides, `−64 ≤ x0 ≤ width`.
 - Kinetic messages name the file, the header line and the column where the bad token starts, as for `hint`.
 
@@ -206,7 +222,7 @@ Replay all frames from `createSim(level, params)`. The solution passes if `statu
 
 **In the game** a finished run becomes a `RunResult` (`src/core/types.ts`): `wonAtStep` (the run time that best times and leaderboards rank) plus the recording as a `Solution` (`levelId`, `levelVersion`, `steps` = frames recorded). Saving it with `formatSolution` gives exactly this file; `verifySolution` accepts it against its level by construction, which is how the leaderboard server checks a submission.
 
-A recording covers **every frame since the level was loaded**, including deaths and restarts (`!`) before the winning run, and ends on the winning step. It is never trimmed to the last run, because the first frame of a run is not independent of the frame before it (buttons held through a respawn are not new presses). `wonAtStep` counts steps of the winning run only, so it equals `steps` when the recording has no death or restart, and is smaller otherwise.
+A recording covers **every frame since the level was loaded**, including deaths and restarts (`!`) before the winning run, and ends on the winning step. It is never trimmed to the last run, because the first frame of a run is not independent of the frame before it (buttons held through a respawn are not new presses). `wonAtStep` counts steps of the winning run only, so it equals `steps` when the recording has no death or restart, and is smaller otherwise. In a level with checkpoint posts, once a post is lit `wonAtStep` also counts every later frame (deaths and freezes after a post), so it is the frames since the last full restart (load, `!`, or a death with no post lit); `wonAtStep <= steps` still holds. Shipped solutions for such levels are deathless (`wonAtStep === steps`).
 
 ### Example solution
 

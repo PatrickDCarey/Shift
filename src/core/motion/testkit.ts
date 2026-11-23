@@ -25,6 +25,7 @@ export function paramsForTests(t: Tuning): SimParams {
   const apex = msToSteps(t.jumpTimeToApexMs, t.stepHz) / t.stepHz;
   return {
     stepHz: t.stepHz,
+    projectileSize: t.projectileSizeTiles,
     dt: 1 / t.stepHz,
     gearSpeeds: t.gearSpeeds,
     minGear: t.minGear,

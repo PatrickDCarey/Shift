@@ -11,6 +11,9 @@
  * Inside `step()` the sim evaluates pieces at `t` (start of step) and at
  * `t + 1` (end of step = the returned state's `step`). The renderer evaluates
  * the same functions at `prev.step` and `state.step` and blends with alpha.
+ * CHECKPOINTS (contracts/checkpoints.ts): once a post is lit, `t` is the kinetic
+ * clock `kineticStep(state)` = step - checkpoint.kinBase, not `step`. Without
+ * `SimState.checkpoint` the two are equal, so callers use `kineticStep` always.
  *
  * EXACT ARITHMETIC. Speeds are `KinSpeed / KIN_SPEED_UNIT` tiles per step, so
  * a whole-tile leg takes `tiles * KIN_SPEED_UNIT / speed` steps (an integer)

@@ -2,6 +2,7 @@
  * Simulation state and events. Owner: tech-lead. Import via `src/core/types`.
  */
 import type { Band, ColoredBand, Facing, Gear, MoveDir } from './bands';
+import type { CheckpointState } from './checkpoints';
 import type { InputFrame } from './input';
 
 /**
@@ -164,7 +165,8 @@ export type BodyEvent = Extract<SimEvent, { readonly body: BodyId }>;
  */
 export interface SimState {
   /**
-   * Playing steps of the current run (0 at spawn and on the respawn step). The
+   * Playing steps of the current run (0 at spawn and on the respawn step). With a
+   * lit checkpoint post: every step since the last full restart (see `checkpoint`). The
    * run time for leaderboards. Frozen on dead, restart and won steps
    * (architecture.md §3.4); not the number of recorded frames.
    */
@@ -186,6 +188,14 @@ export interface SimState {
    * Run-level: one direction d per step for both bodies (phase 3).
    */
   readonly dirPriority: MoveDir;
+  /**
+   * The lit checkpoint post (contracts/checkpoints.ts). ABSENT (not null) until a
+   * post lights and again after every full restart, so levels without posts
+   * produce states, snapshots and golden hashes identical to before. While
+   * present, `step` also advances on dead and respawn steps (the level time
+   * counts deaths after a post) and kinetics use step - kinBase.
+   */
+  readonly checkpoint?: CheckpointState;
   /** Events produced by the most recent step only. */
   readonly events: readonly SimEvent[];
 }

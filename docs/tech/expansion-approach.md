@@ -10,7 +10,7 @@ Design's specs (`features/moving-objects.md`, `projectiles.md`, `sweep.md`; `dec
 
 1. **Slabs are top-only.** No push, no crush, no mover boxes in `sweepX`/`sweepY`, no no-embed for slabs, no `crushed` flag and no `cause: 'crush'`. Phase 6b is carry only; landing is the swept top test in phase 8. §2.3 rows 6b (2) and (3), §2.4's sweep-argument and no-embed bullets are **Could** (a later "crusher"), not built. Format: slab height is fixed at 1 (`<w>x1`).
 2. **Emitters gain white:** `Emitter.band: Band | null` (null grey, 0 white, 1-4 that band); hit iff `band === null || band === bandAtStart`.
-3. **No checkpoints** (§5.2 stays unbuilt).
+3. **No checkpoints** (§5.2 stays unbuilt). *Superseded 2026-11-24: checkpoints are Must for long levels, see §8.*
 4. **The sweep is in** (Should, cheap and stateless): `sweep:` header, `sweepFront` in [motion], a phase-14 check, `cause: 'sweep'`. It fits after emitters in the [sim] sitting (S: one header, one pure function, one comparison).
 5. **Contract details settled here:** [motion] also publishes `moverCorners` (track corners for drawing and swept areas) and `nextShotIn` (tell glow and fire cue, render-side); no new sim event type (audio's exhaustive switch); new motion names sit in `LANE_PENDING` until [motion] lands; the `projectileSizeTiles` / `emitterTellMs` schema keys land as step 1b with design-lead's values (the tuning lockstep test forbids either side first).
 6. **Shot at t = 0:** with `phase` 0 the s = 0 shot sits at the muzzle at t = 0 (as `projectiles.md` "Room B" requires); "empty lane" means no shot with s < 0. `projectiles.md` check 5's first clause reads that way.
@@ -265,3 +265,50 @@ The path maths lives in [motion] because it is pure and stateless, and because s
 | Art (platform, emitter, shot, per-band patterns) | M |
 | Checkpoints (only if scheduled) | M-L |
 | Levels (content) | L |
+
+## 8. Checkpoints (Must for long levels, 2026-11-24)
+
+Design reversed ruling 2 (`decisions.md` 2026-11-24, `level-plan.md` v4.1, `features/checkpoints.md`): a long level is 8–12 rooms, 300–450 tiles, ≤ 15 rows, clean run 45–75 s (≤ 4,500 steps), a post every 3–4 rooms, no sweep with posts. Contracts landed 2026-11-24: `src/core/contracts/checkpoints.ts` (rules), `Level.checkpoints?`, `SimState.checkpoint?`, sim `kineticStep` (in `LANE_PENDING.sim`), `tests/arch/checkpoint-contract.test.ts`. Normative text: `architecture.md` §3.7, `level-format.md` §2 "Checkpoint headers". §5.2 above is superseded where it differs.
+
+### 8.1 Rules fixed
+
+| Question | Rule |
+|---|---|
+| Activation | Phase 14 after won, before death; runner's box overlaps the post **column** (any height, band, air); forward only (index > lit); highest wins; a post lit on a death step counts. |
+| Respawn | Fresh spawn at the post (feet col+0.5, row+1; startGear, band 0, v 0, facing right, timers cleared); `prevInput` kept; after the normal 24-step freeze. |
+| Level clock | `step` counts every frame (dead and respawn steps too) from the first lit post until a full restart; `wonAtStep` = frames since the last full restart. |
+| Kinetic clock | `kineticStep = step − kinBase`; post respawn sets it to `post.clock` (default 0: lanes empty, slabs at origin) so the post room is identical every life; freezes freeze it. **Differs from `checkpoints.md` acceptance 8** (filed to design). |
+| R / `!` | Full restart, `checkpoint` absent. |
+| Signal | No new event: "lit" = `checkpoint.index` changed (audio switch untouched). |
+| Recording | Shipped solution = deathless run from load (`wonAtStep === steps`), lights every post. |
+| Robustness | ±3 unchanged; a trial fails on its first `died` in a post level. |
+| Server | Never replays; unchanged checks hold (`wonAtStep ≤ frames`). Runs whose log exceeds the caps stay local-only. |
+
+### 8.2 Limits for 300–450-tile levels
+
+| Limit | Value | Verdict |
+|---|---|---|
+| Grid width | no parser cap; add `tests/levels` rule width ≤ 480 | confirm |
+| Rows | ≤ 15 (long levels), HUD rule unchanged | confirm |
+| HUD/keep-out check at every camera x | ~450 positions × (hints + lanes + posts) | linear, < 50 ms; confirm |
+| Recording cap | `MAX_RECORDING_STEPS` 5,400 (design target ≤ 4,500) | confirm |
+| ±3 robustness | 60 transitions × 6 trials × ≤ 4,500 remaining steps ≈ 0.8–1.6 M sim steps per level | keep 30 s; raise `LEVEL_TIMEOUT_MS` to 60 s only for width > 120 if a long level passes 20 s under coverage locally |
+| 1M-step replay test | fixture level | unaffected |
+| e2e replay (`speed=60`) | 4,500 steps ≈ 75 frames ≈ 1.3 s per level | confirm; per-test timeout unchanged |
+| Backend | `MAX_RUN_STEPS` 36,000 (10 min since load) | keep; raise `MAX_LOG_CHARS` 16,000 → 32,000, `MAX_BODY_CHARS` 32,000 → 40,000, `MAX_BODY_BYTES` 40,000 → 56,000 |
+
+### 8.3 Lane briefs
+
+- **[level]** First split `kinetics.ts` (399 lines; readers to `kineticRead.ts`). Then `checkpoints.ts` (new, < 150 lines): parse `checkpoint:` per `level-format.md` §2, every listed error with file/line/column; `Level.checkpoints` absent when none; parse tests per error.
+- **[sim]** Export `kineticStep`; use it for every kinetic `t` (movers, hazards, sweep). Activation in phase 14 (a2); post respawn and the dead-step clock in `status.ts`/`create.ts` (a `spawnAt(level, params, cell)` helper); field absent unless lit. Acceptance tests for `checkpoints.md` 1–7, 9 and 10 (8 per §8.1); determinism fixture with a post; every golden hash unchanged.
+- **[scene]** Post view (idle/lit from `state.checkpoint`), camera snaps to the post on a post respawn (no pan, no interpolation across the teleport), respawn wipe at the post, HUD unchanged; the restart card's R stays a full restart; QA hook gains `checkpoint: number | null` and `kineticStep`. `KineticsView` must evaluate at `kineticStep`, not `step`.
+- **ui-engineer** Results/best time keep "time" wording; the value now includes deaths after a post. Optional "incl. respawns" line is design's call. Saves never store a post.
+- **art-director** Post sprite, 1 × 2 tiles on a safe tile: idle (outline pole, flag down) and lit (filled flag up, short rise; static under reduced motion). Shape differs, never colour alone; `npm run art:build`.
+- **audio-designer** Post cue from the state diff (`checkpoint.index` changed), called by the scene like the shot fire cue; no `SimEvent` change, so `sfxEvents.ts`'s switch is untouched.
+- **backend-engineer** `LEVELS` rows for new versions (orchestrator step); raise the caps in §8.2; client skips submitting when frames > `MAX_RUN_STEPS` (best stays local).
+- **tech-lead (`tests/levels`)** Rules of `level-format.md` §2 "Checkpoint headers" with planted fixtures; width ≤ 480; deathless shipped recording lights every post; ±3 trial fails on `died` in post levels; drop `kineticStep` from `LANE_PENDING` at review; then `SimParams.projectileSize` required (§8.4).
+
+### 8.4 Open follow-ups
+
+- **`SimParams.projectileSize` stays optional.** Making it required breaks one file: `src/core/motion/testkit.ts:26` (`paramsForTests` lacks the key). [motion] adds `projectileSize: t.projectileSizeTiles` there; [sim] then drops the `size === undefined` guard in `sim/hazards.ts:22`; tech-lead tightens the type in the same review.
+- **Design:** acceptance 8 (kinetic clock resets to `post.clock` on a post respawn) and "forward only" activation (design wrote "last touched wins").

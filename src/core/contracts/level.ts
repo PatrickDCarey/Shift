@@ -2,6 +2,7 @@
  * Tiles and levels (GDD §4.7, §7.1). Owner: tech-lead. Import via `src/core/types`.
  */
 import type { Band, ColoredBand } from './bands';
+import type { Checkpoint } from './checkpoints';
 import type { Emitter, Mover, Sweep } from './kinetics';
 
 /**
@@ -142,4 +143,10 @@ export interface Level {
   readonly emitters?: readonly Emitter[];
   /** The `sweep:` header (Should, at most one); absent when none. */
   readonly sweep?: Sweep;
+  /**
+   * Checkpoint posts from `checkpoint:` headers, file order = strictly increasing
+   * column (the index is the post's id). Absent when the file has none (never an
+   * empty array); never present with a twin or a sweep. Rules: contracts/checkpoints.ts.
+   */
+  readonly checkpoints?: readonly Checkpoint[];
 }

@@ -103,6 +103,13 @@ export type CreateSimFn = (level: Level, params: SimParams) => SimState;
 /** One fixed step in the order of architecture.md §3.1. Pure. */
 export type StepFn = (state: SimState, input: InputFrame, level: Level, params: SimParams) => SimState;
 
+/**
+ * Kinetic clock of a state: `state.step - state.checkpoint.kinBase`, or `state.step`
+ * when no post is lit (contracts/checkpoints.ts). The `t` for moverOffset, shotsAt,
+ * nextShotIn and sweepFront in the sim, the renderer and tests/levels.
+ */
+export type KineticStepFn = (state: SimState) => number;
+
 /** What the level lane needs from the sim; injected so the level lane never imports the sim. */
 export interface SimApi {
   readonly createSim: CreateSimFn;
@@ -111,6 +118,7 @@ export interface SimApi {
 
 export interface SimLaneApi extends SimApi {
   readonly deriveParams: DeriveParamsFn;
+  readonly kineticStep: KineticStepFn;
 }
 
 // --- level lane: src/core/level (parser, input-log codec, replay, loader) ---
@@ -173,7 +181,7 @@ export const LANE_EXPORTS: {
   readonly motion: readonly (keyof MotionApi)[];
   readonly level: readonly (keyof LevelLaneApi)[];
 } = {
-  sim: ['createSim', 'step', 'deriveParams'],
+  sim: ['createSim', 'step', 'deriveParams', 'kineticStep'],
   motion: [
     'bandForSpeed',
     'segmentRates',
@@ -208,7 +216,8 @@ export const LANE_PENDING: {
   readonly motion: readonly (keyof MotionApi)[];
   readonly level: readonly (keyof LevelLaneApi)[];
 } = {
-  sim: [],
+  /** kineticStep: checkpoints contract 2026-11-24, [sim] checkpoint sitting. */
+  sim: ['kineticStep'],
   motion: [],
   level: [],
 };
