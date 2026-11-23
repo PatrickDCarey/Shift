@@ -48,7 +48,7 @@ Listen for the music: it follows your pace. A heavy clunk means a long flight ju
 - **Flight** is about committing at takeoff. Long flights cost you speed, one color every 6 tiles.
 - **Tandem** gives you a second runner on a second floor. Both obey the same keys. Put them out of step to bring both home.
 
-The first level of every world is open from the start, so you can try Tandem right away.
+Start with Gears: each world builds on the one before it. The first level of every world is open from the start, so you can peek at Tandem right away.
 
 ### Controls (keyboard only)
 
@@ -180,9 +180,9 @@ In Redshift, your pace is your color, and colored platforms are only solid while
 
 ## 7. Facts to re-check at submit
 
-> NOTE: re-checked 2026-11-23 (B8-12) against HEAD 65ae833. Ticked items pass; the unticked ones need the owner. Re-tick the art and count lines after w3-05 v2 lands (batch 9). It changes geometry only right of col 30, so shot 5 and the count should stay valid.
+> NOTE: re-checked 2026-11-23 (B8-12) against HEAD 65ae833. Ticked items pass; the unticked ones need the owner. The art and count lines were re-ticked on 2026-11-23 (B9-07) against 50eb482, after w3-05 v2 landed.
 
-- [x] **Level and world count:** still 14 levels in 3 worlds (Gears, Flight, Tandem)? If a world 4 ships or anything is cut, change the one "In this build" line, the Tandem bullet if needed, and the average session. *(2026-11-23: 14 levels in worlds 1–3; world 0 is filtered out in `levelSelect.ts` and `progress.ts`; names GEARS, FLIGHT, TANDEM in `levelSelectModel.ts`.)*
+- [x] **Level and world count:** still 14 levels in 3 worlds (Gears, Flight, Tandem)? If a world 4 ships or anything is cut, change the one "In this build" line, the Tandem bullet if needed, and the average session. *(2026-11-23: 14 levels in worlds 1–3; world 0 is filtered out in `levelSelect.ts` and `progress.ts`; names GEARS, FLIGHT, TANDEM in `levelSelectModel.ts`. Re-ticked after w3-05 v2 (B9-07, 50eb482): still 14. §3's "try Tandem right away" line now says "start with Gears".)*
 - [x] **First level of every world open from the start** (`src/save/progress.ts` unlock rule). *(2026-11-23: `isPlayable`.)*
 - [x] **Controls table** matches the controls screen (`src/ui/bindings.ts` `DEFAULT_BINDINGS`, `src/ui/controlsModel.ts`). *(2026-11-23: every row matches; the menu row matches `menuInput.ts`.)*
 - [x] **Sticky Keys tip** still shows once on Windows. *(2026-11-23: `tests/e2e/sticky-keys.spec.ts`; also seen once by the batch 8 playtester.)*
@@ -190,7 +190,7 @@ In Redshift, your pace is your color, and colored platforms are only solid while
 - [x] **Settings (copy updated 2026-11-20):** SETTINGS is on the title and in the pause menu, with SOUND, REDUCED MOTION and REDUCED EFFECTS (`src/ui/titleModel.ts`, `src/ui/pauseModel.ts`, `features/settings.md`). The copy names exactly those three; there are no volume sliders, so don't mention volume. Reduced motion starts on with the OS setting, and all three survive a reload (`settings.md` checks 1–2, QA). *(2026-11-23: models checked; QA settings 1–4 Pass, `docs/qa/test-plan.md` §10.)*
 - [ ] **Audio (copy written 2026-11-20, held):** the one audio line under the theme paragraph goes in **only** after the owner has heard the packaged build: music changes with pace, the w2-02 clunk is distinct from a shift down, and SOUND OFF silences all of it. If any of that fails, delete the line; the page then makes no audio claim.
 - [x] **Restart card:** the "Stuck?" line names `[R] RESTART`. It still shows in w3-02's pocket, and the cap still reads R (`DEFAULT_BINDINGS`). *(2026-11-23: `restart: ['KeyR']`; QA restart-prompt 3–5 Pass.)*
-- [x] **Page art (delivered 2026-11-20, `docs/art/itch/`):** cover `cover-630x500.png`; screenshots `shot-1-w1-02-shift.png`, `shot-2-w1-05-red-wall.png`, `shot-3-w2-02-coast.png`, `shot-4-w3-03-gear-split.png`, `shot-5-w3-05-redshift.png`, optional `shot-greyscale-w1-05.png` last; `redshift-runway.gif` at the top of the description. Re-check that no shot shows something the final build has changed: a level geometry change, a palette change, or the HUD. *(2026-11-23: no shot shows a changed area. w3-05 v2 is limited to cols ≥ 30, and shot 5 shows the opening near the block. Re-tick after v2.)*
+- [x] **Page art (delivered 2026-11-20, `docs/art/itch/`):** cover `cover-630x500.png`; screenshots `shot-1-w1-02-shift.png`, `shot-2-w1-05-red-wall.png`, `shot-3-w2-02-coast.png`, `shot-4-w3-03-gear-split.png`, `shot-5-w3-05-redshift.png`, optional `shot-greyscale-w1-05.png` last; `redshift-runway.gif` at the top of the description. Re-check that no shot shows something the final build has changed: a level geometry change, a palette change, or the HUD. *(2026-11-23: no shot shows a changed area. w3-05 v2 is limited to cols ≥ 30, and shot 5 shows the opening near the block. Re-ticked after v2 on 2026-11-23 (B9-07): v2 at 50eb482 changes cols 36–45 only, so shot 5 is still accurate.)*
 - [x] **Pattern list** (white plain, blue stripes, green dots, yellow chevrons, red checker) still matches `src/data/palette.json`. *(2026-11-23: matches.)*
 - [x] **Flash cap and no screen shake** still true (`src/fx/effectsPolicy.ts`). *(2026-11-23: `MAX_FLASHES_PER_SECOND` 3; no `shake` call anywhere in `src/`.)*
 - [x] **Progress saves in the browser** (and the title's "not saved" notice covers browsers that block storage). *(2026-11-23: `TITLE_NOT_SAVED` in `titleModel.ts`.)*
