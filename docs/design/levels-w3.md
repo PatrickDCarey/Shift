@@ -1,6 +1,6 @@
 # World 3 Tandem: level specs w3-02 to w3-05
 
-_Owner: design-lead. Written 2026-11-16 (board B6-07) for level-designer; **revised 2026-11-17 to match the levels as built and approved** (B6-32..B6-36, `decisions.md` 2026-11-17). All four levels are **APPROVED, version 1**. **Amended 2026-11-20** (batch 7 playtest): hint glyphs for w3-03..w3-05, with no geometry change. The grid, lines and sweep numbers of record are in `levels/README.md`; this file keeps the intent, the rules each level must keep, and why it is built the way it is. Rules that apply to every level here: `features/tandem.md` "Level rules" (including the lane-colouring rule), `level-plan.md` "Constraints for level-designer", GDD §6._
+_Owner: design-lead. Written 2026-11-16 (board B6-07) for level-designer; **revised 2026-11-17 to match the levels as built and approved** (B6-32..B6-36, `decisions.md` 2026-11-17). All four levels are **APPROVED, version 1**. **Amended 2026-11-20** (batch 7 playtest): hint glyphs for w3-03..w3-05, with no geometry change. **Amended 2026-11-23** (batch 8 playtest): w3-05 v2, a step at the back of the run-up (section "w3-05 v2"). The grid, lines and sweep numbers of record are in `levels/README.md`; this file keeps the intent, the rules each level must keep, and why it is built the way it is. Rules that apply to every level here: `features/tandem.md` "Level rules" (including the lane-colouring rule), `level-plan.md` "Constraints for level-designer", GDD §6._
 
 Only mechanics the sim already has are used (`features/tandem.md` checks 1–18; colored walls, `features/colored-walls.md`). No new tiles, no new tuning.
 
@@ -13,7 +13,7 @@ Only mechanics the sim already has are used (`features/tandem.md` checks 1–18;
 - **Pockets:** where a body that falls through its own colored tile would land in the other lane and could finish there, the divider closes a pocket under that tile (at least 3 rows tall, so no jump climbs back out). A body in a pocket waits for R; since 2026-11-19 the scene shows a `[R] RESTART` card 1 s after a body is stuck there (`features/restart-prompt.md`), so a pocket must be a region its helper finds as sealed (no spawn, no exit, not reaching the grid's top or bottom row). Prefer an open drop out of the grid when the other lane is a hole or a non-matching color below it.
 - **README per level:** fair line with windows (≥ 18 steps or a walking-pace position choice with ≥ 1 tile of spots), removal test, whether each split is undone (clamp) or final (park), spread (≤ 26 tiles between non-home bodies on the intended line), `Fastest known`, and a request line to backend for its `LEVELS` row.
 - **Removal tests must include the park line:** when one body is home the other is played alone, so for each level show that "get one body home first, then solve the other lane alone" cannot skip the new idea.
-- **Hints (amended 2026-11-20, `decisions.md` 2026-11-20):** all in the runner's lane, headers only, no `version` bump, no re-record, no `LEVELS` change (`features/onboarding-hints.md` "2026-11-20 placements"). w3-02: none. w3-03: `shiftUp 2 3`, `jump 12 3`. w3-04: `shiftUp 2 3`, `jump 12 3` (the 2026-11-19 fallback fired: about 8 failed openings in the batch 7 playtest). w3-05: `jump 12 3`, `shiftUp 36 3`, `jump 41 3`. The new idea of w3-04 (the clamp) and w3-05's down presses are never hinted.
+- **Hints (amended 2026-11-20, `decisions.md` 2026-11-20):** all in the runner's lane, headers only, no `version` bump, no re-record, no `LEVELS` change (`features/onboarding-hints.md` "2026-11-20 placements"). w3-02: none. w3-03: `shiftUp 2 3`, `jump 12 3`. w3-04: `shiftUp 2 3`, `jump 12 3` (the 2026-11-19 fallback fired: about 8 failed openings in the batch 7 playtest). w3-05: `jump 12 3`, `shiftUp 36 3`, `jump 41 3` (v2, 2026-11-23: the last two move to the step and the measured take-off). The new idea of w3-04 (the clamp) and w3-05's down presses are never hinted.
 
 ### Cold-play checks before submit (2026-11-19)
 
@@ -24,6 +24,8 @@ No player has finished w3-04 or w3-05 cold (the batch 6 playtest stopped at w3-0
 - **w3-05:** does the blue strip read as the reason for the down presses? Is the order readable? Time to solve (target 3–5 min) and whether they quit.
 
 **Batch 7 results (2026-11-20, `docs/playtests/2026-11-20-batch7.md`):** w3-02's card showed and R worked. w3-03 was not a cold play. w3-04 was cleared after about 16 tries, about 8 of them failed openings, so the glyph fallback fired. w3-05 was not finished after about 14 tries: the twin waits white at its kerb and nothing said "back up and run". The fix is the 2026-11-20 hints above. **Next playtest (Must before submit):** the same w3-04 and w3-05 questions with the hints in, plus `onboarding-hints.md` check 15. Use a fresh sitting if possible, because this playtester now knows w3-04. If w3-05 is still not finished, design-lead rules again. No checkpoint and no geometry change is pre-approved.
+
+**Batch 8 results (2026-11-23, `docs/playtests/2026-11-20-batch8.md`, fresh sitting):** w3-03 was solved in 5 tries and the hints were read. w3-04 was cleared in about 8 tries (16 before), so its opening now reads; the clamp stays unhinted. w3-05 was again not finished in about 14 lives. The tester reached the kerbs at least four times and lost there because the walk-back moved the two bodies by unequal amounts. The ruling is the v2 run-up step (below, under w3-05), Must for release. Its cold-play check replaces the w3-05 line above.
 
 Known numbers used below (GDD §5, `tandem.md`, `levels/README.md`):
 
@@ -118,7 +120,7 @@ Known numbers used below (GDD §5, `tandem.md`, `levels/README.md`):
 
 ---
 
-## w3-05 Redshift (finale) — APPROVED v1
+## w3-05 Redshift (finale) — APPROVED v1; v2 ordered 2026-11-23 (see "w3-05 v2" at the end of this section)
 
 **COMBINE: air-stop split, out-of-step bridges, clamp down, kerb pin to re-align, clamp up, a shared drag jump, park, and the twin braking alone.** Each section is a known idea; the difficulty is the order.
 
@@ -145,6 +147,23 @@ Known numbers used below (GDD §5, `tandem.md`, `levels/README.md`):
 - **Why not shorter:** the length is the walk to the kerbs that the pin needs. A trim would save under 2 s and cost a v2, a re-record, the sweeps and a `LEVELS` row.
 - **Why no pinned-twin cue:** a twin standing white at its kerb is the intended re-align state, not an error. The glyph behind it says what to do next.
 - A retry stays about 20 s.
+
+### w3-05 v2 (2026-11-23, batch 8 playtest; `decisions.md` 2026-11-23): a step at the back of the run-up
+
+**Why.** Two cold sittings did not finish w3-05. The kerbs re-align positions, but the walk-back starts from wherever the player lets go of Left, so the run-up only works if both gears already match. A player who jumps the twin's blue strip (a world-2 skill) reaches the kerbs at gears 1 and 2. One hold of Left then moves the bodies about 120 px and 45 px, and nothing says why. That makes "equalise the gears first" a hidden step, and pillar 3 forbids that.
+
+**Rule for v2 (level-designer builds it; the construction is theirs if it meets every point):**
+1. **A step-up face at the back of the run-up, at the same column in both lanes, near x 36** (for example: the floor of cols ≤ 35 one tile higher than the run-up, or the run-up floor cols 36–44 one tile lower). Walking Left from the kerbs, both bodies stop against it at the same x whatever their gears (it holds like a kerb, the other way round). Walking right on the first approach, they walk off the 1-tile step without a jump.
+2. **The run-up, from the step face to the kerbs, is safe tiles only in both lanes.** The twin's blue strip stays left of the step.
+3. **From the held-at-the-step state, three up presses clamp both bodies to gear 4 from any split (1/1, 1/2, 1/3, 2/3), and holding right then jumping in the window wins.** The kerb jump window is ≥ 18 steps (it is 22 in v1), measured from the step, not from a free stop.
+4. **The kerbs stay at one column in both lanes**, and both bodies are still held at the same x there. The shared drag jump, the pads, the park and the twin's brake are unchanged except for any shift the step forces.
+5. **Nothing changes left of col 30:** the opening, the split, the blue strip and the twin's pad. That keeps the opening, its `jump 12 3` glyph and itch shot 5 valid.
+6. **Hints:** still three. `jump 12 3` stays. `shiftUp` sits over the step (where you stop), and `jump` over the middle of the measured take-off range. Both must follow the placement rules (empty box, at least 3 rows above the floor under it, right edge of the `jump` box left of the kerb).
+7. **`version: 2`**, a re-recorded solution, and README updates: the fair line, every window, the removal tests (kerbs removed still 0 wins, no win without the air stop, the park line), a new sweep of strip-jump lines (they may now win, through the clamp at the step: accepted, since the clamp is a w3 idea), the spread (≤ 26) and `Fastest known`. `sealedPockets` must still find no pocket in w3-05.
+
+**Not changed:** no checkpoint (a new mechanic, rejected 2026-11-20 and 2026-11-23), no shorter opening, the level stays the finale.
+
+**Cold-play check for v2 (Must before submit; a fresh sitting with no memory of w3-05):** w3-05 cleared within **10 lives and 15 minutes** of play. From the first time both bodies are held at the kerbs, the run-up section is cleared within **5 attempts**. Report whether the player backs up to the step without reading anything. A miss is a finding for design-lead.
 
 ---
 

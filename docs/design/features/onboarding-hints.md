@@ -37,6 +37,12 @@ The batch 7 playtest (`docs/playtests/2026-11-20-batch7.md`) failed w3-04's open
 - **Level-designer may move `shiftUp 36` or `jump 41` by one column** to centre it over the measured range (record the range in `levels/README.md`). The `jump` box's right edge must stay left of the kerb (world px 720).
 - **Not hinted:** the clamp (w3-04's idea) and the down presses before the blue strip (w3-05). Those are the puzzle.
 
+### 2026-11-23 (batch 8 playtest, `decisions.md` 2026-11-23)
+
+- **Check 12 results:** w1-03 passes (cleared within 1 fall). w2-04 misses (about 6–7 failed jumps). The fixes offered are all rejected: a frame around the pair, an `E` "air shift" glyph over the ledge (it would teach a false rule, since air presses never change color), a take-off marker. The owner's hand play is the tie-breaker. w3-03 passes (jumped at the glyph, solved in 5).
+- **w3-05 v2:** the `shiftUp` glyph moves over the new step at the back of the run-up ("back up to the step, shift up"), and the second `jump` moves over the middle of the take-off range measured from that step (`levels-w3.md` "w3-05 v2"). The ids are the same and there are still three hints. This is a level `version` bump for the geometry, not because of the hints. Check 13's w3-05 headers and check 14's step number change to the v2 values. tech-lead updates the pinned placements in `tests/levels` with the same change.
+- **No new glyph id.** "Each runner has its own gear" is not hinted (post-jam Could: ring both HUD strips the first time their gears differ).
+
 Why the set grew beyond "arrow in w1-01, Shift/E/X in w1-02":
 - **`shiftDown`:** w1-02 asks you to shift **back down** on its second pad, and nothing else on screen says which keys do that. The HUD key-cap hints are only Should.
 - **`jump`:** w2-01 is the first level that needs a jump, and jump has no hint anywhere else.

@@ -44,6 +44,7 @@ Shipped levels (acceptance 1): exactly one pocket in w3-02 (rows 7â€“9, cols 10â
 - **World 0:** the helper runs; w0-02's drop-through pocket holds the exit, so it is not sealed.
 - **Gates (world 4, Should):** gate tiles count as boundaries. If world 4 ships, its designer checks the helper output per level.
 - **Why not auto-reset:** a scene-made restart would put an input in the recording that the player never pressed, take control away on a heuristic, and still not teach R, which every other level needs too.
+- **The card covers lane tiles (2026-11-23, batch 8 playtest): accepted.** At the bottom centre it can cover part of the lower lane (w3-03's yellow floor). It shows only once the run is already lost, and it moves to y 42 whenever it would cover a body. No placement change.
 - **Why not change the levels:** the pocket exists so the runner cannot land in the twin's lane and finish there (approved 2026-11-17). In w3-02 its floor is the twin's roof, so it cannot be opened to a death drop.
 
 ## Tuning
