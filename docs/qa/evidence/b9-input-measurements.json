@@ -10,7 +10,7 @@
       "died": false
     },
     "respawn state": {
-      "step": 8,
+      "step": 123,
       "gears": [
         1,
         1
@@ -32,7 +32,7 @@
       ],
       "twinBandAtX473": 4,
       "twinBandAtX8": 4,
-      "died": false
+      "died": true
     }
   },
   "M1 w3-03": {
@@ -43,10 +43,10 @@
       ],
       "twinBandAtX473": 4,
       "twinBandAtX8": 4,
-      "died": false
+      "died": true
     },
     "respawn state": {
-      "step": 5,
+      "step": 164,
       "gears": [
         1,
         1
@@ -74,8 +74,8 @@
   "M1 onset after R (w3-05)": [
     {
       "armedK": 0,
-      "firedAtStep": 0,
-      "gearChangedAtStep": 3,
+      "firedAtStep": 3,
+      "gearChangedAtStep": 5,
       "gears": [
         2,
         2
@@ -83,34 +83,7 @@
     },
     {
       "armedK": 0,
-      "firedAtStep": 0,
-      "gearChangedAtStep": 3,
-      "gears": [
-        2,
-        2
-      ]
-    },
-    {
-      "armedK": 1,
-      "firedAtStep": 1,
-      "gearChangedAtStep": 3,
-      "gears": [
-        2,
-        2
-      ]
-    },
-    {
-      "armedK": 2,
       "firedAtStep": 2,
-      "gearChangedAtStep": 4,
-      "gears": [
-        2,
-        2
-      ]
-    },
-    {
-      "armedK": 3,
-      "firedAtStep": 3,
       "gearChangedAtStep": 6,
       "gears": [
         2,
@@ -118,8 +91,26 @@
       ]
     },
     {
-      "armedK": 5,
-      "firedAtStep": 7,
+      "armedK": 1,
+      "firedAtStep": 3,
+      "gearChangedAtStep": 4,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 2,
+      "firedAtStep": 5,
+      "gearChangedAtStep": 7,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 3,
+      "firedAtStep": 5,
       "gearChangedAtStep": 9,
       "gears": [
         2,
@@ -127,9 +118,18 @@
       ]
     },
     {
+      "armedK": 5,
+      "firedAtStep": 6,
+      "gearChangedAtStep": 10,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
       "armedK": 8,
-      "firedAtStep": 8,
-      "gearChangedAtStep": 11,
+      "firedAtStep": 11,
+      "gearChangedAtStep": 15,
       "gears": [
         2,
         2
@@ -140,20 +140,20 @@
     "summary": {
       "cycles": 9,
       "firstDeathWallMs": [
-        977,
-        929,
-        894
+        991,
+        1016,
+        951
       ],
       "laterDeathsWallMs": [
-        915,
-        987,
-        899,
-        925,
-        957,
-        892
+        1031,
+        995,
+        906,
+        981,
+        955,
+        957
       ],
-      "worstSimSteps": 58,
-      "worstSimMsAt60Hz": 967,
+      "worstSimSteps": 63,
+      "worstSimMsAt60Hz": 1050,
       "targetMs": 1500
     },
     "all": [
@@ -161,28 +161,28 @@
         "load": 0,
         "cycles": [
           {
-            "lastGroundedStep": 169,
-            "deadStep": 198,
-            "wallMs": 976.5999999940395,
-            "simSteps": 58,
-            "moveStep": 4,
-            "maxRowGapMs": 448
+            "lastGroundedStep": 321,
+            "deadStep": 350,
+            "wallMs": 990.6999999880791,
+            "simSteps": 60,
+            "moveStep": 6,
+            "maxRowGapMs": 431
+          },
+          {
+            "lastGroundedStep": 134,
+            "deadStep": 164,
+            "wallMs": 1031.3999999761581,
+            "simSteps": 63,
+            "moveStep": 8,
+            "maxRowGapMs": 398
           },
           {
             "lastGroundedStep": 137,
             "deadStep": 164,
-            "wallMs": 914.8000000119209,
-            "simSteps": 54,
-            "moveStep": 2,
-            "maxRowGapMs": 388
-          },
-          {
-            "lastGroundedStep": 135,
-            "deadStep": 164,
-            "wallMs": 987.0999999940395,
-            "simSteps": 58,
-            "moveStep": 4,
-            "maxRowGapMs": 430
+            "wallMs": 995.1999999880791,
+            "simSteps": 59,
+            "moveStep": 7,
+            "maxRowGapMs": 442
           }
         ]
       },
@@ -190,28 +190,28 @@
         "load": 1,
         "cycles": [
           {
-            "lastGroundedStep": 178,
-            "deadStep": 206,
-            "wallMs": 928.9000000059605,
-            "simSteps": 55,
-            "moveStep": 2,
-            "maxRowGapMs": 387
+            "lastGroundedStep": 200,
+            "deadStep": 229,
+            "wallMs": 1016.2999999821186,
+            "simSteps": 61,
+            "moveStep": 7,
+            "maxRowGapMs": 474
           },
           {
             "lastGroundedStep": 137,
             "deadStep": 164,
-            "wallMs": 898.5999999940395,
-            "simSteps": 54,
-            "moveStep": 2,
-            "maxRowGapMs": 392
+            "wallMs": 905.8000000119209,
+            "simSteps": 55,
+            "moveStep": 3,
+            "maxRowGapMs": 355
           },
           {
             "lastGroundedStep": 136,
             "deadStep": 164,
-            "wallMs": 924.5999999940395,
-            "simSteps": 56,
-            "moveStep": 3,
-            "maxRowGapMs": 422
+            "wallMs": 980.9000000059605,
+            "simSteps": 59,
+            "moveStep": 6,
+            "maxRowGapMs": 402
           }
         ]
       },
@@ -219,28 +219,28 @@
         "load": 2,
         "cycles": [
           {
-            "lastGroundedStep": 161,
-            "deadStep": 189,
-            "wallMs": 893.8000000119209,
-            "simSteps": 55,
-            "moveStep": 2,
-            "maxRowGapMs": 369
+            "lastGroundedStep": 242,
+            "deadStep": 270,
+            "wallMs": 951.1999999880791,
+            "simSteps": 58,
+            "moveStep": 5,
+            "maxRowGapMs": 428
           },
           {
-            "lastGroundedStep": 135,
+            "lastGroundedStep": 136,
             "deadStep": 164,
-            "wallMs": 956.9000000059605,
-            "simSteps": 57,
-            "moveStep": 3,
-            "maxRowGapMs": 437
+            "wallMs": 954.5,
+            "simSteps": 58,
+            "moveStep": 5,
+            "maxRowGapMs": 400
           },
           {
-            "lastGroundedStep": 137,
+            "lastGroundedStep": 136,
             "deadStep": 164,
-            "wallMs": 891.7999999821186,
-            "simSteps": 54,
-            "moveStep": 2,
-            "maxRowGapMs": 409
+            "wallMs": 956.6999999880791,
+            "simSteps": 59,
+            "moveStep": 6,
+            "maxRowGapMs": 385
           }
         ]
       }
@@ -732,24 +732,122 @@
   ],
   "M3 R in the death freeze": {
     "trials": 36,
-    "analysed": 29,
-    "rightHeldAtRespawn": 19,
+    "analysed": 24,
+    "rightHeldAtRespawn": 16,
     "rightHeldButNotMovingWithin100ms": 0,
-    "maxMoveStep": 8,
-    "maxRToRespawnMs": 69,
+    "maxMoveStep": 16,
+    "maxRToRespawnMs": 74,
     "results": [
+      {
+        "mode": "dead",
+        "rToRespawnMs": 56,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 49,
+        "moveStep": 4
+      },
       {
         "mode": "dead",
         "rToRespawnMs": 22,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 37,
-        "moveStep": 2
+        "moveAfterRespawnMs": 21,
+        "moveStep": 1
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 60,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 40,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 40,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 36,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 22,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 56,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 61,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 35,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 59,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 104,
+        "moveStep": 7
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 19,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 125,
+        "moveStep": 7
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 54,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 40,
+        "moveStep": 3
       },
       {
         "mode": "dead",
         "rToRespawnMs": 63,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 42,
+        "moveAfterRespawnMs": 37,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 56,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 40,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 42,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 45,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 74,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 44,
+        "moveStep": 5
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 61,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 100,
+        "moveStep": 8
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 58,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 243,
+        "moveStep": 16
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 56,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 37,
         "moveStep": 4
       },
       {
@@ -757,189 +855,56 @@
         "rToRespawnMs": 61,
         "rightHeldAtRespawn": true,
         "moveAfterRespawnMs": 58,
-        "moveStep": 5
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 58,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 60,
         "moveStep": 4
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 37,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 36,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 38,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 35,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 36,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 35,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 63,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 74,
-        "moveStep": 6
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 60,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 76,
-        "moveStep": 6
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 55,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 77,
-        "moveStep": 5
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 57,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 90,
-        "moveStep": 7
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 57,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 51,
-        "moveStep": 5
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 60,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 36,
-        "moveStep": 4
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 61,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 37,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 20,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 35,
-        "moveStep": 2
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 19,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 46,
-        "moveStep": 2
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 37,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 38,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 47,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 45,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 40,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 38,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 69,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 67,
-        "moveStep": 6
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 18,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 130,
-        "moveStep": 8
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 55,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 36,
-        "moveStep": 3
       },
       {
         "mode": "dead",
         "rToRespawnMs": 17,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 36,
+        "moveAfterRespawnMs": 45,
         "moveStep": 2
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 37,
+        "rToRespawnMs": 45,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 37,
+        "moveAfterRespawnMs": 41,
         "moveStep": 3
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 42,
+        "rToRespawnMs": 56,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 35,
-        "moveStep": 2
+        "moveAfterRespawnMs": 22,
+        "moveStep": 3
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 36,
+        "rToRespawnMs": 41,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 37,
-        "moveStep": 2
+        "moveAfterRespawnMs": 42,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 59,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 54,
+        "moveStep": 5
       },
       {
         "mode": "dead",
         "rToRespawnMs": 58,
         "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 76,
+        "moveAfterRespawnMs": 78,
         "moveStep": 6
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 21,
+        "rToRespawnMs": 66,
         "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 123,
-        "moveStep": 7
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 61,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 77,
-        "moveStep": 6
+        "moveAfterRespawnMs": 65,
+        "moveStep": 5
       }
     ]
   }
