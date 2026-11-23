@@ -163,6 +163,8 @@ Known numbers used below (GDD §5, `tandem.md`, `levels/README.md`):
 
 **Not changed:** no checkpoint (a new mechanic, rejected 2026-11-20 and 2026-11-23), no shorter opening, the level stays the finale.
 
+**Ruling on the build (2026-11-23): APPROVED v2 as built.** The construction is the run-up cols 36–44 one tile lower in both lanes, with the step face at x 36 and both bodies held at 36.375. The kerb-jump window is 20 steps, take-off x 39.98–43.77. The hints stay `jump 12 3`, `shiftUp 36 3`, `jump 41 3`. **Rule 7's removal item is amended: "kerbs and step removed: 0 wins"** (0 of 56,700), not "kerbs removed". With the kerbs removed 56 lines win, because the step is itself a pin: it holds the runner while the twin walks back to it. That is still the re-align idea (w3-02), done by a different face, so no win skips it (COMBINE rule). Moving the step would cost the 18-step window and would not remove those wins.
+
 **Cold-play check for v2 (Must before submit; a fresh sitting with no memory of w3-05):** w3-05 cleared within **10 lives and 15 minutes** of play. From the first time both bodies are held at the kerbs, the run-up section is cleared within **5 attempts**. Report whether the player backs up to the step without reading anything. A miss is a finding for design-lead.
 
 ---

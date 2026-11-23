@@ -1,16 +1,17 @@
 level: w3-05
-levelVersion: 1
+levelVersion: 2
 # Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
 # 20. 1+ 1. 1+ 1. 1+   stand, shift up to gear 4
 # 71R 1RJ              sprint, jump at x = 12.70 (window 63-80): runner caught (gear 1), twin lands yellow gear 3
 # 80R 1R- 1R 1R-       twin on its safe pad: press down twice (twin 3 -> 1, runner clamped at 1); window 53-108
-# 640R                 walk: the twin is held at its kerb from step 524, the runner from step 725 (both x = 44.63)
-# 170L 10.             walk back 8.5 tiles to x = 36.13 and stop (window 128-199)
+# 640R                 walk: both walk off the 1-tile step at x 36 (twin step 373, runner 574); the twin is held
+#                      at its kerb from step 524, the runner from step 725 (both x = 44.63)
+# 200L 10.             walk back until both are held against the step face at x = 36.38 (from step 986), let go
 # 1+ 1. 1+ 1. 1+ 1.    press up three times standing (both 1 -> 4)
-# 43R 1RJ              run and jump the kerbs together at x = 41.72 (window 32-53); both drag to yellow and land
-#                      on their yellow pads (step 1097)
-# 86R 1R- 1R 1R-       runner parks (step 1127); twin on its safe pad: press down twice (window 59-114)
-# 225R                 twin walks blue over its blue bridge and parks: won at step 1364
-steps: 1364
+# 43R 1RJ              run and jump the kerbs together at x = 41.97 (window 33-52); both drag to yellow and land
+#                      on their yellow pads (step 1123)
+# 86R 1R- 1R 1R-       runner parks (step 1155); twin on its safe pad: press down twice (window 58-113)
+# 220R                 twin walks blue over its blue bridge and parks: won at step 1389
+steps: 1389
 ---
-20. 1+ 1. 1+ 1. 1+ 71R 1RJ 80R 1R- 1R 1R- 640R 170L 10. 1+ 1. 1+ 1. 1+ 1. 43R 1RJ 86R 1R- 1R 1R- 225R
+20. 1+ 1. 1+ 1. 1+ 71R 1RJ 80R 1R- 1R 1R- 640R 200L 10. 1+ 1. 1+ 1. 1+ 1. 43R 1RJ 86R 1R- 1R 1R- 220R

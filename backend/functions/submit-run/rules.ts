@@ -26,7 +26,7 @@ export const LEVELS: Readonly<Record<string, LevelRule>> = {
   'w3-02': { version: 1, fastest: 476 },
   'w3-03': { version: 1, fastest: 552 },
   'w3-04': { version: 1, fastest: 342 },
-  'w3-05': { version: 1, fastest: 1007 },
+  'w3-05': { version: 2, fastest: 680 },
 };
 
 export const FLOOR_PERCENT = 85;
