@@ -15,7 +15,20 @@
 #   wall stop leaves it white, it steps into the wall and the no-embed rule lets it through blue). A safe kerb
 #   pins it for as long as you hold; you clear it with a green jump.
 # A runner that drops through its green bridge is caught in the divider pocket (restart with R).
-# No hints (levels-w3.md).
+# Hint (design-lead 2026-11-23 evening, batch 10, and the batch 10 placement ruling): one runner-lane header,
+#   "jump here" (w2-01's grammar). The pin (the new idea) and the shift to green are not hinted. The glyph centre
+#   (x 5.5) is 2.1 tiles behind the runner held at the kerb (x 7.625), so "jump from back there" implies the walk
+#   back. No shiftUp: with jump at col 5 it could only go at col 2, over the spawn, where it reads "shift up now"
+#   (the level's first cheap failure). Header only: same recording, no version bump.
+#   Measured through the sim on the fair line (let go with the twin on Q, walk back, shift up standing, run, jump):
+#   walk-back stops that win with the recorded run (25 steps, then jump) are 51-122 steps back, runner x
+#     1.53-5.08 (the recording stops at 3.63).
+#   jump at col 5, row 3: from the recording's stop the take-offs that win are x 4.22-7.03 (10-39 steps of
+#     running, 30 steps), middle 5.63 (col 5); the late edge is 7.03-7.08 from every fair stop. Green runs at
+#     6 tiles/s there, so a player who jumps 150-200 ms after passing under the glyph centre (x 5.5) takes off at
+#     6.4-6.7 and wins from every stop; under col 6 the same reaction takes off at 7.4-7.6 and is pinned at the
+#     kerb face every time. Box cols 4-6 (world px 71-106), left of the kerb face at x 8 (128), floor row 6 under it.
+hint: jump 5 3
 id: w3-02
 title: Out of Step
 world: 3

@@ -55,3 +55,12 @@ Checked against the files and a replay:
 - Root `README.md` has no w3-05 numbers or version claims, so **B9-06 is not needed** for v2.
 - No setup change. `docs/tech/architecture.md`, `level-format.md` and the CLAUDE.md Commands section are unchanged.
 - Ownership: the level files are in `levels/**` (level-designer). The `LEVELS` row was set by the orchestrator under the batch 6 rule. The test change is in `tests/levels/**` (tech-lead).
+
+## Batch 10 addendum (2026-11-23 evening, header-only hint change)
+
+**Verdict: Approve.** Requests: design-lead batch 10 lines (the w3-02 placement ruling overrides line 1's two-header w3-02 proposal).
+
+- **Diff scope** (`git diff -U0`, comment lines excluded): `levels/w3-05.txt` changes only `hint: jump 41 3` to `hint: jump 40 3`; `levels/w3-02.txt` adds only `hint: jump 5 3`. Everything else in both files is `#` comments. No geometry, `version`, recording or `LEVELS` change; `tests/levels` replays both to the same `wonAtStep` with and without hints.
+- **README numbers** check out: w3-02 glyph centre 5.5 sits inside the take-off window 4.22-7.03 (middle 5.63, 30 steps); 6 tiles/s x 150-200 ms = 0.9-1.2 tiles, so 6.4-6.7 is under the 7.03 late edge; the box ends at 106 px, left of the kerb face (128 px). w3-05: 12 tiles/s x 150-200 ms = 1.8-2.4 tiles, so 40.5 gives 42.3-42.9, inside 39.98-43.77; old 41.5 gives 43.3-43.9, at or past the edge. Box cols 39-41 do not share a cell with the `shiftUp` box (cols 35-37). No leftover `shiftUp 2 3` text for w3-02 in the file or README; the walk-back measurement is kept "for the record" only.
+- **Test change** (`tests/levels/hints.test.ts`): `PLACEMENTS` pins w3-02 `['jump 5 3']` at version 1 and w3-05 `jump 40 3` at version 2; a new case pins w3-02's jump box (right edge 112 px at the widest cap) left of the kerb face (x 8 = 128 px). Check 14 (step 725 and 986) is unchanged and still holds: at col 40 the widest-cap box is 624-672 px, ahead of the bodies' right edge at the step (588 px) and left of the kerb (720 px), on screen and clear of the HUD at both camera states. `npx vitest run tests/levels` 122/122, `npm run typecheck` clean.
+- **QA follow-up (e2e is QA's; not edited):** nothing in `tests/e2e/**` pins w3-05's col-41 box or asserts w3-02 has no hints. `batch8.spec.ts:226-247` measures the drawn glyph (left > bodies, right < 720 px) and should pass with col 40; QA re-runs it and re-records `docs/qa/test-plan.md`'s hints-14 row. No browser check covers w3-02's new glyph yet (requests: QA line, checks 13/14 for w3-02).

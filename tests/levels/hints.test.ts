@@ -114,15 +114,21 @@ const tuningCfg: RuleConfig = {
 
 /**
  * Check 10 (2026-11-19) and check 13 (2026-11-20): the exact headers, in file order, and the level `version`
- * they were placed on. w3-05 is v2 (design-lead 2026-11-23: new run-up step, same three headers).
+ * they were placed on. w3-05 is v2 (design-lead 2026-11-23: new run-up step, same three headers). Batch 10
+ * (design-lead 2026-11-23 evening, header only, no version bump): w3-05's kerb `jump` moves from col 41 to col 40,
+ * and w3-02 gets a single `jump 5 3` (the ruling dropped the proposed `shiftUp 2 3`, which sat over the spawn).
  */
 const PLACEMENTS: Readonly<Record<string, { readonly version: number; readonly hints: readonly string[] }>> = {
   'w1-03': { version: 1, hints: ['shiftUp 2 6'] },
   'w2-04': { version: 1, hints: ['shiftUp 8 4', 'jump 8 6'] },
+  'w3-02': { version: 1, hints: ['jump 5 3'] },
   'w3-03': { version: 1, hints: ['shiftUp 2 3', 'jump 12 3'] },
   'w3-04': { version: 1, hints: ['shiftUp 2 3', 'jump 12 3'] },
-  'w3-05': { version: 2, hints: ['jump 12 3', 'shiftUp 36 3', 'jump 41 3'] },
+  'w3-05': { version: 2, hints: ['jump 12 3', 'shiftUp 36 3', 'jump 40 3'] },
 };
+
+/** w3-02's safe kerb face (the left face of col 8), tiles: its `jump` box must stay left of it (batch 10). */
+const W3_02_KERB_FACE = 8;
 
 const headers = (level: Level): readonly string[] => (level.meta.hints ?? []).map((h) => `${h.glyph} ${h.anchor.col} ${h.anchor.row}`);
 
@@ -136,6 +142,12 @@ describe('design placements (onboarding-hints.md checks 10 and 13)', () => {
       expect(level?.meta.version).toBe(version);
     },
   );
+
+  it('w3-02: the jump box (cols 4-6) leaves the kerb face uncovered', () => {
+    const hint = levels.find((l) => l.meta.id === 'w3-02')?.meta.hints?.[0];
+    expect(hint, 'w3-02 has a hint').toBeDefined();
+    expect(hintBoxPx(hint as NonNullable<typeof hint>, tuningCfg.tileSize).right).toBeLessThan(W3_02_KERB_FACE * tuningCfg.tileSize);
+  });
 
   it('no shipped level has more than MAX_LEVEL_HINTS hints', () => {
     expect(levels.filter((l) => (l.meta.hints?.length ?? 0) > MAX_LEVEL_HINTS).map((l) => l.meta.id)).toEqual([]);
@@ -170,6 +182,8 @@ describe('hint boxes never pass under the HUD (checks 11 and 14, any camera posi
  * - the check's state: both bodies held against the step face (from step 986, after walking Left), the `shiftUp`
  *   box is over the step and over both bodies, the `jump` box is ahead of them and left of the kerb, and both
  *   boxes are on screen, clear of the HUD.
+ * Batch 10: the kerb `jump` is at col 40 (box cols 39-41, glyph world px 624-672 at the widest cap); the bodies'
+ * right edge at the step is 588 px and the kerb face 720 px, so both assertions keep their margin.
  */
 const W3_05_KERB_STEP = 725;
 const W3_05_STEP_HELD_STEP = 986;

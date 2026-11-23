@@ -556,3 +556,6 @@ Play w3-01 → w3-05 in order, unlocked by play. Note:
 5. w2-04: more than 5 failed jumps or not.
 
 A miss on 4 with mostly late pins after the batch 10 glyph move comes back to design.
+
+### Batch 10 w3-02 placement ruling (level-designer's measurements)
+- **w3-02 gets only `hint: jump 5 3`; no `shiftUp`.** The take-off is x 4.22–7.03. A reacting player under col 6 is pinned from every stop, and under col 5 wins from every stop, so `jump 5 3` stays. That forces `shiftUp` to col 2, over the spawn. There it reads "shift up now" (w3-03 and w3-04 use exactly that spot to mean that), and shifting at the spawn is w3-02's first cheap failure. A hint that sends players into a failure loses their trust. A stacked pair would say "here, in this order", which is false for a back-up and a later take-off, and the boxes would have no room for the 8 px gap. The jump glyph alone does the work: it sits about 2.6 tiles **behind** the runner held at the kerb (x 7.625), so "jump from back there" implies the walk back. The shift to green follows from the green bridge, as w1-02 and w3-01 teach. w3-05 keeps `jump 40 3`.
