@@ -28,19 +28,23 @@ export const LEVELS: Readonly<Record<string, LevelRule>> = {
   'w3-03': { version: 1, fastest: 552 },
   'w3-04': { version: 1, fastest: 342 },
   'w3-05': { version: 2, fastest: 680 },
+  'w4-01': { version: 1, fastest: 432 },
+  'w4-02': { version: 1, fastest: 330 },
+  'w4-03': { version: 1, fastest: 200 },
 };
 
 export const FLOOR_PERCENT = 85;
 export const NAME_MAX = 12;
 /** 10 minutes at 60 Hz; no level takes longer, and replay cost stays bounded. */
 export const MAX_RUN_STEPS = 36_000;
-export const MAX_LOG_CHARS = 16_000;
-export const MAX_BODY_CHARS = 32_000;
-/** Request body cap in bytes (K5): the 16 000-character log plus a small envelope, with room for escapes. */
-export const MAX_BODY_BYTES = 40_000;
+/** Long levels with checkpoints: a run is every frame since load, deaths included (about 5 chars per one-step token). */
+export const MAX_LOG_CHARS = 32_000;
+export const MAX_BODY_CHARS = 40_000;
+/** Request body cap in bytes (K5): the 32 000-character log plus a small envelope, with room for escapes. */
+export const MAX_BODY_BYTES = 56_000;
 /** At least 20 per minute per IP must be accepted (spec); this leaves headroom. */
 export const RATE_LIMIT_PER_MINUTE = 30;
-/** Attempt cap per IP per hour, rejected attempts included (B2): bounds storage, since a stored run can carry a 16 KB log. */
+/** Attempt cap per IP per hour, rejected attempts included (B2): bounds storage, since a stored run can carry a 32 KB log. */
 export const RATE_LIMIT_PER_HOUR = 200;
 
 /**

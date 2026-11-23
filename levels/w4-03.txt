@@ -1,0 +1,31 @@
+# World 4, level 3. Twist: a colored slab holds only its own color, so you cannot stand on it.
+# Target first-time solve: 25-40 s.
+# Layout (30 x 15, one screen): safe ledge (cols 0-10, spawn col 7) -> 6-column gap (cols 11-16) -> safe
+#   ledge (cols 17-29, exit col 27). A green slab, 6 wide, fills the gap: level with the ledges for 90 steps,
+#   sinks 6 tiles (96 steps), rests 30 at the bottom, rises (96). Cycle 312; phase 186, so at the start it is
+#   at the bottom and rises from step 30, level for steps 126-216. Below the gap is open (a fall is a death).
+#   A 2-row safe roof (rows 3-4, cols 10-17) leaves exactly 2 tiles over the ledges: nothing jumps the gap.
+# Standing (white) or yellow you fall through it. Shift up once standing and leave at gear 2 as it arrives:
+#   walk onto it level, or step down onto it while it is still rising (it catches you green), and cross.
+id: w4-03
+title: Moving Bridge
+world: 4
+teaches: a colored slab holds only its own color: cross it at its pace, while it is level
+version: 1
+mover: 11 7 6x1 G speed=2 phase=186 path=w90,d6,w30,u6
+---
+..............................
+..............................
+..............................
+..........########............
+..........########............
+...........................E..
+.......@...................E..
+###########......#############
+###########......#############
+###########......#############
+###########......#############
+###########......#############
+###########......#############
+###########......#############
+###########......#############

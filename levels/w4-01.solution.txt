@@ -1,0 +1,9 @@
+level: w4-01
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 75R    walk right onto the lift while it rests at the floor (x 10.25, mid-lift); it leaves at step 90
+# 115.   let go: white, standing, carried 6 tiles up (steps 90-186); still standing at the top rest
+# 329R   walk off at gear 1, blue over the blue bridge, to the exit
+steps: 519
+---
+75R 115. 329R

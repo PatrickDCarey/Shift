@@ -7,11 +7,13 @@ import { createSim } from './create';
 import { recordInput } from './input';
 import { boxAt, overlapsTile } from './geometry';
 import { bodyHit, type HitCtx } from './hazards';
+import { postRespawn, tickFrozen } from './checkpoints';
 
 /** A `restart` press: status restarting, respawn on the next step. Nothing else runs. */
 export function restartState(state: SimState, input: InputFrame): SimState {
+  const { checkpoint: _lit, ...rest } = state;
   return {
-    ...state,
+    ...rest,
     status: 'restarting',
     respawnInSteps: 0,
     player: { ...state.player },
@@ -28,9 +30,11 @@ export function respawnState(input: InputFrame, level: Level, params: SimParams)
 
 /** A step while dead or restarting: respawn, restart, or stay frozen (inputs ignored but recorded). */
 export function frozenStep(state: SimState, input: InputFrame, level: Level, params: SimParams): SimState {
-  if (state.respawnInSteps <= 0) return respawnState(input, level, params);
+  if (state.respawnInSteps <= 0) {
+    return state.status === 'dead' && state.checkpoint ? postRespawn(state, input, level, params, state.checkpoint) : respawnState(input, level, params);
+  }
   if (input.restart && !state.prevInput.restart) return restartState(state, input);
-  return { ...state, respawnInSteps: state.respawnInSteps - 1, player: { ...state.player }, twin: state.twin && { ...state.twin }, prevInput: recordInput(input), events: [] };
+  return { ...state, ...tickFrozen(state), respawnInSteps: state.respawnInSteps - 1, player: { ...state.player }, twin: state.twin && { ...state.twin }, prevInput: recordInput(input), events: [] };
 }
 
 export type Outcome = 'won' | 'dead' | null;

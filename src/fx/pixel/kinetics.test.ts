@@ -7,6 +7,7 @@ import kineticsJson from '../../../assets/art/pixel/pixel-kinetics.json';
 import { buildPixelAssets } from './atlas';
 import { BOLT_KINDS, BOLT_SIZE, EMITTER_SIZE, bakeBolt, bakeEmitter, bakeShimmer, bakeSink } from './bolts';
 import { DIRS, SLAB_KINDS, SLAB_SIZE, bakeChevron, bakeSlabSegment, bakeTrackCell, slabSegments, TRACK_CELLS } from './movers';
+import { POST_H, POST_W, bakePost, bakePostRise } from './posts';
 import { getPixel, type Raster } from './raster';
 
 const luma = (r: Raster, x: number, y: number): number => {
@@ -107,5 +108,29 @@ describe('kinetics atlas', () => {
     for (const name of ['slab/red/solid/L', 'slab/safe/ghost/S', 'slab/chevron/u', 'track/stop/d', 'emitter/d/white/tell', 'bolt/grey', 'bolt/shimmer/3', 'bolt/sink/l']) {
       expect(built.json.frames[name], name).toBeDefined();
     }
+  });
+});
+
+describe('checkpoint post', () => {
+  const lit = bakePost('lit');
+  const idle = bakePost('idle');
+  const lumaCount = (r: Raster): number => grey(r).filter((v) => v >= 0).length;
+
+  it('is 16 x 24 in every state, and the rise frames end at the lit frame', () => {
+    for (const r of [idle, lit, ...[0, 1, 2].map(bakePostRise)]) expect([r.width, r.height]).toEqual([POST_W, POST_H]);
+    expect(grey(bakePostRise(2))).not.toEqual(grey(lit));
+  });
+
+  it('idle and lit differ by shape in greyscale, lit being fuller', () => {
+    expect(diff(idle, lit)).toBeGreaterThanOrEqual(30);
+    expect(alphaMask(idle)).not.toBe(alphaMask(lit));
+    expect(lumaCount(lit)).toBeGreaterThan(lumaCount(idle));
+    expect(luma(idle, 8, 2)).toBe(-1); // hollow lamp
+  });
+
+  it('rise frames climb: the pennant moves up each frame', () => {
+    const rows = [0, 1, 2].map((f) => grey(bakePostRise(f)).findIndex((v, i) => v >= 0 && i % POST_W >= 9));
+    expect(rows[0]).toBeGreaterThan(rows[1]!);
+    expect(rows[1]).toBeGreaterThan(rows[2]!);
   });
 });

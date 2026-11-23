@@ -284,7 +284,7 @@ export class GameScene extends Phaser.Scene {
       state.twin === null ? null : { band: state.twin.band, graceBand: state.twin.graceBand, embedded: embedded(state.twin) };
     this.levelView.update(state.player.band, state.player.graceBand, embedded(state.player), time, twinTint);
     this.bodies.draw(snapped, state);
-    this.kinetics?.update(this.driver, this.prefs);
+    this.kinetics?.update(this.driver, this.prefs, time);
     this.rig.follow(level, cameraBodies(snapped, state), snapped.twin, state.twin, this.bodies.bodyHeightPx, delta);
     this.rig.applyTint(Math.abs(state.player.vx), delta);
     const cam = this.cameras.main;

@@ -46,7 +46,7 @@ function fakeScene() {
   return { scene: scene as never, images };
 }
 
-const TUNING = { tileSize: 16, playerWidthTiles: 0.75, playerHeightTiles: 1.5 } as unknown as Tuning;
+const TUNING = { tileSize: 16, playerWidthTiles: 0.75, playerHeightTiles: 1.5, emitterTellMs: 300 } as unknown as Tuning;
 const PREFS = { reducedMotion: false, reducedEffects: false };
 const EMITTER: Emitter = { cell: { col: 20, row: 5 }, dir: 'l', range: 12, speed: 4, period: 60, phase: 0, band: null };
 const MOVER: Mover = {

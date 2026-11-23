@@ -20,6 +20,9 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w3-03 | Gear Split | 3 | NEW: a stop in mid-air drops only that body's gear | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); flat landing pad (18-step window); runner-lane hint headers `shiftUp 2 3` (2026-11-20, B8-01) and `jump 12 3` (2026-11-19) |
 | w3-04 | Clamp | 3 | NEW: pressing up past gear 4 brings split gears back together | 90–150 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); runner-lane hint headers `shiftUp 2 3`, `jump 12 3` (2026-11-20, B8-01: the batch 7 fallback fired) |
 | w3-05 | Redshift | 3 | combine: air-stop split + clamp down + pin + shared drag jump + park + brake | 3–5 min | **version 2, APPROVED** (design-lead 2026-11-23, tech-lead review 2026-11-23 `docs/tech/reviews/2026-11-batch9-review.md`; batch 8 playtest: a 1-tile step at x 36 at the back of the run-up in both lanes); v1 approved 2026-11-17; safe kerbs instead of blue walls; runner-lane hint headers `jump 12 3`, `shiftUp 36 3`, `jump 40 3` (re-measured for v2; the kerb `jump` moved from col 41 to col 40 in batch 10, design-lead 2026-11-23 evening, header only, no version bump; see section) |
+| w4-01 | Lift | 4 | NEW: a grey lift carries you; standing on it you stay white | 15–25 s | **new, version 1, for design-lead review** (B11-18, `levels-w4.md`); `move` hint header over the spawn |
+| w4-02 | Ferry | 4 | NEW: a shuttle carries you sideways; leave when it docks, at the pace the far side asks | 20–30 s | **new, version 1, for design-lead review** (B11-18); no hints; roof over the whole track (see section) |
+| w4-03 | Moving Bridge | 4 | twist: a colored slab holds only its own color, so cross it at its pace while it is level | 25–40 s | **new, version 1, for design-lead review** (B11-18); no hints |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
 
@@ -431,3 +434,74 @@ One screen (28 × 15), two identical lanes stacked: runner on top (floor row 6),
 **Fastest known:** 680 steps (`1R+ 1R 1R+ 1R 1R+ 58R 1RJ 102R 1RJ 69R 1R+ 1R 1R+ 1R 1R+ 77R 59L 34R 1RJ 124R 1R- 1R 1R- 400R`: no down presses, the twin jumps its strip yellow, three up presses once the runner is past its blue bridge, the twin is held at its kerb, then both turn back and the twin is held at the step for a moment before the run (the runner takes off yellow, the twin red); found by a greedy search from random starts).
 
 **Solution:** 1,389 steps (23.2 s). Stand 20, shift up to gear 4, sprint 71 and jump at x = 12.70; 80 steps later press down twice (twin on its pad); hold right 640 steps (both walk off the step: twin step 373, runner 574; twin held at its kerb from step 524, runner from 725); hold Left 200 steps (both held at the step at x = 36.375 from step 986) and let go; press up three times; run 43 steps and jump at x = 41.97; both drag to yellow and land on their pads (step 1123); the runner parks (1155); press down twice 86 steps after the jump; the twin walks its blue bridge and parks (won at 1389). ±3 passes on every transition.
+
+## w4-01 Lift
+
+**Teaches:** a grey lift carries you; standing on it you stay white (`levels-w4.md` "w4-01").
+
+30 × 15, one screen (no scroll). Safe room (cols 0–8, open sky, spawn col 6) at the foot of a **6-tile safe wall** (cols 12–17; the jump is 3). A grey lift, `mover: 9 12 3x1 safe speed=2 path=w90,u6,w90,d6` (cols 9–11, 96 steps per move, cycle 372 = 6.2 s), rests flush with the floor in a 1-tile dip whose floor is safe, so the first room has no pit. At the top it rests 90 steps flush with a 6-tile ledge; then a 6-tile **blue bridge** (cols 18–23) over a pit, under a 2-row safe roof (rows 2–3: 2 tiles of headroom, top 4 tiles above the ledge, so nothing stands on it), and the exit pad.
+
+- **Fair line (the recording):** walk on during the bottom rest, let go, ride standing (band 0, `vx` 0 every step: white, as the spec says), walk off at gear 1 at the top.
+  - **Walk on:** from the spawn, starting to walk 0–46 steps after the load boards the first ride (**47 steps**); every later ride is 372 steps on (313+ in the sweep). Measured on the cycle: you must overlap the lift before it leaves (bottom rest, steps 0–90 of each cycle).
+  - **Let go:** any time on the lift. Holding Right is also fine: you are held against the wall (`wallStop`, white) and ride up the same way.
+  - **Walk off:** holding Right from any step 87–247 wins (the top rest is 186–276; the latest start leaves 29 steps to clear the lift's 1.4 tiles to the ledge). **62 steps** if you wait for the top.
+- **Arriving at another point of the cycle:** costless. Miss it and it comes back in 6.2 s. Walk into the dip after it has left and a 1-tile hop puts you back on it: a jump in the dip wins from any step 313–473 when you walk in at 100 (it lands you on the lift while it is down or coming down). That hop is a world-2 skill; a cold player who only holds Right waits in the dip.
+- **Removal:** no lift → **0 wins** (1,200 lines: gear 1 or 4, Right from 0–198, a jump at six points).
+- **Cheese check:** the blue bridge's first roof was 1 row (top 3 above the ledge, exactly the jump height): a green jump landed on it and walked over the bridge (fastest 340). The roof is now 2 rows. Remaining expert line: a green jump off the top of the lift hits the roof's left face, the air stop drops you to gear 1 and you walk the bridge blue (still rides the lift).
+- **Safe spots:** the spawn room and dip, the lift itself, the ledge at the top, the exit pad.
+- **Hints:** `hint: move 6 8` over the spawn (box cols 5–7, rows 7–8, empty sky; floor row 12 under it).
+- **Seen on screen:** looked at in the dev build (`?level=w4-01&replay=1`): the lift and its track draw, it rises with the player standing on it white.
+
+**Fastest known:** 432 steps (`1R+ 1R 1R+ 1R 199R 1RJ 4R 1RJ 600R`: gear 3, a green jump off the top of the lift into the roof's face, which drops you to gear 1 for the bridge).
+
+**Solution:** 519 steps (8.7 s). Walk right 75 steps (onto the lift, x 10.25), let go for 115 (carried up 90–186, stands at the top), hold right 329 to the exit. `tests/levels` passes, including ±3 on every transition.
+
+## w4-02 Ferry
+
+**Teaches:** a shuttle carries you sideways; leave when it docks, at the pace the far side asks (`levels-w4.md` "w4-02").
+
+30 × 13, one screen. Safe ledge (cols 0–4, spawn col 1) → **16 empty columns** (cols 5–20) → 5-tile **green bridge** (cols 21–25) → safe exit pad (cols 26–29). Shuttle `mover: 5 9 4x1 safe speed=2 path=w90,r12,w90,l12`: rests 90 steps flush with the ledge, moves 12 tiles in 192, rests 90 with its front flush with the bridge, returns (cycle 564 = 9.4 s). A **2-row safe roof over the whole track and the bridge** (rows 5–6, cols 5–25) leaves exactly 2 tiles of headroom.
+
+**Differences from `levels-w4.md`:**
+- **The pit is 16 columns, not 14:** a 4-wide slab moving 12 tiles sweeps 16 columns, and nothing solid may sit in a swept area (`kineticRules.ts`). With these numbers the gap is 16.
+- **The roof spans the track, not only the bridge.** With a roof over the bridge alone, a yellow run along the moving shuttle, off its front and a jump that drags to green landed on the bridge 77 steps before the dock (won at step 276 without waiting for it). Over the track, every jump is a 0.5-tile hop. Remaining expert lines all hinge on the dock: a coyote hop off the front of the shuttle green, 23 steps before it docks, over a 1.4-tile closing gap (fastest known), and a green jump on the shuttle that commits gear 2 (world 2's Commit).
+
+- **Fair line (the recording):** walk on during the left rest, stand (white), shift up once standing, ride, hold right at gear 2 while docked.
+  - **Board:** be on it by step 90 of the cycle. From the ledge's edge, stepping on wins for any start 533–650 of the second cycle (**118 steps**; the first cycle is shorter only because the spawn is 4 tiles away: starting to walk 0–25 steps after the load).
+  - **Shift up:** standing, no time limit.
+  - **Depart:** holding right from any step **226–344** wins (**119 steps**; the dock is 282–372). Early starts walk forward along the shuttle and reach its front as it docks; the latest leaves 28 steps to get from the back of the shuttle onto the bridge.
+  - **Where you stand on the shuttle** does not matter: from its front edge the 0.75-tile body is still partly on the shuttle when the ramp reaches green (4.8 tiles/s after 0.75 tiles).
+- **Which gear:** gear 1 (blue) and gear 3 (ramps to yellow 1.9 tiles from the start, on the bridge) both fall: 0 wins with no jump. Gears 3–4 win only with a jump that commits green (above).
+- **Arriving at another point of the cycle:** missing the left rest costs one cycle (9.4 s) standing on the ledge; nothing kills you there.
+- **Removal:** no shuttle → **0 wins** (6,552 lines: gears 1–4, Right from every 3rd step 95–640, a jump at nine offsets).
+- **Safe spots:** the ledge, the shuttle (grey, any gear), the exit pad.
+- **Hints:** none (`levels-w4.md`).
+- **Seen on screen:** looked at in the dev build: the shuttle and its dotted track draw across the pit, under the roof.
+
+**Fastest known:** 330 steps (`116R 1+ 100. 30R 1RJ 300R`: board late and walk forward, gear 2, run off the front of the shuttle green and hop the last 1.4 tiles to the bridge 23 steps before the dock).
+
+**Solution:** 404 steps (6.7 s). Walk right 85 (onto the back of the shuttle, x 5.72), shift up standing, stand 214 (ride 90–282, docked from 282), hold right from step 300 to the exit. `tests/levels` passes, including ±3 on every transition.
+
+## w4-03 Moving Bridge
+
+**Teaches:** twist: a colored slab holds only its own color, so you cannot stand on it: cross it at its pace while it is level (`levels-w4.md` "w4-03").
+
+30 × 15, one screen. Safe ledge (cols 0–10, spawn col 7) → 6-column gap (cols 11–16), open to the bottom of the grid → safe ledge (cols 17–29, exit col 27). Green slab `mover: 11 7 6x1 G speed=2 phase=186 path=w90,d6,w30,u6`: level with the ledges for 90 steps, sinks 6 tiles (96), rests 30 at the bottom, rises (96); cycle 312 (5.2 s). `phase=186` starts it at the bottom: it rises from step 30 and is level for steps 126–216 of every cycle. A 2-row safe roof (rows 3–4, cols 10–17, the gap plus one column each side) leaves exactly 2 tiles over the ledges, and its top is 4 tiles up, so nothing jumps the gap or stands on the roof.
+
+- **Fair line (the recording):** shift up once standing on the ledge; hold right at gear 2 as the slab arrives.
+  - **Depart:** holding right from any step **23–119** wins (**97 steps**, from the spawn 3.5 tiles from the edge). Of these, **81–119 (39 steps)** cross with the slab level the whole way; **23–80** step off the ledge while it is still rising and are caught green by its swept landing (the scoop), then carried up as you walk. Design estimated 22 steps on the rest alone; the 0.75-tile body and the scoop make it wider.
+  - **Shift up:** standing, no time limit.
+- **Which gear:** standing (white), gear 1 (blue), gear 3 and gear 4 (ramp past green on the slab) all fall through: **0 wins** with no jump for gears 1, 3 and 4.
+- **Arriving at another point of the cycle:** a fall is a death (respawn rewinds the slab to its start, so every attempt sees the same rise). Leaving late rides it down green into the right ledge's face, a wall stop, white, and a fall.
+- **Removal (README sweep, `levels-w4.md`):**
+  - **No slab:** 0 wins (91,440 lines: gears 1–4, an optional 140-step walk back first, Right from every 3rd step to 500, a jump at every 2nd step 1–159 after it).
+  - **Static `G` tiles in the gap:** gear 2 wins from **every** departure step 2–700 (no timing); every other gear 0.
+  - **`safe` slab instead:** every gear wins (gear 1 from 1–32, 238–344, …; gear 3 from 4–700): a standing ride wins, so the color is the lesson.
+- **Jump sweep on the real level** (the same 91,440 lines): 7,414 wins, every one landing green on the slab. Gears 3 and 4 win only after the 140-step walk back, by jumping while still green during the ramp (world 2's Commit locks gear 2) and walking on at gear 2; with no jump they never win.
+- **Safe spots:** both ledges.
+- **Hints:** none (`levels-w4.md`).
+- **Seen on screen:** looked at in the dev build: the green slab draws at the bottom of its track at the start, with the band pattern.
+
+**Fastest known:** 200 steps (`1+ 2. 78R 1RJ 300R`: leave at once, drop green onto the slab 3.3 tiles below the ledge while it rises, and jump from it onto the right ledge).
+
+**Solution:** 268 steps (4.5 s). Shift up standing, wait 70, hold right: green at x 8.1, step down onto the rising slab (lands step 121, 0.25 below the ledge), carried level, across and on to the exit. `tests/levels` passes, including ±3 on every transition.

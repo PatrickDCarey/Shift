@@ -216,8 +216,7 @@ export const LANE_PENDING: {
   readonly motion: readonly (keyof MotionApi)[];
   readonly level: readonly (keyof LevelLaneApi)[];
 } = {
-  /** kineticStep: checkpoints contract 2026-11-24, [sim] checkpoint sitting. */
-  sim: ['kineticStep'],
+  sim: [],
   motion: [],
   level: [],
 };

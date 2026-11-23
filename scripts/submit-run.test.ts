@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 import {
   LEVELS,
   MAX_BODY_BYTES,
+  MAX_BODY_CHARS,
+  MAX_LOG_CHARS,
   NAME_MAX,
   MAX_RUN_STEPS,
   RATE_LIMIT_PER_HOUR,
@@ -116,10 +118,27 @@ describe('invalid', () => {
     ['a log with injection', { ...good, inputLog: '10R; drop table runs' }],
     ['a log shorter than the claimed steps', { ...good, inputLog: '100R' }],
     ['a log whose runs add up past the cap', { ...good, inputLog: '999999R' }],
-    ['a log over the size cap', { ...good, inputLog: '1R '.repeat(6000) }],
+    ['a log over the size cap', { ...good, inputLog: '1R '.repeat(MAX_LOG_CHARS / 3 + 1) }],
   ])('rejects %s with `invalid`', (_label, body) => {
     const r = checkSubmission(body);
     expect(r.ok ? 'ok' : r.code).toBe('invalid');
+  });
+  it('accepts a log just under the cap and rejects one just over', () => {
+    const under = '1R '.repeat(Math.floor(MAX_LOG_CHARS / 3) - 1).trim();
+    expect(under.length).toBeLessThanOrEqual(MAX_LOG_CHARS);
+    expect(under.length).toBeGreaterThan(MAX_LOG_CHARS - 10);
+    expect(logSteps(under)).not.toBeNull();
+    const over = '1R '.repeat(Math.ceil((MAX_LOG_CHARS + 1) / 3));
+    expect(over.length).toBeGreaterThan(MAX_LOG_CHARS);
+    expect(logSteps(over)).toBeNull();
+    const r = checkSubmission({ ...good, steps: 10_000, inputLog: over });
+    expect(r.ok ? 'ok' : r.code).toBe('invalid');
+  });
+  it('the caps are the long-level values and the body cap leaves room for the envelope', () => {
+    expect(MAX_LOG_CHARS).toBe(32_000);
+    expect(MAX_BODY_CHARS).toBe(40_000);
+    expect(MAX_BODY_BYTES).toBe(56_000);
+    expect(MAX_BODY_CHARS - MAX_LOG_CHARS).toBeGreaterThan(1000);
   });
   it('sums run counts without expanding them', () => {
     expect(logSteps('20. 160R 30. 204R')).toBe(414);
@@ -241,7 +260,7 @@ describe('migration 0004 mirrors', () => {
     expect(fn).not.toContain('x-forwarded-for');
     expect(fn).toContain("Deno.env.get('IP_HASH_SALT')");
     expect(fn).not.toMatch(/hashIp(ip, serviceKey)/);
-    expect(MAX_BODY_BYTES).toBeLessThanOrEqual(40_000);
+    expect(MAX_BODY_BYTES).toBeLessThanOrEqual(56_000);
     expect(fn).not.toContain("from('submit_attempts')");
     expect(fn).toContain("rpc('record_run'");
   });

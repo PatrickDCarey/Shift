@@ -2783,6 +2783,126 @@
     "x": 0,
     "y": 0
    }
+  },
+  "checkpoint/idle": {
+   "frame": {
+    "x": 378,
+    "y": 52,
+    "w": 16,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 24
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "checkpoint/lit": {
+   "frame": {
+    "x": 395,
+    "y": 52,
+    "w": 16,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 24
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "checkpoint/rise/0": {
+   "frame": {
+    "x": 412,
+    "y": 52,
+    "w": 16,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 24
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "checkpoint/rise/1": {
+   "frame": {
+    "x": 429,
+    "y": 52,
+    "w": 16,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 24
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
+  },
+  "checkpoint/rise/2": {
+   "frame": {
+    "x": 446,
+    "y": 52,
+    "w": 16,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 24
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1
+   }
   }
  },
  "meta": {
@@ -2792,7 +2912,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 511,
-   "h": 69
+   "h": 77
   },
   "scale": "1"
  },
@@ -2913,9 +3033,14 @@
    "bolt/sink/l": "6f3735bd",
    "bolt/sink/r": "bd64e53d",
    "bolt/sink/u": "32c4297d",
-   "bolt/sink/d": "7122a97d"
+   "bolt/sink/d": "7122a97d",
+   "checkpoint/idle": "8fdb4a6d",
+   "checkpoint/lit": "02d8a49c",
+   "checkpoint/rise/0": "dba19b23",
+   "checkpoint/rise/1": "74669a1c",
+   "checkpoint/rise/2": "efc007bc"
   },
-  "naming": "slab/<safe|blue|green|yellow|red>/<solid|ghost>/<L|M|R|S> (16x16, origin (0, 0)), slab/chevron/<l|r|u|d> (8x8 white mask, origin (0.5, 0.5)), track/<h|v|ne|nw|se|sw|stop/l|stop/r|stop/u|stop/d> (16x16 white mask), emitter/<l|r|u|d>/<grey|white|blue|green|yellow|red>/<idle|tell> (16x16), bolt/<kind> (8x8, origin (0.5, 0.5)), bolt/shimmer/<0-3> (16x16 white mask), bolt/sink/<l|r|u|d> (16x16 white mask)",
+  "naming": "slab/<safe|blue|green|yellow|red>/<solid|ghost>/<L|M|R|S> (16x16, origin (0, 0)), slab/chevron/<l|r|u|d> (8x8 white mask, origin (0.5, 0.5)), track/<h|v|ne|nw|se|sw|stop/l|stop/r|stop/u|stop/d> (16x16 white mask), emitter/<l|r|u|d>/<grey|white|blue|green|yellow|red>/<idle|tell> (16x16), bolt/<kind> (8x8, origin (0.5, 0.5)), bolt/shimmer/<0-3> (16x16 white mask), bolt/sink/<l|r|u|d> (16x16 white mask), checkpoint/<idle|lit> and checkpoint/rise/<0-2> (16x24, origin (0.5, 1); reduced motion: lit only)",
   "note": "Masks are pure white, tint at runtime. Coloured frames are baked from palette.json. Under reduced motion show emitter tell frames statically; shimmer frame 1 only."
  }
 }

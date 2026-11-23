@@ -1,0 +1,10 @@
+level: w4-02
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 85R    walk onto the shuttle while it rests at the left ledge (x 5.72, its back end); it leaves at step 90
+# 1+     shift up to gear 2 standing (white, costs nothing)
+# 214.   stand and ride: carried 12 tiles right (steps 90-282), docked flush with the green bridge from 282
+# 104R   walk off at gear 2 (step 300, 18 steps into the 90-step dock): green on the bridge, on to the exit
+steps: 404
+---
+85R 1+ 214. 104R

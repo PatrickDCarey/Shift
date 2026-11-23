@@ -49,7 +49,8 @@ const STEP: Readonly<Record<KinDir, { readonly x: number; readonly y: number }>>
   d: { x: 0, y: 1 },
 };
 
-const overlaps = (a: CellRect, b: CellRect): boolean => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+export const overlapsCells = (a: CellRect, b: CellRect): boolean => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+const overlaps = overlapsCells;
 
 function kindAt(level: Level, col: number, row: number): string {
   if (col < 0 || row < 0 || col >= level.width || row >= level.height) return 'outside';
@@ -176,11 +177,19 @@ function spawnBox(p: TilePos, playerHeightTiles: number): CellRect {
   return { left: p.col, top: p.row + 1 - Math.ceil(playerHeightTiles), right: p.col + 1, bottom: p.row + 1 };
 }
 
-function underHud(area: CellRect, level: Level, ts: number): boolean {
+export function underHud(area: CellRect, level: Level, ts: number): boolean {
   return (
     reachesOnAxis(area.left * ts, area.right * ts, HUD_AREA.left, HUD_AREA.right, VIEW.width, level.width * ts) &&
     reachesOnAxis(area.top * ts, area.bottom * ts, HUD_AREA.top, HUD_AREA.bottom, VIEW.height, level.height * ts)
   );
+}
+
+/** Every slab swept area and shot lane, named for messages. */
+export function keepOutAreas(level: Level): readonly { readonly name: string; readonly area: CellRect }[] {
+  return [
+    ...movers(level).map((m, i) => ({ name: `mover ${i} swept area`, area: sweptArea(m) })),
+    ...emitters(level).map((e, i) => ({ name: `emitter ${i} lane`, area: laneArea(e) })),
+  ];
 }
 
 /** Swept areas and lanes stay clear of spawn boxes, exits, hint boxes and the HUD at any camera. */
@@ -188,10 +197,7 @@ export function keepOutProblems(level: Level, cfg: RuleConfig): readonly string[
   const id = level.meta.id;
   const ts = cfg.tileSize;
   const spawns = level.twinStart === null ? [level.start] : [level.start, level.twinStart];
-  const pieces = [
-    ...movers(level).map((m, i) => ({ name: `mover ${i} swept area`, area: sweptArea(m) })),
-    ...emitters(level).map((e, i) => ({ name: `emitter ${i} lane`, area: laneArea(e) })),
-  ];
+  const pieces = keepOutAreas(level);
   const out: string[] = [];
   for (const { name, area } of pieces) {
     for (const s of spawns) {

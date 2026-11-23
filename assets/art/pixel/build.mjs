@@ -372,6 +372,9 @@ try {
       });
       for (let f = 0; f < 4; f++) pngMask(px.bakeShimmer(f), fx.palette.gears.yellow.solid.outline, 4 + 144 + 16 + f * 16, 100);
       px.DIRS.forEach((d, i) => pngMask(px.bakeSink(d), fx.palette.ui.textMuted, 4 + 144 + 16 + i * 16, 118));
+      put(px.bakePost('idle'), 4 + 144 + 16, 140);
+      put(px.bakePost('lit'), 4 + 144 + 40, 140);
+      for (let f = 0; f < 3; f++) put(px.bakePostRise(f), 4 + 144 + 64 + f * 18, 140);
       return out;
     };
     void names;

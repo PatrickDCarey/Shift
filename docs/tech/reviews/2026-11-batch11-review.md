@@ -58,3 +58,43 @@ The schema half is already in the tree (A2), so what is left is one atomic chang
 4. `emitterTellMs` stays out of `SimParams`; [scene] converts it with `round(300 × 60 / 1000)` = 18 steps and drops `TELL_MS_FALLBACK` in `KineticsView.ts` in its next sitting.
 
 Accept: `npx vitest run src/core/sim` and `src/core/types.test.ts` green, every golden hash unchanged (a new `SimParams` field is not hashed state), `npm run typecheck` clean.
+
+## 6. Checkpoints (2026-11-24)
+
+Scope: [level] split + `checkpoints.ts`, [sim] `sim/checkpoints.ts` and the `step.ts`/`status.ts`/`index.ts` edits, backend caps + `0005_long_run_logs.sql` + `src/net/submitPolicy.ts`, art `src/fx/pixel/posts.ts`. Not reviewed (in progress): [scene] post view, audio post cue, `levels/w4-*`.
+
+### Verdicts
+
+| Area | Verdict |
+|---|---|
+| [level] split (`kinetics.ts` 77, `kineticRead.ts` 118, `kineticMovers.ts` 145, `kineticShots.ts` 83) | **Approve.** Behaviour and messages unchanged; every file and function within limits; lane imports only `../types` and siblings. |
+| [level] `checkpoints.ts` (168) + `checkpoints.test.ts` | **Approve.** Every error in `level-format.md` §2 "Checkpoint headers", file/line/column, absent field when none. The three readings are confirmed and written into `level-format.md` §2 Validation. |
+| [sim] checkpoints | **Approve** (one LOW). |
+| Backend caps, migration 0005, `submitPolicy.ts` | **Approve** (two LOW). |
+| Art post frames | **Approve** (one LOW). |
+
+### [sim] checks
+
+- **Step order.** Activation is computed in `playingStep` after `outcomePhase` (phase 14) from the post-step body, skipped on a won step, kept on a death step (`step.ts:55`): a post lit on the death step is the respawn post, an exit still wins. Hazards use `t1 = kineticStep + 1` (`step.ts:51`), so bolts and slabs read the same clock.
+- **Freeze clock.** `tickFrozen` (`sim/checkpoints.ts:29`) advances `step` and `kinBase` together on dead steps, so the level clock runs and the kinetic clock stands; the respawn step sets `kinBase = step − post.clock`. A restart press strips the field (`status.ts:14`), so R is a full restart.
+- **Old-path identity.** With no `checkpoint` field, `kineticStep === step`, `tickFrozen` returns the unchanged step and no field is spread: bit-identical (golden hashes unchanged, as [sim] reported).
+- **No hidden state.** Everything is in `SimState.checkpoint` (`index`, `kinBase`); no module state, no `Math.random`/`Date`.
+- `LANE_PENDING.sim` emptied (`kineticStep` landed); `tests/arch/checkpoint-contract.test.ts` updated.
+
+### Findings
+
+| Id | Sev | Where | Finding |
+|---|---|---|---|
+| C-L1 | LOW | `src/core/sim/hazards.ts:22` | `SimParams.projectileSize` is now **required** (`contracts/tuning.ts`); `size === undefined` is dead code and the comment is stale. Typecheck clean as is. Request filed to [sim]. |
+| C-L2 | LOW | `src/net/submitPolicy.ts:4` | `MAX_RUN_STEPS` duplicates `backend/functions/submit-run/rules.ts:36` with no lockstep test. Add one in `scripts/submit-run.test.ts` (backend-engineer). |
+| C-L3 | LOW | `src/net/submitPolicy.ts:11` | `shouldSubmitRun(run: unknown)` casts away the `RunResult` type, so a rename of `solution.steps` would not fail typecheck. Take `RunResult` (the defensive checks can stay). |
+| C-L4 | LOW | `src/fx/pixel/posts.ts:6` | Header says the pole is two columns centred on x = 8; idle draws a 1 px pole at x = 7. Fix the comment or the frame (the shape difference itself is fine and greyscale-readable). |
+
+Security: no key, URL or secret in any changed file. The migration only replaces `runs_input_log_shape` with the same character-class regex and a 32,000 length (0002 had 16,000), matching `MAX_LOG_CHARS`; `steps ≤ 36,000`, RLS, revokes and the rate limits are untouched; body caps rise in proportion (40,000 chars / 56,000 bytes). Not a weakening: the server still never trusts a log it cannot parse or that sums past `MAX_RUN_STEPS`. 0005 is not applied yet (release step).
+
+### `tests/levels` (tech-lead, this sitting)
+
+- `tests/levels/checkpointRules.ts` + `.test.ts`: respawn box only empty cells and clear of slab swept areas, shot lanes, hints and the HUD at any camera; 4 safe floor columns from a post; width ≤ 480 for every level; ≤ 15 rows with posts; the shipped recording of a post level is deathless, never restarts, `wonAtStep === steps`, lights posts 0..n−1 in order. A planted fixture per rule.
+- `tests/levels/robustness.test.ts`: a trial in a post level fails at its first `died` event; planted self-check shows the same perturbed run passes without the post and fails with it.
+- `kineticRules.ts` exports `keepOutAreas`, `overlapsCells`, `underHud` for reuse (no rule change). Recording ≤ 5,400 steps was already there.
+- Run: `npx vitest run tests/levels` 351/351 green (w4-02 had its recording by the time of the run).

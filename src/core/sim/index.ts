@@ -6,6 +6,7 @@
  * tests/arch/lane-contracts.test.ts checks it. Files in this folder may import ../types, ../motion (its index only) and src/data/*.json.
  * See docs/tech/architecture.md section 3.5.
  */
+export { kineticStep } from './checkpoints';
 export { createSim } from './create';
 export { deriveParams } from './params';
 export { step } from './step';

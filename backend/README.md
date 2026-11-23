@@ -107,7 +107,7 @@ headers: apikey: <anon key> (plus Authorization: Bearer <anon key> only when the
 
 ## Migration 0002 and `submit-run` (M3-11)
 
-`0002` replaces three `runs` checks: names are 1 to 12 of `A-Z 0-9 space -` (no padding, no doubled spaces), `steps` is at most 36,000 and `input_log` at most 16,000 characters. It also creates `submit_attempts` (hashed IP and time) with RLS on, no policy and all client privileges revoked. A new table in `public` is granted to `anon` and `authenticated` by default on Supabase, so any further table must repeat that revoke and enable RLS.
+`0002` replaces three `runs` checks: names are 1 to 12 of `A-Z 0-9 space -` (no padding, no doubled spaces), `steps` is at most 36,000 and `input_log` at most 16,000 characters (`0005` raises that to 32,000 for long levels). It also creates `submit_attempts` (hashed IP and time) with RLS on, no policy and all client privileges revoked. A new table in `public` is granted to `anon` and `authenticated` by default on Supabase, so any further table must repeat that revoke and enable RLS.
 
 `submit-run` takes `POST /functions/v1/submit-run` with `{ levelId, levelVersion, steps, name, inputLog }` and answers `{ ok: true, rank, total }` or `{ ok: false, code }` where code is one of:
 

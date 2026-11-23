@@ -1,0 +1,30 @@
+# World 4, level 2. Teach: a shuttle carries you sideways; leave when it docks, at the pace the far side asks.
+# Target first-time solve: 20-30 s.
+# Layout (30 x 13, one screen): safe ledge (cols 0-4, spawn col 1) -> 16 empty columns (cols 5-20) that a grey
+#   shuttle, 4 wide, crosses: it rests 90 steps flush with the ledge (cols 5-8), moves 12 tiles right in 192
+#   steps, rests 90 flush with a 5-tile green bridge (cols 21-25), and goes back (cycle 564 steps, 9.4 s).
+#   Exit pad cols 26-29. A 2-row safe roof (rows 5-6, cols 5-25) leaves exactly 2 tiles of headroom over the
+#   track and the bridge: no jump clears the pit or the bridge, and nothing stands on the roof.
+# Walk on while it rests, stand (white), shift up once standing, and walk off at gear 2 while it is docked.
+#   Gear 1 is blue and gear 3 or 4 ramps into yellow on the bridge: both fall. Leave before it docks and you
+#   walk off the front of a shuttle that has not arrived.
+id: w4-02
+title: Ferry
+world: 4
+teaches: a shuttle carries you sideways; leave when it docks, at the pace the far side asks
+version: 1
+mover: 5 9 4x1 safe speed=2 path=w90,r12,w90,l12
+---
+..............................
+..............................
+..............................
+..............................
+..............................
+.....#####################....
+.....#####################....
+............................E.
+.@..........................E.
+#####................GGGGG####
+#####.....................####
+#####.....................####
+#####.....................####

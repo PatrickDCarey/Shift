@@ -1,38 +1,38 @@
 # Feature: Checkpoints (long levels only)
 
-> **Status 2026-11-24: MUST for long levels (`decisions.md` 2026-11-24 "Long levels").** The first long level as built (w2-05 v1) ran 16.6 s over 106 tiles; a true long level is 8–12 rooms and 45–75 s clean, and a no-checkpoint retry at that length fails pillar 3. Format and sim follow tech-lead's `expansion-approach.md` §5.2: a `checkpoint: <col> <row>` header line (not a `K` tile), `SimState.checkpoint`, the clock keeps running after a post death, R is a full restart, non-Tandem only. Levels with posts have no sweep. The status note below is history.
+> **Status 2026-11-24 (later): MUST for long levels, rules aligned with tech-lead's contracts** (`src/core/contracts/checkpoints.ts`, `docs/tech/level-format.md` "Checkpoint headers", `expansion-approach.md` §8). Design accepted the kinetic clock reset at a post and forward-only activation (`decisions.md` 2026-11-24 "Checkpoint contracts"). Where this spec and the contracts differ in a detail of format or arithmetic, the contracts win; design intent is below.
 >
-> **Status (2026-11-23, later the same day): COULD, not for the jam.** Tech-lead's `docs/tech/expansion-approach.md` §5.2 sizes checkpoints at M-L and the only item that changes `SimState`'s shape (every fixture and golden hash), five days before freeze. Design rules (`decisions.md` 2026-11-23 "Expansion", ruling 2): **no checkpoints**; long levels are single runs whose recording is ≤ 5,400 steps, built so they do not need one (`level-plan.md` "Long levels"). This spec is kept as the agreed design if the producer ever schedules them post-jam; its semantics match tech-lead's §5.2 (clock keeps running after a checkpoint death, R is a full restart, non-Tandem only, `checkpoint:` header line instead of a `K` tile). The sweep paragraph below no longer applies (`sweep.md` has no state).
+> **History.** 2026-11-24: Must for long levels (`decisions.md` 2026-11-24 "Long levels"). 2026-11-23 (later): Could, not for the jam. Rejected on 2026-11-20 and twice on 2026-11-23 as a late fix for w3-05.
 
-_Owner: design-lead. Written 2026-11-23. Originally drafted as Must. Checkpoints were rejected on 2026-11-20 and twice on 2026-11-23 as a late fix for w3-05; the owner's request for longer levels changes the calculus (`decisions.md` 2026-11-23 "Expansion", ruling 2). They are for long levels only: **no existing level gets one**, and Tandem levels never have them._
+_Owner: design-lead. Written 2026-11-23, revised 2026-11-24. For long levels only: **no existing level gets one**, Tandem levels never have them, and levels with posts have no sweep._
 
 ## Rule
 
-A **checkpoint post** in a long level lights when you touch it. After that, a death sends you back to the post instead of the level start, and **the clock keeps running**. R always restarts the whole level from the start with the clock at zero.
+A **checkpoint post** in a long level lights when you pass it. After that, a death sends you back to the furthest lit post, and the room after it plays exactly as it did the first time (moving things restart from the post's clock), while **the level time keeps running**. R always restarts the whole level from the start.
 
 ## Definitions
 
-- **Run clock τ** (used by movers, bolts, the sweep and the level time): the number of steps since the last **full restart**. A full restart is: loading the level, pressing R, or a death while no checkpoint is active. This is exactly today's behaviour for every level without checkpoints (a death respawns at step 0), so the 14 shipped recordings replay unchanged.
-- **Level time** (`wonAtStep`, best times, leaderboards) is τ on the winning step. Deaths after a checkpoint, including their 24 freeze steps, count toward it. A best time is a full run from the start.
-- **Solution recording:** unchanged format and meaning (`level-format.md` §4): every frame since load, deaths and `!` included, ending on the winning step. `wonAtStep` ≤ `steps` as before. The replay test and `verifySolution` work as they do now, since the sim is deterministic through checkpoint respawns.
+- **Level time** (`wonAtStep`, best times, leaderboards): frames since the last **full restart** (loading the level, R, or a death while no post is lit). Once a post is lit it counts every frame, death freezes included. A best time is therefore a full run from the start.
+- **Kinetic clock** (drives slabs and bolts): equals the level time until the first post respawn. On the first step after a respawn at a post it is the post's `clock=` value (default 0: every bolt lane empty, every slab at its origin, as at the spawn), then advances one per step and freezes during death and win freezes, as today. Without posts it is exactly today's run step, so every shipped recording replays unchanged.
+- **Solution recording:** unchanged format (`level-format.md` §4): every frame since load. The **shipped** recording is a deathless run from the start. Player recordings may contain post deaths; the sim is deterministic through them, so `verifySolution` replays them as now.
 
 ## Behaviour
 
-- **Tile:** a new non-solid grid character for the post (proposal `K`; tech-lead decides). Validation: the cell directly below is a safe tile `#`; the level has no `&`; at most 4 per level; none in the first 20 columns; outside every mover path, every grey and white bolt lane, and the sweep's start.
-- **Activation:** on the first step a body's box strictly overlaps a post's cell (any band, ground or air), that post becomes **active** (it replaces any earlier one: "last touched wins"). One `checkpoint` event. Touching the already active post does nothing.
-- **Respawn at a post:** after the usual `deathFreezeMs` freeze, the body respawns standing on the floor under the post (feet x = col + 0.5, as `@`), with the full respawn reset of GDD §4.12 (gear `startGear`, band 0, facing right, buffers, grace, drag and direction state cleared). τ is **not** reset. Movers and bolts carry on from τ. The sweep, if any, resets relative to the post (`sweep.md`).
-- **R:** a full restart: spawn at `@`, τ 0, every post unlit.
-- **Step order:** phase 14 is exit, then checkpoint activation, then hazards, then falling (GDD v1.12 §4.14). So a post touched on the step you die is the one you respawn at; an exit touched on that step wins.
-- **Held keys** through a checkpoint respawn act normally from the first step, as through any respawn (ruled 2026-11-02).
+- **Format:** a header line `checkpoint: <col> <row> [clock=<n>]` (no grid glyph). Placement rules (parser and `tests/levels`): the cell is empty with a safe tile `#` directly below; at most 4 per level; columns increasing; the first at least 20 columns after the spawn, each at least 40 after the previous; never in a level with `&` or `sweep:`; the respawn box clear of every slab path, grey or white shot lane, exit, hint and the HUD area.
+- **Activation:** a post lights when the runner's box overlaps the post's **column at any height** (any band, ground or air), so it cannot be jumped over. **Forward only:** it lights only if it is further along than the currently lit post; passing an earlier post again does nothing. One `checkpoint` event per lighting.
+- **Respawn at a post:** after the normal 24-step death freeze, a **fresh spawn** standing in the post's cell (feet x = col + 0.5): gear `startGear`, white, band 0, speed 0, facing right, buffers, grace, drag and direction state cleared (GDD §4.12). Held keys carry over and act from the first step, as through any respawn (ruled 2026-11-02). The kinetic clock is set to the post's `clock=`; the level time is not reset.
+- **R:** a full restart: spawn at `@`, level time and kinetic clock 0, every post unlit. Pause > Restart is the same.
+- **Step order:** win check, then checkpoint activation, then death. An exit touched on the step you die wins; a post lit on the step you die is the one you respawn at.
 
 ## Edge cases
 
-- **Death before any post:** a full restart (τ 0), identical to today.
-- **Walking back to an earlier post** makes it active again. Harmless; long levels are built left to right so it rarely happens.
-- **Respawning into a hazard:** prevented by the level rules (respawn box outside grey/white lanes and slab paths; no forced hazard crossing in the first 60 steps after a post).
-- **Results and pause:** results show the level time as now. Pause > Restart is a full restart (as R). No "restart from checkpoint" menu item (Could).
-- **Leaderboards:** rank by `wonAtStep` as now; the backend's `verifySolution` replay already measures it. Fastest-known floors are per level, as now.
-- **Progress save:** a checkpoint is never saved. Leaving the level forgets it.
+- **Death before any post:** a full restart, identical to today.
+- **Walking back past an earlier post:** nothing changes; the furthest lit post stays.
+- **`clock=` other than 0:** for a room that should be mid-cycle when you arrive (for example a slab already at the near end). Level-designer picks it so the respawn box is safe and the first 60 steps after respawn need no forced hazard crossing; `tests/levels` checks the box.
+- **Respawning into a hazard:** prevented by the placement rules (box clear of slab paths and shot lanes) plus the empty-lanes default.
+- **Results and pause:** results show the level time. No "restart from checkpoint" menu item (Could).
+- **Leaderboards:** rank by `wonAtStep` as now; post deaths cost their freezes and the walk back, so a deathless run is always fastest.
+- **Progress save:** a lit post is never saved. Leaving the level forgets it.
 - **Restart card:** unaffected (no Tandem levels have posts).
 
 ## Readability
@@ -43,22 +43,23 @@ A **checkpoint post** in a long level lights when you touch it. After that, a de
 
 ## Tuning
 
-No new key. Uses `deathFreezeMs`, `startGear`. The post's position is level data.
+No new key. Uses `deathFreezeMs`, `startGear`. Post position and `clock=` are level data.
 
 ## Acceptance
 
-Test room "Room K": spawn at col 2; a safe floor; a post at col 30; a 1-tile pit at col 40; exit at col 60.
+Test room "Room K": spawn at col 2; a safe floor; a post at col 30; a 1-tile pit at col 40; exit at col 60. Variant K2 adds a second post at col 80 and moves the exit to col 120.
 
-1. **Regression.** Every shipped level replays to its current `wonAtStep` (no level has a post).
-2. **Activation.** Walking right at gear 1 from the spawn: one `checkpoint` event on the first step the box overlaps col 30; none on later overlap steps.
-3. **Respawn at the post, clock runs on.** Walk into the pit at col 40 after activating: the body respawns after 24 frozen steps standing at x 30.5, gear 1, band 0; τ on the first respawn step = τ on the last frozen step + 1 (no reset).
-4. **Level time includes the death.** Win after step 3's death: `wonAtStep` = steps since load (no R), and equals the recording's `steps`.
-5. **Death before the post.** Fall into a pit at col 10 (variant room): respawn at the spawn with τ = 0, exactly as today.
-6. **R clears.** After activating, press R: next step the body is at the spawn, τ 0 then 1, post unlit; dying then respawns at the spawn.
-7. **Same-step order.** A body that touches the post and is hit by a bolt on the same step respawns at the post.
-8. **Movers and bolts don't reset.** In a room with Lift L (`moving-objects.md`), after a checkpoint respawn the slab's position equals the formula at the running τ.
-9. **Replay.** A recording that dies twice after a post and then wins replays to the same `wonAtStep` (`tests/levels` style, plus the ±3 shift test).
-10. **Validation.** A post with no safe tile under it, a post in a level with `&`, five posts, or a post in a grey lane: the level is rejected by the parser or `tests/levels` with a message naming the cell.
+1. **Regression.** Every shipped level replays to its current `wonAtStep` and golden hash (no level has a post).
+2. **Activation.** Walking right at gear 1 from the spawn: one `checkpoint` event on the first step the box overlaps col 30; none on later overlap steps. A full jump over col 30 also lights it.
+3. **Respawn at the post.** Walk into the pit at col 40 after activating: after 24 frozen steps the body stands at x 30.5, gear `startGear`, white, band 0, speed 0, facing right.
+4. **Level time includes the death.** Win after check 3's death: `wonAtStep` = frames since load (no R), death freeze included.
+5. **Death before the post.** Fall into a pit at col 10 (variant room): respawn at the spawn with level time and kinetic clock 0, exactly as today.
+6. **R clears.** After activating, press R: next step the body is at the spawn, level time 0, post unlit; dying then respawns at the spawn.
+7. **Same-step order.** A body that reaches the post's column and is hit by a bolt on the same step respawns at the post.
+8. **Kinetic clock restarts at the post.** In Room K with Lift L (`moving-objects.md`) and a post with `clock=0`: after a post respawn, on the k-th step after the respawn the slab position equals the formula at kinetic clock k − 1 (k = 1 is clock 0, the origin) and every bolt lane is empty on the first step. With `clock=48`, the formula at 48 + k − 1. Two deaths at the post give identical slab and bolt positions for the same k.
+9. **Forward only.** In K2, light col 80, walk back past col 30, die: respawn at col 80; one `checkpoint` event in total for col 30.
+10. **Replay.** A recording that dies twice after a post and then wins replays to the same `wonAtStep` (`tests/levels` style, plus the ±3 shift test).
+11. **Validation.** Each is rejected with a message naming the post: no safe tile under it; a level with `&` or `sweep:`; five posts; columns not increasing; a post fewer than 20 columns after the spawn or fewer than 40 after the previous; a respawn box in a slab path or grey/white lane.
 
 ## Priority
 

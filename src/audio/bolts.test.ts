@@ -71,3 +71,25 @@ describe('sfx.shot', () => {
     expect(ctx.oscs.length).toBe(before);
   });
 });
+
+describe('post cue', () => {
+  it('is distinct from the win, shift, shot and death cues and short', () => {
+    const post = describeSfx({ id: 'post' });
+    for (const id of ['levelComplete', 'shiftUp', 'shot', 'hitDeath', 'reset'] as const) {
+      expect(post).not.toEqual(describeSfx({ id }));
+    }
+    expect(sfxDuration(post)).toBeLessThanOrEqual(0.25);
+  });
+
+  it('plays after unlock, is silent before and when muted', async () => {
+    const { engine, ctx } = setupEngine();
+    const sfx = createSfx(engine);
+    expect(sfx.post()).toBe(0);
+    await engine.unlock();
+    expect(sfx.post()).toBe(describeSfx({ id: 'post' }).length);
+    engine.setMuted(true);
+    const before = ctx.oscs.length;
+    expect(sfx.post()).toBe(0);
+    expect(ctx.oscs.length).toBe(before);
+  });
+});

@@ -8,6 +8,7 @@ export type NetFailureReason =
   | 'http' // the server answered with a non-2xx status (see `status`)
   | 'invalid-response' // the body was not the shape we asked for
   | 'invalid-args' // refused before any request: the arguments are not a valid query
+  | 'skipped' // the run is longer than the server accepts (MAX_RUN_STEPS frames): it stays local-only
   | 'unavailable'; // the feature does not exist yet (submit-run, M3-11)
 
 export interface NetFailure {

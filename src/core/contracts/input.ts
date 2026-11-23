@@ -74,8 +74,9 @@ export interface Solution {
  */
 export interface RunResult {
   /**
-   * Run time in steps: `SimState.wonAtStep` of the winning run (deaths,
-   * freezes and restarts before it excluded). Best times and leaderboards rank
+   * Run time in steps: `SimState.wonAtStep` of the winning run (frames since
+   * the last full restart: deaths and restarts before it excluded, but deaths
+   * after a lit checkpoint post included, contracts/checkpoints.ts). Best times and leaderboards rank
    * this; seconds = wonAtStep / stepHz, for display only.
    */
   readonly wonAtStep: number;

@@ -10,7 +10,9 @@
  * only because it ends a few steps before the exit (a shifted gear change can
  * cost more than the shift itself in arrival time); a body that is stuck,
  * dead or lost stays lost however long the tail is. Levels without a parsable
- * recording are the solvability test's job and are skipped here. Owner: tech-lead.
+ * recording are the solvability test's job and are skipped here. In a level
+ * with checkpoint posts a trial fails at its first `died` event: a post respawn
+ * must not rescue a perturbed run. Owner: tech-lead.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -88,7 +90,12 @@ function trialProblem(api: SimApi, level: Level, p: SimParams, base: Replayed, t
   let i = trial.findIndex((frame, k) => frame !== base.frames[k]);
   if (i < 0) i = trial.length;
   let state = base.states[i] as SimState;
-  for (; i < trial.length && state.status !== 'won'; i++) state = api.step(state, trial[i] as InputFrame, level, p);
+  const posts = (level.checkpoints?.length ?? 0) > 0;
+  for (; i < trial.length && state.status !== 'won'; i++) {
+    state = api.step(state, trial[i] as InputFrame, level, p);
+    // A post respawn must never rescue a perturbed run (level-format.md §2 "Checkpoint headers").
+    if (posts && state.events.some((e) => e.type === 'died')) return `died at step ${i + 1} in a level with posts`;
+  }
   if (state.status === 'won') return null;
   const { x, y } = state.player;
   return `did not win: status '${state.status}' after ${trial.length} steps (feet at x=${x.toFixed(2)}, y=${y.toFixed(2)})`;
@@ -174,5 +181,43 @@ describe('robustness harness self-check', () => {
     expect(wins(exact - 1)).toBe(false);
     expect(timingProblems(sim, fx, params, recording(exact)).join('\n')).toContain(`shifted by -${MAX_SHIFT_STEPS}`);
     expect(timingProblems(sim, fx, params, recording(exact + MAX_SHIFT_STEPS + 1))).toEqual([]);
+  });
+});
+
+describe('robustness harness self-check: levels with posts', () => {
+  // Walk right past a post at col 21, over a blue strip (cols 25-28) to the exit. Letting go on the strip
+  // drops the body through it. With the post, the trial dies and a post respawn would carry it on to a win.
+  const HEAD = ['title: fixture', 'world: 0', 'teaches: robustness posts self-check', 'version: 1'];
+  const GRID = ['.'.repeat(34), '.@' + '.'.repeat(29) + 'E..', '#'.repeat(25) + 'BBBB' + '#'.repeat(5)];
+  const load = (id: string, extra: readonly string[]): Level | undefined => {
+    const r = loadLevels({ [`/fixture/${id}.txt`]: [`id: ${id}`, ...HEAD, ...extra, '---', ...GRID].join('\n') });
+    return r.ok ? r.value[0] : undefined;
+  };
+  const withPost = load('w0-92', ['checkpoint: 21 1']);
+  const noPost = load('w0-93', []);
+  const right: InputFrame = { left: false, right: true, jump: false, shiftUp: false, shiftDown: false, restart: false };
+  const idle: InputFrame = { ...right, right: false };
+  const base = (level: Level): Replayed => {
+    const frames = Array.from({ length: 2000 }, () => right);
+    return { frames, states: prefixStates(sim, level, params, frames) };
+  };
+  /** Right, but let go for 40 steps once the body is over the strip. */
+  const letGoOnStrip = (b: Replayed): InputFrame[] => {
+    const at = b.states.findIndex((s) => s.player.x > 26);
+    return b.frames.map((f, k) => (k >= at && k < at + 40 ? idle : f));
+  };
+
+  it('loads both fixtures', () => {
+    expect([withPost, noPost].every((l) => l !== undefined)).toBe(true);
+  });
+
+  it.runIf(withPost !== undefined && noPost !== undefined)('a trial that dies fails in a post level, and only there', () => {
+    const plain = base(noPost as Level);
+    const trialPlain = letGoOnStrip(plain);
+    expect(prefixStates(sim, noPost as Level, params, trialPlain).some((s) => s.events.some((e) => e.type === 'died'))).toBe(true);
+    expect(trialProblem(sim, noPost as Level, params, plain, trialPlain)).toBeNull();
+    const posted = base(withPost as Level);
+    expect(trialProblem(sim, withPost as Level, params, posted, posted.frames)).toBeNull();
+    expect(trialProblem(sim, withPost as Level, params, posted, letGoOnStrip(posted))).toMatch(/^died at step \d+ in a level with posts$/);
   });
 });

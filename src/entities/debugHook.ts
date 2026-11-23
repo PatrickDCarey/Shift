@@ -3,6 +3,7 @@
  * `QA_HOOK` is true (dev and VITE_QA_HOOK=1 builds; the itch.io build has none).
  * Owner: gameplay-engineer [scene].
  */
+import { kineticStep } from '../core';
 import type { SimState } from '../core/types';
 import type { KineticsSnapshot } from './kineticsPlan';
 import type { RestartCardSnapshot } from './RestartCardController';
@@ -26,6 +27,10 @@ export interface DebugHook {
   readonly restartCard: RestartCardSnapshot | null;
   /** Slabs, emitters and live shots at the current step (tiles); null when the level has none. */
   readonly kinetics: KineticsSnapshot | null;
+  /** Lit checkpoint post index, or null (before the first post and after a full restart). */
+  readonly checkpoint: number | null;
+  /** The clock slabs and bolts are drawn at: the run step, minus the post respawn base. */
+  readonly kineticStep: number;
   /** Audio QA state: `cues()` is the last 64 SFX cues requested, oldest first. */
   readonly audio: { readonly cues: () => CueLogEntry[] };
 }
@@ -67,6 +72,12 @@ export function installDebugHook(source: DebugSource): void {
     },
     get kinetics() {
       return read().kinetics;
+    },
+    get checkpoint() {
+      return read().state.checkpoint?.index ?? null;
+    },
+    get kineticStep() {
+      return kineticStep(read().state);
     },
     audio: { cues: () => debugCues() },
   };

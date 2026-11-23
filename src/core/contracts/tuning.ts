@@ -212,9 +212,8 @@ export interface SimParams {
   readonly playerHeight: number;
   /**
    * Bolt hit box side, tiles = tuning.projectileSizeTiles (square, centred on
-   * the shot). `deriveParams` maps it; still optional only because the motion
-   * stand-in `paramsForTests` (src/core/motion/testkit.ts) lacks it: [motion]
-   * adds it, [sim] drops the guard in sim/hazards.ts, then this becomes required. (`emitterTellMs` is render only: not here.)
+   * the shot). `deriveParams` and `paramsForTests` both map it; required since
+   * the batch 11 checkpoint review. (`emitterTellMs` is render only: not here.)
    */
-  readonly projectileSize?: number;
+  readonly projectileSize: number;
 }

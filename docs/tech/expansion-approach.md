@@ -306,9 +306,9 @@ Design reversed ruling 2 (`decisions.md` 2026-11-24, `level-plan.md` v4.1, `feat
 - **art-director** Post sprite, 1 × 2 tiles on a safe tile: idle (outline pole, flag down) and lit (filled flag up, short rise; static under reduced motion). Shape differs, never colour alone; `npm run art:build`.
 - **audio-designer** Post cue from the state diff (`checkpoint.index` changed), called by the scene like the shot fire cue; no `SimEvent` change, so `sfxEvents.ts`'s switch is untouched.
 - **backend-engineer** `LEVELS` rows for new versions (orchestrator step); raise the caps in §8.2; client skips submitting when frames > `MAX_RUN_STEPS` (best stays local).
-- **tech-lead (`tests/levels`)** Rules of `level-format.md` §2 "Checkpoint headers" with planted fixtures; width ≤ 480; deathless shipped recording lights every post; ±3 trial fails on `died` in post levels; drop `kineticStep` from `LANE_PENDING` at review; then `SimParams.projectileSize` required (§8.4).
+- **tech-lead (`tests/levels`)** *Done 2026-11-24 (`checkpointRules.ts`, `robustness.test.ts`).* Rules of `level-format.md` §2 "Checkpoint headers" with planted fixtures; width ≤ 480; deathless shipped recording lights every post; ±3 trial fails on `died` in post levels; drop `kineticStep` from `LANE_PENDING` at review; then `SimParams.projectileSize` required (§8.4).
 
 ### 8.4 Open follow-ups
 
-- **`SimParams.projectileSize` stays optional.** Making it required breaks one file: `src/core/motion/testkit.ts:26` (`paramsForTests` lacks the key). [motion] adds `projectileSize: t.projectileSizeTiles` there; [sim] then drops the `size === undefined` guard in `sim/hazards.ts:22`; tech-lead tightens the type in the same review.
+- **`SimParams.projectileSize` is required** (batch 11 checkpoint review). `motion/testkit.ts` maps it; typecheck clean. The `size === undefined` test in `sim/hazards.ts:22` is now dead code; [sim] drops it next sitting (`requests.md`).
 - **Design:** acceptance 8 (kinetic clock resets to `post.clock` on a post respawn) and "forward only" activation (design wrote "last touched wins").

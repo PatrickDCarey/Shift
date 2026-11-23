@@ -19,7 +19,7 @@ export interface HitCtx {
 export function bodyHit(level: Level, params: SimParams, p: PlayerState, id: 0 | 1, ctx: HitCtx): boolean {
   const emitters = level.emitters;
   const size = params.projectileSize;
-  if (!emitters || size === undefined || p.home) return false;
+  if (!emitters || size === undefined || p.home) return false; // optional in SimParams until tech-lead makes it required
   const box = boxAt(p.x, p.y, params);
   const band = ctx.startBands[id];
   const half = size / 2;

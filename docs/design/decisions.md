@@ -595,3 +595,10 @@ A miss on 4 with mostly late pins after the batch 10 glyph move comes back to de
 - **w4-05: 9 rooms, 2 posts. w5-05: 12 rooms, 3 posts** (`levels-w4.md`, `levels-w5.md`).
 - **If checkpoints miss freeze:** w2-05 ships as v1, and w4-05 and w5-05 ship at medium length (their first section).
 - **Tech limits:** 450 columns and 4,500 steps fit tech-lead's §5 table. The robustness test cost and the backend's 16,000-character log cap need checking with posts, because player runs with deaths are long. Request lines filed.
+
+## 2026-11-24 (later) — Checkpoint contracts: tech-lead's two rule changes
+
+**Input:** tech-lead's contracts (`src/core/contracts/checkpoints.ts`, `level-format.md` "Checkpoint headers", `expansion-approach.md` §8) and request line. `features/checkpoints.md` rewritten to match.
+1. **Kinetic clock set to the post's `clock=` on respawn (default 0): ACCEPTED.** Reason: the room after a post plays the same every life, so a retry teaches (pillars 1 and 3) and the ±3 and box rules can be checked. Level time still runs on. Acceptance 8 rewritten (formula at `clock` + steps since respawn; two lives identical).
+2. **Forward-only activation, judged on the post's column at any height: ACCEPTED.** Reason: walking back never moves your respawn backwards, and a post cannot be jumped over; "last touched wins" bought nothing in left-to-right levels. New acceptance 9.
+3. **Fixed rules noted, no objection:** order win, post, death; fresh spawn after the 24-step freeze with held keys carried; level time counts every frame after a post is lit; shipped recording deathless from the start; placement (on `.` over `#`, ≤ 4, ≥ 20 after spawn, ≥ 40 apart, no `&` or `sweep:`, respawn box clear of slab paths, lanes, exits, hints, HUD). Reason: all fair and readable; the spacing fits a post every 3–4 rooms.

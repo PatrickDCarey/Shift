@@ -35,6 +35,8 @@ export interface Sfx {
   airDragClunk(): number;
   /** Hit-death cue (also used by the sweep). Normally reached via `playEvents`. */
   hitDeath(): number;
+  /** A checkpoint post lit. Call once per lighting (scene detects `checkpoint.index` changing). */
+  post(): number;
   /**
    * Emitter fire cue. Call once per shot that leaves an emitter currently ON SCREEN (the scene
    * decides; pass `onScreen = false` and it is dropped). Rate-limited here: at most one cue per
@@ -63,6 +65,7 @@ export function createSfx(engine: ToneEngine, log?: CueLog, now?: () => number):
     uiSelect: () => play({ id: 'uiSelect' }),
     airDragClunk: () => play({ id: 'airDragClunk' }),
     hitDeath: () => play({ id: 'hitDeath' }),
+    post: () => play({ id: 'post' }),
     shot: (band, onScreen = true) => (onScreen && allowShot() ? play({ id: 'shot', band }) : 0),
     playEvents: (events, ctx) => sfxForEvents(events, ctx).reduce((n, cue) => n + play(cue), 0),
   };

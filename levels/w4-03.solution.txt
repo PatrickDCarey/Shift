@@ -1,0 +1,10 @@
+level: w4-03
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 1+     shift up to gear 2 standing on the left ledge
+# 70.    wait: the green slab rises (steps 30-126) and rests level with the ledges (126-216)
+# 197R   leave at gear 2 (green at x 8.1), step down onto the slab as it finishes rising (lands step 121,
+#        0.25 below the ledge), carried level, cross green onto the right ledge and walk to the exit
+steps: 268
+---
+1+ 70. 197R

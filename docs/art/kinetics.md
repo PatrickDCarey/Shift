@@ -28,3 +28,17 @@ Each line says what separates the sprite with no colour. `src/fx/pixel/kinetics.
 - Chevrons, track, shimmer and sink are single-colour masks; they differ by shape only.
 
 Note: at 8 px the bolt patterns are small. Do not scale below 1x; for itch shots draw bolts at 2x with nearest-neighbour.
+
+## Checkpoint post (long levels)
+
+Code: `src/fx/pixel/posts.ts` (exported from `src/fx/pixel`), frames in the same `pixel-kinetics` atlas, previews bottom right of `docs/art/pixel/kinetics.png` and `kinetics-grey.png`. Existing frames are unchanged.
+
+| Frame | Size (px) | Origin | Notes |
+|---|---|---|---|
+| `checkpoint/idle` | 16x24 | (0.5,1) | Unlit: thin 1 px pole, hollow square lamp. |
+| `checkpoint/lit` | 16x24 | (0.5,1) | Lit: 2 px pole, ball on top, filled pennant flag pointing right. Reduced-motion lit frame. |
+| `checkpoint/rise/<0-2>` | 16x24 | (0.5,1) | Lit transition, about 60 ms a frame: the pennant climbs 12, 8, 4 px below its final spot, then `lit`. Reduced motion: skip, show `lit`. |
+
+Place at x = (col + 0.5) * 16, y = the floor's top edge; the post is 1.5 tiles tall and 1 wide, over the post's own cell and the one above it. Helpers: `postFrameNames()` (also `kineticFrameNames().post`), `POST_W`, `POST_H`, `POST_ORIGIN`, `POST_RISE_FRAMES`, `bakePost`, `bakePostRise`. Colours come from `palette.json` (`safeTile`, `ui.text`, `ui.textMuted`); no new entries.
+
+Greyscale: idle and lit differ with no colour at all. Idle is an empty box on a hairline (about 50 lit pixels, transparent inside); lit is a flag silhouette on a thick pole with a ball (about 100 lit pixels, filled). Both are drawn in the safe-tile greys, so there is no hue to lose under any colour-blindness simulation. `kinetics.test.ts` enforces >= 30 differing greyscale pixels, a different silhouette, and lit having more lit pixels. Contrast: lamp and pole use `ui.textMuted` or brighter on the near-black background (well over 3:1).

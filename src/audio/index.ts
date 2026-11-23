@@ -51,6 +51,9 @@ export const playStepEvents = createStepEventPlayer(audio, cueLog);
  */
 export const playShot = (band?: Band, onScreen?: boolean): number => sfx.shot(band, onScreen);
 
+/** The scene's checkpoint cue: call `playPost()` once per post lit. Silent when muted or before the first gesture. */
+export const playPost = (): number => sfx.post();
+
 /** The adaptive music on the shared engine: call `music.update(frame)` once per rendered frame. */
 export const music = createMusic(audio);
 

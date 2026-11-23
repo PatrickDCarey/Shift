@@ -5,7 +5,7 @@
  * and are blended like the bodies are (`renderBodyPosition`): only across two consecutive playing steps.
  * Phaser-free, so it runs in Node tests. Owner: gameplay-engineer [scene].
  */
-import { BAND_COLORS, moverCorners, moverOffset, nextShotIn, shotsAt } from '../core';
+import { BAND_COLORS, kineticStep, moverCorners, moverOffset, nextShotIn, shotsAt } from '../core';
 import type { Band, ColoredBand, Emitter, KinDir, Level, Mover, SimState } from '../core/types';
 import { kineticFrameNames, slabSegments, type BoltKind, type SlabKind } from '../fx';
 import { lerp, renderBodyPosition } from './interpolation';
@@ -26,7 +26,7 @@ export interface Pt {
   readonly y: number;
 }
 
-/** Which two run steps to blend and how far (0..1). */
+/** Which two kinetic-clock steps (`kineticStep`) to blend and how far (0..1). */
 export interface RenderTime {
   readonly t0: number;
   readonly t1: number;
@@ -36,8 +36,9 @@ export interface RenderTime {
 const NAMES = kineticFrameNames();
 
 export function renderTime(prev: SimState, state: SimState, alpha: number): RenderTime {
-  const consecutive = prev.status === 'playing' && state.status === 'playing' && state.step === prev.step + 1;
-  return consecutive ? { t0: prev.step, t1: state.step, a: alpha } : { t0: state.step, t1: state.step, a: 0 };
+  const [k0, k1] = [kineticStep(prev), kineticStep(state)];
+  const consecutive = prev.status === 'playing' && state.status === 'playing' && k1 === k0 + 1;
+  return consecutive ? { t0: k0, t1: k1, a: alpha } : { t0: k1, t1: k1, a: 0 };
 }
 
 export const slabKind = (m: Mover): SlabKind => (m.solid.kind === 'safe' ? 'safe' : (BAND_COLORS[m.solid.band] as SlabKind));
@@ -72,8 +73,9 @@ export interface SlabPlan {
 
 function travelDir(m: Mover, state: SimState): KinDir | null {
   if (state.status !== 'playing') return null;
-  const a = moverOffset(m, state.step);
-  const b = moverOffset(m, state.step + 1);
+  const k = kineticStep(state);
+  const a = moverOffset(m, k);
+  const b = moverOffset(m, k + 1);
   if (b.x !== a.x) return b.x > a.x ? 'r' : 'l';
   if (b.y !== a.y) return b.y > a.y ? 'd' : 'u';
   return null;
@@ -187,7 +189,7 @@ export interface EmitterPlan {
 
 export function planEmitter(e: Emitter, id: number, state: SimState, o: PlanOptions): EmitterPlan {
   const kind = boltKind(e.band);
-  const { on, glow } = emitterTell(e, state.step, o.tellSteps);
+  const { on, glow } = emitterTell(e, kineticStep(state), o.tellSteps);
   return {
     id,
     x: e.cell.col * o.tileSize,
@@ -278,6 +280,7 @@ export function planKinetics(level: Level, prev: SimState, state: SimState, alph
 
 /** Exact state at `state.step` for the QA hook: tiles, no blending. */
 export interface KineticsSnapshot {
+  /** The kinetic clock the pieces below are evaluated at. */
   readonly step: number;
   readonly movers: readonly { readonly x: number; readonly y: number; readonly holds: boolean }[];
   readonly emitters: readonly { readonly tell: boolean }[];
@@ -286,13 +289,14 @@ export interface KineticsSnapshot {
 
 export function kineticsSnapshot(level: Level, state: SimState, tellSteps: number): KineticsSnapshot {
   const emitters = level.emitters ?? [];
+  const k = kineticStep(state);
   return {
-    step: state.step,
+    step: k,
     movers: (level.movers ?? []).map((m) => {
-      const off = moverOffset(m, state.step);
+      const off = moverOffset(m, k);
       return { x: m.origin.col + off.x, y: m.origin.row + off.y, holds: slabHolds(m, laneBody(level, state, m.origin.row)) };
     }),
-    emitters: emitters.map((e) => ({ tell: emitterTell(e, state.step, tellSteps).on })),
-    shots: emitters.flatMap((e, i) => shotsAt(e, state.step).map((s) => ({ emitter: i, firedAt: s.firedAt, x: s.x, y: s.y }))),
+    emitters: emitters.map((e) => ({ tell: emitterTell(e, k, tellSteps).on })),
+    shots: emitters.flatMap((e, i) => shotsAt(e, k).map((s) => ({ emitter: i, firedAt: s.firedAt, x: s.x, y: s.y }))),
   };
 }

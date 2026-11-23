@@ -5,6 +5,7 @@
 // Owner: backend-engineer.
 
 import type { RunResult } from '../core/types';
+import { shouldSubmitRun } from './submitPolicy';
 import type {
   LeaderboardEntry,
   NetConfig,
@@ -215,7 +216,9 @@ export function createNetClient(options: NetClientOptions): NetClient {
   async function submitRun(_run: RunResult): Promise<NetResult<SubmitReceipt>> {
     // No request until the edge function exists (M3-11). M3-13 builds the payload
     // from the RunResult and POSTs it to SUBMIT_RUN_PATH with a timeout, like reads.
-    return config === null ? fail('disabled') : fail('unavailable');
+    if (config === null) return fail('disabled');
+    if (!shouldSubmitRun(_run)) return fail('skipped'); // too long for the server's caps: stays local
+    return fail('unavailable');
   }
 
   return { enabled: config !== null, fetchTopRuns, submitRun };

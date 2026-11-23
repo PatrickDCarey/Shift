@@ -12,3 +12,4 @@ export * from './effects';
 export * from './movers';
 export * from './bolts';
 export * from './kinetics';
+export * from './posts';

@@ -7,6 +7,7 @@ import { bandPhase, dragPhase, landingPhase } from './air';
 import { gracePhase, timersPhase } from './grace';
 import { directionPhase, heldDir, nextPriority, pressEdges, recordInput, shiftPhase } from './input';
 import { gravityPhase, groundPhase, jumpPhase } from './jump';
+import { kineticStep, litCheckpoint } from './checkpoints';
 import { carryPhase } from './movers';
 import { moveXPhase, moveYPhase } from './move';
 import { frozenStep, outcomePhase, restartState } from './status';
@@ -47,10 +48,11 @@ function playingStep(state: SimState, input: InputFrame, base: StepCtx): SimStat
   const w1 = state.twin && !state.twin.home ? runBody(state.twin, bodyCtx(base, 1, state.twin)) : null;
   const events = [...(w0?.events ?? []), ...(w1?.events ?? [])];
   const res = outcomePhase(w0?.player ?? state.player, w1?.player ?? state.twin, events, base.level, base.params, {
-    t1: state.step + 1,
+    t1: base.t + 1,
     startBands: [state.player.band, state.twin?.band ?? 0],
   });
   const next = state.step + 1;
+  const lit = res.outcome === 'won' ? state.checkpoint : litCheckpoint(base.level, base.params, res.player, state.checkpoint);
   return {
     step: next,
     status: res.outcome ?? 'playing',
@@ -61,6 +63,7 @@ function playingStep(state: SimState, input: InputFrame, base: StepCtx): SimStat
     prevInput: recordInput(input),
     dirPriority: base.dirPriority,
     events: res.events,
+    ...(lit ? { checkpoint: lit } : {}),
   };
 }
 
@@ -72,7 +75,7 @@ export function step(state: SimState, input: InputFrame, level: Level, params: S
   const dirPriority = nextPriority(state.dirPriority, pressed);
   const ctx: StepCtx = {
     body: 0,
-    t: state.step,
+    t: kineticStep(state),
     input,
     pressed,
     level,

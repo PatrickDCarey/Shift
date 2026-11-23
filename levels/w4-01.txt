@@ -1,0 +1,34 @@
+# World 4, level 1. Teach: a grey lift carries you; standing on it you stay white.
+# Target first-time solve: 15-25 s.
+# Layout (30 x 15, one screen): a safe room (cols 0-8, open sky) at the foot of a 6-tile safe wall
+#   (cols 12-17). A grey lift, 3 wide (cols 9-11), rests flush with the floor in a 1-tile dip; the dip
+#   has a safe floor, so the first room has no pit. It rests 90 steps, rises 6 tiles in 96 steps,
+#   rests 90 at the top, flush with the ledge, and comes back down (cycle 372 steps, 6.2 s).
+#   Upstairs: a 6-tile safe ledge -> a 6-tile blue bridge (cols 18-23) under a 2-row safe roof (rows 2-3,
+#   2 tiles of headroom, too high to jump onto) flush
+#   with its ends (world 1's first lesson) -> safe exit pad.
+# Walk on, let go and ride: you stay white standing, carried 6 tiles up. At the top walk off at gear 1.
+# Miss it and it comes back; drop into the dip and a 1-tile hop puts you back on it when it is down.
+hint: move 6 8
+id: w4-01
+title: Lift
+world: 4
+teaches: a grey lift carries you; standing on it you stay white
+version: 1
+mover: 9 12 3x1 safe speed=2 path=w90,u6,w90,d6
+---
+..............................
+..............................
+..................######......
+..................######......
+...........................E..
+...........................E..
+............######BBBBBB######
+............######......######
+............######......######
+............######......######
+............######......######
+......@.....######......######
+#########...######......######
+##################......######
+##################......######

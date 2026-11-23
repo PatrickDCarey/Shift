@@ -152,6 +152,7 @@ Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X`
 - `checkpoint`: the list in §2 "Checkpoint headers" (token count, `clock` range, cell `.` with `#` below, at most 4, increasing columns, spacing, not with `&` or `sweep:`).
 - *Readings confirmed by tech-lead (B11-15, 2026-11-23), as the [level] lane built them in `src/core/level/kinetics.ts`:* (1) every origin cell of a slab must be `.`, not only its top-left (the slab is drawn there at `t = 0`); (2) a second `sweep:` line has its own message; (3) `x0` is range-checked on both sides, `−64 ≤ x0 ≤ width`.
 - Kinetic messages name the file, the header line and the column where the bad token starts, as for `hint`.
+- *Checkpoint readings confirmed by tech-lead (batch 11 checkpoint review, 2026-11-24), as [level] built them in `src/core/level/checkpoints.ts`:* (1) a post on the last row gets its own message ("needs a safe `#` directly below"), not a generic out-of-grid error; (2) with `&`, the error sits on the grid line of the `&` (the later of the two lines, since the grid follows the header); with `sweep:`, on whichever of the `sweep:` and first `checkpoint:` lines comes later; (3) ordering and spacing are judged against the previous post that parsed cleanly, and a column at or left of it reports the ordering error only (no spacing error on top).
 
 
 ## 3. Example level

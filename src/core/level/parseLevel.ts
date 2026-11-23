@@ -14,6 +14,7 @@ import {
   type Tile,
   type TilePos,
 } from '../types';
+import { checkCheckpointGrid, CHECKPOINT_KEY, parseCheckpointLines, type CheckpointLines } from './checkpoints';
 import { checkHintAnchors, HINT_KEY, parseHintLines, type ParsedHint } from './hints';
 import { checkKineticGrid, KINETIC_KEYS, parseKineticLines, SWEEP_KEY, type KineticLines } from './kinetics';
 import { MAX_WORLD } from './limits';
@@ -32,7 +33,8 @@ import {
 } from './text';
 
 const REQUIRED_KEYS = ['id', 'title', 'world', 'teaches', 'version'] as const;
-const ALLOWED_KEYS = [...REQUIRED_KEYS, HINT_KEY, ...KINETIC_KEYS];
+const REPEATABLE_KEYS = [HINT_KEY, CHECKPOINT_KEY, ...KINETIC_KEYS];
+const ALLOWED_KEYS = [...REQUIRED_KEYS, ...REPEATABLE_KEYS];
 const LEGEND_HINT = 'see the legend in docs/tech/level-format.md';
 const RESERVED_NAMES: Readonly<Record<string, string>> = {
   X: 'crate',
@@ -58,6 +60,7 @@ interface MetaResult {
   /** The hint lines that read cleanly; their anchors are checked against the grid later. */
   readonly hints: readonly ParsedHint[];
   readonly kinetics: KineticLines;
+  readonly checkpoints: CheckpointLines;
   /** The `sweep:` header line, kept for the grid check. */
   readonly sweepLine: HeaderEntry | undefined;
   readonly errors: readonly string[];
@@ -80,12 +83,14 @@ function readInteger(file: string, e: HeaderEntry | undefined, errors: string[],
 }
 
 function parseHeader(file: string, stem: string, header: readonly SourceLine[], separatorLine: number): MetaResult {
-  const { entries, repeated, errors: lineErrors } = readHeader(file, header, ALLOWED_KEYS, [HINT_KEY, ...KINETIC_KEYS]);
+  const { entries, repeated, errors: lineErrors } = readHeader(file, header, ALLOWED_KEYS, REPEATABLE_KEYS);
   const errors: string[] = [...lineErrors, ...missingKeyErrors(file, entries, REQUIRED_KEYS, separatorLine)];
   const hintLines = parseHintLines(file, repeated.get(HINT_KEY) ?? []);
   errors.push(...hintLines.errors);
   const kinetics = parseKineticLines(file, repeated);
   errors.push(...kinetics.errors);
+  const checkpoints = parseCheckpointLines(file, repeated.get(CHECKPOINT_KEY) ?? []);
+  errors.push(...checkpoints.errors);
   const idEntry = entries.get('id');
   if (idEntry && idEntry.value !== stem) {
     errors.push(atPos(file, idEntry.line, idEntry.valueCol, `id '${idEntry.value}' must equal the file name '${stem}'`));
@@ -99,7 +104,7 @@ function parseHeader(file: string, stem: string, header: readonly SourceLine[], 
     ...(hintLines.hints.length > 0 ? { hints: hintLines.hints.map((h) => h.hint) } : {}),
   };
   const sweepLine = repeated.get(SWEEP_KEY)?.[0];
-  return { meta: errors.length === 0 ? meta : null, hints: hintLines.hints, kinetics, sweepLine, errors };
+  return { meta: errors.length === 0 ? meta : null, hints: hintLines.hints, kinetics, checkpoints, sweepLine, errors };
 }
 
 // --- grid ---
@@ -220,7 +225,7 @@ function gridChecks(file: string, scan: GridScan, firstLine: number): readonly s
   return [...errors, ...twinExitErrors(file, scan)];
 }
 
-function buildLevel(meta: LevelMeta, scan: GridScan, kin: KineticLines): Level {
+function buildLevel(meta: LevelMeta, scan: GridScan, kin: KineticLines, posts: CheckpointLines): Level {
   const start = scan.starts[0];
   const twin = scan.twins[0];
   return {
@@ -233,6 +238,7 @@ function buildLevel(meta: LevelMeta, scan: GridScan, kin: KineticLines): Level {
     ...(kin.movers.length > 0 ? { movers: kin.movers.map((m) => m.piece) } : {}),
     ...(kin.emitters.length > 0 ? { emitters: kin.emitters.map((e) => e.piece) } : {}),
     ...(kin.sweep ? { sweep: kin.sweep } : {}),
+    ...(posts.posts.length > 0 ? { checkpoints: posts.posts.map((p) => p.post) } : {}),
   };
 }
 
@@ -245,6 +251,12 @@ function kineticErrors(file: string, head: MetaResult, scan: GridScan): readonly
   if (scan.ragged) return [];
   const grid = { width: scan.width, rows: scan.rows, chars: scan.chars };
   return checkKineticGrid(file, head.kinetics, grid, head.sweepLine);
+}
+
+function checkpointErrors(file: string, head: MetaResult, scan: GridScan): readonly string[] {
+  if (scan.ragged) return [];
+  const grid = { width: scan.width, rows: scan.rows, chars: scan.chars };
+  return checkCheckpointGrid(file, head.checkpoints, grid, { start: scan.starts[0], twin: scan.twins[0], sweepLine: head.sweepLine });
 }
 
 export const parseLevel: ParseLevelFn = (text, fileStem) => {
@@ -264,8 +276,9 @@ export const parseLevel: ParseLevelFn = (text, fileStem) => {
     ...head.errors,
     ...hintErrors(file, head.hints, scan),
     ...kineticErrors(file, head, scan),
+    ...checkpointErrors(file, head, scan),
     ...gridChecks(file, scan, body[0]?.no ?? sections.separatorLine),
   ];
   if (errors.length > 0 || head.meta === null) return { ok: false, errors: capErrors(errors) };
-  return { ok: true, value: buildLevel(head.meta, scan, head.kinetics) };
+  return { ok: true, value: buildLevel(head.meta, scan, head.kinetics, head.checkpoints) };
 };

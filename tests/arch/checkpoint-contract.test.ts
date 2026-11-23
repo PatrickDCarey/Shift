@@ -35,6 +35,6 @@ describe('checkpoint contract', () => {
 
   it('publishes kineticStep from the sim lane', () => {
     expect(LANE_EXPORTS.sim).toContain('kineticStep');
-    expect(LANE_PENDING.sim).toEqual(['kineticStep']);
+    expect(LANE_PENDING.sim).toEqual([]); // landed and reviewed (batch 11 checkpoint review)
   });
 });

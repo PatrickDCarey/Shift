@@ -32,7 +32,7 @@ export type TenSfxId =
   | 'airDragClunk';
 
 /** The ten, the Tandem "park" chime (Should), and the expansion's bolt sounds (Should). */
-export type SfxId = TenSfxId | 'homeChime' | 'shot' | 'hitDeath';
+export type SfxId = TenSfxId | 'homeChime' | 'shot' | 'hitDeath' | 'post';
 
 export const SFX_IDS: readonly TenSfxId[] = [
   'shiftUp',
@@ -47,7 +47,7 @@ export const SFX_IDS: readonly TenSfxId[] = [
   'airDragClunk',
 ];
 
-export const ALL_SFX_IDS: readonly SfxId[] = [...SFX_IDS, 'homeChime', 'shot', 'hitDeath'];
+export const ALL_SFX_IDS: readonly SfxId[] = [...SFX_IDS, 'homeChime', 'shot', 'hitDeath', 'post'];
 
 /** One oscillator with the engine's envelope (5 ms attack, exponential decay to `duration`). */
 export interface ToneLayer {
@@ -230,6 +230,15 @@ function hitDeath(): ToneLayer[] {
   return [layer(900, 0.12, 'square', 0.2, 0, 220), layer(170, 0.28, 'sine', 0.26, 0.02, 55)];
 }
 
+/**
+ * A post lights: one bright bell ping, sine only (no square edge like the shift clicks, no
+ * arpeggio like the win sting), a single note with an octave shimmer, 220 ms. E6 sits above
+ * the gear notes, short and quiet, so it does not mask the music's pitch.
+ */
+function post(): ToneLayer[] {
+  return [layer(1318.5, 0.22, 'sine', 0.16), layer(2637, 0.12, 'sine', 0.1)];
+}
+
 function baseLayers(cue: SfxCue): ToneLayer[] {
   switch (cue.id) {
     case 'shiftUp':
@@ -258,6 +267,8 @@ function baseLayers(cue: SfxCue): ToneLayer[] {
       return shot(cue);
     case 'hitDeath':
       return hitDeath();
+    case 'post':
+      return post();
     default:
       return [];
   }
@@ -270,7 +281,7 @@ function scaled(l: ToneLayer, pitch: number, gain: number): ToneLayer {
 
 /** Sounds that belong to a body; UI and run-level sounds ignore `body`. */
 function isBodySound(id: SfxId): boolean {
-  return id !== 'levelComplete' && id !== 'uiMove' && id !== 'uiSelect' && id !== 'reset' && id !== 'shot' && id !== 'hitDeath';
+  return id !== 'levelComplete' && id !== 'uiMove' && id !== 'uiSelect' && id !== 'reset' && id !== 'shot' && id !== 'hitDeath' && id !== 'post';
 }
 
 function bodyLayers(cue: SfxCue): ToneLayer[] {

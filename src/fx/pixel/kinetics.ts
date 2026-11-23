@@ -11,6 +11,7 @@
  *  bolt/<grey|white|blue|green|yellow|red>                     8x8, origin (0.5, 0.5)
  *  bolt/shimmer/<0-3>                                          16x16 white mask, origin (0.5, 0.5)
  *  bolt/sink/<l|r|u|d>                                         16x16 white mask, origin (0, 0)
+ *  checkpoint/<idle|lit>, checkpoint/rise/<0-2>               16x24, origin (0.5, 1)  (see posts.ts)
  */
 import type { PackItem } from './atlas';
 import {
@@ -19,18 +20,20 @@ import {
 import {
   DIRS, SLAB_KINDS, SLAB_SEGMENTS, SLAB_STATES, TRACK_CELLS, bakeChevron, bakeSlabSegment, bakeTrackCell,
 } from './movers';
+import { POST_ORIGIN, POST_RISE_FRAMES, bakePost, bakePostRise, postFrameNames } from './posts';
 import type { SlabKind, SlabSegment, SlabState, TrackCell, Dir } from './movers';
 
 export function kineticFrameNames(): {
   slab: (kind: SlabKind, state: SlabState, seg: SlabSegment) => string;
   chevron: (dir: Dir) => string;
   track: (cell: TrackCell) => string;
-} & ReturnType<typeof boltFrameNames> {
+} & ReturnType<typeof boltFrameNames> & { post: ReturnType<typeof postFrameNames> } {
   return {
     slab: (kind, state, seg) => `slab/${kind}/${state}/${seg}`,
     chevron: (dir) => `slab/chevron/${dir}`,
     track: (cell) => `track/${cell}`,
     ...boltFrameNames(),
+    post: postFrameNames(),
   };
 }
 
@@ -52,5 +55,8 @@ export function kineticItems(): PackItem[] {
   for (const k of BOLT_KINDS) items.push({ name: n.bolt(k), raster: bakeBolt(k), pivot: { x: 0.5, y: 0.5 } });
   for (let f = 0; f < SHIMMER_FRAMES; f++) items.push({ name: n.shimmer(f), raster: bakeShimmer(f), pivot: { x: 0.5, y: 0.5 } });
   for (const d of DIRS) items.push({ name: n.sink(d), raster: bakeSink(d), pivot: { x: 0, y: 0 } });
+  items.push({ name: n.post.idle, raster: bakePost('idle'), pivot: POST_ORIGIN });
+  items.push({ name: n.post.lit, raster: bakePost('lit'), pivot: POST_ORIGIN });
+  for (let f = 0; f < POST_RISE_FRAMES; f++) items.push({ name: n.post.rise(f), raster: bakePostRise(f), pivot: POST_ORIGIN });
   return items;
 }

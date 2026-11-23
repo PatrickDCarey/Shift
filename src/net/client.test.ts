@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PUBLIC_BOARD_VERIFIED_ONLY, createNetClient } from './client';
 import type { NetConfig } from './types';
+import { MAX_RUN_STEPS, shouldSubmitRun } from './submitPolicy';
 
 const config: NetConfig = { baseUrl: 'https://abc.supabase.co', anonKey: 'anon-key-value' };
 
@@ -312,5 +313,27 @@ describe('fetchTopRuns: verified-only switch (B-1)', () => {
   it('rejects a row above the server step cap (B-8)', async () => {
     const { client } = setup(async () => json([row({ steps: 36_001 })]));
     expect(await client.fetchTopRuns('w1-01', 1, 10)).toEqual({ ok: false, reason: 'invalid-response' });
+  });
+});
+
+describe('submitRun skip rule (long levels)', () => {
+  const run = (frames: number) => ({
+    wonAtStep: 100,
+    solution: { levelId: 'w2-05', levelVersion: 2, steps: frames, runs: [] },
+  });
+  it('skips a run whose frames exceed MAX_RUN_STEPS, quietly and without a request', async () => {
+    const { fetchMock, client } = setup(async () => json({}));
+    expect(await client.submitRun(run(MAX_RUN_STEPS + 1))).toEqual({ ok: false, reason: 'skipped' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it('does not skip a run at exactly MAX_RUN_STEPS', async () => {
+    const { client } = setup(async () => json({}));
+    expect(await client.submitRun(run(MAX_RUN_STEPS))).not.toEqual({ ok: false, reason: 'skipped' });
+  });
+  it('shouldSubmitRun is false for malformed runs', () => {
+    expect(shouldSubmitRun(run(MAX_RUN_STEPS))).toBe(true);
+    expect(shouldSubmitRun(run(0))).toBe(false);
+    expect(shouldSubmitRun(null)).toBe(false);
+    expect(shouldSubmitRun({})).toBe(false);
   });
 });
