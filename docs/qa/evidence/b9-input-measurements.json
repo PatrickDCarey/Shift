@@ -1,0 +1,946 @@
+{
+  "M1 w3-05": {
+    "fresh load, Sticky Keys tip showing": {
+      "gearsAfterTaps": [
+        4,
+        4
+      ],
+      "twinBandAtX473": 4,
+      "twinBandAtX8": 4,
+      "died": false
+    },
+    "respawn state": {
+      "step": 8,
+      "gears": [
+        1,
+        1
+      ]
+    },
+    "after a death respawn": {
+      "gearsAfterTaps": [
+        4,
+        4
+      ],
+      "twinBandAtX473": 4,
+      "twinBandAtX8": 4,
+      "died": false
+    },
+    "after R": {
+      "gearsAfterTaps": [
+        4,
+        4
+      ],
+      "twinBandAtX473": 4,
+      "twinBandAtX8": 4,
+      "died": false
+    }
+  },
+  "M1 w3-03": {
+    "fresh load, Sticky Keys tip showing": {
+      "gearsAfterTaps": [
+        4,
+        4
+      ],
+      "twinBandAtX473": 4,
+      "twinBandAtX8": 4,
+      "died": false
+    },
+    "respawn state": {
+      "step": 5,
+      "gears": [
+        1,
+        1
+      ]
+    },
+    "after a death respawn": {
+      "gearsAfterTaps": [
+        4,
+        4
+      ],
+      "twinBandAtX473": 4,
+      "twinBandAtX8": 4,
+      "died": false
+    },
+    "after R": {
+      "gearsAfterTaps": [
+        4,
+        4
+      ],
+      "twinBandAtX473": 4,
+      "twinBandAtX8": 4,
+      "died": false
+    }
+  },
+  "M1 onset after R (w3-05)": [
+    {
+      "armedK": 0,
+      "firedAtStep": 0,
+      "gearChangedAtStep": 3,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 0,
+      "firedAtStep": 0,
+      "gearChangedAtStep": 3,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 1,
+      "firedAtStep": 1,
+      "gearChangedAtStep": 3,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 2,
+      "firedAtStep": 2,
+      "gearChangedAtStep": 4,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 3,
+      "firedAtStep": 3,
+      "gearChangedAtStep": 6,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 5,
+      "firedAtStep": 7,
+      "gearChangedAtStep": 9,
+      "gears": [
+        2,
+        2
+      ]
+    },
+    {
+      "armedK": 8,
+      "firedAtStep": 8,
+      "gearChangedAtStep": 11,
+      "gears": [
+        2,
+        2
+      ]
+    }
+  ],
+  "M2 w3-05 death-to-control": {
+    "summary": {
+      "cycles": 9,
+      "firstDeathWallMs": [
+        977,
+        929,
+        894
+      ],
+      "laterDeathsWallMs": [
+        915,
+        987,
+        899,
+        925,
+        957,
+        892
+      ],
+      "worstSimSteps": 58,
+      "worstSimMsAt60Hz": 967,
+      "targetMs": 1500
+    },
+    "all": [
+      {
+        "load": 0,
+        "cycles": [
+          {
+            "lastGroundedStep": 169,
+            "deadStep": 198,
+            "wallMs": 976.5999999940395,
+            "simSteps": 58,
+            "moveStep": 4,
+            "maxRowGapMs": 448
+          },
+          {
+            "lastGroundedStep": 137,
+            "deadStep": 164,
+            "wallMs": 914.8000000119209,
+            "simSteps": 54,
+            "moveStep": 2,
+            "maxRowGapMs": 388
+          },
+          {
+            "lastGroundedStep": 135,
+            "deadStep": 164,
+            "wallMs": 987.0999999940395,
+            "simSteps": 58,
+            "moveStep": 4,
+            "maxRowGapMs": 430
+          }
+        ]
+      },
+      {
+        "load": 1,
+        "cycles": [
+          {
+            "lastGroundedStep": 178,
+            "deadStep": 206,
+            "wallMs": 928.9000000059605,
+            "simSteps": 55,
+            "moveStep": 2,
+            "maxRowGapMs": 387
+          },
+          {
+            "lastGroundedStep": 137,
+            "deadStep": 164,
+            "wallMs": 898.5999999940395,
+            "simSteps": 54,
+            "moveStep": 2,
+            "maxRowGapMs": 392
+          },
+          {
+            "lastGroundedStep": 136,
+            "deadStep": 164,
+            "wallMs": 924.5999999940395,
+            "simSteps": 56,
+            "moveStep": 3,
+            "maxRowGapMs": 422
+          }
+        ]
+      },
+      {
+        "load": 2,
+        "cycles": [
+          {
+            "lastGroundedStep": 161,
+            "deadStep": 189,
+            "wallMs": 893.8000000119209,
+            "simSteps": 55,
+            "moveStep": 2,
+            "maxRowGapMs": 369
+          },
+          {
+            "lastGroundedStep": 135,
+            "deadStep": 164,
+            "wallMs": 956.9000000059605,
+            "simSteps": 57,
+            "moveStep": 3,
+            "maxRowGapMs": 437
+          },
+          {
+            "lastGroundedStep": 137,
+            "deadStep": 164,
+            "wallMs": 891.7999999821186,
+            "simSteps": 54,
+            "moveStep": 2,
+            "maxRowGapMs": 409
+          }
+        ]
+      }
+    ]
+  },
+  "M2 slow cycle (load 2, dead step 164) rows [t ms, step, status]": [
+    [
+      2667,
+      135,
+      "playing"
+    ],
+    [
+      2711,
+      137,
+      "playing"
+    ],
+    [
+      2751,
+      140,
+      "playing"
+    ],
+    [
+      2792,
+      143,
+      "playing"
+    ],
+    [
+      2830,
+      145,
+      "playing"
+    ],
+    [
+      2871,
+      148,
+      "playing"
+    ],
+    [
+      2907,
+      150,
+      "playing"
+    ],
+    [
+      2943,
+      152,
+      "playing"
+    ],
+    [
+      2982,
+      155,
+      "playing"
+    ],
+    [
+      3018,
+      157,
+      "playing"
+    ],
+    [
+      3057,
+      159,
+      "playing"
+    ],
+    [
+      3093,
+      161,
+      "playing"
+    ],
+    [
+      3135,
+      164,
+      "playing"
+    ],
+    [
+      3176,
+      166,
+      "playing"
+    ],
+    [
+      3219,
+      168,
+      "playing"
+    ],
+    [
+      3256,
+      171,
+      "playing"
+    ],
+    [
+      3293,
+      173,
+      "playing"
+    ],
+    [
+      3334,
+      176,
+      "playing"
+    ],
+    [
+      3376,
+      178,
+      "playing"
+    ],
+    [
+      3413,
+      180,
+      "playing"
+    ],
+    [
+      3432,
+      181,
+      "playing"
+    ],
+    [
+      3471,
+      184,
+      "playing"
+    ],
+    [
+      3508,
+      186,
+      "playing"
+    ],
+    [
+      3543,
+      188,
+      "playing"
+    ],
+    [
+      3580,
+      191,
+      "playing"
+    ],
+    [
+      3600,
+      192,
+      "playing"
+    ],
+    [
+      3640,
+      194,
+      "playing"
+    ],
+    [
+      3678,
+      196,
+      "playing"
+    ],
+    [
+      3719,
+      198,
+      "playing"
+    ],
+    [
+      3760,
+      201,
+      "playing"
+    ],
+    [
+      3795,
+      202,
+      "dead"
+    ],
+    [
+      4214,
+      1,
+      "playing"
+    ],
+    [
+      4250,
+      4,
+      "playing"
+    ],
+    [
+      4287,
+      6,
+      "playing"
+    ],
+    [
+      4325,
+      8,
+      "playing"
+    ],
+    [
+      6486,
+      137,
+      "playing"
+    ],
+    [
+      6523,
+      139,
+      "playing"
+    ],
+    [
+      6566,
+      142,
+      "playing"
+    ],
+    [
+      6611,
+      145,
+      "playing"
+    ],
+    [
+      6633,
+      146,
+      "playing"
+    ],
+    [
+      6667,
+      148,
+      "playing"
+    ],
+    [
+      6703,
+      151,
+      "playing"
+    ],
+    [
+      6738,
+      153,
+      "playing"
+    ],
+    [
+      6773,
+      155,
+      "playing"
+    ],
+    [
+      6813,
+      158,
+      "playing"
+    ],
+    [
+      6851,
+      160,
+      "playing"
+    ],
+    [
+      6884,
+      162,
+      "playing"
+    ],
+    [
+      6922,
+      164,
+      "dead"
+    ],
+    [
+      7380,
+      2,
+      "playing"
+    ],
+    [
+      7416,
+      4,
+      "playing"
+    ],
+    [
+      7457,
+      7,
+      "playing"
+    ],
+    [
+      9608,
+      136,
+      "playing"
+    ],
+    [
+      9649,
+      138,
+      "playing"
+    ],
+    [
+      9690,
+      140,
+      "playing"
+    ],
+    [
+      9732,
+      143,
+      "playing"
+    ],
+    [
+      9775,
+      145,
+      "playing"
+    ],
+    [
+      9817,
+      148,
+      "playing"
+    ],
+    [
+      9856,
+      151,
+      "playing"
+    ],
+    [
+      9899,
+      153,
+      "playing"
+    ],
+    [
+      9940,
+      156,
+      "playing"
+    ],
+    [
+      9984,
+      158,
+      "playing"
+    ],
+    [
+      10028,
+      161,
+      "playing"
+    ],
+    [
+      10073,
+      163,
+      "playing"
+    ],
+    [
+      10121,
+      164,
+      "dead"
+    ],
+    [
+      10510,
+      1,
+      "playing"
+    ],
+    [
+      10552,
+      3,
+      "playing"
+    ],
+    [
+      10593,
+      6,
+      "playing"
+    ],
+    [
+      10633,
+      8,
+      "playing"
+    ]
+  ],
+  "M2 slow cycle (load 2, dead step 198) rows [t ms, step, status]": [
+    [
+      3130,
+      168,
+      "playing"
+    ],
+    [
+      3165,
+      170,
+      "playing"
+    ],
+    [
+      3206,
+      172,
+      "playing"
+    ],
+    [
+      3243,
+      174,
+      "playing"
+    ],
+    [
+      3282,
+      177,
+      "playing"
+    ],
+    [
+      3318,
+      179,
+      "playing"
+    ],
+    [
+      3357,
+      181,
+      "playing"
+    ],
+    [
+      3392,
+      184,
+      "playing"
+    ],
+    [
+      3428,
+      186,
+      "playing"
+    ],
+    [
+      3466,
+      188,
+      "playing"
+    ],
+    [
+      3504,
+      190,
+      "playing"
+    ],
+    [
+      3540,
+      192,
+      "playing"
+    ],
+    [
+      3576,
+      195,
+      "playing"
+    ],
+    [
+      3615,
+      197,
+      "playing"
+    ],
+    [
+      3651,
+      198,
+      "dead"
+    ],
+    [
+      4080,
+      2,
+      "playing"
+    ],
+    [
+      4114,
+      4,
+      "playing"
+    ],
+    [
+      4152,
+      6,
+      "playing"
+    ],
+    [
+      4185,
+      8,
+      "playing"
+    ],
+    [
+      7193,
+      0,
+      "playing"
+    ],
+    [
+      7237,
+      2,
+      "playing"
+    ],
+    [
+      7277,
+      4,
+      "playing"
+    ],
+    [
+      7313,
+      6,
+      "playing"
+    ],
+    [
+      7331,
+      7,
+      "playing"
+    ],
+    [
+      10359,
+      0,
+      "playing"
+    ],
+    [
+      10399,
+      2,
+      "playing"
+    ],
+    [
+      10439,
+      5,
+      "playing"
+    ],
+    [
+      10478,
+      7,
+      "playing"
+    ]
+  ],
+  "M3 R in the death freeze": {
+    "trials": 36,
+    "analysed": 29,
+    "rightHeldAtRespawn": 19,
+    "rightHeldButNotMovingWithin100ms": 0,
+    "maxMoveStep": 8,
+    "maxRToRespawnMs": 69,
+    "results": [
+      {
+        "mode": "dead",
+        "rToRespawnMs": 22,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 37,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 63,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 42,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 61,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 58,
+        "moveStep": 5
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 58,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 60,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 37,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 36,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 38,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 35,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 36,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 35,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 63,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 74,
+        "moveStep": 6
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 60,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 76,
+        "moveStep": 6
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 55,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 77,
+        "moveStep": 5
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 57,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 90,
+        "moveStep": 7
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 57,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 51,
+        "moveStep": 5
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 60,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 36,
+        "moveStep": 4
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 61,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 37,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 20,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 35,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 19,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 46,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 37,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 38,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 47,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 45,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 40,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 38,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 69,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 67,
+        "moveStep": 6
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 18,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 130,
+        "moveStep": 8
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 55,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 36,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 17,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 36,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 37,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 37,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 42,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 35,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 36,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 37,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 58,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 76,
+        "moveStep": 6
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 21,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 123,
+        "moveStep": 7
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 61,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 77,
+        "moveStep": 6
+      }
+    ]
+  }
+}
