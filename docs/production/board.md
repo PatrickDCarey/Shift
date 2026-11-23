@@ -138,7 +138,37 @@ Rules as Batch 3: one sitting per owner area, no shared files, no in-batch depen
 
 *Tandem decision:* closed by the owner on 2026-11-16 (Tandem stays as world 3; no fallback).
 
-**Batch 8 (planned 2026-11-20, after batch 7 closed at fd11cf2; runs back to back, no dates)**
+**Batch 9 (planned 2026-11-23, after batch 8 waves 1-4 at b6916ee, e60c755, 5321e78, 65ae833, 2a07d67; no calendar gates, runs back to back)**
+
+*Status (producer, 2026-11-23):* ON TRACK, no cuts. Batch 8 is verified except B8-13 (README, tech-lead, running). `npm run check` passes (2,754 tests); the package is reproducible (sha256 657135ba..., 416,681 bytes, 11 files). One open Must: w3-05, which two cold playtests could not finish; design's ruling is a v2 run-up (step-up face near x 36, same column in both lanes). Batch 9 is one level, one test update, one `LEVELS` row, one QA pass, one cold playtest. Before submit only the owner list below and the final package remain. BUG-8 is fixed in 5321e78 but QA has not yet marked it in `docs/qa/bugs.md` (batch 9 line 4). Checkpoints: rejected again by design (B8-12); any raise needs producer sign-off. No cut-list change.
+
+Source: design-lead's request lines of 2026-11-23 (end of `requests.md`), `docs/design/decisions.md` 2026-11-23, `docs/design/levels-w3.md` "w3-05 v2", `docs/playtests/2026-11-20-batch8.md`. No `tuning.json`, sim, contract or format change; only w3-05 changes version (`levels/w3-05.*`, `LEVELS` row). Rules as batch 8: one sitting per owner area, no shared files inside a wave, touch only the files listed, parallel agents run only `npx vitest run <single path>`; the orchestrator runs `npm run check` and commits between waves; QA alone on 4173. Ports: art 5185, ui 5186, level-designer 5187, audio 5188, backend 5189, scene 5190, playtester 5191, tech-lead 5192/5193. Idle this batch: art, ui, audio, backend, [sim], [motion], [level], [scene]. Nothing is Done until reviewed and verified.
+
+*Wave 1 (build)*
+1. **level-designer** (5187) — **B9-01** w3-05 v2 (**IN PROGRESS, started by the orchestrator 2026-11-23**). Files: `levels/w3-05.txt` (and its recording file), `levels/README.md`. Spec: request line 2026-11-23 to level-designer; `levels-w3.md` "w3-05 v2". Accept: `npx vitest run tests/levels` green (replay and +-3); from the held-at-the-step state, gear pairs 1/1, 1/2, 1/3, 2/3 plus three up presses, hold right and a jump wins in a window of >= 18 steps for every pair; step x equal in both lanes; kerbs removed still 0 wins; 0 wins without the air stop; `sealedPockets` finds no pocket; no tile change at cols < 30; `version: 2`, README (fair line, windows, removal tests, strip-jump sweep, spread, `Fastest known`), header comment; the `LEVELS` line filed in `requests.md`. Reviewer: tech-lead (B9-03). Needs: none.
+
+*Orchestrator step A (after B9-01 lands)* `npx vitest run tests/levels`, then **B9-02** (below, orchestrator): `LEVELS` row for w3-05 version 2 with the new fastest known steps in `backend/functions/submit-run/rules.ts` (batch 6 rule; no backend sitting). Accept: `LEVELS` drift test green (`npx vitest run scripts`). Needs: B9-01.
+
+*Wave 2 (tech-lead; needs wave 1 landed)*
+1. **tech-lead** (5192/5193) — **B9-03** update the pinned w3-05 hint placements in `tests/levels` (`hints.test.ts` / `hintPlacement.ts`) to the v2 headers (`shiftUp` over the step, second `jump` over the middle of the measured take-off range, still 3 hints), and review w3-05 v2 (geometry, recording, README) into `docs/tech/reviews/2026-11-batch9-review.md`. Files: `tests/levels/**`, `docs/tech/**`. Accept: `npx vitest run tests/levels` green with the v2 headers; the review notes the step x in both lanes, that cols < 30 are unchanged, and either Approve or file:line items; flags whether the README (B8-13) needs a w3-05 line (B9-06). Needs: B9-01. (A failing header goes back to level-designer as a request line, not edited here.)
+
+*Orchestrator step B (after wave 2)* `npm run check`, `npm run test:e2e` (port 4173 free), `npm run package`; record name, size, sha256, file count; commit.
+
+*Wave 3 (verify)*
+1. **qa-tester** (4173 alone, two full runs max) — **B9-04** against w3-05 v2: `onboarding-hints.md` 13 and 14 with the v2 headers (held-at-the-step state: `shiftUp` box over the step, both boxes on screen, clear of the HUD); `restart-prompt.md` 1 (no pocket in w3-05); replay of w3-05 to its new `wonAtStep`; close BUG-8 in `docs/qa/bugs.md` if `tandem.md` S6 HUD passes (fixed in 5321e78), else re-open with evidence; update any e2e that pinned w3-05 v1 numbers. Files: `docs/qa/**`, `tests/e2e/**`. Accept: Pass or Fail per check with a file or test name; BUG-8 Status line set; no new `test.fail`. Reviewer: tech-lead reads the specs, producer reads the verdicts. Needs: B9-02, B9-03, orchestrator step B.
+
+*Wave 4 (playtest; the build is the step B package)*
+1. **playtester** (5191) — **B9-05 (Must before submit)** a fresh cold sitting (new agent with no memory of w3-05 v1; say so if not possible) on the packaged batch 9 build from a scratch folder: w3-01..w3-04 to learn, then w3-05 v2 with no README. Count lives, minutes and run-up attempts from the first arrival at the kerbs; say whether you backed up to the step without reading. Files: `docs/playtests/2026-11-2x-batch9.md`. Accept (findings for design-lead): w3-05 cleared within 10 lives and 15 minutes, run-up cleared within 5 attempts from the first arrival at the kerbs; a "Not verified" list (sound unjudged). Reviewer: design-lead. Needs: wave 3 green.
+
+*Wave 5 (close-out)*
+1. **design-lead** — **B9-07** triage of the batch 9 playtest into `decisions.md` (a verdict per finding), re-tick `itch-page.md` section 7 art and count lines after v2, sign off feel. Files: `docs/design/**`. Needs: B9-05.
+2. **tech-lead** — **B9-06 (only if B9-03 flags it)** README follow-up for w3-05 v2 (status or level notes). Files: `README.md`. Accept: every command and claim still true. Needs: B9-03, B8-13.
+3. **producer** — **B9-08** board, requests and owner-list refresh after the verdicts.
+4. Orchestrator step C: final `npm run check`, `npm run test:e2e`, `npm run package` after B9-06/B9-07 land; compare against the batch 8 hash (only the w3-05 level data and README should differ); this zip is the one the owner uploads. Any playtest fix goes to one more small batch (not planned; sign-off from producer).
+
+*Batch 8 status (producer, 2026-11-23, checked against commits and files):* B8-01, B8-02, B8-03, B8-04 DONE (b6916ee); B8-05 DONE (review file, follow-ups R1-R4 fixed in e60c755); B8-06, B8-07 DONE (b6916ee/e60c755); B8-08 DONE (QA batch 8 in 5321e78; BUG-8 found and fixed there, status line in `bugs.md` still to be set, batch 9 B9-04); B8-09 and B8-10 DONE (package reproducible, sha256 657135ba..., 416,681 bytes, 11 files); B8-11 DONE (65ae833); B8-12 DONE (2a07d67); B8-13 README IN PROGRESS (tech-lead); B8-14 DONE with this section.
+
+**Batch 8 (planned 2026-11-20, after batch 7 closed at fd11cf2; runs back to back, no dates) — LANDED except B8-13; history**
 
 Source: design-lead's triage `docs/design/decisions.md` 2026-11-20 ("Design's order for batch 8"), `docs/playtests/2026-11-20-batch7.md`. State at fd11cf2 (checked in the repo): restart card, step-event SFX call, settings, parallax in `RIDGES`, BootScene retry and w1-03/w2-04/w3-03 hints are in; w3-03 has only `jump 12 3`; w3-04 and w3-05 have no hints; BUG-5, BUG-6 (pending observation), BUG-7 are closed or fixed; BUG-4 in `docs/qa/bugs.md` still reads OPEN although `src/entities/solutionFiles.ts` now gates the recordings behind `QA_HOOK` (QA confirms against the zip in B8-09). Hint-placement tests already exist in `tests/levels/` (`hints.test.ts`, `hintPlacement.ts`, `levelRules.ts`), which answers most of tech-lead's M2-03 line (B8-06). No `tuning.json`, contract, `LEVELS`, version or recording change anywhere in this batch (headers and render only). Menu sounds are Could (design 2026-11-20): not scheduled. Backend, audio, art and ui have no build task this batch.
 
@@ -164,16 +194,16 @@ Rules as batch 7: one sitting per owner area, no shared files inside a wave, tou
 2. **tech-lead** — **B8-13** `README.md` status: state what the build is (14 levels in 3 worlds, settings, offline best times, leaderboards only if the owner ships them), keep the itch and jam links as "coming soon" until the owner supplies them, controls table equals `DEFAULT_BINDINGS`, run and test commands equal `CLAUDE.md`. Files: `README.md`. Accept: a unit-free read check: every command in the README exists in `package.json`; no dead promises. Needs: B8-12 (so the status matches the final scope).
 3. **producer** — **B8-14** board, requests and cut-list refresh and the owner's release list (below) after the verdicts; status report.
 
-**Needs the owner (nothing here can be done by an agent; none blocks batch 8; order is the release order)**
-1. Team names for `CREDITS.md` and the itch credits (tell the names; B8-07 or tech-lead then fills them, and design-lead's §7 team-names box follows).
-2. Leaderboards: create the Supabase project (USER-2) and decide B-1, or confirm local best times only, which deletes the LEADERBOARDS block from the itch copy.
-3. Listening check on the packaged build (unblocks the one held audio line in `itch-page.md` §7): music changes with pace; the clunk on w2-02 differs from a shift down; SOUND OFF silences everything. If it fails, the audio line is deleted and the page makes no audio claim.
-4. Hand-play w3-05 Redshift once in a real browser (design asked; no player has finished it cold), and the USER-9 list from `docs/qa/m1-gate.md` (keyboard-only with Q/E and Z/X, a non-Chromium browser).
-5. USER-8: install `gitleaks`, then tech-lead runs the SEC-3 full-history scan (clean, or rotate and rewrite). USER-7: add `BootScene.ts` and the menu scenes to the `CLAUDE.md` roster (only the owner or the orchestrator may).
-6. USER-3: create the itch draft (HTML, 960x540, play in browser, fullscreen on) and upload the `npm run package` zip; use the art in `docs/art/itch/`; test inside the itch iframe in Chrome and Firefox (click to focus, keyboard).
+**Needs the owner (refreshed 2026-11-23; nothing here can be done by an agent; none blocks batch 9; order is the release order)**
+1. Team names for `CREDITS.md` and the itch credits (tell the names; tech-lead then fills them, and design-lead's §7 team-names box follows).
+2. Leaderboards: create the Supabase project (USER-2) and decide B-1, or ship local best times only and drop the LEADERBOARDS block from the itch copy.
+3. Listening check on the packaged build (unblocks the one held audio line in `itch-page.md` §7): music follows pace; the w2-02 clunk differs from a downshift; SOUND OFF silences everything. If it fails, the audio line is deleted and the page makes no audio claim.
+4. Hand play in a real browser: **w3-05** (v2 once it lands; no player has finished v1 cold) and **w2-04** (design's new item: if you fail its jump more than 5 times, design re-opens the ruling). Plus USER-9 from `docs/qa/m1-gate.md`: keyboard-only play with Q/E and Z/X, and one non-Chromium browser.
+5. USER-8: install `gitleaks`, then tech-lead runs the SEC-3 full-history scan (clean, or rotate and rewrite). USER-7: add the roster row for `BootScene.ts` and the menu scenes to `CLAUDE.md` (only the owner or the orchestrator may).
+6. USER-3: create the itch draft (HTML, 960x540, play in browser, fullscreen on), upload the final `npm run package` zip (after batch 9 step C), use the art in `docs/art/itch/`, and test inside the itch iframe in Chrome and Firefox (click to focus, keyboard).
 7. USER-6: after a clean scan, make https://github.com/PatrickDCarey/Shift public and check the link works logged out; push.
-8. USER-3 publish the page; USER-4 submit the entry to the jam with the repo link (jam closes 2026-12-01 21:37 UTC; studio target 2026-11-30).
-9. Standing, undecided and not re-raised: the three proposed cuts in `cut-list.md`.
+8. Publish the page (USER-3), then USER-4 submit the jam entry with the repo link (jam closes 2026-12-01 21:37 UTC; studio target 2026-11-30).
+9. Standing, undecided and not re-raised: the three proposed cuts in `cut-list.md`. Checkpoints were rejected again (design, B8-12); raising them needs producer sign-off.
 
 **Batch 7 (planned 2026-11-19, after batch 6 at 373236e; runs back to back, no dates) — CLOSED 2026-11-20: landed in 4a28931, d498cb5, df88936 and fd11cf2; history**
 
@@ -270,7 +300,7 @@ One sitting per owner area and lane, no shared files, no in-batch dependencies. 
 
 ## Doing
 
-Nothing (2026-11-20). Batch 7 closed (4a28931, d498cb5, df88936, fd11cf2). Batch 8 wave 1 (B8-01, B8-02) is next.
+2026-11-23: B8-13 README (tech-lead) and B9-01 w3-05 v2 (level-designer, started by the orchestrator). Batch 8 waves 1-4 landed (b6916ee, e60c755, 5321e78, 65ae833, 2a07d67).
 
 ## Moved on 2026-11-16 (files checked in 2eb0527 per the orchestrator; all Review until tech-lead's batch 4A review and QA run 5/6)
 
