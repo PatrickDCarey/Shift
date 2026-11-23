@@ -81,7 +81,7 @@ test.describe('w3-04 by its recording (tandem.md S5, S6, park pan)', () => {
     expect(settleMs, 'done within about a quarter second plus a frame or two').toBeLessThanOrEqual(400);
   });
 
-  test("S6 HUD: the parked runner's strip shows the home glyph (BUG-8 while it fails)", async ({ page }) => {
+  test("S6 HUD: the parked runner's strip shows the home glyph (BUG-8, fixed in 5321e78)", async ({ page }) => {
     test.setTimeout(150_000);
     const all = await recordReplay(page, 'w3-04');
     const seenAfter = all.filter((f) => f.step >= 356 && f.step < 396).map((f) => f.homeGlyphs);
@@ -166,21 +166,28 @@ for (const level of ['w3-03', 'w3-04'] as const) {
   });
 }
 
-test('hints 14 w3-05: three glyphs on the first frame; at step 725 (both bodies held at the kerbs) shiftUp and jump are on screen, shiftUp left of both bodies, jump right edge left of the kerb (720 px)', async ({ page }) => {
-  test.setTimeout(150_000);
-  await load(page, 'w3-05');
-  const start = await hintLabels(page);
-  expect(start.map((l) => l.text).sort(), 'jump, shiftUp, jump').toEqual([...SHIFT_UP, ...JUMP, ...JUMP].sort());
+interface KerbSample {
+  step: number;
+  scrollX: number;
+  scrollY: number;
+  rx: number;
+  tx: number;
+  labels: { text: string; x: number; y: number }[];
+  sprites: { x: number; y: number; w: number; h: number }[];
+}
+
+/** Replay w3-05 (one sim step per frame) and sample the Game scene on the first frame at or after `minStep`. */
+async function sampleW305(page: Page, minStep: number): Promise<KerbSample> {
   await page.goto('./?level=w3-05&replay=1&speed=1');
   await waitForHook(page);
-  const at = await page.evaluate(
-    () =>
-      new Promise<{ step: number; scrollX: number; scrollY: number; rx: number; tx: number; labels: { text: string; x: number; y: number }[]; sprites: { x: number; y: number; w: number; h: number }[] }>((resolve) => {
+  return page.evaluate(
+    (target) =>
+      new Promise<KerbSample>((resolve) => {
         type Obj = { visible: boolean; type: string; depth: number; x: number; y: number; text?: string; frame?: { name: string }; getBounds(): { x: number; y: number; width: number; height: number } };
         const g = (window as unknown as { __game: { scene: { getScene(k: string): { cameras: { main: { scrollX: number; scrollY: number } }; children: { list: Obj[] } } } } }).__game;
         const tick = (): void => {
           const st = window.__redshift?.state as unknown as { step: number; player: { x: number }; twin: { x: number } } | undefined;
-          if (st && st.step >= 725) {
+          if (st && st.step >= target) {
             const sc = g.scene.getScene('Game');
             const cam = sc.cameras.main;
             const list = sc.children.list.filter((o) => o.visible);
@@ -198,24 +205,41 @@ test('hints 14 w3-05: three glyphs on the first frame; at step 725 (both bodies 
         };
         requestAnimationFrame(tick);
       }),
+    minStep,
   );
-  await page.screenshot({ path: 'docs/qa/evidence/b8-w3-05-kerb-glyphs.png' });
-  test.info().annotations.push({ type: 'observed', description: `step ${at.step}: runner x ${at.rx.toFixed(3)}, twin x ${at.tx.toFixed(3)}, scrollX ${at.scrollX}; labels ${at.labels.map((l) => l.text).join(' ')}` });
-  expect(at.step, 'sampled at the kerb step').toBeLessThanOrEqual(727);
+}
+
+function checkW305Boxes(at: KerbSample): { up: Box; kerbJump: Box; leftmostBody: number } {
   expect(at.labels.map((l) => l.text).sort(), 'all three glyphs drawn').toEqual([...SHIFT_UP, ...JUMP, ...JUMP].sort());
-  // split the two jump glyphs by x: the opening one (col 12) and the kerb one (col 41)
+  // split the two jump glyphs by x: the opening one (col 12) and the second one (ahead of the step, left of the kerb)
   const kerbJump = boxOf(at.labels.filter((l) => JUMP.includes(l.text) && l.x > 30 * TILE), JUMP);
   const up = boxOf(at.labels, SHIFT_UP);
-  for (const [name, box] of [['shiftUp', up], ['kerb jump', kerbJump]] as const) {
+  for (const [name, box] of [['shiftUp', up], ['second jump', kerbJump]] as const) {
     const r = toRect(box, at.scrollX, at.scrollY);
     expect(wholeOnScreen(r), `${name} box on screen ${JSON.stringify(r)}`).toBe(true);
     expect(overlaps(r, HUD_RECT), `${name} clear of the HUD`).toBe(false);
   }
   expect(at.sprites.length, 'both bodies drawn').toBe(2);
-  const leftmostBody = Math.min(...at.sprites.map((s) => s.x));
-  expect(up.right, 'shiftUp left of both bodies').toBeLessThanOrEqual(leftmostBody);
+  return { up, kerbJump, leftmostBody: Math.min(...at.sprites.map((s) => s.x)) };
+}
+
+test('hints 14 w3-05 v2: three glyphs on the first frame; at step 986 (both bodies held at the step, x 36.375) the shiftUp box spans the step face (576 px) over both bodies and the jump box is ahead, right edge left of the kerb (720 px)', async ({ page }) => {
+  test.setTimeout(150_000);
+  await load(page, 'w3-05');
+  const start = await hintLabels(page);
+  expect(start.map((l) => l.text).sort(), 'jump, shiftUp, jump').toEqual([...SHIFT_UP, ...JUMP, ...JUMP].sort());
+  const at = await sampleW305(page, 986);
+  await page.screenshot({ path: 'docs/qa/evidence/b9-w3-05-step-glyphs.png' });
+  test.info().annotations.push({ type: 'observed', description: `step ${at.step}: runner x ${at.rx.toFixed(3)}, twin x ${at.tx.toFixed(3)}, scrollX ${at.scrollX}; labels ${at.labels.map((l) => `${l.text}@${l.x}`).join(' ')}` });
+  expect(at.step, 'sampled at the step-hold step').toBeLessThanOrEqual(988);
+  expect(at.rx, 'runner held at the step').toBeCloseTo(36.375, 1);
+  expect(at.tx, 'twin held at the step').toBeCloseTo(36.375, 1);
+  const { up, kerbJump } = checkW305Boxes(at);
+  expect(up.left <= 36 * TILE && up.right >= 36 * TILE, `shiftUp box spans the step face (576 px): ${up.left}..${up.right}`).toBe(true);
+  expect(up.left, 'shiftUp box over both bodies (left of their centre)').toBeLessThanOrEqual(at.rx * TILE);
+  expect(up.right, 'shiftUp box over both bodies (right of their centre)').toBeGreaterThanOrEqual(at.rx * TILE);
+  expect(kerbJump.left, 'jump box ahead of the bodies').toBeGreaterThan(at.rx * TILE);
   expect(kerbJump.right, 'jump right edge left of the kerb (col 45 = 720 px)').toBeLessThan(45 * TILE);
-  expect(kerbJump.right, 'jump right edge left of both bodies').toBeLessThanOrEqual(leftmostBody);
 });
 
 // --- settings (check 2 and W7 check 4) --------------------------------------------------------------------------------

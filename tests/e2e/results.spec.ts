@@ -149,13 +149,13 @@ test('keys during the 0.6 s beat are ignored: nothing starts before the panel is
 });
 
 test('the last level has no NEXT, and focus starts on LEVELS (results check 6)', async ({ page }) => {
-  // Winning w3-05 by hand is a 1364-step run; this opens the real Results scene with launch data shaped like the
+  // Winning w3-05 by hand is a 1389-step run; this opens the real Results scene with launch data shaped like the
   // game scene's (`resultsLaunchData`) for the last level (`nextLevelId` null), which is what the scene computes there.
   await gotoTitle(page);
   await page.evaluate(() => {
     const g = (window as unknown as { __game: { scene: { start(k: string, d: object): void; stop(k: string): void } } }).__game;
     g.scene.stop('Title');
-    g.scene.start('Results', { levelId: 'w3-05', title: 'Redshift', steps: 1364, stepHz: 60, record: { recorded: true, newBest: true, firstClear: true, skipped: false, best: 1364 }, nextLevelId: null });
+    g.scene.start('Results', { levelId: 'w3-05', title: 'Redshift', steps: 1389, stepHz: 60, record: { recorded: true, newBest: true, firstClear: true, skipped: false, best: 1389 }, nextLevelId: null });
   });
   await pollScenes(page, ['Results']);
   await expect.poll(() => resultsPanelUp(page), { timeout: POLL_TIMEOUT_MS }).toBe(true);

@@ -67,8 +67,9 @@ test.describe('S4 and the HUD on w3-01 (production build)', () => {
     expect(names.some((f) => f.startsWith('player/runner/')), 'runner sprite').toBe(true);
     expect(names.some((f) => f.startsWith('player/twin/')), 'twin sprite').toBe(true);
     const strips = await page.evaluate(() => {
-      const s = (window as unknown as { __game: { scene: { getScene(k: string): { twinMeter: unknown; gearMeter: unknown } } } }).__game.scene.getScene('Game');
-      return { runner: s.gearMeter !== null && s.gearMeter !== undefined, twin: s.twinMeter !== null && s.twinMeter !== undefined };
+      // 5321e78 moved the strips into the GearMeters helper (`scene.meters`, private `runner` and `twin` views).
+      const m = (window as unknown as { __game: { scene: { getScene(k: string): { meters?: { runner?: unknown; twin?: unknown } } } } }).__game.scene.getScene('Game').meters;
+      return { runner: m?.runner !== null && m?.runner !== undefined, twin: m?.twin !== null && m?.twin !== undefined };
     });
     expect(strips, 'two gear strips (runner top, twin bottom)').toEqual({ runner: true, twin: true });
   });

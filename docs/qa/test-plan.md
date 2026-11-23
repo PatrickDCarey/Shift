@@ -467,7 +467,7 @@ _(superseded by run 2 for e2e)_
 - The drag **wipe** (`fx/wipe`, `airDrag`) and the death flash: no level in a production build gives a quick deterministic air-drag drop with a readable result, and the wipe image is always in the display list (alpha/frame changes within a few frames). The shared 3-per-second flash budget is unit-tested (`requestFlash`); not seen in a browser by QA. Under reduced motion "no wipe, no flash" is therefore **not verified**; what is verified is the door held, ridge parallax off, ring still drawn.
 - Audio (music, SFX, ducking on pause): not observable headless; the owner or playtester must listen.
 - The exit arrow on the left, top and bottom edges (tech-lead's list): no shipped level has the exit off screen in those directions; only the right edge (w1-04) is asserted. The twin edge arrow on the left edge is asserted in the dev room (tandem-gate.md S3).
-- Last level without NEXT: a live win of w3-05 is a 1364-step run. The test opens the real Results scene with launch data shaped like the game scene's (`nextLevelId` null), so the scene's own handling is exercised, but the game scene computing `null` for the last level is covered only by `resultsModel` / `nextLevel` unit tests.
+- Last level without NEXT: a live win of w3-05 is a 1389 (v2; v1 was 1364)-step run. The test opens the real Results scene with launch data shaped like the game scene's (`nextLevelId` null), so the scene's own handling is exercised, but the game scene computing `null` for the last level is covered only by `resultsModel` / `nextLevel` unit tests.
 - Beat (0.6 s of ignored keys): asserted with an in-page keydown at the instant the panel is not yet drawn; on a fast machine the press can land after the beat, and the test then records a note instead of an assertion.
 - Sticky Keys card hidden on the win step (results check 14) and the pause-time tip (check 11): needs the tip visible in a Windows user agent flow, not covered.
 - Pause during the death freeze (pause check 11): timing-bound, unit-only.
@@ -627,11 +627,11 @@ New spec `tests/e2e/batch8.spec.ts` (13 tests) and helper `tests/e2e/b8-replay.t
 | restart-prompt 8 | hand marker | **Hand** | unchanged (no losing recording). |
 | tandem S5 | `batch8.spec.ts` S5 | **Pass** | w3-04 recording, every frame with both bodies not home (about 300 frames): both sprites wholly inside 480x270, no overlap with the HUD rectangle (5,5,110,32), no `hud/edge/runner|twin` arrow. At the let-go (step 262): runner x 21.48, twin x 38.9 (17.4 apart; 40.1 once braked), max apart in the run about 18 tiles; the 28-tile limit itself is only reachable in the dev room (S1-S3 stay dev-server only). |
 | tandem S6 (camera) | `batch8.spec.ts` S6 | **Pass** | From step 354 to 396 the twin is wholly on screen and clear of the HUD, no edge arrow, the parked runner is off screen (intended). |
-| tandem S6 (HUD strip) | `batch8.spec.ts` "S6 HUD" | **FAIL: BUG-8** | The runner's strip never switches to `glyph/home`. |
+| tandem S6 (HUD strip) | `batch8.spec.ts` "S6 HUD" | **Pass** (B9-04, HEAD 50eb482) | A home glyph is on screen on every frame from step 356 to the twin's win. BUG-8 closed (fixed in 5321e78); was FAIL in batch 8. |
 | park pan | `batch8.spec.ts` S5/S6 test and "park pan under reduced motion" | **Pass** | Default: scrollX 464 to 576 (the level's right clamp) over 6 frames, about 112 ms, 9,15,19,22,23,24 px per frame, never backwards, no one-frame snap; the pan itself is 250 ms of focus, which the clamp shortens. Reduced motion: the whole move in one frame. R3 (pan cancels on respawn) is covered by the owner's unit test only; replay R does not emit the restart event. |
 | hints 10 / 13 | `tests/levels` (`hints.test.ts`, owner's), `levels-hints.spec.ts` | **Pass** | Exact header placements are pinned in `tests/levels`. |
 | hints 11 / 14, w3-03 and w3-04 | `batch8.spec.ts` "hints 11/14" x2 | **Pass** | First frames: exactly `R⇧ E X ▲` and `SPACE W ↑`; both boxes on screen, clear of the HUD; shiftUp at column 2 (box inside cols 1-3, the runner's x 1.5 is in them), jump at column 12 and left of the block (col 16). Note: the drawn glyph is centred on col 2 (px 40), so it sits about 12 px right of the runner's centre at spawn. |
-| hints 14, w3-05 | `batch8.spec.ts` "hints 14 w3-05" | **Pass** | Three glyphs on the first frame; at step 725 (both held at x 44.63): shiftUp and the kerb jump on screen, clear of the HUD, shiftUp left of both bodies, jump right edge left of the kerb (720 px). Screenshot `docs/qa/evidence/b8-w3-05-kerb-glyphs.png`. |
+| hints 13 / 14, w3-05 v2 | `batch8.spec.ts` "hints 14 w3-05 v2"; `tests/levels/hints.test.ts` (owner's, header placements) | **Pass** (B9-04, HEAD 50eb482) | Three glyphs on the first frame. At step 986 (both bodies held at x 36.375): shiftUp box spans the step face (576 px) and sits over both bodies, the second jump box is ahead of them with its right edge left of the kerb (720 px), both on screen and clear of the HUD. Screenshot `docs/qa/evidence/b9-w3-05-step-glyphs.png`. v1 (step 725, kerbs) superseded; its screenshot `b8-w3-05-kerb-glyphs.png` is v1 evidence only. |
 | settings 1 | `settings.spec.ts` S-1 | **Pass** (full run) | survives a reload. |
 | settings 2 | `batch8.spec.ts` "settings 2 w2-02" x2, `clarity.spec.ts` door and ridges | **Pass** | w2-02 recording: the screen wipe is drawn with defaults and on 0 frames with reduced motion; door held on door_0, ridges still. The ring is a Graphics object and cannot be read; not asserted. |
 | settings 3 | `settings.spec.ts` S-3, `clarity.spec.ts`, `batch8.spec.ts` PT-3 | **Pass** | horizon and stars hidden. |
@@ -642,3 +642,23 @@ New spec `tests/e2e/batch8.spec.ts` (13 tests) and helper `tests/e2e/b8-replay.t
 **Rerun** (`--last-failed --workers=1`, run after the two test fixes above): 8 passed, 1 failed (the BUG-8 test). Then `restart-card` + `hints-b7` whole files: 16 of 16. No second full run was made (the edits after run 1 are to those two files only).
 
 **B8-09 / BUG-6 observation:** across run 1 (209 tests), the rerun, the spec runs above and 3 boots of the unzipped release build (plain, `?replay=1` x2), the log search found no `loaded on attempt` warning, no `#boot-error`, no `Failed to process file` and no `window.__redshift never appeared`. About 330 page boots in total. BUG-6 stays "fixed, pending observation". BUG-4 closed against the zip (sha256 `657135ba2a9bf88f8540732a238078b84757b0a6e8d840d31f71bb10e490a164`).
+
+
+## 11. Batch 9 results (B9-04, 2026-11-23, HEAD 50eb482 plus uncommitted QA spec edits)
+
+w3-05 v2 (run-up step, recording wins at step 1389; v1 was 1364).
+
+| Check | Evidence | Verdict |
+|---|---|---|
+| onboarding-hints 13 (w3-05 v2 headers) | `tests/levels/hints.test.ts` (owner's; with `sealedPockets` and `tests/levels`: 5 files, 127 tests green) | **Pass** |
+| onboarding-hints 14 (v2 addendum, step 986) | `batch8.spec.ts` "hints 14 w3-05 v2"; `docs/qa/evidence/b9-w3-05-step-glyphs.png` | **Pass** |
+| restart-prompt 1 (no sealed pocket in w3-05) | `src/entities/sealedPockets.test.ts`; `restart-card.spec.ts` "the pocket rectangles ... match the level files" | **Pass** |
+| w3-05 replay wins at 1389 | `replay.spec.ts` "replay of w3-05 wins on step 1389"; direct `runInputLog` check, `wonAtStep` 1389 | **Pass** |
+| tandem S6 HUD (runner home glyph when parked) | `batch8.spec.ts` "S6 HUD" | **Pass**; BUG-8 CLOSED |
+| results.spec last level, no NEXT | launch data now `steps: 1389` | **Pass** |
+
+Spec changes: `batch8.spec.ts` hints 14 now samples step 986 through a shared `sampleW305`/`checkW305Boxes` (v1's step-725 sample removed); `results.spec.ts` 1364 to 1389; `tandem-scene.spec.ts` check 3 read the old private `gearMeter`/`twinMeter` fields, which 5321e78 moved into `GearMeters` (`scene.meters.runner`/`.twin`): a stale test, not a game bug, fixed. No other w3-05 v1 dependency in `tests/e2e`.
+
+**Full run 1:** 209 tests, 201 passed, 3 failed, 5 skipped, 11.0 min. Failures: `tandem-scene.spec.ts:65` (stale test, above; failed again in the rerun, passes after the fix); `batch8.spec.ts:324` settings 4 REDUCED EFFECTS and `pixel.spec.ts:79` 2x blocks (both passed in the `--last-failed --workers=1` rerun: flakes under 2-worker load). No second full run. After the fix, `tandem-scene.spec.ts` alone: 2 passed, 3 skipped (dev-server only).
+
+BUG-6: about 209 page boots in run 1, 3 in the rerun and 5 in the tandem-scene file, with no `loaded on attempt` warning and no `#boot-error` outside the tests that inject it. The two flakes above are not boot failures (both booted).

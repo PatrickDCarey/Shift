@@ -98,7 +98,7 @@ Evidence: `tests/e2e/pause-keys.spec.ts` "P-13d / pause 14", marked `test.fail()
 Note: needs two keydowns in one task, which a human can only approach (Esc and a movement key within one 16 ms frame), so impact is low. Check 13 (Space with Esc) passes in `pause-menu.spec.ts`.
 
 ### BUG-8: in Tandem the runner's HUD strip never shows the home glyph when the runner parks
-Status: **OPEN** (2026-11-20, B8-08)
+Status: **CLOSED** (fixed in 5321e78; verified 2026-11-23, B9-04, HEAD 50eb482: `batch8.spec.ts` "S6 HUD" passes, a home glyph on every frame 356-395)
 Severity: minor (a parked body is also frozen in the world and the camera drops it; only the HUD cue the spec names is missing)
 Owner: gameplay-engineer [scene] (`src/scenes/GameScene.ts`, `drawHud`)
 Build/commit: e60c755
@@ -109,3 +109,5 @@ Evidence: `tests/e2e/batch8.spec.ts` "S6 HUD: the parked runner's strip shows th
 Fix idea: `if (this.twinMeter !== null) this.gearMeter.setParked(state.player.home);` before `this.gearMeter.update(...)`. GameScene is at 396 lines (tech-lead review), so move code out first.
 
 Update 2026-11-20 (B8-09, BUG-6 observation, HEAD e60c755 plus batch 8): in full run 1 (209 tests), the `--last-failed` rerun, three further spec runs and 3 boots of the unzipped release zip (about 330 page boots), no `Boot: ... loaded on attempt` warning, no `#boot-error` and no `window.__redshift never appeared` was seen outside the tests that inject the failure on purpose (`boot-retry.spec.ts`). No new failure, so BUG-6 stays "fixed, pending observation".
+
+Update 2026-11-23 (B9-04, BUG-6 observation, HEAD 50eb482): full run 1 (209 tests), the `--last-failed` rerun and a tandem-scene spec run, about 220 page boots, no `Boot: ... loaded on attempt` warning and no `#boot-error` outside `boot-retry.spec.ts`. The two flaky failures in run 1 (settings 4, pixel 2x) were not boot failures. BUG-6 stays "fixed, pending observation".
