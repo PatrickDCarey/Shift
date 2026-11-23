@@ -30,7 +30,7 @@ describe('sfx spec: all ten exist, short, readable at low volume', () => {
   it('lists ten distinct ids (plus the home chime as an extra)', () => {
     expect(SFX_IDS).toHaveLength(10);
     expect(new Set(SFX_IDS).size).toBe(10);
-    expect(ALL_SFX_IDS).toHaveLength(11);
+    expect(ALL_SFX_IDS).toHaveLength(13);
   });
 
   it.each(ALL_SFX_IDS)('%s: layers are valid, short, not too quiet, not clipping', (id) => {
@@ -231,7 +231,7 @@ describe('sfx spec: Tandem voices', () => {
   });
 
   it('UI and run-level sounds ignore body', () => {
-    for (const id of ['uiMove', 'uiSelect', 'levelComplete', 'reset'] as const) {
+    for (const id of ['uiMove', 'uiSelect', 'levelComplete', 'reset', 'shot', 'hitDeath'] as const) {
       expect(describeSfx({ id, body: 1 })).toEqual(describeSfx({ id, body: 0 }));
       expect(describeSfx({ id, body: 'both' })).toEqual(describeSfx({ id, body: 0 }));
     }

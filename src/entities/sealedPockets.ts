@@ -2,12 +2,13 @@
  * Sealed pockets (restart-prompt.md): closed air regions a body can fall into and
  * never leave. Pure, computed once per level from the grid alone (hints and
  * solutions are never read). A region is a 4-connected set of empty, spawn or
- * exit cells; it is sealed when it has no spawn, no exit, and touches neither the
- * top nor the bottom row. Safe, coloured, ice and gate tiles are its boundary.
+ * exit cells; it is sealed when it has no spawn, no exit, no cell a slab sweeps (a rider
+ * can leave on it) and touches neither the top nor the bottom row. Safe, coloured, ice and gate tiles are its boundary.
  *
  * Owner: gameplay-engineer [scene].
  */
 import type { Level } from '../core/types';
+import { sweptCells } from './kineticsPlan';
 
 export interface PocketBounds {
   readonly minCol: number;
@@ -68,6 +69,7 @@ export function sealedPockets(level: Level): readonly SealedPocket[] {
   const open = openCells(level);
   const special = new Set<number>();
   level.tiles.forEach((t, i) => t.kind === 'exit' && special.add(i));
+  for (const m of level.movers ?? []) sweptCells(m, level.width).forEach((c) => special.add(c));
   special.add(level.start.row * level.width + level.start.col);
   if (level.twinStart !== null) special.add(level.twinStart.row * level.width + level.twinStart.col);
   const seen: boolean[] = [];

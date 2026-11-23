@@ -22,5 +22,7 @@
   "deathFreezeMs": 400,
   "runFramesPerTile": 3,
   "sprintFramesPerTile": 2,
-  "cameraMaxApartTiles": 28
+  "cameraMaxApartTiles": 28,
+  "projectileSizeTiles": 0.5,
+  "emitterTellMs": 300
 }

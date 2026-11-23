@@ -7,6 +7,7 @@ import { bandPhase, dragPhase, landingPhase } from './air';
 import { gracePhase, timersPhase } from './grace';
 import { directionPhase, heldDir, nextPriority, pressEdges, recordInput, shiftPhase } from './input';
 import { gravityPhase, groundPhase, jumpPhase } from './jump';
+import { carryPhase } from './movers';
 import { moveXPhase, moveYPhase } from './move';
 import { frozenStep, outcomePhase, restartState } from './status';
 import type { Phase, StepCtx, Work } from './work';
@@ -18,6 +19,7 @@ const PHASES: readonly Phase[] = [
   groundPhase,
   jumpPhase,
   gravityPhase,
+  carryPhase,
   moveXPhase,
   moveYPhase,
   dragPhase,
@@ -44,7 +46,10 @@ function playingStep(state: SimState, input: InputFrame, base: StepCtx): SimStat
   const w0 = state.player.home ? null : runBody(state.player, bodyCtx(base, 0, state.player));
   const w1 = state.twin && !state.twin.home ? runBody(state.twin, bodyCtx(base, 1, state.twin)) : null;
   const events = [...(w0?.events ?? []), ...(w1?.events ?? [])];
-  const res = outcomePhase(w0?.player ?? state.player, w1?.player ?? state.twin, events, base.level, base.params);
+  const res = outcomePhase(w0?.player ?? state.player, w1?.player ?? state.twin, events, base.level, base.params, {
+    t1: state.step + 1,
+    startBands: [state.player.band, state.twin?.band ?? 0],
+  });
   const next = state.step + 1;
   return {
     step: next,
@@ -67,6 +72,7 @@ export function step(state: SimState, input: InputFrame, level: Level, params: S
   const dirPriority = nextPriority(state.dirPriority, pressed);
   const ctx: StepCtx = {
     body: 0,
+    t: state.step,
     input,
     pressed,
     level,

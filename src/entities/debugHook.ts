@@ -4,6 +4,7 @@
  * Owner: gameplay-engineer [scene].
  */
 import type { SimState } from '../core/types';
+import type { KineticsSnapshot } from './kineticsPlan';
 import type { RestartCardSnapshot } from './RestartCardController';
 import type { GearMeterModel } from '../ui';
 import { debugCues } from '../audio';
@@ -23,6 +24,8 @@ export interface DebugHook {
   readonly paused: boolean;
   /** The restart card while it shows: its screen rectangle in 480 x 270 px. Null while hidden. */
   readonly restartCard: RestartCardSnapshot | null;
+  /** Slabs, emitters and live shots at the current step (tiles); null when the level has none. */
+  readonly kinetics: KineticsSnapshot | null;
   /** Audio QA state: `cues()` is the last 64 SFX cues requested, oldest first. */
   readonly audio: { readonly cues: () => CueLogEntry[] };
 }
@@ -34,6 +37,7 @@ export interface DebugSnapshot {
   readonly meter: GearMeterModel;
   readonly paused: boolean;
   readonly restartCard: RestartCardSnapshot | null;
+  readonly kinetics: KineticsSnapshot | null;
 }
 
 export interface DebugSource {
@@ -60,6 +64,9 @@ export function installDebugHook(source: DebugSource): void {
     },
     get restartCard() {
       return read().restartCard;
+    },
+    get kinetics() {
+      return read().kinetics;
     },
     audio: { cues: () => debugCues() },
   };

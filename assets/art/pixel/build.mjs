@@ -333,6 +333,51 @@ try {
     panel(3, bg(9), 1);
     writeFileSync(path.join(previewDir, 'wipe-and-yellow.png'), encodePng(px.upscale(out, 3)));
   }
+
+  // ---- kinetics previews: slabs, tracks, emitters, bolts, shimmer, catcher; colour and greyscale (4x) ----
+  {
+    const kinds = ['grey', 'white', 'blue', 'green', 'yellow', 'red'];
+    const slabKinds = ['safe', 'blue', 'green', 'yellow', 'red'];
+    const names = px.kineticFrameNames();
+    const W = 8 + 16 * 14, H = 8 + 16 * 14;
+    const draw = (grey) => {
+      const out = px.createRaster(W, H);
+      px.fillRect(out, 0, 0, W, H, px.rgba(bg(0)));
+      const put = (frame, x, y) => {
+        if (!grey) return px.blit(out, frame, x, y);
+        const t = px.createRaster(frame.width, frame.height);
+        for (let j = 0; j < frame.height; j++) for (let i = 0; i < frame.width; i++) {
+          const p = px.getPixel(frame, i, j);
+          if (p[3] === 0) continue;
+          const l = Math.round(0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2]);
+          px.setPixel(t, i, j, [l, l, l, p[3]]);
+        }
+        px.blit(out, t, x, y);
+      };
+      const pngMask = (frame, color, x, y) => {
+        for (let j = 0; j < frame.height; j++) for (let i = 0; i < frame.width; i++) if (px.getPixel(frame, i, j)[3] > 0) px.setPixel(out, x + i, y + j, px.rgba(col.hexToRgb(color)));
+      };
+      slabKinds.forEach((k, r) => {
+        ['L', 'M', 'M', 'R'].forEach((seg, i) => put(px.bakeSlabSegment(k, seg, 'solid'), 4 + i * 16, 4 + r * 18));
+        ['L', 'M', 'M', 'R'].forEach((seg, i) => put(px.bakeSlabSegment(k, seg, 'ghost'), 4 + 72 + i * 16, 4 + r * 18));
+      });
+      px.DIRS.forEach((d, i) => pngMask(px.bakeChevron(d), fx.palette.ui.text, 4 + 144 + i * 12, 8));
+      px.TRACK_CELLS.forEach((c, i) => pngMask(px.bakeTrackCell(c), fx.palette.ui.textMuted, 4 + 144 + (i % 5) * 16, 24 + Math.floor(i / 5) * 16));
+      kinds.forEach((k, r) => {
+        px.DIRS.forEach((d, i) => {
+          put(px.bakeEmitter(d, k, 'idle'), 4 + i * 16, 100 + r * 18);
+          put(px.bakeEmitter(d, k, 'tell'), 4 + 72 + i * 16, 100 + r * 18);
+        });
+        put(px.bakeBolt(k), 4 + 144 + 4, 104 + r * 18);
+      });
+      for (let f = 0; f < 4; f++) pngMask(px.bakeShimmer(f), fx.palette.gears.yellow.solid.outline, 4 + 144 + 16 + f * 16, 100);
+      px.DIRS.forEach((d, i) => pngMask(px.bakeSink(d), fx.palette.ui.textMuted, 4 + 144 + 16 + i * 16, 118));
+      return out;
+    };
+    void names;
+    writeFileSync(path.join(previewDir, 'kinetics.png'), encodePng(px.upscale(draw(false), 4)));
+    writeFileSync(path.join(previewDir, 'kinetics-grey.png'), encodePng(px.upscale(draw(true), 4)));
+  }
 } finally {
   await server.close();
 }

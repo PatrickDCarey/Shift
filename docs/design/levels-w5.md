@@ -53,6 +53,8 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 
 **Combines:** all three bolt kinds, a lift, the colored slab, runway, drag, walls. No sweep, no checkpoints.
 
+**v4.1 (2026-11-24): 12 rooms, ≈ 420–450 tiles, 60–75 s clean, 3 posts (`level-plan.md` "Long levels").** Each of the four rooms below becomes a three-room section, hardest first, with a post after sections 1–3: (1) Rain, then a red Coast through yellow rain, then a slow blue bridge; (2) the Lift under white rain, a green Moving Bridge, a walk-off Step Down; (3) Hurdles on green, grey head-height bolts on yellow, a Brake to blue under white rain on the pad; (4) easiest: a Runway, a short Coast, a blue walk home. Recovery stretches carry no white rain. No sweep.
+
 **Intent.** The game's last level: four rooms, hardest first, ending on a victory lap.
 
 1. **Rain (hardest):** a red rain lane over a runway before a red bridge (w5-01), then a Coast jump through a **yellow** lane: take off red and you are still red crossing it (it sits inside the first 6 tiles of flight), so it is harmless; take off yellow and it kills you.

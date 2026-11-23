@@ -6,6 +6,8 @@ import { createMusic } from './music';
 import { createCueLog, type CueLogEntry } from './cueLog';
 import { createSfx } from './sfx';
 import { createStepEventPlayer } from './sfxStep';
+import type { Band } from '../core/types';
+export { SHOT_BURST_MAX, SHOT_MIN_GAP_MS, SHOT_WINDOW_MS, createShotLimiter } from './shotLimit';
 
 export {
   MAX_TONE_SECONDS,
@@ -42,6 +44,12 @@ export const sfx = createSfx(audio, cueLog);
  * sound in order; `won` plays only the sting; honours mute and the saved volumes.
  */
 export const playStepEvents = createStepEventPlayer(audio, cueLog);
+
+/**
+ * The scene's shot cue: `playShot(band, onScreen)` when an emitter fires (render side, from
+ * `nextShotIn(emitter, step) === 0` or equivalent). Rate limit lives inside; see `Sfx.shot`.
+ */
+export const playShot = (band?: Band, onScreen?: boolean): number => sfx.shot(band, onScreen);
 
 /** The adaptive music on the shared engine: call `music.update(frame)` once per rendered frame. */
 export const music = createMusic(audio);

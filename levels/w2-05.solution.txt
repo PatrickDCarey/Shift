@@ -1,0 +1,16 @@
+level: w2-05
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.   stand at the spawn, against the back wall, facing the run-up
+# 1+ 1. 1+ 1. 1+ 1.   shift up to gear 4 while standing
+# 68R   sprint: red at x = 4.73, before the red runway (col 8)
+# 1RJ   jump at x = 12.10, the middle of the window (25 steps): red takeoff, drag to yellow at 17.90, land yellow at 22.10
+# 76R 1R+   press up once on the ledge at x = 25.10 (52-step window): red at 25.60
+# 131R  walk off the ledge red, land red at 42.17 on the red floor, run on to the approach
+# 1R- 1R 1R-   shift down twice at x = 51.36 (30-step window): green at 53.08
+# 108R 1R+ 1R 1R+   cruise green, press up twice at x = 63.14 (30-step window): red at 64.94, past the red door
+# 53R 1R- 1R 1R- 1R 1R-   cross the red bridge, shift down three times at x = 73.51 (37-step window): blue at 76.55
+# 521R  walk the blue bridge into the exit (won at step 996)
+steps: 996
+---
+20. 1+ 1. 1+ 1. 1+ 1. 68R 1RJ 76R 1R+ 131R 1R- 1R 1R- 108R 1R+ 1R 1R+ 53R 1R- 1R 1R- 1R 1R- 521R

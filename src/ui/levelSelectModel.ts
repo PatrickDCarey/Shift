@@ -22,7 +22,8 @@ export const DEFAULT_WORLD_NAMES: Readonly<Record<number, string>> = {
   1: 'GEARS',
   2: 'FLIGHT',
   3: 'TANDEM',
-  4: 'GATES',
+  4: 'MOTION',
+  5: 'SIGNALS',
 };
 
 export const NO_LEVELS_TEXT = 'NO LEVELS';
@@ -173,6 +174,16 @@ export const ROW_PITCH = 40;
 export const ROWS_Y = 40;
 export const LABEL_COL_W = 80;
 export const DETAIL_Y = 216;
+/** Gap under the last grid row before the detail line (five rows end at y 232). */
+const DETAIL_GAP = 4;
+/** Status line sits this far under the detail title (2x title is 14 px tall). */
+const DETAIL_STATUS_DY = 16;
+
+/** The detail line moves down only as far as the rows need: 216 for up to four rows, 236 for five. */
+export function detailY(rowCount: number): number {
+  if (rowCount <= 0) return DETAIL_Y;
+  return Math.max(DETAIL_Y, ROWS_Y + (rowCount - 1) * ROW_PITCH + CELL_H + DETAIL_GAP);
+}
 
 /** Cell rect for a grid position: the world label column is 80 px wide, cells follow with a 6 px gap. */
 export function cellRect(row: number, col: number): LayoutItem {
@@ -202,7 +213,8 @@ export function levelSelectLayout(model: LevelSelectModel): readonly LayoutItem[
   });
   const detail = detailLine(model);
   if (detail !== null) {
-    out.push(textItem('detail:title', detail.title, MARGIN, DETAIL_Y, 2), textItem('detail:status', detail.status, MARGIN, DETAIL_Y + 20, 1));
+    const y = detailY(model.rows.length);
+    out.push(textItem('detail:title', detail.title, MARGIN, y, 2), textItem('detail:status', detail.status, MARGIN, y + DETAIL_STATUS_DY, 1));
   }
   return out;
 }

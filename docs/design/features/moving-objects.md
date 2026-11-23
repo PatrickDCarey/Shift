@@ -69,12 +69,13 @@ No new `tuning.json` key: the speed set is a format constant (tech-lead) and the
 
 ## Acceptance
 
-Conventions as `movement-and-gears.md`. "Lift L": `mover: … 3x1 safe speed=2 path=w60,u6,w60,d6` (each move 96 steps, cycle 312, 0.1171875 tiles/step). "Shuttle S": `8x1 safe speed=2 path=w60,r12,w60,l12` (each move 192 steps, cycle 504). Heights are above the slab's top at t 0.
+Conventions as `movement-and-gears.md`. "Lift L": `mover: … 3x1 safe speed=2 path=w60,u6,w60,d6` (each move 96 steps, cycle 312, speed 2 = 2/32 = 0.0625 tiles/step = 3.75 tiles/s). "Shuttle S": `8x1 safe speed=2 path=w60,r12,w60,l12` (each move 192 steps, cycle 504). Heights are above the slab's top at t 0.
 
 1. **Position.** Lift L's top is 0 for t 0–60, 3.0 at t 108, 6.0 for t 156–216, 3.0 at t 264, 0 at t 312 and 372. With `phase` 108 it is 3.0 at t 0.
 2. **Riding a lift standing.** A body on Lift L holding nothing: grounded every step; feet 0 at step 60, 3.0 at 108, 6.0 at 156 and 216, 3.0 at 264; band 0 and `vx` 0 every step; no `land` event.
-3. **Walking on a shuttle.** A body on Shuttle S, 1 tile from its left end: x unchanged for steps 1–60; holding R (gear 1) on steps 61–120 gives band 1 each step and x at the end of step 120 = start + 10.00625 (legs 2.975, carry 7.03125).
-4. **Jump cancels carry.** On Lift L while it rises, J on step 100: on step 100 the feet do not move with the slab (launch only); apex 3.0 above the step-99 feet on flight step 24; [sim] pins where it lands back on the slab.
+3. **Walking on a shuttle.** A body on Shuttle S, 1 tile from its left end: x unchanged for steps 1–60; holding R (gear 1) on steps 61–120 gives band 1 each step and x at the end of step 120 = start + 6.725 (legs 2.975, carry 60 × 0.0625 = 3.75). _(Corrected 2026-11-24: v1 used a wrong 0.1171875 tiles/step.)_
+4. **Jump cancels carry.** On Lift L while it rises, J on step 100: on step 100 the feet do not move with the slab (launch only); apex 3.0 above the step-99 feet on flight step 24; it lands back on the slab at state step 135 (pinned in [sim]'s fixture).
+4a. **Edge choices (ruled 2026-11-24, confirming [sim]):** a jump step never lands on a slab; a rider stopped by a wall and left behind by a safe slab emits no `fallThrough` (it walked off, it did not lose a color match); a downward carry onto a tile is blocked by the tile, and the body is then supported by it.
 5. **Swept landing.** A body falling at `maxFallSpeed` onto Lift L while it rises lands on it, never passes through; one `land` event.
 6. **Carry into a wall.** On Shuttle S, a safe block at body height over the path ahead: the body stops touching the block, `vx` 0, no `wallStop`; the slab moves on; the body is airborne on the first step its box no longer overlaps the slab, with coyote. It never dies.
 7. **Colored slab = colored floor.** A `G` slab inside a wait, flush with a safe ledge, behaves step for step like `G` tiles in the same place for: walking on at gear 2 (supported), at gear 1 (walks into a hole, coyote), letting go on it from gear 2 (grace 6 steps from above, then falls), landing in band 2 (lands) and band 3 (falls through).

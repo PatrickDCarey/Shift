@@ -58,6 +58,16 @@ export interface Tuning {
   readonly sprintFramesPerTile: number;
   /** Render only: Tandem camera keeps both bodies on screen up to this many tiles apart (integer 1..256). */
   readonly cameraMaxApartTiles: number;
+  /**
+   * Side of a bolt's square hit box, tiles (0.5 = 8 x 8 px, the bolt sprite's
+   * size). Sim: centred on the shot (contracts/kinetics.ts `Shot`). projectiles.md.
+   */
+  readonly projectileSizeTiles: number;
+  /**
+   * Render only: an emitter glows this long before each shot, ms (300 = 18
+   * steps). The sim never reads it; shot timing is the `Emitter` header alone.
+   */
+  readonly emitterTellMs: number;
 }
 
 /** Runtime check applied to one tuning value. */
@@ -109,6 +119,8 @@ export const TUNING_SCHEMA: { readonly [K in keyof Tuning]-?: KindFor<Tuning[K]>
   runFramesPerTile: 'framesPerTile',
   sprintFramesPerTile: 'framesPerTile',
   cameraMaxApartTiles: 'tileCount',
+  projectileSizeTiles: 'positiveNumber',
+  emitterTellMs: 'ms',
 };
 
 const MAX_FRAMES_PER_TILE = 12;
@@ -198,4 +210,10 @@ export interface SimParams {
   readonly deathFreezeSteps: number;
   readonly playerWidth: number;
   readonly playerHeight: number;
+  /**
+   * Bolt hit box side, tiles = tuning.projectileSizeTiles (square, centred on
+   * the shot). Optional only until the [sim] lane maps it in `deriveParams`;
+   * then this becomes required. (`emitterTellMs` is render only: not here.)
+   */
+  readonly projectileSize?: number;
 }

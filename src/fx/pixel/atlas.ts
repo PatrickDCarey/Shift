@@ -26,6 +26,7 @@ import {
   bakeSpeedLine,
   effectFrameNames,
 } from './effects';
+import { kineticItems } from './kinetics';
 import { blit, createRaster, hashRaster, type Raster } from './raster';
 import { RIDGES, bakeHorizon, bakeRidge, bakeStars } from './scenery';
 import { TILE } from './tiles';
@@ -139,6 +140,7 @@ export const PIXEL_KEYS = {
   hud: 'pixel-hud',
   tileset: 'pixel-tileset',
   fx: 'pixel-fx',
+  kinetics: 'pixel-kinetics',
   font: 'pixel-font',
 } as const;
 
@@ -269,6 +271,8 @@ export interface PixelAssets {
   readonly hud: PackedAtlas;
   readonly tileset: PackedTileset;
   readonly fx: PackedAtlas;
+  /** Expansion sprites: slabs, tracks, emitters, bolts (see kinetics.ts). */
+  readonly kinetics: PackedAtlas;
 }
 
 /** Bake every pixel asset. File names are `pixel-player`, `pixel-tiles`, `pixel-scenery` (.png / .json). */
@@ -312,6 +316,10 @@ export function buildPixelAssets(): PixelAssets {
         screenWipe: 'off',
       },
       reducedEffects: { speedLines: 'off', ringBurst: 'on unless reduced motion', dustLand: 'on' },
+    }),
+    kinetics: packAtlas('pixel-kinetics.png', kineticItems(), 512, {
+      naming: 'slab/<safe|blue|green|yellow|red>/<solid|ghost>/<L|M|R|S> (16x16, origin (0, 0)), slab/chevron/<l|r|u|d> (8x8 white mask, origin (0.5, 0.5)), track/<h|v|ne|nw|se|sw|stop/l|stop/r|stop/u|stop/d> (16x16 white mask), emitter/<l|r|u|d>/<grey|white|blue|green|yellow|red>/<idle|tell> (16x16), bolt/<kind> (8x8, origin (0.5, 0.5)), bolt/shimmer/<0-3> (16x16 white mask), bolt/sink/<l|r|u|d> (16x16 white mask)',
+      note: 'Masks are pure white, tint at runtime. Coloured frames are baked from palette.json. Under reduced motion show emitter tell frames statically; shimmer frame 1 only.',
     }),
   };
 }

@@ -2,13 +2,15 @@
  * Each src/core lane publishes only its contract (src/core/contracts/lanes.ts):
  * no unlisted exports, and every listed export has the contract's signature.
  * All three lanes are implemented (b97708e, b190192), so REQUIRE_COMPLETE is
- * on: a missing export fails too. Owner: tech-lead.
+ * on: a missing export fails too, except names in LANE_PENDING (contract
+ * landed, lane sitting still open; expansion 2026-11-23). The six motion
+ * path functions came off LANE_PENDING in B11-15 (paths.ts reviewed). Owner: tech-lead.
  */
 import { describe, expect, it } from 'vitest';
 import * as level from '../../src/core/level';
 import * as motion from '../../src/core/motion';
 import * as sim from '../../src/core/sim';
-import { LANE_EXPORTS, type LevelLaneApi, type MotionApi, type SimLaneApi } from '../../src/core/types';
+import { LANE_EXPORTS, LANE_PENDING, type LevelLaneApi, type MotionApi, type SimLaneApi } from '../../src/core/types';
 
 /** On since every lane is implemented (tech-lead review 2026-11-02). */
 const REQUIRE_COMPLETE = true;
@@ -29,6 +31,13 @@ const levelListed: Exclude<keyof LevelLaneApi, Listed<typeof LANE_EXPORTS.level>
 const MODULES = { sim, motion, level } as const;
 
 describe('src/core lane contracts', () => {
+  it('pending names are contract names', () => {
+    for (const [lane, names] of Object.entries(LANE_PENDING)) {
+      const listed: readonly string[] = LANE_EXPORTS[lane as keyof typeof LANE_EXPORTS];
+      expect(names.filter((n: string) => !listed.includes(n))).toEqual([]);
+    }
+  });
+
   it('compile-time checks hold', () => {
     expect([simConforms, motionConforms, levelConforms, simListed, motionListed, levelListed]).not.toContain(false);
   });
@@ -40,7 +49,9 @@ describe('src/core lane contracts', () => {
   });
 
   it.runIf(REQUIRE_COMPLETE).each(Object.entries(MODULES))('%s exports its whole contract', (lane, mod) => {
-    const allowed: readonly string[] = LANE_EXPORTS[lane as keyof typeof LANE_EXPORTS];
-    expect(Object.keys(mod).sort()).toEqual([...allowed].sort());
+    const key = lane as keyof typeof LANE_EXPORTS;
+    const pending: readonly string[] = LANE_PENDING[key];
+    const required = LANE_EXPORTS[key].filter((name: string) => !pending.includes(name));
+    expect(required.filter((name: string) => !(name in mod))).toEqual([]);
   });
 });

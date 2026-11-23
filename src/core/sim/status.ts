@@ -2,10 +2,11 @@
  * Status gate (phase 0), restart (phase 1), exit and death (phase 14) and the
  * respawn step (architecture.md §3.4, safe-tiles-and-reset.md).
  */
-import type { InputFrame, Level, PlayerState, SimEvent, SimParams, SimState } from '../types';
+import type { DeathCause, InputFrame, Level, PlayerState, SimEvent, SimParams, SimState } from '../types';
 import { createSim } from './create';
 import { recordInput } from './input';
 import { boxAt, overlapsTile } from './geometry';
+import { bodyHit, type HitCtx } from './hazards';
 
 /** A `restart` press: status restarting, respawn on the next step. Nothing else runs. */
 export function restartState(state: SimState, input: InputFrame): SimState {
@@ -57,6 +58,7 @@ export function outcomePhase(
   events: readonly SimEvent[],
   level: Level,
   params: SimParams,
+  hits?: HitCtx,
 ): OutcomeResult {
   const homeNow = (p: PlayerState): PlayerState => (reachedExit(p, level, params) ? { ...p, home: true } : p);
   const p0 = homeNow(player);
@@ -74,8 +76,13 @@ export function outcomePhase(
   if (p0.home && (p1 === null || p1.home)) {
     return { ...out('won', [{ type: 'won' }]), events: [...events.filter((e) => e.type !== 'fallThrough'), ...homeEvents, { type: 'won' }] };
   }
-  const dead0 = fellOut(p0, level, params);
-  const dead1 = p1 !== null && fellOut(p1, level, params);
-  if (!dead0 && !dead1) return out(null, []);
-  return out('dead', [{ type: 'died', body: dead0 ? 0 : 1 }]);
+  const fell0 = fellOut(p0, level, params);
+  const fell1 = p1 !== null && fellOut(p1, level, params);
+  const hit0 = hits !== undefined && bodyHit(level, params, p0, 0, hits);
+  const hit1 = hits !== undefined && p1 !== null && bodyHit(level, params, p1, 1, hits);
+  if (!fell0 && !fell1 && !hit0 && !hit1) return out(null, []);
+  const body = fell0 || hit0 ? 0 : 1;
+  const fell = body === 0 ? fell0 : fell1;
+  const cause: { cause?: DeathCause } = fell ? {} : { cause: 'hit' };
+  return out('dead', [{ type: 'died', body, ...cause }]);
 }

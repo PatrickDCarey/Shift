@@ -186,3 +186,72 @@ describe('B6: a world with more than MAX_CELLS_PER_ROW levels wraps', () => {
     expect(layout.filter((i) => i.id.startsWith('world:'))).toHaveLength(1);
   });
 });
+
+describe('B11-10: five world rows (expansion)', () => {
+  const FIVE = levelOrder(
+    [...ids(1, 5), ...ids(2, 5), ...ids(3, 5), ...ids(4, 5), ...ids(5, 5)].map((id) => src(id, Number(id[1]))),
+  );
+  const five = (p: Progress, focusId?: string): LevelSelectModel =>
+    createLevelSelectModel({ order: FIVE, progress: p, stepHz: 60, focusId });
+
+  it('names worlds 4 and 5 MOTION and SIGNALS; five rows of five', () => {
+    const model = five(progress());
+    expect(model.rows.map((r) => [r.world, r.name, r.cells.length])).toEqual([
+      [1, 'GEARS', 5],
+      [2, 'FLIGHT', 5],
+      [3, 'TANDEM', 5],
+      [4, 'MOTION', 5],
+      [5, 'SIGNALS', 5],
+    ]);
+    expect(model.clearedText).toBe('CLEARED 0/25');
+  });
+
+  it('opens the first level of every world on a fresh save, the rest locked', () => {
+    const open = five(progress()).rows.flatMap((r) => r.cells).filter((c) => c.state === 'open');
+    expect(open.map((c) => c.id)).toEqual(['w1-01', 'w2-01', 'w3-01', 'w4-01', 'w5-01']);
+  });
+
+  it('every row fits at 480x270 including the detail line, for any focused row', () => {
+    const done = [...ids(1, 5), ...ids(5, 5)];
+    const best = Object.fromEntries(done.map((id) => [id, 359_999]));
+    for (const focus of ['w1-01', 'w3-03', 'w5-05']) {
+      const layout = levelSelectLayout(five(progress(done, best), focus));
+      expect(layoutViolations(layout)).toEqual([]);
+      expect(layoutViolations(decorationRects(layout.filter((i) => i.id.startsWith('cell:'))))).toEqual([]);
+      const cellsBottom = Math.max(...layout.filter((i) => i.id.startsWith('cell:')).map((i) => i.y + i.h));
+      const detailTop = layout.find((i) => i.id === 'detail:title')!.y;
+      expect(cellsBottom).toBeLessThan(detailTop);
+    }
+  });
+
+  it('keyboard reaches the fifth row and down stops there', () => {
+    const model = press(five(progress()), ...Array(8).fill(move('down')));
+    expect(focusedCell(model)?.id).toBe('w5-01');
+  });
+
+  it('gaps (w4-04, w5-04 absent): counts follow what ships, unlock skips the gap, label from id', () => {
+    const gapped = levelOrder(
+      [...ids(1, 5), ...ids(4, 5).filter((i) => i !== 'w4-04'), ...ids(5, 5).filter((i) => i !== 'w5-04')].map((id) =>
+        src(id, Number(id[1])),
+      ),
+    );
+    const model = createLevelSelectModel({
+      order: gapped,
+      progress: progress(['w4-01', 'w4-02', 'w4-03']),
+      stepHz: 60,
+    });
+    expect(model.clearedText).toBe('CLEARED 3/13');
+    const w4 = model.rows[1]?.cells ?? [];
+    expect(w4.map((c) => c.label)).toEqual(['4-1', '4-2', '4-3', '4-5']);
+    expect(w4[3]?.state).toBe('open'); // previous loaded level (4-3) is cleared
+    expect(model.rows[2]?.cells.map((c) => c.label)).toEqual(['5-1', '5-2', '5-3', '5-5']);
+    expect(model.rows[2]?.cells[3]?.lockedBy).toBe('w5-03');
+  });
+
+  it('a 14-level save (worlds 1-3) loads with five rows: nothing unlocked by it changes', () => {
+    const old = progress(['w1-01', 'w2-01', 'w2-02'], { 'w2-02': 900 });
+    const model = five(old);
+    expect(model.rows[1]?.cells.map((c) => c.state[0]).join('')).toBe('ccoll');
+    expect(model.rows[3]?.cells[0]?.state).toBe('open');
+  });
+});

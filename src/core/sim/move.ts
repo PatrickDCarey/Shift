@@ -6,6 +6,7 @@ import { supported, sweepX, sweepY } from './collision';
 import type { FallThroughCell } from '../types';
 import { boxAt, cellSpan, tileAt } from './geometry';
 import { gateFor } from './gating';
+import { lettingGo, slabFloor } from './movers';
 import { emit, withPlayer, type StepCtx, type Work } from './work';
 
 /** Phase 7: trapezoid dx, wall stop snaps to the face and zeroes vx (gear kept);
@@ -29,18 +30,26 @@ export function moveYPhase(w: Work, ctx: StepCtx): Work {
   const p = w.player;
   const graceBand = p.graceSteps > 0 ? p.graceBand : null;
   const gate = gateFor(ctx.level, ctx.params, p.x, p.y, ctx.startBand, graceBand);
-  const res = sweepY(ctx.level, ctx.params, p.x, p.y, w.dy, gate);
+  const res0 = sweepY(ctx.level, ctx.params, p.x, p.y, w.dy, gate);
+  const slab = slabFloor(w, ctx, gate, p.y, res0.y, res0.hit === 'ceiling');
+  const landsOnSlab = slab !== null && (res0.hit !== 'floor' || slab < res0.y);
+  const res = landsOnSlab ? { y: slab, hit: 'floor' as const } : res0;
   const bonked = res.hit === 'ceiling';
   const moved = withPlayer(w, { y: res.y, vy: res.hit === null ? p.vy : 0 });
   const afterHit = bonked ? emit(moved, { type: 'ceiling', body: ctx.body }) : moved;
   const vy = afterHit.player.vy;
-  const grounded = vy >= 0 && supported(ctx.level, ctx.params, p.x, res.y, gate);
-  const landed = grounded ? withPlayer(afterHit, { grounded, y: Math.round(res.y), vy: 0 }) : withPlayer(afterHit, { grounded });
+  const onTile = supported(ctx.level, ctx.params, p.x, res.y, gate);
+  const grounded = vy >= 0 && (onTile || slab !== null);
+  const feet = onTile ? Math.round(res.y) : (slab ?? res.y);
+  const landed = grounded ? withPlayer(afterHit, { grounded, y: feet, vy: 0 }) : withPlayer(afterHit, { grounded });
   const walkedOff = ctx.startGrounded && !grounded && !w.jumped;
   if (!walkedOff) return landed;
   const started = withPlayer(landed, { coyoteSteps: ctx.params.coyoteSteps });
   const cells = supportCells(ctx, p.x, p.y);
-  return cells.length > 0 ? emit(started, { type: 'fallThrough', body: ctx.body, cells }) : started;
+  const movers = ctx.level.movers ? lettingGo(ctx.level, ctx.params, ctx.t, p.x, p.y) : [];
+  if (cells.length === 0 && movers.length === 0) return started;
+  const base = { type: 'fallThrough' as const, body: ctx.body, cells };
+  return emit(started, movers.length > 0 ? { ...base, movers } : base);
 }
 
 /**

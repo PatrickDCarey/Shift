@@ -99,7 +99,7 @@ function singleHintProblems(level: Level, hint: LevelHint): readonly string[] {
 }
 
 /** Some scroll in the axis' reachable range puts world span [lo, hi) over screen span [from, to). */
-function reachesOnAxis(lo: number, hi: number, from: number, to: number, view: number, world: number): boolean {
+export function reachesOnAxis(lo: number, hi: number, from: number, to: number, view: number, world: number): boolean {
   const min = axisScroll(Number.NEGATIVE_INFINITY, view, world);
   const max = axisScroll(Number.POSITIVE_INFINITY, view, world);
   return max > lo - to && min < hi - from;

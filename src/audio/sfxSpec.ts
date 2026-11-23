@@ -31,8 +31,8 @@ export type TenSfxId =
   | 'uiSelect'
   | 'airDragClunk';
 
-/** The ten plus the Tandem "park" chime (Should). */
-export type SfxId = TenSfxId | 'homeChime';
+/** The ten, the Tandem "park" chime (Should), and the expansion's bolt sounds (Should). */
+export type SfxId = TenSfxId | 'homeChime' | 'shot' | 'hitDeath';
 
 export const SFX_IDS: readonly TenSfxId[] = [
   'shiftUp',
@@ -47,7 +47,7 @@ export const SFX_IDS: readonly TenSfxId[] = [
   'airDragClunk',
 ];
 
-export const ALL_SFX_IDS: readonly SfxId[] = [...SFX_IDS, 'homeChime'];
+export const ALL_SFX_IDS: readonly SfxId[] = [...SFX_IDS, 'homeChime', 'shot', 'hitDeath'];
 
 /** One oscillator with the engine's envelope (5 ms attack, exponential decay to `duration`). */
 export interface ToneLayer {
@@ -212,6 +212,24 @@ function homeChime(): ToneLayer[] {
   return [layer(784, 0.07, 'triangle', 0.2), layer(1047, 0.12, 'triangle', 0.2, 0.07)];
 }
 
+/**
+ * Emitter fire: a soft two-layer pluck, quiet and short (90 ms), in the low-mid register
+ * (a tone under the gear arpeggio, so it never reads as a shift). Pitch follows the shot's
+ * band a little (same offsets as the music) so a red lane and a blue lane differ.
+ */
+function shot(cue: SfxCue): ToneLayer[] {
+  const m = bandMul(cue.band);
+  return [layer(420 * m, 0.09, 'triangle', 0.12, 0, 250 * m), layer(210 * m, 0.07, 'sine', 0.1)];
+}
+
+/**
+ * Hit death: a sharp square zap falling fast, then a low thump. Not the fall's slow
+ * sawtooth rewind: it has a hard attack and a body-blow bottom, 300 ms.
+ */
+function hitDeath(): ToneLayer[] {
+  return [layer(900, 0.12, 'square', 0.2, 0, 220), layer(170, 0.28, 'sine', 0.26, 0.02, 55)];
+}
+
 function baseLayers(cue: SfxCue): ToneLayer[] {
   switch (cue.id) {
     case 'shiftUp':
@@ -236,6 +254,10 @@ function baseLayers(cue: SfxCue): ToneLayer[] {
       return airDragClunk();
     case 'homeChime':
       return homeChime();
+    case 'shot':
+      return shot(cue);
+    case 'hitDeath':
+      return hitDeath();
     default:
       return [];
   }
@@ -248,7 +270,7 @@ function scaled(l: ToneLayer, pitch: number, gain: number): ToneLayer {
 
 /** Sounds that belong to a body; UI and run-level sounds ignore `body`. */
 function isBodySound(id: SfxId): boolean {
-  return id !== 'levelComplete' && id !== 'uiMove' && id !== 'uiSelect' && id !== 'reset';
+  return id !== 'levelComplete' && id !== 'uiMove' && id !== 'uiSelect' && id !== 'reset' && id !== 'shot' && id !== 'hitDeath';
 }
 
 function bodyLayers(cue: SfxCue): ToneLayer[] {

@@ -52,23 +52,33 @@ _Owner: design-lead. Built by level-designer in `levels/` (format: `docs/tech/le
 - **Fastest known steps (for the leaderboard floor, `features/leaderboards.md`):** record in `levels/README.md`, per level, the lowest winning step count seen in your sweeps (`Fastest known: N steps`). Backend sets the floor at 85% of it.
 - **Movers and bolts (v4.0):** `features/moving-objects.md` and `projectiles.md` "Level rules": slab speeds 1 or 2 only, shot speeds 2 or 4 only; horizontal slabs rest ≥ 30 steps where a line steps on or off; ≥ 2 tiles of headroom over every slab path; no slab path or shot lane under the HUD, over a hint box, a spawn or an exit; every lane crossing ≥ 18 steps and through the ±3 test. Record each slab's and emitter's line and its windows in the README.
 
-## Long levels (v4.0)
+## Long levels (v4.1, 2026-11-24; replaces the v4.0 definition)
 
-**What "long" means:** 100–150 tiles wide, ≤ 15 rows (one screen tall; the camera scrolls horizontally as today, no change), a clean run (the recording) of **40–80 s and never more than 5,400 steps** (tech-lead's robustness-test cap; aim ≤ 4,800 for margin), a first clear of 2–4 minutes. Normal levels stay 10–40 s.
+The v4.0 rule (100–150 tiles, 40–80 s) was inconsistent with the game's speeds: rooms are run at 6–12 tiles/s, so w2-05 v1 crossed 106 tiles in 16.6 s (an average of 6.4 tiles/s). Padding the clock with walking is the wrong fix; a long level is **a journey through many rooms**, with pace varying between sprint rooms and slow ones.
 
-**No checkpoints (ruled 2026-11-23).** A long level is one run from the spawn, so it is built not to need one:
-- **Hardest room first, easiest last.** The last third of a long level is a victory lap of world-1 skills with windows ≥ 30 steps, so a death near the end is rare. A long level's hardest window is no harder than the hardest short level of its world.
-- **Rooms, not new ideas.** A long level is TEST or COMBINE: 3–4 rooms the player has solved before with new numbers. Never a new idea in a long level.
-- **No waiting rooms.** No forced wait over 3 s (slab rests, timed lanes) anywhere, so a retry never repeats dead time.
-- **R is still instant**, and a cold-play check asks whether the restart felt too long. If two cold plays of a long level say so, design rules again (options: split it into two levels, or checkpoints post-jam, `features/checkpoints.md`).
-- Longer journeys than 80 s become two consecutive levels.
+**What "long" means:**
+- **8–12 rooms, 300–450 tiles wide, ≤ 15 rows** (horizontal scroll only, as today).
+- **Clean run (the recording) 45–75 s**: 2,700–4,500 steps, under tech-lead's 5,400-step robustness cap with margin. Expect an average of 5–7 tiles/s: sprint rooms plus slow ones (blue bridges, walking-pace rooms, brake pads, lifts in world 4).
+- **Recovery stretches:** 8–14 tiles of safe ground between rooms, where stopping is always safe (no white rain on them in world 5).
+- **Rooms, not new ideas:** every room is one the player has solved, with new numbers. Never a new idea in a long level.
+- **Windows ≥ 25 steps** for every timed input (≥ 30 in the last section), plus the ±3 test.
+- **No forced wait over 3 s.**
+- Normal levels stay 10–40 s. Anything between (40–120 tiles, under ~25 s, like w2-05 v1) is a **medium** level: no posts.
+
+**Checkpoints: YES for long levels (Must; ruled 2026-11-24, reversing 2026-11-23 ruling 2).** At 45–75 s clean and 4–8 minutes for a first clear, a death in room 9 that sends you back to room 1 fails pillar 3, and no amount of front-loading fixes it. Spec: `features/checkpoints.md` with tech-lead's §5.2 semantics (`checkpoint: <col> <row>` header line, the clock keeps running after a post death, R is a full restart, non-Tandem only).
+- **A post every 3–4 rooms**, so 15–25 s of clean run between posts: 2 posts in a 9-room level, 3 in a 12-room one.
+- **Each section** (spawn to post, post to post, post to exit) is ordered hardest room first; the last section is the easiest.
+- A post stands on a recovery stretch, at least 4 tiles before the next room, with its respawn box clear of every slab path and shot lane.
+- **No sweep in a level with posts** (the sweep's front would have to reset to the post: new state). Sweep levels stay medium.
+- **If checkpoints do not land before freeze:** the long levels ship at medium length (their first 3–4 rooms, ≤ 25 s), and w2-05 ships as v1. Their cold-play check decides any post-jam version.
 
 **Camera:** unchanged (horizontal follow, the HUD rule). A small look-ahead in the running direction is **Could** (render-only). The sweep's left-edge marker is Should with the sweep.
 
 ## Expansion build order (v4.0)
 
 Engineering first (tech-lead's order, `docs/tech/expansion-approach.md` §6.3). Content in this order; the producer and owner cut from the end if the calendar bites:
-1. **w2-05 Long Haul** (no new engineering: can start now).
+0. **Checkpoints** (v4.1, tech-lead's §5.2, Must for long levels): [level] `checkpoint:` parsing, [sim] the respawn and clock rule, [scene] the post sprite and respawn there. In parallel with movers and emitters.
+1. **w2-05 Long Haul**: v1 (106 tiles, 16.6 s) is the fallback and gets committed now; v2 (the long version below) adds rooms now and its `checkpoint:` lines when the parser lands.
 2. **w4-01, w4-02, w4-03** (movers).
 3. **w5-01, w5-02, w5-03** (bolts).
 4. **w4-05 Commute**, then **w5-05 Full Spectrum** (long combines).
@@ -97,7 +107,7 @@ Engineering first (tech-lead's order, `docs/tech/expansion-approach.md` §6.3). 
 
 | Id | Title | Idea | Sketch |
 |---|---|---|---|
-| w2-05 | Long Haul | TEST, long: worlds 1–2 in one run, reading ahead. | About 120 tiles, clean run ≈ 45–60 s, first clear 2–3 min, difficulty 3/5. Hardest room first: a Coast (red runway, 7-tile gap, yellow pad 2 lower, w2-02), then a Step Down walk-off onto red (w2-03), a red wall into a red bridge (w1-05), and an easy last third: a long brake pad into a blue bridge (w1-04) and the exit. Every timed input ≥ 24 steps; no Two Colors grace jump (its exception window stays w2-04's alone). A flow level: a player who reads ahead never has to stop. Needs no new engineering. No hints. COMBINE rule: no win skips the Coast or the walk-off. |
+| w2-05 | Long Haul | TEST, long: worlds 1–2 in one run, reading ahead. | **v2 (2026-11-24): 9 rooms, ≈ 330–380 tiles, clean run ≈ 50–65 s, 2 posts.** Keep v1's four rooms as they are (Coast, Step Down, Red Wall, Brake: windows 25–37, all approved), and their order. **Post 1** on the recovery stretch after the Red Wall (v1's brake pad). Section 2, hardest first: v1's Brake to the blue bridge (now a slow room, not the end), then **Shift** (w1-02: alternating green and blue bridges with 4-tile safe pads, at gear 2 and gear 1, a walking-pace room), then **Commit** (w2-01: a green runway, a 4-tile gap, a green landing pad). **Post 2** on a recovery stretch. Section 3, easiest: **Runway** (w1-03: a red bridge 2 tiles after a back wall, so you back up for a run-up), **Coast short** (red runway, a 5-tile gap to a yellow pad 3 lower, windows ≥ 30), then **Home**: a long blue bridge walk to the exit. Recovery stretches of 8–14 safe tiles between rooms. No Two Colors (w2-04's exception window stays its own). v1 text below is history. **v1:** About 120 tiles, clean run ≈ 45–60 s, first clear 2–3 min, difficulty 3/5. Hardest room first: a Coast (red runway, 7-tile gap, yellow pad 2 lower, w2-02), then a Step Down walk-off onto red (w2-03), a red wall into a red bridge (w1-05), and an easy last third: a long brake pad into a blue bridge (w1-04) and the exit. Every timed input ≥ 24 steps; no Two Colors grace jump (its exception window stays w2-04's alone). A flow level: a player who reads ahead never has to stop. Needs no new engineering. No hints. COMBINE rule: no win skips the Coast or the walk-off. |
 
 ## World 3 — Tandem (Must, M3)
 

@@ -14,6 +14,7 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w2-02 | Coast | 2 | NEW: air drag: every 6 tiles of flight costs one color | 45–90 s | approved (level plan v3.4, 2026-11-13); landing pad 2 tiles lower adopted |
 | w2-03 | Step Down | 2 | NEW: walking off a ledge is a shorter flight than jumping | 30–60 s | approved, version 2 (B6-06: 3-tile pit at the foot of the ledge; design-lead 2026-11-17, re-stated 2026-11-19); no hint |
 | w2-04 | Two Colors | 2 | combine: runway + commit + color grace (turn yellow on green, jump before the floor lets you go) | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); `shiftUp` stacked over `jump` hint headers (2026-11-19) |
+| w2-05 | Long Haul | 2 | test (long): worlds 1–2 in one run, reading ahead (Coast, Step Down, Red Wall, Brake) | 2–3 min | **new, version 1, for design-lead review** (level plan v4.0); no hints; clean run 16.6 s, under the long-level 40–80 s (see section) |
 | w3-01 | Two Lanes | 3 | NEW: a twin obeys the same keys on its own floor; both must reach home | 30–60 s | approved, version 1, no roofs (design-lead, 2026-11-16); first Tandem level and the T-20 test level; `move` and `shiftUp` hint headers |
 | w3-02 | Out of Step | 3 | NEW: a wall in one lane holds that body while the other walks on, so you choose how far out of step they are | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); safe kerb instead of the spec's blue wall (see section); runner-lane hint header `jump 5 3` only (batch 10, design-lead 2026-11-23 evening and the w3-02 placement ruling; header only, no version bump) |
 | w3-03 | Gear Split | 3 | NEW: a stop in mid-air drops only that body's gear | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); flat landing pad (18-step window); runner-lane hint headers `shiftUp 2 3` (2026-11-20, B8-01) and `jump 12 3` (2026-11-19) |
@@ -229,6 +230,43 @@ One screen (32 × 13): left wall, safe pad P1 (cols 1–3, spawn at col 1, open 
 **Fastest known:** 192 steps (`1R+ 37R 1R+ 15R 1RJ 400R`: shift to gear 2 while starting the run, shift up early on the floor, jump at the last step of the window).
 
 **Solution:** 225 steps. Stand 20, shift up once standing, walk 70 steps (onto the floor green), shift up at x = 8.11, yellow at 8.57, jump at 9.41 (6 steps after turning yellow), land yellow on the ledge at 14.96, run into the exit. Fairness (earlier/later): jump 6/6, shift press 23/17 with the jump delay kept.
+
+## w2-05 Long Haul
+
+**Teaches:** nothing new (TEST, long; level plan v4.0 "w2-05" and "Long levels"): worlds 1–2 in one run. Read ahead and set your gear for the next room while you run the current one. It uses only existing pieces (safe tiles, colored floors and walls), with no new engineering, no checkpoints and no hints.
+
+106 × 15, scrolls. Rows 0–1 are the rows the HUD covers when the 15-row level is centred, so they hold no colored tile or exit. Four rooms, each a level the player has already solved, with new numbers, and each entered over safe ground:
+
+1. **Coast (cols 0–23, hardest, first).** Left wall, safe run-up (cols 1–7, spawn against the wall, open sky) → red runway (cols 8–12) → 7-tile gap (cols 13–19) → yellow pad (cols 20–23) **3 tiles lower** (w2-02's is 2 lower). Take off red, drag to yellow 6 tiles out, land yellow. The extra tile of drop lifts the jump window from w2-02's 23 steps to **25** (takeoff x 9.70–14.50), which meets the plan's ≥ 24.
+2. **Step Down (cols 24–49).** Safe ledge (cols 24–35, 12 tiles: stop and think) → 3-tile pit (cols 36–38) → 11-tile red floor (cols 39–49) exactly 4 tiles below (w2-03's geometry). The Coast lands you in gear 3 (yellow): press up once on the ledge and walk off red (you land red at x 42.17). Walk off yellow and you fall through the red floor; jump off and you drag to yellow and fall.
+3. **Red Wall (cols 50–71).** Safe approach (cols 50–63, 14 tiles: stop and think) → a **2-tile red door** (col 64, rows 10–11) set in a safe mass that runs to the top of the level (so no red tile sits in the HUD rows) → 1 safe tile → red bridge (cols 66–71) under a 2-tile safe roof flush with its last column (w1-05's room). New numbers: you arrive red from the red floor, so the flow line brakes to **green** on the approach (two presses down) and presses up **twice** at the door (green to red takes 1.83 tiles). That gives a 30-step window where w1-05's yellow single press has 19. Arrive red and the door stops you; from its face red needs 3.23 tiles and only 2.75 remain.
+4. **Brake (cols 72–105, the easy last third).** 8-tile safe pad (cols 72–79, open sky) → **18-tile** blue bridge (cols 80–97, no roof, as in w1-04: no takeoff clears it) → safe exit pad (cols 98–105, exit 2 tiles tall at col 102). Shift down three times while running, or let go on the pad, stop, shift down and walk on.
+
+**How the rooms are ordered.** Hardest first. The Coast has the narrowest window (25 steps) and is the only room you cannot slow down for, so it sits next to the spawn, where a death costs about 2 s. Each later room is easier than the one before, and each starts on safe ground long enough to stop on (12, 14 and 8 tiles), so a player can stop and think between any two rooms. Step Down has no tight timing (a 52-step press window, or press while standing). The Red Wall has two 30-step windows, or a standing start with no timing. The last third is world 1's Brake with 37- and 34-step windows and an 18-tile walk home. The order also chains the gears: the Coast lands you yellow (one press up for the walk-off), the walk-off lands you red (brake for the door), and the door leaves you red (brake for the blue bridge). Reading ahead means choosing the next room's gear while you run the current one.
+
+- **Fair line (the recording):** every timed input has a window of at least 25 steps (level plan: ≥ 24; world-2 floor 18). Each window moves one input (or one press pair or triple) with the others fixed; x is the player's x at the end of the press step.
+  - jump: takeoff x 9.70–14.50, **25 steps** (12 earlier / 12 later);
+  - press up for the walk-off: **52 steps** (25/26), or press while standing on the ledge (no time limit);
+  - approach press-down pair: **30 steps** (13/16), first press at x 51.36 in the recording;
+  - door press-up pair: **30 steps** (13/16), first press at x 63.14 (red at 64.94, past the door);
+  - brake triple: **37 steps** (17/19), first press at x 73.51 (blue at 76.55);
+  - the shift-ups at the spawn are made standing, before moving (no time limit).
+- **No-timing alternatives** (for a player who stops): at the Red Wall, let go on the approach, stop, shift down to gear 1, walk right for 110–168 steps (**59 steps** at walking pace, about 3 tiles of spots), stop, shift up to gear 4 and run (w1-05's fair line (a)). At the Brake, let go on the pad (**34-step** let-go window, 36–69 steps after the door presses), shift down standing and walk on.
+- **No forced wait:** none; every stop is optional.
+- **COMBINE rule (no win skips the Coast or the walk-off),** sweeps through the real sim:
+  - Coast: 7,290 lines (0–4 standing shift-ups, an optional shift-down on the runway at 6 points, a jump at every step from 30 to 110, an optional second jump): 684 reach the ledge alive, **all** of them across the gap on a red takeoff that drags.
+  - Step Down: 8,064 lines from the Coast landing (0–2 presses up at 4 points, a jump at every step through coyote time, an optional second jump, hold or let go): 878 reach the approach alive, **0** whose drop onto the red floor started with a jump.
+  - Jump injection: the recording with one or two extra jumps at every step (4,000 lines): 2,661 wins, every one a red Coast takeoff and a walk-off.
+- **Red Wall check:** 86,688 lines from the red floor (0–3 presses down and 0–3 up at every third step, an optional jump around the presses): 1,454 reach the brake pad alive, **0** of them after a stop at the door.
+- **Brake check:** never braking, with one or two jumps at any of 160 steps (960 lines): 0 wins. Braking only to green or yellow, with or without a jump (714 lines): 0 wins.
+- **Pockets:** none (`src/entities/sealedPockets.test.ts` passes with w2-05 present).
+- **Safe spots:** the spawn run-up, the ledge, the approach, the brake pad and the exit pad.
+- **Hints:** none (level plan: "No hints"; every key was shown in worlds 1–2).
+- **Length (open for design-lead):** 106 tiles; the clean run is **996 steps (16.6 s)**, under the long-level rule's 40–80 s. With these four rooms the run is mostly sprinting at 9–12 tiles/s, and 40 s over 100–150 tiles needs an average of 2.5–3.75 tiles/s, which means walking most of the level. Options: accept it as a short long level; add a world-1 walking lap to the last third (for example w1-02's green and blue bridges, about +10 s and +40 tiles); or widen it with walk-only blue bridges (more time, no more decisions). First clears should still take 2–3 min with deaths.
+
+**Fastest known:** 845 steps (`1R+ 1R 1R+ 1R 1R+ 75R 1RJ 59R 1R+ 148R 1R- 56R 1R+ 70R 1R- 2R 1R- 1R 1R- 20R 1RJ` then hold right: shift while starting the run, press down once to yellow and make w1-05's single press at the door, then a jump onto the blue bridge after braking).
+
+**Solution:** 996 steps (16.6 s). Stand 20, shift up to gear 4, sprint, jump at x = 12.10, land yellow at 22.10; press up at x = 25.10, walk off red, land red at 42.17; press down twice at x = 51.36 (green at 53.08); press up twice at x = 63.14 (red at 64.94); press down three times at x = 73.51 (blue at 76.55); walk the blue bridge into the exit. `tests/levels` passes, including ±3 on every transition.
 
 ## w3-01 Two Lanes
 

@@ -36,9 +36,12 @@ levels/
 | `world` | integer 0–5 | yes | World from the GDD toolbox; 0 = test. |
 | `teaches` | string | yes | One short phrase: what the level teaches. |
 | `version` | integer ≥ 1 | yes | Bump on **every** grid change. Solutions name the version they solve. |
-| `hint` | `<glyph> <col> <row>` | no, up to 3 | Onboarding glyph anchored on a grid cell (below). The only key that may appear more than once. |
+| `hint` | `<glyph> <col> <row>` | no, up to 3 | Onboarding glyph anchored on a grid cell (below). Repeatable. Render-only. |
+| `mover` | `<col> <row> <w>x1 <kind> key=value…` | no, up to 16 | A top-only slab on a fixed loop (§2 "Kinetic headers"). Repeatable. **Sim data.** |
+| `emitter` | `<col> <row> key=value…` | no, up to 16 | A bolt emitter (§2 "Kinetic headers"). Repeatable. **Sim data.** |
+| `sweep` | `x0=<int> speed=<n> delay=<n>` | no, at most 1 | A chasing front (Should; §2 "Kinetic headers"). **Sim data.** |
 
-Unknown keys are an error (catches typos). Every key except `hint` appears at most once. New keys need a tech-lead change to this doc and `LevelMeta`.
+Unknown keys are an error (catches typos). Every key except `hint`, `mover` and `emitter` appears at most once. New keys need a tech-lead change to this doc and `LevelMeta`.
 
 ### Hint headers (M2-03)
 
@@ -64,6 +67,32 @@ hint: shiftUp 6 0
 - **Render-only:** the sim never reads hints, so adding, moving or removing a hint needs **no** `version` bump and keeps the solution valid.
 - **Placement** (`onboarding-hints.md`): the glyph's box touches columns col−1 … col+1 of rows row−1 … row; every one of those cells must be inside the grid and empty (`@` and `&` cells count as empty), and the highest non-empty, non-exit tile below the anchor row in any of the box's columns (col−1 … col+1) must be at least 3 rows below the anchor row (a pit under every box column passes). The parser does not check this; `tests/levels/hints.test.ts` does, for every shipped level, and also replays each hinted level with its `hint:` lines removed to the same `wonAtStep`.
 - The scene draws hints in M2-41 (glyph art: M2-36).
+
+### Kinetic headers (expansion, 2026-11-23)
+
+Movers (slabs), emitters (bolts) and the sweep are header lines, not grid glyphs. Specs: `docs/design/features/moving-objects.md`, `projectiles.md`, `sweep.md`. Types and the exact clock and arithmetic rules: `src/core/contracts/kinetics.ts`. Every position is a pure function of the run step (`SimState.step`), so they rewind on respawn and freeze during the death and win freezes.
+
+```
+mover: 10 8 3x1 safe speed=2 phase=0 path=w60,u6,w60,d6
+mover: 20 4 4x1 G speed=1 path=w30,r6,w30,l6
+emitter: 30 6 dir=l range=12 speed=4 period=90
+emitter: 30 9 dir=l range=12 speed=4 period=90 phase=45 band=W
+sweep: x0=-6 speed=2 delay=90
+```
+
+- **`mover: <col> <row> <w>x1 <kind> key=value…`**, positional tokens first, then `key=value` tokens in any order, each key at most once.
+  - `<col> <row>`: top-left cell at path time 0. `<w>x1`: width 1–16 whole tiles, height exactly 1 (slabs are top-only). `<kind>`: `safe` (grey, holds every band) or `B G Y R` (holds a body like a coloured floor of that band: band at start of step, or that band's grace from above).
+  - `speed=` (required): 1, 2, 4 or 8 = 32nds of a tile per step (1.875, 3.75, 7.5, 15 tiles/s).
+  - `path=` (required): comma-separated tokens, no spaces, 1–32 of them: `r<n> l<n> u<n> d<n>` move n whole tiles (1–256; `u` is up, −y), `w<n>` waits n steps (1–3600). A move takes `n × 32 / speed` steps. The loop is closed: net displacement 0, and at least one move.
+  - `phase=` (optional, default 0): steps, `0 ≤ phase < cycle`, where `cycle` = sum of waits + sum of `n × 32 / speed` over moves. Path time `u = (t + phase) mod cycle`.
+- **`emitter: <col> <row> key=value…`**
+  - `<col> <row>`: the emitter's cell (a `.` in the grid; drawn as an emitter).
+  - `dir=` (required) `l r u d`; `range=` (required) 1–256 whole tiles from the cell's centre; `speed=` (required) 1, 2, 4 or 8; `period=` (required) 1–3600 steps; `phase=` (optional, default 0) `0 ≤ phase < period`; `band=` (optional): absent = grey (hits every band), `W` = white (hits band 0 only), `B G Y R` = that band only.
+  - A shot leaves on every run step `s ≥ 0` with `(s + phase) mod period = 0` at the cell's centre and lives while `0 ≤ t − s < range × 32 / speed`. No shot with `s < 0` exists: no bolt is ever past the muzzle at `t = 0`.
+- **`sweep: x0=<int> speed=<n> delay=<n>`** (Should): all three keys required. `x0` integer −64 … width; `speed` 1, 2, 4 or 8; `delay` 0–36000 steps. Front at `t`: `min(width, x0 + speed/32 × max(0, t − delay))`.
+- **Parsed into** `Level.movers`, `Level.emitters` (file order; the index is the piece's id) and `Level.sweep`. Each field is **absent** when the file has no such line (never an empty array), so levels without kinetic headers parse, run and hash exactly as before.
+- **Version rule:** unlike `hint:`, these lines change the simulation. **Any change to a `mover:`, `emitter:` or `sweep:` line bumps `version`** (and the solution is re-recorded), exactly like a grid change; the backend `LEVELS` row follows.
+- **Level rules, not parser rules** (`tests/levels/kineticRules.ts`, tech-lead, B11-15; a planted fixture per rule proves it fails): slab speed ∈ {1, 2}, slab width 2–8; shot speed ∈ {2, 4}, period ≥ 12; a slab's **swept area** (bounding box of its `moverCorners`, width × 1) holds only empty cells and has ≥ 2 empty in-grid rows above every cell; every end of a horizontal leg (two consecutive moves, cyclic, either `l`/`r`, not the same direction) rests ≥ 30 steps, unless the end is listed in `REST_EXEMPT` with its `levels/README.md` line (an end no line uses); an emitter's **lane** (its cell up to the end cell = cell + `range` along `dir`) crosses no non-empty tile, and the end cell, where the bolt sinks, is a wall (non-empty, not an exit); swept areas and lanes overlap no spawn box (`@`, `&`: the spawn column, `ceil(playerHeight)` rows up from the spawn row), exit, hint box, or the HUD area at **any** camera position the level allows (as hints); recordings ≤ 5,400 steps (every level). Not yet enforced, with the piece that needs them: sweep speed ∈ {2, 4}, delay ≥ 60, `x0 ≤` spawn x − 6 (B12-01); no slab box over a spawn box at `t = 0` and no shot reaching a spawn box in the first 60 steps are implied by the keep-out rule. Design's per-level pacing rules (crossing windows ≥ 18 steps, w2-05's 4,800-step clean run) stay in `levels/README.md`.
 
 ### Grid
 
@@ -92,7 +121,7 @@ Everything after the `---` line, until end of file. One character per tile.
 
 Mnemonic: **upper-case colour initial = solid coloured block, lower-case = speed gate of that colour.**
 
-Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X` crate and `M` moving platform (later worlds); `~` mud, `*` boost pad, `<` `>` conveyors (cut 2026-11-04, T-02: their tuning keys are gone; boost pads may return as a Could). A reserved character is never reused for another piece. World 4/5 pieces that need parameters (platform paths) will get an optional section after a second `---`; that format is defined when design-lead specs those pieces. Afterimage ghost platforms (world 5) are created at runtime and have no character.
+Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X` crate and `M` moving platform (later worlds); `~` mud, `*` boost pad, `<` `>` conveyors (cut 2026-11-04, T-02: their tuning keys are gone; boost pads may return as a Could). A reserved character is never reused for another piece: `M` stays reserved even though slabs now exist, because slabs are `mover:` header lines (§2 "Kinetic headers"), not grid glyphs. A second `---` remains an error. Afterimage ghost platforms (world 5) are created at runtime and have no character.
 
 ### Validation (parser must reject with a message naming file, row and column)
 
@@ -102,6 +131,11 @@ Reserved (a parse error naming the character as reserved, `RESERVED_CHARS`): `X`
 - More than one `&`: the error names the row and column of the second one.
 - `&` with an `E` directly above it (the spawn box overlaps that cell, so the twin would be home on step 1) or directly below it (an exit is not solid, so the twin would drop into it): an error naming the `&`'s row and column. Tech-lead ruling 2026-11-04 on `tandem.md` "Edge cases". `&` can never sit inside a solid tile or on an exit, because the character itself fills the cell.
 - `hint`: not three tokens; an unknown glyph id; a non-integer or negative column or row; an anchor outside the grid; an anchor cell that is not `.` in the file; more than 3 `hint:` lines (`MAX_LEVEL_HINTS`); a **duplicate hint**, i.e. the same glyph id at the same anchor as an earlier line (the message names that earlier line). The same glyph at two anchors is allowed, and two different glyphs on one anchor are not a parse error (the placement test and level review catch overlapping boxes). The message names the file, the header line (its row) and the column where the bad token starts. The placement rules (box over empty cells, 3 rows above the floor) are checked by `tests/levels/hints.test.ts`, not the parser (§2 "Hint headers").
+- `mover`: fewer than 5 tokens or an unknown, repeated or missing required key; a non-integer number or one out of the ranges in §2 "Kinetic headers"; a size not `<w>x1`; a kind not `safe B G Y R`; a speed not in {1, 2, 4, 8}; a path token not `[rlud][1-9][0-9]*` or `w[1-9][0-9]*`; a path with no move or a net displacement ≠ 0; `phase ≥ cycle`; any cell of the slab at any track corner (origin + every prefix sum of the moves) outside the grid; any cell of the slab at its origin (all `w` cells) that is not `.` in the file; more than 16 (`MAX_MOVERS`).
+- `emitter`: an unknown, repeated or missing required key; a number out of range; `dir` not `l r u d`; `band` not `W B G Y R`; `phase ≥ period`; a cell outside the grid or not `.` in the file; a lane end (cell centre + range along `dir`) outside `[0, width] × [0, height]`; more than 16 (`MAX_EMITTERS`).
+- `sweep`: a second `sweep:` line (its own message, naming the line of the first); an unknown, repeated or missing key; a number out of range, including `x0` below −64 or above the level width.
+- *Readings confirmed by tech-lead (B11-15, 2026-11-23), as the [level] lane built them in `src/core/level/kinetics.ts`:* (1) every origin cell of a slab must be `.`, not only its top-left (the slab is drawn there at `t = 0`); (2) a second `sweep:` line has its own message; (3) `x0` is range-checked on both sides, `−64 ≤ x0 ≤ width`.
+- Kinetic messages name the file, the header line and the column where the bad token starts, as for `hint`.
 
 
 ## 3. Example level

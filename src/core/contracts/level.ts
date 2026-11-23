@@ -2,6 +2,7 @@
  * Tiles and levels (GDD §4.7, §7.1). Owner: tech-lead. Import via `src/core/types`.
  */
 import type { Band, ColoredBand } from './bands';
+import type { Emitter, Mover, Sweep } from './kinetics';
 
 /**
  * One grid cell. Pieces marked RESERVED parse and render as placeholders;
@@ -131,4 +132,14 @@ export interface Level {
   readonly start: TilePos;
   /** Cell marked `&` (the Tandem twin), same spawn rule as `start`; null when the level has none. */
   readonly twinStart: TilePos | null;
+  /**
+   * Slabs from `mover:` headers, in file order (the index is the mover's id).
+   * Absent when the file has none (never an empty array), so levels without
+   * kinetic headers parse, step and hash exactly as before the expansion.
+   */
+  readonly movers?: readonly Mover[];
+  /** Emitters from `emitter:` headers, in file order; absent when none (as `movers`). */
+  readonly emitters?: readonly Emitter[];
+  /** The `sweep:` header (Should, at most one); absent when none. */
+  readonly sweep?: Sweep;
 }

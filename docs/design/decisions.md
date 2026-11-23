@@ -577,3 +577,21 @@ A miss on 4 with mostly late pins after the batch 10 glyph move comes back to de
 10. **Pillar wording (GDD §2):** pillar 1 adds "where, when and how fast" and "everything that moves runs on a fixed clock you can read"; pillar 2 adds the one-rule sentence. Pillars 3 and 4 unchanged.
 11. **Tuning:** `projectileSizeTiles` 0.5 and `emitterTellMs` 300 go into `tuning.json` in the same batch as tech-lead's schema change, never before. No mover or sweep key (speeds are a format constant).
 12. **Itch page:** not rewritten; a note lists what to re-count when the expansion lands (`itch-page.md` top).
+
+## 2026-11-24 — B11-04 tuning keys; mover spec correction
+- **`projectileSizeTiles` 0.5:** half a tile (8 px) is small enough to jump over with a full jump (feet above 0.75 on flight steps 4–44) and big enough to read at 480×270; matches art's 8×8 bolt, drawn the same size as the hit box.
+- **`emitterTellMs` 300 (18 steps):** long enough to read before a shot at 7.5 tiles/s, short enough not to blur with the next shot at period ≥ 12; art's static frame change meets it in every effects mode. Audio's 90 ms shot cue plays at the shot, not during the tell, so nothing conflicts.
+- **Spec error fixed:** `moving-objects.md` speed 2 = 0.0625 tiles/step (3.75 tiles/s), not 0.1171875; check 3 is start + 6.725; check 4 lands at state step 135. No level intent relied on the wrong figure (`levels-w4.md`/`w5.md` give tiles/s and 96-step moves, both correct).
+- **[sim]'s edge choices confirmed:** a jump step never lands on a slab; no `fallThrough` for a rider left behind by a wall; a downward carry onto a tile is blocked by it.
+- **Noted (B11-04):** art built both sink readings (keep the lane-end catcher for bolts; the slab ghost is fine as a track end); audio maps `cause: 'sweep'` to `hitDeath`, accepted.
+
+## 2026-11-24 — Long levels redefined; checkpoints back as Must (level plan v4.1)
+
+**Input:** w2-05 v1 as built (106 × 15, four rooms, windows ≥ 25, recording 996 steps = 16.6 s, fastest known 845) and the level-designer's README note that the v4.0 rule (100–150 tiles, 40–80 s) contradicts the game's speeds. The owner asked for "longer levels"; 17 s end to end is not that.
+- **Definition: 8–12 rooms, 300–450 tiles, ≤ 15 rows, a clean run of 45–75 s (2,700–4,500 steps), pace varied by slow rooms, recovery stretches of 8–14 safe tiles, windows ≥ 25 (≥ 30 in the last section).** Reason: at the measured 5–7 tiles/s, distance and room count make the length. Padding with walking laps is rejected.
+- **Checkpoints: Must for long levels, reversing 2026-11-23 ruling 2.** A first clear is 4–8 minutes at this length, and losing room 9 sends you back to room 1: structure alone cannot keep that fair (pillar 3). The owner asked for long levels, so this is in scope. Tech-lead's §5.2 design (M-L, the one `SimState` change) is the spec, with a post every 3–4 rooms. Levels with posts have no sweep.
+- **Medium levels:** 40–120 tiles and under about 25 s, with no posts. That covers w2-05 v1, w4-04 and w5-04.
+- **w2-05:** v1 approved as built and committed as the fallback. v2 keeps v1's four rooms and adds Shift, Commit, Runway, a short Coast and a blue walk home (9 rooms, 2 posts; `level-plan.md`).
+- **w4-05: 9 rooms, 2 posts. w5-05: 12 rooms, 3 posts** (`levels-w4.md`, `levels-w5.md`).
+- **If checkpoints miss freeze:** w2-05 ships as v1, and w4-05 and w5-05 ship at medium length (their first section).
+- **Tech limits:** 450 columns and 4,500 steps fit tech-lead's §5 table. The robustness test cost and the backend's 16,000-character log cap need checking with posts, because player runs with deaths are long. Request lines filed.

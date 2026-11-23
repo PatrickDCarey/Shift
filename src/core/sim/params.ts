@@ -49,5 +49,6 @@ export function deriveParams(tuning: Tuning): SimParams {
     deathFreezeSteps: steps(tuning.deathFreezeMs),
     playerWidth: tuning.playerWidthTiles,
     playerHeight: tuning.playerHeightTiles,
+    projectileSize: tuning.projectileSizeTiles,
   };
 }

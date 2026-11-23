@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { SimEvent } from '../core/types';
 import { effectModes } from '../fx';
 import { audio, bodiesOf, music, musicFeed, playStepEvents } from '../audio';
-import { snapFeet, type CameraBody } from '../entities/camera';
+import { BodyViews, cameraBodies, snapBodies } from '../entities/BodyViews';
 import { CameraRig } from '../entities/cameraRig';
 import { installDebugHook, removeDebugHook, type DebugSnapshot } from '../entities/debugHook';
 import { DEV_TANDEM_ID, devTandemLevel } from '../entities/devLevel';
@@ -18,10 +18,10 @@ import { HintView } from '../entities/HintView';
 import { InputSampler } from '../entities/inputSampler';
 import { embeddedMask } from '../entities/embedded';
 import { focusPromptVisible } from '../entities/focusPrompt';
-import { renderBodyPosition } from '../entities/interpolation';
 import { attachKeyboard } from '../entities/keyboardInput';
 import { pageLevelStarts } from '../entities/levelStart';
 import { LEVEL_FILES } from '../entities/levelFiles';
+import { KineticsView } from '../entities/KineticsView';
 import { LevelView } from '../entities/LevelView';
 import { planLevel } from '../entities/levelTiles';
 import { applyEffectPrefs, readEffectPrefs, type EffectPrefs, type PrefTargets } from '../entities/effectPrefs';
@@ -29,7 +29,6 @@ import { prefersReducedMotion } from '../entities/motionPrefs';
 import { loadGameParams, type GameParams } from '../entities/params';
 import { OverlayGate } from '../entities/overlayGate';
 import { PauseState, pauseWanted, type PauseChange } from '../entities/pauseState';
-import { PlayerView } from '../entities/PlayerView';
 import { QA_HOOK } from '../entities/qaHook';
 import { RestartCardController } from '../entities/RestartCardController';
 import { chooseFrameSource, parseReplayRequest, type FrameSource } from '../entities/replay';
@@ -82,9 +81,9 @@ export class GameScene extends Phaser.Scene {
   private sampler = new InputSampler();
   private store!: SaveStore;
   private levelView!: LevelView;
-  private playerView!: PlayerView;
-  /** The twin's view, created on first sight of `state.twin` (one instance per body). */
-  private twinView: PlayerView | null = null;
+  private bodies!: BodyViews;
+  /** Null for levels without movers or emitters. */
+  private kinetics: KineticsView | null = null;
   private hintView: HintView | null = null;
   private restartCard!: RestartCardController;
   private rig!: CameraRig;
@@ -145,15 +144,15 @@ export class GameScene extends Phaser.Scene {
     const osReduced = prefersReducedMotion(typeof window.matchMedia === 'function' ? (q) => window.matchMedia(q) : undefined);
     this.prefs = readEffectPrefs(this.store.getSettings(), osReduced);
     this.reduced = this.prefs.reducedMotion;
-    this.twinView = null;
     this.levelView = new LevelView(this, level, tuning.tileSize, this.reduced);
     this.hintView = new HintView(this, hintPlans(level.meta.hints, tuning.tileSize));
     this.restartCard = new RestartCardController(this, level, { ...tuning, stepHz: params.stepHz });
-    this.playerView = new PlayerView(this, 'runner', tuning, this.reduced);
     const modes = effectModes(this.prefs, level.twinStart !== null);
     this.backdrop = new BackdropView(this, modes, Math.max(...tuning.gearSpeeds));
     this.fall = new FallCue(this, tuning.tileSize, this.reduced);
     this.fx = new FeedbackFx(this, modes);
+    this.bodies = new BodyViews(this, tuning, this.fx, this.reduced);
+    this.kinetics = KineticsView.forLevel(this, level, tuning, params.stepHz);
     const { id, title } = level.meta;
     this.hud = new GameHud(this, hudTitle(id, title, source), [...selection.messages, ...sourceMessages(source)]);
     this.meters = new GearMeters(this, level.twinStart !== null, this.reduced);
@@ -214,7 +213,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private prefTargets(): PrefTargets {
-    const motion = [this.levelView, this.playerView, this.twinView, this.fall, this.tip, this.meters, this.rig];
+    const motion = [this.levelView, this.bodies, this.fall, this.tip, this.meters, this.rig];
     return {
       setReducedMotion: (r) => motion.forEach((t) => t?.setReducedMotion(r)),
       setModes: (m) => [this.backdrop, this.fx].forEach((t) => t.setModes(m)),
@@ -272,46 +271,25 @@ export class GameScene extends Phaser.Scene {
     this.tip = shown === null ? null : new TipLife(this, shown, this.reduced);
   }
 
-  /** Whole-pixel feet of one body at the interpolated position, or null when the level has no such body. */
-  private snapBody(body: 0 | 1, ts: number): { readonly px: number; readonly py: number } | null {
-    const { state, prev, alpha } = this.driver;
-    const pos = renderBodyPosition(prev, state, alpha, body);
-    return pos === null ? null : snapFeet(pos.x, pos.y, ts);
-  }
-
-  private viewFor(body: number): PlayerView | null {
-    return body === 0 ? this.playerView : this.twinView;
-  }
-
   /** Level, bodies, camera, tint and effects for this frame. */
   private drawBodies(time: number, delta: number, paused: boolean, events: readonly SimEvent[]): void {
-    const { state, level } = this.driver;
+    const { state, level, prev, alpha } = this.driver;
     const { tuning } = this.cfg;
-    const ts = tuning.tileSize;
-    const bodyHeightPx = Math.round(tuning.playerHeightTiles * ts);
-    const dead = state.status === 'dead' || state.status === 'restarting';
-    // Snap each body's feet to whole pixels once (renderer only, never written back); the camera derives from these.
-    const runner = this.snapBody(0, ts) ?? snapFeet(state.player.x, state.player.y, ts);
-    const twin = this.snapBody(1, ts);
+    const snapped = snapBodies(prev, state, alpha, tuning.tileSize);
     this.fall.update(events, state.status, time);
-    this.reactToEvents(events, runner.px, runner.py - bodyHeightPx / 2, twin === null ? null : { x: twin.px, y: twin.py - bodyHeightPx / 2 });
+    this.bodies.react(events, snapped);
     const embedded = (p: { x: number; y: number }): ReturnType<typeof embeddedMask> =>
       embeddedMask(level, p.x, p.y, tuning.playerWidthTiles, tuning.playerHeightTiles);
     const twinTint =
       state.twin === null ? null : { band: state.twin.band, graceBand: state.twin.graceBand, embedded: embedded(state.twin) };
     this.levelView.update(state.player.band, state.player.graceBand, embedded(state.player), time, twinTint);
-    this.playerView.draw(runner.px, runner.py, state.player, dead);
-    if (state.twin !== null && twin !== null) {
-      this.twinView ??= new PlayerView(this, 'twin', tuning, this.reduced);
-      this.twinView.draw(twin.px, twin.py, state.twin, dead);
-    }
-    const bodies: CameraBody[] = [{ ...runner, home: state.player.home }];
-    if (twin !== null && state.twin !== null) bodies.push({ ...twin, home: state.twin.home });
-    this.rig.follow(level, bodies, twin, state.twin, bodyHeightPx, delta);
+    this.bodies.draw(snapped, state);
+    this.kinetics?.update(this.driver, this.prefs);
+    this.rig.follow(level, cameraBodies(snapped, state), snapped.twin, state.twin, this.bodies.bodyHeightPx, delta);
     this.rig.applyTint(Math.abs(state.player.vx), delta);
     const cam = this.cameras.main;
     this.restartCard.update(state, events, { x: cam.scrollX, y: cam.scrollY }, this.tip?.isShowing() ?? false);
-    this.backdrop.update(this.rig.tintedSpeed, this.cameras.main.scrollX);
+    this.backdrop.update(this.rig.tintedSpeed, cam.scrollX);
     if (!paused) this.fx.update(delta);
   }
 
@@ -323,18 +301,6 @@ export class GameScene extends Phaser.Scene {
     this.hud.setDebug(this.debugOn && this.showDebug ? debugText(state, this.game.loop.actualFps) : null);
   }
 
-  private reactToEvents(events: readonly SimEvent[], centerX: number, centerY: number, twinCentre: { readonly x: number; readonly y: number } | null): void {
-    for (const e of events) {
-      if (e.type === 'airDrag') {
-        if (e.body === 0) this.fx.airDrag(centerX, centerY);
-        else if (twinCentre !== null) this.fx.airDrag(twinCentre.x, twinCentre.y);
-      } else if (e.type === 'died') this.fx.died();
-      else if (e.type === 'land') this.viewFor(e.body)?.pulse('land');
-      else if (e.type === 'jump') this.viewFor(e.body)?.pulse('jump');
-      else if (e.type === 'bandChange') this.viewFor(e.body)?.pulse('shift');
-    }
-  }
-
   private debugSnapshot(): DebugSnapshot {
     const { replay } = this.run;
     const state = this.driver.state;
@@ -344,6 +310,7 @@ export class GameScene extends Phaser.Scene {
       meter: this.meter,
       paused: this.pause.paused,
       restartCard: this.restartCard.snapshot(),
+      kinetics: this.kinetics?.snapshot(state) ?? null,
     };
   }
 
@@ -357,9 +324,9 @@ export class GameScene extends Phaser.Scene {
     this.hintView?.destroy();
     this.hintView = null;
     this.restartCard.destroy();
-    this.playerView.destroy();
-    this.twinView?.destroy();
-    this.twinView = null;
+    this.bodies.destroy();
+    this.kinetics?.destroy();
+    this.kinetics = null;
     this.fx.destroy();
     this.fall.destroy();
     this.backdrop.destroy();

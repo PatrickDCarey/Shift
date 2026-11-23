@@ -7,7 +7,7 @@ describe('deriveParams', () => {
   const params = deriveParams(tuning);
 
   it('agrees field for field with the motion lane test stand-in', () => {
-    expect(params).toEqual(paramsForTests(tuning));
+    expect(params).toEqual({ ...paramsForTests(tuning), projectileSize: tuning.projectileSizeTiles });
   });
 
   it('derives gravity 37.5 and launch speed 15 (jump check 4)', () => {
@@ -31,6 +31,7 @@ describe('deriveParams', () => {
       shiftBufferSteps: 6,
       colorGraceSteps: 6,
       deathFreezeSteps: 24,
+      projectileSize: 0.5,
       playerWidth: 0.75,
       playerHeight: 1.5,
     });

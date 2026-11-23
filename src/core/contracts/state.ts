@@ -121,8 +121,17 @@ export type SimEvent =
    * reported here, by ruling (§3.2): this event always means "the floor you
    * stood on let you go".
    * Contract only as of Batch 4: the sim emits it from Batch 5.
+   * Movers (expansion): a coloured slab that lets a grounded body go the same
+   * way is listed in `movers` (indices into `Level.movers`, ascending). Then
+   * `cells` may be empty; `cells` or `movers` is always non-empty. `movers` is
+   * absent when no slab is involved (every pre-expansion event is unchanged).
    */
-  | { readonly type: 'fallThrough'; readonly body: BodyId; readonly cells: readonly FallThroughCell[] }
+  | {
+      readonly type: 'fallThrough';
+      readonly body: BodyId;
+      readonly cells: readonly FallThroughCell[];
+      readonly movers?: readonly number[];
+    }
   /** Grace started: `band` tiles hold the player from above for colorGraceSteps. */
   | { readonly type: 'graceStart'; readonly body: BodyId; readonly band: ColoredBand }
   /**
@@ -133,9 +142,18 @@ export type SimEvent =
   | { readonly type: 'home'; readonly body: BodyId }
   /** Every body is home. Run-level. */
   | { readonly type: 'won' }
-  /** A non-home body fell below the grid; the whole run dies. Both on one step: body 0. */
-  | { readonly type: 'died'; readonly body: BodyId }
+  /**
+   * A non-home body died; the whole run dies. Both on one step: body 0.
+   * `cause` absent = fell below the grid (every pre-expansion event); 'hit' =
+   * a bolt (Level.emitters); 'sweep' = caught by the front (Level.sweep).
+   * Precedence on one step: home/won first (exit wins), then fall, hit,
+   * sweep, judged body 0 before body 1; one `died` event only.
+   */
+  | { readonly type: 'died'; readonly body: BodyId; readonly cause?: DeathCause }
   | { readonly type: 'restart' };
+
+/** Why a run died, when it was not a fall. Movers never kill (top-only), so there is no 'crush'. */
+export type DeathCause = 'hit' | 'sweep';
 
 /** Events that belong to one body (everything except `won` and `restart`). */
 export type BodyEvent = Extract<SimEvent, { readonly body: BodyId }>;

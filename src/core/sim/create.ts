@@ -5,6 +5,7 @@
 import { EMPTY_INPUT, type Level, type PlayerState, type SimParams, type SimState, type TilePos } from '../types';
 import { supported } from './collision';
 import { gateFor } from './gating';
+import { slabUnder } from './movers';
 
 export function spawnBody(cell: TilePos, level: Level, params: SimParams): PlayerState {
   const x = cell.col + 0.5;
@@ -19,7 +20,7 @@ export function spawnBody(cell: TilePos, level: Level, params: SimParams): Playe
     band: 0,
     facing: 1,
     moveDir: 0,
-    grounded: supported(level, params, x, y, gate),
+    grounded: supported(level, params, x, y, gate) || (level.movers !== undefined && slabUnder(level, params, 0, gate, x, y) !== null),
     coyoteSteps: 0,
     jumpBufferSteps: 0,
     shiftBufferSteps: 0,

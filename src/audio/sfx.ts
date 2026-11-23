@@ -5,6 +5,7 @@ import type { Band, BodyId, Gear } from '../core/types';
 import type { AudioEngine } from './engine';
 import type { CueLog } from './cueLog';
 import { sfxForEvents, type SfxContext, type SfxSourceEvent } from './sfxEvents';
+import { createShotLimiter } from './shotLimit';
 import { describeSfx, type SfxCue } from './sfxSpec';
 
 type ToneEngine = Pick<AudioEngine, 'tone'>;
@@ -32,12 +33,22 @@ export interface Sfx {
   uiMove(): number;
   uiSelect(): number;
   airDragClunk(): number;
+  /** Hit-death cue (also used by the sweep). Normally reached via `playEvents`. */
+  hitDeath(): number;
+  /**
+   * Emitter fire cue. Call once per shot that leaves an emitter currently ON SCREEN (the scene
+   * decides; pass `onScreen = false` and it is dropped). Rate-limited here: at most one cue per
+   * SHOT_MIN_GAP_MS and SHOT_BURST_MAX per SHOT_WINDOW_MS. `band` is the shot's band (pitch).
+   * Returns layers scheduled (0 when dropped, locked or muted).
+   */
+  shot(band?: Band, onScreen?: boolean): number;
   /** Play the sounds for one step's sim events (the scene calls this once per step). */
   playEvents(events: readonly SfxSourceEvent[], ctx?: SfxContext): number;
 }
 
 /** One function per sound, bound to an engine. Every call is a no-op before the first gesture. */
-export function createSfx(engine: ToneEngine, log?: CueLog): Sfx {
+export function createSfx(engine: ToneEngine, log?: CueLog, now?: () => number): Sfx {
+  const allowShot = createShotLimiter(now);
   const play = (cue: SfxCue): number => playCue(engine, cue, log);
   return {
     shiftUp: (from, to) => play({ id: 'shiftUp', from, to }),
@@ -51,6 +62,8 @@ export function createSfx(engine: ToneEngine, log?: CueLog): Sfx {
     uiMove: () => play({ id: 'uiMove' }),
     uiSelect: () => play({ id: 'uiSelect' }),
     airDragClunk: () => play({ id: 'airDragClunk' }),
+    hitDeath: () => play({ id: 'hitDeath' }),
+    shot: (band, onScreen = true) => (onScreen && allowShot() ? play({ id: 'shot', band }) : 0),
     playEvents: (events, ctx) => sfxForEvents(events, ctx).reduce((n, cue) => n + play(cue), 0),
   };
 }

@@ -24,7 +24,8 @@ function bandOf(ctx: SfxContext | undefined, body: BodyId): Band | undefined {
  *   shiftBuffered      -> soft shift up (net > 0) or soft shift down (net < 0)
  *   jump               -> jump            land               -> land
  *   airDrag            -> airDragClunk    fallThrough        -> fallThrough
- *   died, restart      -> reset           won                -> levelComplete
+ *   died (fall)        -> reset          died hit/sweep     -> hitDeath
+ *   restart            -> reset           won                -> levelComplete
  *   home               -> homeChime (dropped by `sfxForEvents` on the win step)
  *
  * Silent on purpose: bandChange, graceStart (spec). Not sounded yet: wallStop, ceiling
@@ -49,6 +50,9 @@ export function sfxForEvent(event: SfxSourceEvent, ctx?: SfxContext): SfxCue | n
     case 'home':
       return { id: 'homeChime', body: event.body };
     case 'died':
+      // cause absent = a fall; 'hit' (bolt) and 'sweep' share the hit cue (a sweep death is a
+      // body blow too; the sweep's hum already sets it apart).
+      return { id: event.cause === undefined ? 'reset' : 'hitDeath' };
     case 'restart':
       return { id: 'reset' };
     case 'won':
@@ -65,6 +69,11 @@ export function sfxForEvent(event: SfxSourceEvent, ctx?: SfxContext): SfxCue | n
       return unhandled;
     }
   }
+}
+
+/** reset and hitDeath are one slot: a death plus its restart sounds once (the first, so a hit stays a hit). */
+function isDeathCue(cue: SfxCue): boolean {
+  return cue.id === 'reset' || cue.id === 'hitDeath';
 }
 
 function sameSound(a: SfxCue, b: SfxCue): boolean {
@@ -86,7 +95,7 @@ function mergeUnison(cues: readonly SfxCue[]): SfxCue[] {
  * Cues for one step's events, in event order (body 0 before body 1, as the sim emits them).
  *  - The same sound from both bodies on one step becomes one unison cue (`body: 'both'`).
  *  - On the win step the `home` chimes are dropped: only the level-complete sting plays.
- *  - A run that dies and restarts in one list plays reset once.
+ *  - A run that dies and restarts in one list plays one death cue (hit stays hit).
  */
 export function sfxForEvents(events: readonly SfxSourceEvent[], ctx?: SfxContext): readonly SfxCue[] {
   const won = events.some((e) => e.type === 'won');
@@ -94,7 +103,7 @@ export function sfxForEvents(events: readonly SfxSourceEvent[], ctx?: SfxContext
   for (const event of events) {
     if (won && event.type === 'home') continue;
     const cue = sfxForEvent(event, ctx);
-    if (!cue || (cue.id === 'reset' && cues.some((c) => c.id === 'reset'))) continue;
+    if (!cue || (isDeathCue(cue) && cues.some(isDeathCue))) continue;
     cues.push(cue);
   }
   return mergeUnison(cues);

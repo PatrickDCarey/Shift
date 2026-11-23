@@ -28,6 +28,8 @@ import hudPng from '../../assets/art/pixel/pixel-hud.png?url';
 import hudAtlas from '../../assets/art/pixel/pixel-hud.json';
 import fxPng from '../../assets/art/pixel/pixel-fx.png?url';
 import fxAtlas from '../../assets/art/pixel/pixel-fx.json';
+import kineticsPng from '../../assets/art/pixel/pixel-kinetics.png?url';
+import kineticsAtlas from '../../assets/art/pixel/pixel-kinetics.json';
 import tilesetPng from '../../assets/art/pixel/pixel-tileset.png?url';
 import fontPng from '../../assets/art/pixel/pixel-font.png?url';
 import fontXml from '../../assets/art/pixel/pixel-font.xml?url';
@@ -39,13 +41,14 @@ interface BootAsset {
   readonly isLoaded: (scene: Phaser.Scene) => boolean;
 }
 
-/** The five JSON-hash atlases (`load.atlas`, pivots read from each frame). */
+/** The six JSON-hash atlases (`load.atlas`, pivots read from each frame). */
 const ATLASES: ReadonlyArray<{ readonly key: string; readonly png: string; readonly data: object }> = [
   { key: PIXEL_KEYS.player, png: playerPng, data: playerAtlas },
   { key: PIXEL_KEYS.tiles, png: tilesPng, data: tilesAtlas },
   { key: PIXEL_KEYS.scenery, png: sceneryPng, data: sceneryAtlas },
   { key: PIXEL_KEYS.hud, png: hudPng, data: hudAtlas },
   { key: PIXEL_KEYS.fx, png: fxPng, data: fxAtlas },
+  { key: PIXEL_KEYS.kinetics, png: kineticsPng, data: kineticsAtlas },
 ];
 
 const BOOT_ASSETS: readonly BootAsset[] = [

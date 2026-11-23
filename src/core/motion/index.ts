@@ -10,3 +10,4 @@ export { bandForSpeed } from './bands';
 export { airDrag } from './drag';
 export { groundSpeed } from './ground';
 export { segmentRates } from './rates';
+export { moverCorners, moverCycle, moverOffset, nextShotIn, shotsAt, sweepFront } from './paths';

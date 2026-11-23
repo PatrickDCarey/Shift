@@ -65,6 +65,8 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 
 **Combines:** lift, shuttle, colored slab, with runway, drag and the red wall. No new idea; no sweep.
 
+**v4.1 (2026-11-24): a long level is 8–12 rooms, 300–450 tiles, 45–75 s clean, with posts (`level-plan.md` "Long levels").** Commute becomes **9 rooms, ≈ 350 tiles, 2 posts**: section 1 is the three rooms below in the order given; **post 1**; section 2: Ferry (shuttle docking at a green bridge), Moving Bridge (green slab), a Brake onto a blue bridge; **post 2**; section 3 (easiest): a lift **down** a shaft, a Runway with a back wall, and a slow blue walk home. The paragraph below (v4.0, three rooms) is now section 1.
+
 **Intent.** World 4's long level, a journey rather than a trick: three rooms read left to right as one route, no checkpoints, so it is built to the long-level rules (hardest room first, the last third easy).
 
 1. **Across (hardest, first):** a shuttle over a long pit docking at a red wall with one safe tile and a red bridge after it (w1-05's answer, arrive yellow, shift up past the wall), timed against the dock.

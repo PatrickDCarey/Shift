@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { INPUT_BUTTONS, type InputFrame, type SimState } from '../types';
+import { arena, floorRow, liftPath, shuttlePath, slab } from './moversKit';
 import { gridLevel, row, runFromSpawn } from './testkit';
 
 const W = 120;
@@ -62,5 +63,37 @@ describe('determinism', () => {
         seen.add(o);
       }
     }
+  });
+});
+
+/** FNV-1a over the JSON of every state: a compact fingerprint of a whole run. */
+const fnv = (states: readonly SimState[]): string => {
+  let h = 0x811c9dc5;
+  for (const ch of JSON.stringify(states)) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193) >>> 0;
+  return h.toString(16);
+};
+
+describe('determinism fixture: two slabs, two emitters', () => {
+  const kin = {
+    ...arena(80, 24, [{ row: 9, col: 4, chars: '@' }, floorRow(80, 19)], [
+      slab(10, 12, 3, liftPath),
+      slab(24, 10, 8, shuttlePath, { phase: 30 }),
+    ]),
+    emitters: [
+      { cell: { col: 60, row: 18 }, dir: 'l' as const, range: 40, speed: 4 as const, period: 90, phase: 7, band: null },
+      { cell: { col: 40, row: 0 }, dir: 'd' as const, range: 19, speed: 2 as const, period: 50, phase: 0, band: 2 as const },
+    ],
+  };
+  const log = scriptedLog(3000, 7771);
+  const a = runFromSpawn(kin, log);
+  const b = runFromSpawn(kin, log);
+
+  it('two runs are deep-equal on every step', () => {
+    expect(b).toEqual(a);
+  });
+
+  it('exercises bolts and matches its pinned fingerprint', () => {
+    expect(a.some((st) => st.events.some((e) => e.type === 'died' && e.cause === 'hit'))).toBe(true);
+    expect(fnv(a)).toBe('65955fb');
   });
 });

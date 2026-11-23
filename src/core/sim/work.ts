@@ -28,6 +28,8 @@ export interface StepCtx {
   readonly startGrounded: boolean;
   /** Band at the start of the step: decides collisions in phases 7-8. */
   readonly startBand: Band;
+  /** Run step at the start of this step (SimState.step): the clock for movers. */
+  readonly t: number;
   /** Phase 3, computed once per step for every body: the run-level priority after this step's presses. */
   readonly dirPriority: MoveDir;
   /** Phase 3: the shared direction d. */

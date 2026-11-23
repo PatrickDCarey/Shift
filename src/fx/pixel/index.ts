@@ -9,3 +9,6 @@ export * from './font';
 export * from './hud';
 export * from './tileset';
 export * from './effects';
+export * from './movers';
+export * from './bolts';
+export * from './kinetics';

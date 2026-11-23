@@ -4,6 +4,17 @@ _Owner: tech-lead. Written 2026-11-23 for the owner's expansion request ("more l
 
 **Scope warning.** GDD v1.11 cut moving platforms (§7, 2026-11-03) and says "No checkpoints" (§5). Everything here is beyond the Must list: it needs a GDD amendment by design-lead and producer sign-off (CLAUDE.md, Scope). M4 freeze is **Nov 28**, five days out. The plan below is sized so the sim work is additive and every shipped level, recording and golden hash stays byte-identical.
 
+## Revision 2026-11-23 (night): design specs adopted, contracts landed
+
+Design's specs (`features/moving-objects.md`, `projectiles.md`, `sweep.md`; `decisions.md` "Expansion") are now normative. Contracts are in `src/core/contracts/kinetics.ts`, `state.ts`, `level.ts`, `lanes.ts`; rules in `architecture.md` §3.1 and §3.6 and `level-format.md` §2 "Kinetic headers". Where this note differs, those win:
+
+1. **Slabs are top-only.** No push, no crush, no mover boxes in `sweepX`/`sweepY`, no no-embed for slabs, no `crushed` flag and no `cause: 'crush'`. Phase 6b is carry only; landing is the swept top test in phase 8. §2.3 rows 6b (2) and (3), §2.4's sweep-argument and no-embed bullets are **Could** (a later "crusher"), not built. Format: slab height is fixed at 1 (`<w>x1`).
+2. **Emitters gain white:** `Emitter.band: Band | null` (null grey, 0 white, 1-4 that band); hit iff `band === null || band === bandAtStart`.
+3. **No checkpoints** (§5.2 stays unbuilt).
+4. **The sweep is in** (Should, cheap and stateless): `sweep:` header, `sweepFront` in [motion], a phase-14 check, `cause: 'sweep'`. It fits after emitters in the [sim] sitting (S: one header, one pure function, one comparison).
+5. **Contract details settled here:** [motion] also publishes `moverCorners` (track corners for drawing and swept areas) and `nextShotIn` (tell glow and fire cue, render-side); no new sim event type (audio's exhaustive switch); new motion names sit in `LANE_PENDING` until [motion] lands; the `projectileSizeTiles` / `emitterTellMs` schema keys land as step 1b with design-lead's values (the tuning lockstep test forbids either side first).
+6. **Shot at t = 0:** with `phase` 0 the s = 0 shot sits at the muzzle at t = 0 (as `projectiles.md` "Room B" requires); "empty lane" means no shot with s < 0. `projectiles.md` check 5's first clause reads that way.
+
 ## 0. Decisions in one table
 
 | Item | Recommendation | Alternative (one line) |

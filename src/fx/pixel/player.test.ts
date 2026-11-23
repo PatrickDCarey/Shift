@@ -157,6 +157,6 @@ describe('committed sheets match the code', () => {
   });
 
   it('every PNG sheet is committed', () => {
-    expect(committedPngNames()).toEqual(['pixel-font.png', 'pixel-fx.png', 'pixel-hud.png', 'pixel-player.png', 'pixel-scenery.png', 'pixel-tiles.png', 'pixel-tileset.png']);
+    expect(committedPngNames()).toEqual(['pixel-font.png', 'pixel-fx.png', 'pixel-hud.png', 'pixel-kinetics.png', 'pixel-player.png', 'pixel-scenery.png', 'pixel-tiles.png', 'pixel-tileset.png']);
   });
 });

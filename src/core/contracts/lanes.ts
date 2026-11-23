@@ -10,6 +10,7 @@
  */
 import type { Band, BandEdges, PerBand, PerSegment } from './bands';
 import type { InputFrame, InputRun, Solution } from './input';
+import type { Emitter, Mover, Shot, Sweep, TileVec } from './kinetics';
 import type { Level } from './level';
 import type { SimState } from './state';
 import type { SimParams, Tuning } from './tuning';
@@ -45,11 +46,52 @@ export interface AirDragResult {
  */
 export type AirDragFn = (vx: number, airDistance: number, params: SimParams) => AirDragResult;
 
+// Kinetic pieces (expansion; contracts/kinetics.ts has the clock and arithmetic
+// rules). All take the run step t >= 0 (integer) and are total for any such t.
+// The sim, the renderer and tests/levels call these same functions, so drawn
+// and simulated positions cannot drift.
+
+/** Steps in one loop of the path: sum of wait steps + sum of tiles * KIN_SPEED_UNIT / speed. */
+export type MoverCycleFn = (mover: Mover) => number;
+
+/**
+ * Offset of the slab's top-left from `mover.origin` at run step t, tiles, y down.
+ * u = (t + phase) mod cycle; walk the tokens: a wait holds, a move advances
+ * speed / KIN_SPEED_UNIT per step from the previous leg's end. Exact multiples
+ * of 1/32; offset(u = 0) = (0, 0). Top face y = origin.row + offset.y.
+ */
+export type MoverOffsetFn = (mover: Mover, t: number) => TileVec;
+
+/**
+ * Whole-tile offsets at the start of each move token and at the loop's end,
+ * starting (0, 0) and ending (0, 0): the track's corners, for drawing the
+ * track and computing the swept area (bounding box of corners + width x 1).
+ */
+export type MoverCornersFn = (mover: Mover) => readonly TileVec[];
+
+/** Shots alive at run step t (contracts/kinetics.ts `Emitter`), oldest first (ascending firedAt). */
+export type ShotsAtFn = (emitter: Emitter, t: number) => readonly Shot[];
+
+/**
+ * Steps from run step t until the next shot leaves: (period - (t + phase) mod period) mod period.
+ * 0 = a shot leaves at t. Render and audio use it for the tell glow and the fire cue.
+ */
+export type NextShotInFn = (emitter: Emitter, t: number) => number;
+
+/** Front x at run step t, tiles: min(width, x0 + speed / KIN_SPEED_UNIT * max(0, t - delay)). */
+export type SweepFrontFn = (sweep: Sweep, t: number, width: number) => number;
+
 export interface MotionApi {
   readonly bandForSpeed: BandForSpeedFn;
   readonly segmentRates: SegmentRatesFn;
   readonly groundSpeed: GroundSpeedFn;
   readonly airDrag: AirDragFn;
+  readonly moverCycle: MoverCycleFn;
+  readonly moverOffset: MoverOffsetFn;
+  readonly moverCorners: MoverCornersFn;
+  readonly shotsAt: ShotsAtFn;
+  readonly nextShotIn: NextShotInFn;
+  readonly sweepFront: SweepFrontFn;
 }
 
 // --- sim lane: src/core/sim (state, step order, jump, collision, gating, reset, tuning loader) ---
@@ -132,7 +174,18 @@ export const LANE_EXPORTS: {
   readonly level: readonly (keyof LevelLaneApi)[];
 } = {
   sim: ['createSim', 'step', 'deriveParams'],
-  motion: ['bandForSpeed', 'segmentRates', 'groundSpeed', 'airDrag'],
+  motion: [
+    'bandForSpeed',
+    'segmentRates',
+    'groundSpeed',
+    'airDrag',
+    'moverCycle',
+    'moverOffset',
+    'moverCorners',
+    'shotsAt',
+    'nextShotIn',
+    'sweepFront',
+  ],
   level: [
     'parseLevel',
     'parseSolution',
@@ -143,6 +196,21 @@ export const LANE_EXPORTS: {
     'verifySolution',
     'loadLevels',
   ],
+};
+
+/**
+ * Contract names a lane may still be missing while its sitting is open
+ * (tests/arch/lane-contracts.test.ts allows but does not require them).
+ * Tech-lead empties an entry in the review that lands the lane's work.
+ */
+export const LANE_PENDING: {
+  readonly sim: readonly (keyof SimLaneApi)[];
+  readonly motion: readonly (keyof MotionApi)[];
+  readonly level: readonly (keyof LevelLaneApi)[];
+} = {
+  sim: [],
+  motion: [],
+  level: [],
 };
 
 /** Allowed lane-to-lane imports (via the target lane's index.ts only). */
