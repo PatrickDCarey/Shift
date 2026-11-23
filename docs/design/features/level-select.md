@@ -37,7 +37,7 @@ Why:
 
 - **Header** (y 8): `LEVELS` at 2× on the left; `CLEARED n/m` at 1× on the right, where m = the number of world ≥ 1 levels loaded.
 - **Grid**: one row per world that has at least one loaded level, in world order. Rows are 40 px apart and the first starts at y 40.
-  - **World label column** (80 px wide): the world number at 2×, and the name at 1× below it. Names are UI copy: 1 GEARS, 2 FLIGHT, 3 TANDEM, 4 GATES. (World 3 is TANDEM for good: owner decision 2026-11-16.)
+  - **World label column** (80 px wide): the world number at 2×, and the name at 1× below it. Names are UI copy: 1 GEARS, 2 FLIGHT, 3 TANDEM, **4 MOTION, 5 SIGNALS** (v1.12 expansion, 2026-11-23; GATES is no longer planned for the jam). (World 3 is TANDEM for good: owner decision 2026-11-16.) **Five rows** must fit: rows at y 40, 80, 120, 160, 200 end at y 232, inside 270 with the key line; world 2 now has 5 cells. A world row may have a numbering gap if a Should level is not built.
   - **Cells**: 64 × 32 px with a 6 px gap, up to 5 per row. The top line is the label `w-n` at 2× (for example `1-3`, from the id). The bottom line is the status at 1×.
 - **Detail line** (y 216 to 250): the focused level's label and `title` (level header) at 2×, truncated at 24 characters. Below it, at 1×:
   - `BEST 0:12.91` if cleared;

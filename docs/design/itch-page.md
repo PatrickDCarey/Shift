@@ -2,6 +2,8 @@
 
 _Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6, 14 levels). Every claim was checked in the repo on that date; the checklist at the bottom lists what to re-check at submit. **Re-checked 2026-11-20 (B7-17)** against the batch 7 build: the settings screen, the wired sound effects, the restart card and the page art (`docs/art/itch/`) are now in the copy, §5 and §7. Spelling: **American ("color")**. The game's on-screen text never uses the word, so this follows the GDD and the code, which both say "color"._
 
+> NOTE (2026-11-23, expansion, GDD v1.12): **not rewritten yet; re-count when the expansion lands.** To change then, only for what actually ships: the "In this build" count line (14 levels in 3 worlds → up to 23–25 in 5: Gears, Flight, Tandem, Motion, Signals), the feature bullets (lifts and moving color slabs, bolts that only hit their own color, long levels), the average-session row (§ details: 14-level estimate), the Tandem "builds on Gears" line (worlds 4–5 need only Gears and Flight), §5 screenshots (one shot of a slab and one of a bolt lane), §7 checklist items for the count and world names, and the accessibility line (new patterns for slabs and bolts). Until then the page describes `rc-batch10`, which stays accurate if the expansion does not ship.
+
 Paste each section into the itch.io field named in its heading. Lines in `> NOTE` blocks are instructions, not copy: do not paste them.
 
 ---
