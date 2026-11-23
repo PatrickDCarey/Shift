@@ -14,7 +14,6 @@ Your speed is your color. Stand still and you're white; sprint and you're red. C
 - **Local best times.** Your clears and best time per level are saved in your browser and shown on the level select and results screens. If the browser blocks storage, the game still plays and the title screen says progress is not being saved.
 - **Settings** (from the title screen or the pause menu): Sound, Reduced motion and Reduced effects, each on or off and saved at once. Reduced motion follows your system setting until you change it.
 - **Plays offline.** Nothing needs a network connection. Online leaderboards are optional and are not enabled in this build.
-- **Work in progress:** the last level of world 3 is being reworked (version 2).
 
 ## Controls
 
