@@ -167,6 +167,8 @@ Known numbers used below (GDD §5, `tandem.md`, `levels/README.md`):
 
 **Batch 9 cold play (2026-11-23, `decisions.md` B9-07): the result does not count for v2.** The script skipped worlds 1–2 and w3-04, unlocked w3-05 by editing the save, and never got past the opening (cols < 30, unchanged). **The deciding check is now the owner's hand play:** w3-01 → w3-05 in order, unlocked by play; w3-05 cleared within 10 lives and 15 minutes; backs up to the step unprompted. One more scripted sitting, played in order with no save edits, runs only if the owner cannot play by Nov 26.
 
+**Batch 9b fallback sitting (2026-11-23 evening, `decisions.md`):** not cleared. It found the step by walking left, then failed 9+ kerb jumps, all late (0.8–2.0 s into the run against a 0.55–0.87 s window). **Batch 10, headers only:** w3-05 `jump 41 3` becomes `jump 40 3`, so a player who reacts to passing under the glyph still takes off inside 39.98–43.77. w3-02 gets `shiftUp` over the walk-back stop and `jump` over the kerb take-off, both measured by level-designer, which teaches w3-05's kerb sequence where it starts. **Pre-approved fallback:** if the owner does not walk back to the step unprompted, w3-05 swaps `jump 12 3` for `move` stacked above `shiftUp` over the step. The owner's hand play on the batch 10 build is the deciding check.
+
 **Cold-play check for v2 (Must before submit; a fresh sitting with no memory of w3-05):** w3-05 cleared within **10 lives and 15 minutes** of play. From the first time both bodies are held at the kerbs, the run-up section is cleared within **5 attempts**. Report whether the player backs up to the step without reading anything. A miss is a finding for design-lead.
 
 ---

@@ -523,5 +523,36 @@ No `tuning.json`, sim, contract or format change. One level changes: **w3-05 v2*
 - **w3-02 in about 20 lives, w3-03 not solved: ACCEPT for this sitting.** The player skipped the worlds they build on. They get no change unless the owner's hand play disagrees.
 - **Unlocking w3-05 by editing the save: noted.** It is outside the brief, and the w3-05 result is void as a v2 measure.
 
-### Itch §7
+### Itch §7 (B9-07)
 - **Count and art re-ticked against 50eb482.** It has 14 levels. w3-05 v2's diff is cols 36–45 only (checked in `levels/w3-05.txt`), so shot 5 (the opening) is still accurate. §3 gains "start with Gears".
+
+## 2026-11-23 (evening) — batch 9b fallback sitting (`docs/playtests/2026-11-23-batch9b.md`), w3-05 v2 check
+
+**What it measured:** a script with 5–36 ms of hold jitter that played w3-01..w3-05 in order, with no save edits, and read the idea line after 10 tries on w3-02, w3-03 and w3-04. It reached w3-05's kerbs after about 7 minutes and found the step by walking left. It then failed 9+ kerb jumps, every one "pinned at the kerb", and stopped at about 11 minutes. **The v2 cold-play check fails on this sitting, but the failure is located:** the step works (it found it and both bodies self-aligned). What fails is the take-off timing, together with a "walk back" step that is not cued.
+
+### The kerb jump
+- **"The window is 1–2 frames": REJECT; the tester jumped late.** From the step, the jump wins after 33–52 steps of running (0.55–0.87 s), take-off x 39.98–43.77: **20 steps and 3.8 tiles of take-off** (README, checked against the orchestrator's arithmetic). The tester jumped 0.8–2.0 s into the run. "Pinned at the kerb" is a late jump: an air wall stop on the kerb face, the same cheap failure as w3-02's "jump from the kerb face". No window or geometry change: the late edge is the kerb face, which the pin needs.
+- **The `jump` glyph is too late for a reacting player: CHANGE `jump 41 3` to `jump 40 3` in w3-05 (header only, batch 10).** At 12 tiles/s a 150–200 ms reaction is 1.8–2.4 tiles. A player who jumps "when I pass under the glyph" at col 41 (centre 41.5) takes off around 43.3–43.9, at or past the late edge. At col 40 (centre 40.5) a reacting player takes off around 42.3–42.9 and an anticipating one around 40.5, both inside 39.98–43.77. The box (cols 39–41) stays clear of the `shiftUp` box (cols 35–37) and of the kerb. The one-column move is already allowed by `onboarding-hints.md`.
+- **A cue for a failed jump (too late or too slow): REJECT now; post-jam Could.** That would be a new render cue for air wall stops at code freeze (Nov 28). The PT-3 airborne cue was cut on 2026-11-16 for the same cost.
+
+### Walking back
+- **A left-arrow "back up" glyph: REJECT.** The format has four glyph ids: `move` (`←→`/`AD`), `shiftUp`, `shiftDown` and `jump`. There is no left-only glyph, and a new id means a contract, parser, art and test change at freeze. **Pre-approved fallback, header only:** if the owner, held at the kerbs, does not walk back to the step within about a minute, w3-05 swaps `jump 12 3` for a `move` glyph stacked above `shiftUp` over the step (the w2-04 grammar: "move, then shift up, here"). The opening has been shown twice by then (w3-03, w3-04).
+- **Teach the kerb sequence where it starts: CHANGE w3-02 gets two hints (header only, batch 10).** w3-02 teaches "the kerb holds the runner, back up, shift up, run, jump the kerb". It is the source of w3-05's sequence, and it has no hints. Two sittings in a row needed 20+ tries there (the 9b tester read the kerb as "a pure timing check"). Add `shiftUp` over the measured walk-back stop and `jump` over the middle of the measured kerb take-off range, in the runner lane, in w3-05's grammar (w1-03 plus w2-01). The pin itself, the new idea, stays unhinted. Level-designer measures the columns (expected around cols 3 and 6). No `version` bump.
+
+### Other findings
+- **Shift up standing at the start of w3-05 (top 3): ACCEPT as is.** w3-03 and w3-04 show `shiftUp 2 3` at the spawn, and w3-05 has no fourth slot. The tester did carry the move over.
+- **Explain the pin with a banner in w3-02 (top 4): REJECT.** It would be text, and the game has no banner system. The new w3-02 hints show what to do after the pin.
+- **25 s retry loop and a checkpoint after the twin parks (top 5): REJECT**, as on 2026-11-20 and 2026-11-23. R is instant. The QA line of B9-07 measures death-to-control.
+- **Respawn at x 160–230 instead of the start, and a pink frozen frame: most likely intended.** A held Right walks the bodies on from the respawn step, and the pink frame is the death freeze. QA adds "x on the first respawn step equals the spawn" to its B9-07 line.
+- **w3-02: the runner's meter keeps gear 1 after the twin parks: INTENDED.** Shifts apply per body, and a home body is frozen (`tandem.md`).
+- **w3-01 in 3 tries, w3-04 in 13 runs and then first try after the idea line: ACCEPT.** w3-03 took 28 runs. The driver found only a 1.1–1.2 s band inside an 18-step (300 ms) window, which says more about the driver than the level, and the batch 8 tester did it in 5.
+
+### The owner's hand play (deciding check, on the batch 10 build)
+Play w3-01 → w3-05 in order, unlocked by play. Note:
+1. Tries on w3-02 with the new hints (≤ 10 expected).
+2. In w3-05: whether you walk back to the step unprompted after both are held at the kerbs (≤ 1 minute, else the stacked `move` fallback above applies).
+3. Each failed kerb jump: was it a pin at the kerb (late) or a fall short of the pads (early)? Did you take off under the `jump` glyph or at the kerb?
+4. Cleared within 10 lives and 15 minutes.
+5. w2-04: more than 5 failed jumps or not.
+
+A miss on 4 with mostly late pins after the batch 10 glyph move comes back to design.
