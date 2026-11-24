@@ -1,0 +1,16 @@
+level: w5-03
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20. 1+ 1.     stand, shift up to gear 2 (green)
+# 99R 1RJ       walk off the ledge onto the green trench; jump the first low bolt at x 11.0
+#               (window 83-116 steps of running, 34 steps, x 9.4-12.7)
+# 94R 1RJ       jump the next bolt as it leaves the emitter, landing on the safe floor (40 steps)
+# 59R 1R+       shift up to gear 3 on the safe floor at x 26.6 (window x 24.7-29.0, 44 steps)
+# 190R 257.     run the yellow floor under the head-height stream; let go and stop on the safe floor
+#               (x 57.4); wait until a bolt sinks into the face below, then 20 steps more
+# 56R 1RJ       run and jump the foot-height bolt on the high floor at x 64.1 (window x 61.7-66.6,
+#               34 steps), then drop to the low floor
+# 247R          run under the high bolts into the exit
+steps: 1028
+---
+20. 1+ 1. 99R 1RJ 94R 1RJ 59R 1R+ 190R 257. 56R 1RJ 247R

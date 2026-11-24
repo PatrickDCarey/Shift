@@ -23,6 +23,7 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 - The first lane may cross the spawn path (colored lanes may; not in the first 60 steps per tech-lead's rule, so time its phase to fall just after).
 - Hints (first of a world, cold start): `move` over the spawn and `shiftUp` over the first safe tile after the lane (Must).
 - **Removal:** without the lane a sprint from the spawn wins; with it, 0 wins red inside the lane.
+- **APPROVED v1 as built (2026-11-24).** 30 × 13. Demo lane at col 4 (a red bolt passes through the walking runner about 1 s in), dense test lane at col 12, 3 safe tiles, red bridge under a roof. Fair line: walk blue, three presses up at x 9.8–13.4 (72 steps); the yellow one-press line (24) is the expert line. Hints `move 1 6`, `shiftUp 14 6`. Recording 182, fastest known 156.
 
 ## w5-02 Keep Moving
 
@@ -32,6 +33,7 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 
 - No hints (a white diamond falling on the pad is the cue).
 - **Removal:** without the lane, the stop-and-walk line wins; with it, 0 wins that stand on the pad.
+- **APPROVED v1 as built (2026-11-24).** 69 × 13, two rooms, **16 white lanes (the format's cap)**: one per pad column plus one over each first bridge tile (cols 21 and 53), because a body stopped on the pad's last edge otherwise survived. Room 2's floor (cols 33–40) is dry: the stop-and-think spot. Moving brake 37 and 35 steps. Recording 721, fastest known 546. No lanes left for any later edit of this level.
 
 ## w5-03 Hurdles
 
@@ -42,6 +44,9 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 - Level-designer measures every hurdle window at the intended pace (≥ 18; `projectiles.md` check 6 gives 33 steps for a standing jump over a 7.5-tile/s bolt; running toward a bolt shortens it).
 - No hints.
 - **Removal:** without bolts a straight run wins; with them, 0 wins without a jump on green and 0 wins with a jump on yellow.
+- **APPROVED v1 as built (2026-11-24).** 94 × 15, **steps down with no climbs** (a plateau climb gave an 11-step window). Three grey emitters 32–33 columns apart (one on screen). Green hurdles 34 and 40 (tightest over all arrival phases 19); shift to yellow on safe floor 44; yellow floor has no timed input; last stretch on safe floors, period 240.
+- **Last-stretch ruling (2026-11-24): the wait is the fair line, no change.** Going within 0–80 steps after a bolt sinks into the face at your feet gives one jump with a 22–34-step window; going 100–120 after gives 16 and 10; 140–180 needs two jumps. Waiting there is always safe, and the sinking bolt is the cue, right under the player. A period change only moves the bad band. **Trigger:** 3+ deaths there in a cold play, or one called unfair, and design asks for a measured period/range change.
+- Recording 1,028 (waits 257 steps on the safe floor), fastest known 721.
 
 ## w5-04 Chase (Should; needs `sweep.md`)
 
@@ -71,3 +76,7 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 2. w5-02: tried to stop on the pad? Tries to the moving brake?
 3. w5-03: deaths per hurdle section; any death "unfair" in your words?
 4. w5-05: minutes, deaths per room, and whether a death late in the level made you want to quit (the checkpoint question).
+5. **Watch list for the cold play (2026-11-24, as built):**
+   - w5-01: did you notice the first bolt pass through you? First death at the col-12 lane: did you understand why (red), and did the `shiftUp` glyph after the lane say "turn red here"?
+   - w5-02: did you try to stop on the first pad, and how many deaths before you braked while moving? Did you use room 2's dry floor to stop and think?
+   - w5-03: deaths per section; did you ever jump on yellow? In the last stretch, did you wait for a bolt to sink before going, or run straight in (count deaths there; the trigger above)? Any death called unfair.

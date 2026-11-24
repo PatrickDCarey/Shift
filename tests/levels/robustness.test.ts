@@ -33,6 +33,17 @@ import { levels, params, sim, solutions } from './shipped';
 
 /** Per level: dozens of replays of several hundred steps; generous under coverage on a loaded machine. */
 const LEVEL_TIMEOUT_MS = 30_000;
+/**
+ * Long levels (posts, or a recording over LONG_RECORDING_STEPS): hundreds of transitions, each trial
+ * replaying up to ~4,000 steps. Measured alone, unloaded, 2026-11-24: w2-05 32 s, w5-05 27 s, w4-05 8 s
+ * (w4-05 gains most from the converged-suffix shortcut). `npm run check` runs the whole suite in
+ * parallel with other sittings, so these get 4x headroom.
+ */
+const LONG_LEVEL_TIMEOUT_MS = 120_000;
+const LONG_RECORDING_STEPS = 1_800;
+
+const timeoutFor = (level: Level, solution: Solution): number =>
+  (level.checkpoints?.length ?? 0) > 0 || solution.steps > LONG_RECORDING_STEPS ? LONG_LEVEL_TIMEOUT_MS : LEVEL_TIMEOUT_MS;
 
 /** Board M1-44 / level-plan.md: a recording must tolerate +-3 steps on every transition. */
 const MAX_SHIFT_STEPS = 3;
@@ -85,16 +96,42 @@ function prefixStates(api: SimApi, level: Level, p: SimParams, frames: readonly 
   return states;
 }
 
-/** Why the shifted frames do not win, or null. Replays only from the first frame that differs from the original. */
+/** Plain-data deep equality (a SimState is plain objects, arrays, numbers, strings, booleans and null). */
+function sameData(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const ka = Object.keys(a);
+  if (ka.length !== Object.keys(b).length) return false;
+  return ka.every((k) => Object.hasOwn(b, k) && sameData((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+}
+
+/** Cheap fields first: most diverged states differ in position or speed. */
+const sameState = (a: SimState, b: SimState): boolean =>
+  a.step === b.step && a.player.x === b.player.x && a.player.y === b.player.y && a.player.vx === b.player.vx && a.player.vy === b.player.vy && sameData(a, b);
+
+/**
+ * Why the shifted frames do not win, or null. Replays only from the first frame that differs from the
+ * original. Once every remaining frame is the original's (past `last`, the last differing frame) and the
+ * trial state equals the original state at the same index, the rest of the trial IS the original run
+ * (the sim is a pure function of state, frame, level and params), so it ends with the original's outcome:
+ * `base.verdictFrom[j]`. Exact, not a heuristic; it only saves replaying an identical suffix.
+ */
 function trialProblem(api: SimApi, level: Level, p: SimParams, base: Replayed, trial: readonly InputFrame[]): string | null {
   let i = trial.findIndex((frame, k) => frame !== base.frames[k]);
   if (i < 0) i = trial.length;
+  let last = trial.length - 1;
+  while (last >= 0 && trial[last] === base.frames[last]) last -= 1;
   let state = base.states[i] as SimState;
   const posts = (level.checkpoints?.length ?? 0) > 0;
   for (; i < trial.length && state.status !== 'won'; i++) {
     state = api.step(state, trial[i] as InputFrame, level, p);
     // A post respawn must never rescue a perturbed run (level-format.md §2 "Checkpoint headers").
     if (posts && state.events.some((e) => e.type === 'died')) return `died at step ${i + 1} in a level with posts`;
+    if (i >= last && state.status !== 'won' && sameState(state, base.states[i + 1] as SimState)) {
+      const verdict = base.verdictFrom[i + 1];
+      if (verdict === null) return null;
+    }
   }
   if (state.status === 'won') return null;
   const { x, y } = state.player;
@@ -104,6 +141,22 @@ function trialProblem(api: SimApi, level: Level, p: SimParams, base: Replayed, t
 interface Replayed {
   readonly frames: readonly InputFrame[];
   readonly states: readonly SimState[];
+  /** verdictFrom[j] = null when the original run, continued from states[j], wins with no death in a post level; else 'fail'. */
+  readonly verdictFrom: readonly (null | 'fail')[];
+}
+
+/** The original run's outcome from every index onwards, as `trialProblem` would judge it (null = passes). */
+function verdicts(level: Level, states: readonly SimState[]): (null | 'fail')[] {
+  const posts = (level.checkpoints?.length ?? 0) > 0;
+  const out: (null | 'fail')[] = new Array<null | 'fail'>(states.length).fill('fail');
+  let next: null | 'fail' = 'fail';
+  for (let j = states.length - 1; j >= 0; j--) {
+    const s = states[j] as SimState;
+    if (s.status === 'won') next = null;
+    else if (posts && j > 0 && s.events.some((e) => e.type === 'died')) next = 'fail';
+    out[j] = next;
+  }
+  return out;
 }
 
 /** "transition at step S shifted by d: <why>" for every shifted recording that does not win. */
@@ -111,7 +164,8 @@ function timingProblems(api: SimApi, level: Level, p: SimParams, solution: Solut
   const runs = paddedRuns(solution, p.stepHz);
   const counts = runs.map((r) => r.count);
   const frames = framesOf(runs, counts);
-  const base: Replayed = { frames, states: prefixStates(api, level, p, frames) };
+  const states = prefixStates(api, level, p, frames);
+  const base: Replayed = { frames, states, verdictFrom: verdicts(level, states) };
   const problems: string[] = [];
   boundaries(counts).forEach((step, k) => {
     for (const d of OFFSETS) {
@@ -135,7 +189,7 @@ describe(`timing robustness: every transition shifted by up to +-${MAX_SHIFT_STE
     const solution = recordingOf(level);
     it.runIf(solution !== null)(`${level.meta.id}`, () => {
       expect(timingProblems(sim, level, params, solution as Solution)).toEqual([]);
-    }, LEVEL_TIMEOUT_MS);
+    }, solution === null ? LEVEL_TIMEOUT_MS : timeoutFor(level, solution));
   }
 });
 
@@ -199,7 +253,8 @@ describe('robustness harness self-check: levels with posts', () => {
   const idle: InputFrame = { ...right, right: false };
   const base = (level: Level): Replayed => {
     const frames = Array.from({ length: 2000 }, () => right);
-    return { frames, states: prefixStates(sim, level, params, frames) };
+    const states = prefixStates(sim, level, params, frames);
+    return { frames, states, verdictFrom: verdicts(level, states) };
   };
   /** Right, but let go for 40 steps once the body is over the strip. */
   const letGoOnStrip = (b: Replayed): InputFrame[] => {

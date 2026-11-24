@@ -4,12 +4,13 @@
  *
  * Every frame is 16 x 24 px (one tile wide, 1.5 tall), origin (0.5, 1): the bottom centre, which
  * is the middle of the base plate. Place it at x = (col + 0.5) * 16, y = the floor's top edge.
- * The pole is two columns centred on x = 8, so the origin never sits between pixels.
+ * Both poles are two columns wide (x 7-8, centred on x = 8), so the origin never sits between pixels.
  *
- *  - `checkpoint/idle`: unlit. A thin 1 px pole under a HOLLOW square lamp (outline only, no fill).
- *  - `checkpoint/lit`:  lit. A thick 2 px pole, a ball on top and a FILLED pennant flag pointing
- *    right. The silhouette (flag versus a box) and the lit-pixel count both differ from idle, so
- *    the state reads in greyscale.
+ *  - `checkpoint/idle`: unlit, neutral grey (never a gear colour). A 2 px pole under an 8 x 8 square
+ *    lamp: 2 px outline in the safe-tile edge colour, dim safe-tile fill inside, and a 1 px dark rim
+ *    (the background colour) around pole and lamp so it separates from the backdrop.
+ *  - `checkpoint/lit`:  lit. A 2 px pole, a ball on top and a FILLED pennant flag pointing
+ *    right. A box lamp versus a flag is a different silhouette, so the state reads in greyscale.
  *  - `checkpoint/rise/<0-2>`: the lit transition (3 frames, ~60 ms each): the pennant climbs the
  *    pole; the last step is `lit`. Reduced motion: skip these and show `lit` (static).
  */
@@ -48,13 +49,15 @@ function drawPennant(r: Raster, top: number): void {
 
 function bakeIdle(): Raster {
   const r = createRaster(POST_W, POST_H);
-  const c = rgba(hexToRgb(palette.ui.textMuted));
+  const edge = rgba(hexToRgb(palette.safeTile.outline));
+  const dim = rgba(hexToRgb(palette.safeTile.fill));
+  const rim = rgba(hexToRgb(palette.background));
   drawBase(r);
-  fillRect(r, 7, 6, 1, 16, c);
-  fillRect(r, 5, 0, 6, 1, c);
-  fillRect(r, 5, 5, 6, 1, c);
-  fillRect(r, 5, 1, 1, 4, c);
-  fillRect(r, 10, 1, 1, 4, c);
+  fillRect(r, 6, 9, 4, 13, rim);
+  fillRect(r, 3, 0, 10, 10, rim);
+  fillRect(r, 7, 9, 2, 13, edge);
+  fillRect(r, 4, 1, 8, 8, edge);
+  fillRect(r, 6, 3, 4, 4, dim);
   return r;
 }
 

@@ -1,0 +1,21 @@
+level: w5-05
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned. Deathless from the
+# load; lights post 1 at step 833, post 2 at step 1638, post 3 at step 2658.
+# 20. 1+ 1. 1+     stand, shift up to gear 3 (yellow cruise)
+# R ... 1R+        run yellow through the red rain at col 17, press up at x 18.9: red on the red bridge
+# 1RJ              jump at x 41.5 off the red runway: red through the yellow fountain, drag to yellow on the pad
+# 1R- 1R 1R-       press down twice at x 53.2; walk the blue bridge at gear 1, past post 1
+#                  walk straight onto the lift as it rests (x 91.6 at step 1072) and across it while it rises
+# 1R+              off the lift at the top, gear 2 at x 104.1; cross the green slab while it is level
+# 1R+ 1R 1R+       gear 4 at x 122.2; walk off the ledge red onto the red floor 4 below
+# 1R- 1R 1R-       brake to gear 2 at x 148.4 (post 2); jump the grey bolt at x 165.8 on the green floor
+# 1R+              gear 3 at x 176.1; run the yellow floor under the head-height stream without jumping
+# 1R+              gear 4 at x 213.3; red over the red bridge
+# 1R- 1R 1R- 1R 1R-   shift down to gear 1 at x 230.4 while running across the white-swept pad; blue bridge
+# 1R+ 1R 1R+ 1R 1R+   past post 3, gear 4 at x 255.1 while walking: red on the runway's red bridge
+# 1RJ              jump at x 286.6 off the short Coast's red runway; land yellow
+# 1R- 1R 1R-       press down twice at x 299.3; walk the blue bridge home
+steps: 3739
+---
+20. 1+ 1. 1+ 119R 1R+ 113R 1RJ 67R 1R- 1R 1R- 993R 1R+ 184R 1R+ 1R 1R+ 132R 1R- 1R 1R- 165R 1RJ 102R 1R+ 248R 1R+ 85R 1R- 1R 1R- 1R 1R- 434R 1R+ 1R 1R+ 1R 1R+ 167R 1RJ 74R 1R- 1R 1R- 804R

@@ -292,7 +292,7 @@ Design reversed ruling 2 (`decisions.md` 2026-11-24, `level-plan.md` v4.1, `feat
 | Rows | ≤ 15 (long levels), HUD rule unchanged | confirm |
 | HUD/keep-out check at every camera x | ~450 positions × (hints + lanes + posts) | linear, < 50 ms; confirm |
 | Recording cap | `MAX_RECORDING_STEPS` 5,400 (design target ≤ 4,500) | confirm |
-| ±3 robustness | 60 transitions × 6 trials × ≤ 4,500 remaining steps ≈ 0.8–1.6 M sim steps per level | keep 30 s; raise `LEVEL_TIMEOUT_MS` to 60 s only for width > 120 if a long level passes 20 s under coverage locally |
+| ±3 robustness | 60 transitions × 6 trials × ≤ 4,500 remaining steps ≈ 0.8–1.6 M sim steps per level | *Done 2026-11-24:* levels with posts or a recording > 1,800 steps get 120 s (`LONG_LEVEL_TIMEOUT_MS`); others keep 30 s. Trials also stop once the trial state equals the original's past the last changed frame (exact: same state + same frames = same run). Alone: w2-05 25–32 s, w5-05 22–27 s, w4-05 7–8 s (was 48 s) |
 | 1M-step replay test | fixture level | unaffected |
 | e2e replay (`speed=60`) | 4,500 steps ≈ 75 frames ≈ 1.3 s per level | confirm; per-test timeout unchanged |
 | Backend | `MAX_RUN_STEPS` 36,000 (10 min since load) | keep; raise `MAX_LOG_CHARS` 16,000 → 32,000, `MAX_BODY_CHARS` 32,000 → 40,000, `MAX_BODY_BYTES` 40,000 → 56,000 |

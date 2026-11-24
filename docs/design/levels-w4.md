@@ -12,7 +12,7 @@ World 4 teaches things that move under you. It needs only world 1–2 skills (ne
 | w4-02 | Ferry | puzzle (teach) | no | Must | 20–30 s | 2/5 |
 | w4-03 | Moving Bridge | puzzle (twist) | no | Must | 25–40 s | 2/5 |
 | w4-04 | Outrun | flow (sweep) | medium (≈ 90 tiles) | Should | 30–45 s | 3/5 |
-| w4-05 | Commute | flow (combine) | **yes** (≈ 130 tiles, clean run ≤ 60 s) | Must | 2–3 min | 3/5 |
+| w4-05 | Commute | flow (combine) | **yes** (as built: 300 tiles, 9 rooms, 2 posts, 66.8 s clean) | Must | 4–8 min | 3/5 |
 
 If w4-04 is not built the world has a numbering gap, which level select handles (`level-select.md` "Gaps in numbering").
 
@@ -27,6 +27,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 - Headroom ≥ 2 tiles over the swept area; no reachable pit in the first room.
 - Hints (first level of a world, cold start): `move` over the spawn (Must).
 - **Removal:** no slab → 0 wins.
+- **APPROVED v1 as built (2026-11-24).** 30 × 15; the bridge roof is **2 rows** (a 1-row roof's top is exactly jump height: a green jump stood on it and skipped the bridge). Board window 47 steps (then every 6.2 s), walk-off 62. Recording 519 steps, fastest known 432.
 
 ## w4-02 Ferry
 
@@ -39,6 +40,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 - **Removal:** no shuttle → 0 wins; the green bridge is the pace test.
 - No hints.
 - **If horizontal legs are cut** (`moving-objects.md` Priority): a lift **down** into a shaft whose floor is a green bridge, left at the bottom rest in gear 2.
+- **APPROVED v1 as built (2026-11-24).** The pit is **16 columns** (a 4-wide slab moving 12 sweeps 16; the 14 above was wrong). A **2-row roof covers the whole track and the bridge** (a bridge-only roof let a yellow jump off the moving shuttle drag to green and win without the dock). Board 118 steps, depart 119; gears 1 and 3 fall. Recording 404, fastest known 330 (a coyote hop over the closing gap, still dock-bound).
 
 ## w4-03 Moving Bridge
 
@@ -51,6 +53,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 - Cheap, readable fails: falling through as white or yellow; riding it down green when leaving late.
 - **Removal:** static `G` tiles instead → no timing; a `safe` slab instead → a standing ride wins. Both shown in the README sweep.
 - No hints.
+- **APPROVED v1 as built (2026-11-24).** The slab starts at the bottom (`phase=186`) and rises into its level rest. Depart window **97 steps**, not ~22: 39 with the slab level the whole way, 58 more where you step off onto the rising slab and its swept landing catches you green. More forgiving than planned, and accepted: the catch is still green-only (gears 1, 3, 4 and standing: 0 wins). 2-row roof. Recording 268, fastest known 200.
 
 ## w4-04 Outrun (Should; needs `sweep.md`)
 
@@ -76,9 +79,16 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 - Clean run (recording) ≤ 3,600 steps (60 s); par expected 40–50 s. First clear 2–3 minutes.
 - **COMBINE rule:** no win skips the lift, the shuttle or the colored slab.
 
+**APPROVED v1 as built (2026-11-24; replaces the room list above where they differ).** 300 × 15, six slabs, posts at cols 132 and 215 with `clock=` set to the recording's step as a gear-1 walker passes each respawn x (a respawned walker meets every slab at the recording's phase). Recording 4,006 steps (66.8 s), fastest known 3,946. Rooms: (1) Across: shuttle to a red door and red bridge; (2) Up: short Coast (5-tile gap, pad 2 lower) and a 6-tile lift; (3) **Level** (not a descent): a green slab with a 150-step rest, brake pad, blue bridge; post 1; (4) Ferry; (5) Moving Bridge; (6) Brake; post 2; (7) a lift **down an open shaft with no floor** (a floor would let you skip the lift; walking in while the lift is away is a death, 12 tiles from post 2); (8) Runway from a **standing start** at the shaft wall (10 tiles under a ceiling); (9) Home: 3 presses down, a 26-tile blue bridge. Windows: run 94, jump 33, Ferry leave 70, Brake 44, section 3 ≥ 97. Fair-line waits ≤ 1.2 s; a late arrival waits up to one shuttle cycle (9.4 s) on safe ground, accepted (`level-plan.md` v4.2).
+
 ## Cold-play checks (playtester, when built)
 
 1. w4-01: stepped on the slab without help? Noticed you stayed white?
 2. w4-02: falls before waiting for the dock; did gear 2 come before or after a fall on the green bridge?
 3. w4-03: tried to stand on the green slab first (expected)? Tries to the crossing?
 4. w4-05: minutes, deaths per room, and whether the restart felt too long (that is the checkpoint question; design rules on it with the answer).
+5. **Watch list for the cold play (2026-11-24, as built):**
+   - w4-01: did you try to climb or jump the wall first? Did you ever stand on the roof over the bridge (should be impossible)?
+   - w4-02: how many falls before you waited for the dock; did you read the roof as "no jumping here" or feel boxed in?
+   - w4-03: tries to the crossing; did the scoop (stepping on while it rises) feel like luck or like a choice?
+   - w4-05: did you see each post coming before you reached it (the idle-post fix)? Deaths in the open shaft, and whether the lift being away read as "wait"; longest wait at a shuttle and whether it felt like dead time; whether a post respawn put you in a room that felt the same as the first time.

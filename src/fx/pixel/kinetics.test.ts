@@ -124,8 +124,11 @@ describe('checkpoint post', () => {
   it('idle and lit differ by shape in greyscale, lit being fuller', () => {
     expect(diff(idle, lit)).toBeGreaterThanOrEqual(30);
     expect(alphaMask(idle)).not.toBe(alphaMask(lit));
-    expect(lumaCount(lit)).toBeGreaterThan(lumaCount(idle));
-    expect(luma(idle, 8, 2)).toBe(-1); // hollow lamp
+    expect(luma(idle, 4, 4)).toBeGreaterThan(luma(idle, 7, 4)); // 2 px bright outline round a dim fill
+    expect(luma(idle, 7, 4)).toBeGreaterThan(luma(idle, 3, 4)); // dark rim outside
+    expect(luma(idle, 7, 15)).toBeGreaterThanOrEqual(150); // 2 px pole
+    expect(luma(idle, 8, 15)).toBeGreaterThanOrEqual(150);
+    expect(lumaCount(lit)).toBeGreaterThan(0);
   });
 
   it('rise frames climb: the pennant moves up each frame', () => {

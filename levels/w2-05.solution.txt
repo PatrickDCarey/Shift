@@ -1,16 +1,15 @@
 level: w2-05
-levelVersion: 1
-# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
-# 20.   stand at the spawn, against the back wall, facing the run-up
-# 1+ 1. 1+ 1. 1+ 1.   shift up to gear 4 while standing
-# 68R   sprint: red at x = 4.73, before the red runway (col 8)
-# 1RJ   jump at x = 12.10, the middle of the window (25 steps): red takeoff, drag to yellow at 17.90, land yellow at 22.10
-# 76R 1R+   press up once on the ledge at x = 25.10 (52-step window): red at 25.60
-# 131R  walk off the ledge red, land red at 42.17 on the red floor, run on to the approach
-# 1R- 1R 1R-   shift down twice at x = 51.36 (30-step window): green at 53.08
-# 108R 1R+ 1R 1R+   cruise green, press up twice at x = 63.14 (30-step window): red at 64.94, past the red door
-# 53R 1R- 1R 1R- 1R 1R-   cross the red bridge, shift down three times at x = 73.51 (37-step window): blue at 76.55
-# 521R  walk the blue bridge into the exit (won at step 996)
-steps: 996
+levelVersion: 2
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned. Deathless from the
+# load (a level with posts ships a deathless recording); lights post 1 at step 467 and post 2 at step 2112.
+# Section 1 (v1's line, unchanged): stand 20, shift up to gear 4, sprint, jump at x 12.10, land yellow;
+#   press up at x 25.10, walk off red; press down twice at x 51.36; press up twice at x 63.14 (red door).
+# Section 2: press down three times at x 73.51 (blue at 76.55), walk the blue bridge; press up at x 104.1
+#   (green bridge), down at 119.6 (blue), up at 130.4 (green), down at 141.4 (blue); up at 158.1 for the
+#   green runway, jump at x 173.5, land green on the pad.
+# Section 3: press down at x 186.1 (blue before the Runway's blue bridge); three presses up at x 204.6 on
+#   the safe runway (red before the red bridge); jump at x 235.5 (red takeoff, drag to yellow, land
+#   yellow); press down twice at x 247.3 and walk the blue bridge home (won at step 3804).
+steps: 3804
 ---
-20. 1+ 1. 1+ 1. 1+ 1. 68R 1RJ 76R 1R+ 131R 1R- 1R 1R- 108R 1R+ 1R 1R+ 53R 1R- 1R 1R- 1R 1R- 521R
+20. 1+ 1. 1+ 1. 1+ 1. 68R 1RJ 76R 1R+ 131R 1R- 1R 1R- 108R 1R+ 1R 1R+ 53R 1R- 1R 1R- 1R 1R- 569R 1R+ 158R 1R- 207R 1R+ 113R 1R- 325R 1R+ 157R 1RJ 125R 1R- 361R 1R+ 1R 1R+ 1R 1R+ 164R 1RJ 67R 1R- 1R 1R- 1067R

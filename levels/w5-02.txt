@@ -1,0 +1,48 @@
+# World 5, level 2. Twist: a white bolt hits only a runner standing still, so a safe pad is no
+# longer a safe stop.
+# Target first-time solve: 25-40 s.
+# Layout (69 x 13, scrolls): room 1 is w1-04's Brake (runway cols 0-6, red bridge cols 7-12 under a
+#   safe roof, 8-tile safe pad cols 13-20, 12-tile blue bridge cols 21-32, no roof) with dense white
+#   rain over the pad (cols 13-21, ceiling emitters at row 3 under a safe ceiling). Room 2: safe floor
+#   (cols 33-40, no rain: stop and think), red bridge cols 41-46 under a safe roof, 6-tile pad cols
+#   47-52 with white rain (cols 47-53), 10-tile green bridge cols 53-62, exit pad.
+# White rain kills a runner whose band is 0 (standing), so the w1-04 let-go-and-stop answer dies on
+#   the pad. Shed red while moving: three presses down while running (room 1, 37 steps), two presses
+#   down while running (room 2, gear 4 -> 2, 35 steps). The lanes at cols 21 and 53 sit over the first
+#   bridge tile, so the pad's last edge is not a dry stop.
+# 16 emitters (the cap). Every lane: speed 2, period 32 (a bolt every 2 tiles), staggered phases.
+id: w5-02
+title: Keep Moving
+world: 5
+teaches: a white bolt hits only a runner standing still
+version: 1
+emitter: 13 3 dir=d range=6 speed=2 period=32 phase=0 band=W
+emitter: 14 3 dir=d range=6 speed=2 period=32 phase=12 band=W
+emitter: 15 3 dir=d range=6 speed=2 period=32 phase=24 band=W
+emitter: 16 3 dir=d range=6 speed=2 period=32 phase=4 band=W
+emitter: 17 3 dir=d range=6 speed=2 period=32 phase=16 band=W
+emitter: 18 3 dir=d range=6 speed=2 period=32 phase=28 band=W
+emitter: 19 3 dir=d range=6 speed=2 period=32 phase=8 band=W
+emitter: 20 3 dir=d range=6 speed=2 period=32 phase=20 band=W
+emitter: 21 3 dir=d range=6 speed=2 period=32 phase=0 band=W
+emitter: 47 3 dir=d range=6 speed=2 period=32 phase=4 band=W
+emitter: 48 3 dir=d range=6 speed=2 period=32 phase=16 band=W
+emitter: 49 3 dir=d range=6 speed=2 period=32 phase=28 band=W
+emitter: 50 3 dir=d range=6 speed=2 period=32 phase=8 band=W
+emitter: 51 3 dir=d range=6 speed=2 period=32 phase=20 band=W
+emitter: 52 3 dir=d range=6 speed=2 period=32 phase=0 band=W
+emitter: 53 3 dir=d range=6 speed=2 period=32 phase=12 band=W
+---
+.......######............................######......................
+.......######............................######......................
+.......###############...................#############...............
+.......######............................######......................
+.......######............................######......................
+.......######............................######......................
+.......######............................######......................
+.....................................................................
+.@................................................................E..
+#######RRRRRR########BBBBBBBBBBBB########RRRRRR######GGGGGGGGGG######
+#######......########............########......######..........######
+#######......########............########......######..........######
+#######......########............########......######..........######

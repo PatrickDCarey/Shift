@@ -14,15 +14,20 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w2-02 | Coast | 2 | NEW: air drag: every 6 tiles of flight costs one color | 45–90 s | approved (level plan v3.4, 2026-11-13); landing pad 2 tiles lower adopted |
 | w2-03 | Step Down | 2 | NEW: walking off a ledge is a shorter flight than jumping | 30–60 s | approved, version 2 (B6-06: 3-tile pit at the foot of the ledge; design-lead 2026-11-17, re-stated 2026-11-19); no hint |
 | w2-04 | Two Colors | 2 | combine: runway + commit + color grace (turn yellow on green, jump before the floor lets you go) | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); `shiftUp` stacked over `jump` hint headers (2026-11-19) |
-| w2-05 | Long Haul | 2 | test (long): worlds 1–2 in one run, reading ahead (Coast, Step Down, Red Wall, Brake) | 2–3 min | **new, version 1, for design-lead review** (level plan v4.0); no hints; clean run 16.6 s, under the long-level 40–80 s (see section) |
+| w2-05 | Long Haul | 2 | test (long): worlds 1–2 in one run, reading ahead (9 rooms, 2 posts) | 4–8 min | **APPROVED (design-lead 2026-11-24)**, version 2 (level plan v4.1; v1 approved 2026-11-24 as the fallback); posts at cols 73 and 184; no hints; clean run 63.4 s |
 | w3-01 | Two Lanes | 3 | NEW: a twin obeys the same keys on its own floor; both must reach home | 30–60 s | approved, version 1, no roofs (design-lead, 2026-11-16); first Tandem level and the T-20 test level; `move` and `shiftUp` hint headers |
 | w3-02 | Out of Step | 3 | NEW: a wall in one lane holds that body while the other walks on, so you choose how far out of step they are | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); safe kerb instead of the spec's blue wall (see section); runner-lane hint header `jump 5 3` only (batch 10, design-lead 2026-11-23 evening and the w3-02 placement ruling; header only, no version bump) |
 | w3-03 | Gear Split | 3 | NEW: a stop in mid-air drops only that body's gear | 60–120 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); flat landing pad (18-step window); runner-lane hint headers `shiftUp 2 3` (2026-11-20, B8-01) and `jump 12 3` (2026-11-19) |
 | w3-04 | Clamp | 3 | NEW: pressing up past gear 4 brings split gears back together | 90–150 s | approved, version 1 (design-lead 2026-11-17, re-stated 2026-11-19); runner-lane hint headers `shiftUp 2 3`, `jump 12 3` (2026-11-20, B8-01: the batch 7 fallback fired) |
 | w3-05 | Redshift | 3 | combine: air-stop split + clamp down + pin + shared drag jump + park + brake | 3–5 min | **version 2, APPROVED** (design-lead 2026-11-23, tech-lead review 2026-11-23 `docs/tech/reviews/2026-11-batch9-review.md`; batch 8 playtest: a 1-tile step at x 36 at the back of the run-up in both lanes); v1 approved 2026-11-17; safe kerbs instead of blue walls; runner-lane hint headers `jump 12 3`, `shiftUp 36 3`, `jump 40 3` (re-measured for v2; the kerb `jump` moved from col 41 to col 40 in batch 10, design-lead 2026-11-23 evening, header only, no version bump; see section) |
-| w4-01 | Lift | 4 | NEW: a grey lift carries you; standing on it you stay white | 15–25 s | **new, version 1, for design-lead review** (B11-18, `levels-w4.md`); `move` hint header over the spawn |
-| w4-02 | Ferry | 4 | NEW: a shuttle carries you sideways; leave when it docks, at the pace the far side asks | 20–30 s | **new, version 1, for design-lead review** (B11-18); no hints; roof over the whole track (see section) |
-| w4-03 | Moving Bridge | 4 | twist: a colored slab holds only its own color, so cross it at its pace while it is level | 25–40 s | **new, version 1, for design-lead review** (B11-18); no hints |
+| w4-01 | Lift | 4 | NEW: a grey lift carries you; standing on it you stay white | 15–25 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18, `levels-w4.md`); `move` hint header over the spawn |
+| w4-02 | Ferry | 4 | NEW: a shuttle carries you sideways; leave when it docks, at the pace the far side asks | 20–30 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18); no hints; roof over the whole track (see section) |
+| w4-03 | Moving Bridge | 4 | twist: a colored slab holds only its own color, so cross it at its pace while it is level | 25–40 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18); no hints |
+| w4-05 | Commute | 4 | combine (long): lift, shuttle and colored slab, with runway, drag and the red wall (9 rooms, 2 posts) | 4–8 min | **APPROVED (design-lead 2026-11-24)**, version 1 (`levels-w4.md` v4.1); posts at cols 132 and 215 with `clock=`; no hints; clean run 66.8 s |
+| w5-01 | Spark | 5 | NEW: a colored bolt only hits its own color; turn red only after the red lane | 15–25 s | **APPROVED (design-lead 2026-11-24)**, version 1; `move` and `shiftUp` hint headers |
+| w5-02 | Keep Moving | 5 | TWIST: a white bolt hits only a runner standing still, so brake while moving | 25–40 s | **APPROVED (design-lead 2026-11-24)**, version 1; no hints; 16 emitters (the cap) |
+| w5-03 | Hurdles | 5 | NEW: grey bolts hit everyone: jump the low ones on green, stay down under the high ones on yellow | 30–45 s | **APPROVED (design-lead 2026-11-24)**, version 1; no hints |
+| w5-05 | Full Spectrum | 5 | combine (long finale): red, yellow, white and grey bolts, a grey lift and a green slab, with runway, drag, step-down and brake (12 rooms, 3 posts) | 3–5 min | **new, version 1, for design-lead review** (`levels-w5.md` v4.1); posts at cols 80, 148 and 254 with `clock=`; no hints; clean run 62.3 s; deviations for review: width 345 (not 420–450), lift crossed walking under one white head-height lane, yellow rain rises from the pit, one horizontal white lane over a 10-tile pad 1 lower, post 2 `clock=` is a braking runner's step (see section) |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
 
@@ -236,40 +241,51 @@ One screen (32 × 13): left wall, safe pad P1 (cols 1–3, spawn at col 1, open 
 
 ## w2-05 Long Haul
 
-**Teaches:** nothing new (TEST, long; level plan v4.0 "w2-05" and "Long levels"): worlds 1–2 in one run. Read ahead and set your gear for the next room while you run the current one. It uses only existing pieces (safe tiles, colored floors and walls), with no new engineering, no checkpoints and no hints.
+**Teaches:** nothing new (TEST, long; level plan v4.1 "Long levels" and "w2-05" v2): worlds 1–2 in one run. Read ahead and set your gear for the next room while you run the current one. Safe tiles, colored floors and walls only; no movers, bolts or hints. **Version 2.** v1 (106 tiles, 16.6 s, approved by design-lead 2026-11-24 as the fallback) is in git at c5cdcc0. v1's first 80 columns (rooms 1–3 and the brake pad) are unchanged cell for cell, and the recording replays v1's line through them.
 
-106 × 15, scrolls. Rows 0–1 are the rows the HUD covers when the 15-row level is centred, so they hold no colored tile or exit. Four rooms, each a level the player has already solved, with new numbers, and each entered over safe ground:
+306 × 15, scrolls; ground row 12 from col 50 to col 231, row 14 after it. Rows 0–1 hold no colored tile or exit. Nine rooms, three sections, two posts:
 
-1. **Coast (cols 0–23, hardest, first).** Left wall, safe run-up (cols 1–7, spawn against the wall, open sky) → red runway (cols 8–12) → 7-tile gap (cols 13–19) → yellow pad (cols 20–23) **3 tiles lower** (w2-02's is 2 lower). Take off red, drag to yellow 6 tiles out, land yellow. The extra tile of drop lifts the jump window from w2-02's 23 steps to **25** (takeoff x 9.70–14.50), which meets the plan's ≥ 24.
-2. **Step Down (cols 24–49).** Safe ledge (cols 24–35, 12 tiles: stop and think) → 3-tile pit (cols 36–38) → 11-tile red floor (cols 39–49) exactly 4 tiles below (w2-03's geometry). The Coast lands you in gear 3 (yellow): press up once on the ledge and walk off red (you land red at x 42.17). Walk off yellow and you fall through the red floor; jump off and you drag to yellow and fall.
-3. **Red Wall (cols 50–71).** Safe approach (cols 50–63, 14 tiles: stop and think) → a **2-tile red door** (col 64, rows 10–11) set in a safe mass that runs to the top of the level (so no red tile sits in the HUD rows) → 1 safe tile → red bridge (cols 66–71) under a 2-tile safe roof flush with its last column (w1-05's room). New numbers: you arrive red from the red floor, so the flow line brakes to **green** on the approach (two presses down) and presses up **twice** at the door (green to red takes 1.83 tiles). That gives a 30-step window where w1-05's yellow single press has 19. Arrive red and the door stops you; from its face red needs 3.23 tiles and only 2.75 remain.
-4. **Brake (cols 72–105, the easy last third).** 8-tile safe pad (cols 72–79, open sky) → **18-tile** blue bridge (cols 80–97, no roof, as in w1-04: no takeoff clears it) → safe exit pad (cols 98–105, exit 2 tiles tall at col 102). Shift down three times while running, or let go on the pad, stop, shift down and walk on.
+| # | Room | Cols | What you do | Window(s), steps |
+|---|---|---|---|---|
+| 1 | Coast (v1) | 0–23 | red runway, 7-tile gap, yellow pad 3 lower: take off red, drag to yellow | jump 25 |
+| 2 | Step Down (v1) | 24–49 | press up once on the ledge, walk off red onto the red floor 4 below | 52 |
+| 3 | Red Wall (v1) | 50–71 | brake to green on the approach, two presses up at the red door | 30, 30 |
+| — | **Post 1** | **73** (row 11) | on v1's brake pad (cols 72–79): 7 safe tiles from the post to the Brake's bridge | |
+| 4 | Brake (v1) | 80–97 | three presses down on the pad, walk the 18-tile blue bridge (no roof) | 37 |
+| | recovery | 98–111 | 14 safe tiles | |
+| 5 | Shift (w1-02) | 112–151 | green, blue, green, blue bridges (7 each, 2-row roofs flush with each) between 4-tile safe pads: up, down, up, down | up ≥ 241 (any time on the stretch), down 53, up 110, down 53 |
+| | recovery | 152–165 | 14 safe tiles; press up for the green runway | ≥ 241 |
+| 6 | Commit (w2-01) | 166–181 | green runway (8), 3-tile gap, green pad (5): jump green, land green | jump 31 |
+| — | **Post 2** | **184** (row 11) | on the recovery stretch (cols 182–195): 12 safe tiles from the post to the Runway room | |
+| 7 | Runway (w1-03) | 196–217 | press down before an 8-tile blue bridge and walk it, then three presses up on an 8-tile safe runway: red onto a 6-tile red bridge; both bridges under 2-row roofs | down 153, up triple 138 |
+| | recovery | 218–231 | 14 safe tiles | |
+| 8 | Coast, short (w2-02) | 232–245 | red runway (5), 5-tile gap, yellow pad 2 lower: jump red, drag to yellow | jump 33 |
+| | recovery | 246–257 | 12 safe tiles (row 14); press down twice | 90 |
+| 9 | Home (w1-01) | 258–305 | a 40-tile blue bridge on the bottom row (no roof: nothing clears it at gear 1), exit pad, exit col 302 | — |
 
-**How the rooms are ordered.** Hardest first. The Coast has the narrowest window (25 steps) and is the only room you cannot slow down for, so it sits next to the spawn, where a death costs about 2 s. Each later room is easier than the one before, and each starts on safe ground long enough to stop on (12, 14 and 8 tiles), so a player can stop and think between any two rooms. Step Down has no tight timing (a 52-step press window, or press while standing). The Red Wall has two 30-step windows, or a standing start with no timing. The last third is world 1's Brake with 37- and 34-step windows and an 18-tile walk home. The order also chains the gears: the Coast lands you yellow (one press up for the walk-off), the walk-off lands you red (brake for the door), and the door leaves you red (brake for the blue bridge). Reading ahead means choosing the next room's gear while you run the current one.
+Each window moves one input (or one press group) earlier and later, with every other input placed by position as a player would. The shift-up windows on the long safe stretches were cut off by the ±120-step search, so they are at least 241.
 
-- **Fair line (the recording):** every timed input has a window of at least 25 steps (level plan: ≥ 24; world-2 floor 18). Each window moves one input (or one press pair or triple) with the others fixed; x is the player's x at the end of the press step.
-  - jump: takeoff x 9.70–14.50, **25 steps** (12 earlier / 12 later);
-  - press up for the walk-off: **52 steps** (25/26), or press while standing on the ledge (no time limit);
-  - approach press-down pair: **30 steps** (13/16), first press at x 51.36 in the recording;
-  - door press-up pair: **30 steps** (13/16), first press at x 63.14 (red at 64.94, past the door);
-  - brake triple: **37 steps** (17/19), first press at x 73.51 (blue at 76.55);
-  - the shift-ups at the spawn are made standing, before moving (no time limit).
-- **No-timing alternatives** (for a player who stops): at the Red Wall, let go on the approach, stop, shift down to gear 1, walk right for 110–168 steps (**59 steps** at walking pace, about 3 tiles of spots), stop, shift up to gear 4 and run (w1-05's fair line (a)). At the Brake, let go on the pad (**34-step** let-go window, 36–69 steps after the door presses), shift down standing and walk on.
-- **No forced wait:** none; every stop is optional.
-- **COMBINE rule (no win skips the Coast or the walk-off),** sweeps through the real sim:
-  - Coast: 7,290 lines (0–4 standing shift-ups, an optional shift-down on the runway at 6 points, a jump at every step from 30 to 110, an optional second jump): 684 reach the ledge alive, **all** of them across the gap on a red takeoff that drags.
-  - Step Down: 8,064 lines from the Coast landing (0–2 presses up at 4 points, a jump at every step through coyote time, an optional second jump, hold or let go): 878 reach the approach alive, **0** whose drop onto the red floor started with a jump.
-  - Jump injection: the recording with one or two extra jumps at every step (4,000 lines): 2,661 wins, every one a red Coast takeoff and a walk-off.
-- **Red Wall check:** 86,688 lines from the red floor (0–3 presses down and 0–3 up at every third step, an optional jump around the presses): 1,454 reach the brake pad alive, **0** of them after a stop at the door.
-- **Brake check:** never braking, with one or two jumps at any of 160 steps (960 lines): 0 wins. Braking only to green or yellow, with or without a jump (714 lines): 0 wins.
-- **Pockets:** none (`src/entities/sealedPockets.test.ts` passes with w2-05 present).
-- **Safe spots:** the spawn run-up, the ledge, the approach, the brake pad and the exit pad.
-- **Hints:** none (level plan: "No hints"; every key was shown in worlds 1–2).
-- **Length (open for design-lead):** 106 tiles; the clean run is **996 steps (16.6 s)**, under the long-level rule's 40–80 s. With these four rooms the run is mostly sprinting at 9–12 tiles/s, and 40 s over 100–150 tiles needs an average of 2.5–3.75 tiles/s, which means walking most of the level. Options: accept it as a short long level; add a world-1 walking lap to the last third (for example w1-02's green and blue bridges, about +10 s and +40 tiles); or widen it with walk-only blue bridges (more time, no more decisions). First clears should still take 2–3 min with deaths.
+**Sections and posts.** Section 1 is v1's three rooms, Coast first (the narrowest window, 25 steps, next to the spawn). Post 1 sits on the brake pad, so a death on the Brake's bridge or anywhere in section 2 respawns 7 tiles before the Brake. Section 2 runs Brake (37), Shift (53 and up), Commit (31): the order is design's (v1's Brake right after the Red Wall, then Shift, then Commit), but the narrowest window of the section comes last, so "hardest first" holds only loosely. Section 2 order: accepted by design-lead 2026-11-24 (no swap). Post 2 sits on the recovery stretch after the Commit; section 3 is the easiest (windows 33–153, all ≥ 30), and it ends with a walk.
 
-**Fastest known:** 845 steps (`1R+ 1R 1R+ 1R 1R+ 75R 1RJ 59R 1R+ 148R 1R- 56R 1R+ 70R 1R- 2R 1R- 1R 1R- 20R 1RJ` then hold right: shift while starting the run, press down once to yellow and make w1-05's single press at the door, then a jump onto the blue bridge after braking).
+**Run length and pace.** Clean run (the recording) **3,804 steps, 63.4 s**, 306 tiles (5.0 tiles/s average): sprint rooms (both Coasts, the Red Wall, the Runway) alternate with walking rooms (the Brake's bridge 6 s, the Shift room at gears 1 and 2, the Runway's blue bridge, Home 13 s).
 
-**Solution:** 996 steps (16.6 s). Stand 20, shift up to gear 4, sprint, jump at x = 12.10, land yellow at 22.10; press up at x = 25.10, walk off red, land red at 42.17; press down twice at x = 51.36 (green at 53.08); press up twice at x = 63.14 (red at 64.94); press down three times at x = 73.51 (blue at 76.55); walk the blue bridge into the exit. `tests/levels` passes, including ±3 on every transition.
+**Differences from `level-plan.md` v4.1 (accepted by design-lead 2026-11-24):**
+- **Width 306, not ≈ 330–380** (inside the definition's 300–450). More width means a longer clean run, and 63.4 s is already near the top of design's 50–65 s.
+- **Commit gap 3, not 4.** w2-01's 4-tile gap gives a 21-step window; 3 gives 31 (≥ 25).
+- **Short Coast pad 2 lower, not 3.** Everything after v1's rooms is on row 12, so a pad 3 lower would be row 15, outside the 15 rows. The window is still 33, and a walk-off still lands red on the pad and falls.
+- **Runway without the back wall.** w1-03's back-up needs you to arrive slow near the bridge with room behind you. On a run that moves right, that needs a 3-row drop into a covered room, which does not fit in 15 rows with the short Coast after it. Instead the room opens with an 8-tile blue bridge (you arrive at walking pace, gear 1) and an 8-tile safe runway: three presses up as you step off the blue, red by the red bridge (3.1 tiles from walking pace). Still "speed takes distance", without the reversal.
+
+**Checks (through the real sim):**
+- **No room can be skipped.** Every win in these sweeps touched every room's key floor in its color (grounded on each Shift bridge, the Commit pad, the Runway's red bridge, the short Coast's pad, the Home bridge, and v1's rooms): the recording with one extra jump at every step (3,804 runs, 3,095 wins) and with two at random steps (1,500 runs, 994 wins). From each post, one fixed gear (1–4) and one or two jumps anywhere (7,840 runs): 966 lines got past the Brake, every one grounded blue on its bridge; with a single gear none gets past the Shift room or the Runway (each needs a gear change), so those rooms are covered by the injection sweeps and their 2-row roofs (top 4 tiles above the floor: no jump clears a bridge or lands on a roof).
+- **Posts (first real use of the checkpoint sim):** post 1 lights at step 467 (x 72.71, the first step the box overlaps col 73), post 2 at step 2112 (x 183.71). A death on the Brake's bridge after post 1 (no presses down; died at step 536, x 86.46) respawns at step 561 (after the 24-step freeze) standing at x 73.50, y 12, gear 1, band 0, `vx` 0; the run step keeps counting (561, not 0). A death on the Runway's red bridge after post 2 (no presses up, step 2684) respawns at x 184.50 at step 2709. R after post 1 (step 600) restarts at the spawn with step 0 and no post lit. A death in the first Coast with no post lit is a full restart (step 0). All as `features/checkpoints.md` says; nothing off.
+- **Seen on screen:** not confirmed. The dev build on port 5187 loaded w2-05 and the replay started, but the hidden preview pane ran it at about one step every 2 s, so it never reached a post. The post sprite and the respawn at a post still need a look (playtester or QA).
+- **Pockets:** none (`tests/levels` passes with v2). Respawn boxes, recovery stretches and size pass `checkpointRules.ts`.
+- **Safe spots:** the spawn run-up, the Step Down ledge, the Red Wall approach, the brake pad (post 1), every recovery stretch (12–14 tiles), the Shift room's pads, the Runway's safe runway, the exit pad.
+- **Hints:** none.
+
+**Fastest known:** 3206 steps (v1's fastest opening, `1R+ 1R 1R+ 1R 1R+ 75R 1RJ 59R 1R+ 148R 1R- 56R 1R+ 70R 1R- 2R 1R- 1R 1R-`, then each shift pressed as late or as early as its window allows so the fast stretches stay fast; found by a random search around the recording).
+
+**Solution:** 3,804 steps (63.4 s), deathless from the load, lights both posts in order. Section 1 is v1's line; then press down three times at x 73.51, walk the blue bridge, up at x 104.1, down 119.6, up 130.4, down 141.4, up 158.1, jump at 173.5; down at 186.1, three up at 204.6, jump at 235.5, down twice at 247.3, walk home. `tests/levels` passes, including ±3 on every transition.
 
 ## w3-01 Two Lanes
 
@@ -505,3 +521,192 @@ One screen (28 × 15), two identical lanes stacked: runner on top (floor row 6),
 **Fastest known:** 200 steps (`1+ 2. 78R 1RJ 300R`: leave at once, drop green onto the slab 3.3 tiles below the ledge while it rises, and jump from it onto the right ledge).
 
 **Solution:** 268 steps (4.5 s). Shift up standing, wait 70, hold right: green at x 8.1, step down onto the rising slab (lands step 121, 0.25 below the ledge), carried level, across and on to the exit. `tests/levels` passes, including ±3 on every transition.
+
+## w4-05 Commute
+
+**Teaches:** nothing new (COMBINE, long; `levels-w4.md` "w4-05" v4.1, level plan v4.1 "Long levels"): lift, shuttle and colored slab, with runway, drag and the red wall, as one journey. No hints, no sweep, no bolts, no Tandem.
+
+300 × 15, scrolls. Rows 0–2 hold no colored tile, exit or slab path. Six slabs, all speed 2, and two posts:
+
+```
+mover: 12 10 4x1 safe speed=2 phase=453 path=w90,r12,w90,l12   (Across shuttle; cycle 564)
+mover: 81 12 3x1 safe speed=2 phase=48 path=w90,u6,w90,d6      (Up lift; cycle 372)
+mover: 99 6 6x1 G speed=2 phase=115 path=w150,d6,w30,u6        (section 1 green slab, long rest; cycle 372)
+mover: 144 6 4x1 safe speed=2 phase=524 path=w90,r12,w90,l12   (Ferry; cycle 564)
+mover: 180 6 6x1 G speed=2 phase=223 path=w90,d6,w30,u6        (Moving Bridge; cycle 312)
+mover: 227 6 3x1 safe speed=2 phase=2 path=w90,d6,w90,u6       (down-lift; cycle 372)
+checkpoint: 132 5 clock=1543
+checkpoint: 215 5 clock=2804
+```
+
+| # | Room | Cols | What you do | Window(s), steps |
+|---|---|---|---|---|
+| 1 | Across | 0–56 | walk onto the shuttle while it rests (left rest steps 111–200) and on to its front; shift up to gear 4 standing; run at the dock (docked 393–482): yellow through the 2-tile red door (col 31), red on the red bridge (33–38) under the door's mass (w1-05) | board: start walking up to 37 steps late; run: 94 (−15/+78) |
+| 2 | Up | 57–83 | red runway (5), 5-tile gap, yellow pad 2 lower: jump red, drag to yellow; 10 safe tiles; a grey lift (81–83, in a dip with a safe floor) 6 up a 6-tile wall; shift down to gear 2 while riding | jump 33; shift down 178; walk off 205 |
+| 3 | Level | 84–129 | a green slab (99–104) in a 6-col gap under a 2-row roof, level for 150 steps: cross at gear 2; brake pad (106–117), press down; blue bridge (118–129, no roof) | press down 84 |
+| — | **Post 1** | **132** | on a 14-tile recovery stretch, 12 tiles before the Ferry | |
+| 4 | Ferry | 144–178 | shuttle over a 16-col pit docking at a 5-tile green bridge, roof over both (w4-02): board at its back, shift up standing, leave at gear 2 while docked | shift up 84; leave 70 (−52/+17) |
+| 5 | Moving Bridge | 179–186 | a green slab in a 6-col gap, level for 90 steps (w4-03): cross at gear 2 (the Ferry's leave window above includes it) | — |
+| 6 | Brake | 187–212 | 12-tile pad, press down; 14-tile blue bridge | 44 |
+| — | **Post 2** | **215** | on a 14-tile recovery stretch, 12 tiles before the shaft | |
+| 7 | Lift down | 227–229 | a grey lift down an open shaft (no floor: ride it); shift up to gear 4 standing while it carries you | 291 |
+| 8 | Runway | 230–245 | the shaft wall behind you, 10 safe tiles under a ceiling, a red bridge (6) under it: run from the lift, red by the bridge (w1-03, from a standing start) | — |
+| 9 | Home | 246–299 | 20 safe tiles, press down three times; a 26-tile blue bridge; exit pad (exit col 296) | 97 |
+
+Each window moves one input (or press group, or the step a wait ends) earlier and later with every other input placed by position or by its own step, as a player would; ±150 was the search range, so 205 and 291 are cut off.
+
+**Clocks and late arrival.** Every slab room is entered from safe ground (the spawn ledge, the 10-tile stretch before the lift, the upper ground, the post stretches, the ledge before each green slab), so a player who arrives late waits there for the next cycle (at most 564 steps, 9.4 s, at a shuttle) and never dies for it. On the recording the longest standing wait apart from the rides is about 70 steps (1.2 s, held against the wall on the up-lift); no forced wait is over 3 s. Each `phase=` puts the slab's rest where the recording arrives: the shuttle's left rest starts 30 steps before the runner reaches the pit, the up-lift's bottom rest as the runner reaches it, the green slabs' level rests just before the runner reaches the gap. Each post's `clock=` is **the recording's step when the runner, walking at gear 1, passes the post's respawn x** (x 132.5 at step 1543; x 215.5 at step 2804). A player who respawns there (standing, gear 1, instant 3 tiles/s on the first step) and walks on meets every slab after the post at the same phase as the recording, so every window above holds after a post death.
+
+**Deliberate deaths (sim, first use of posts with slabs):** after post 1, walking into the Ferry's pit dies at step 1908 and respawns at step 1933 standing at x 132.50, y 6, gear 1, band 0, kinetic clock 1543; holding right from there reaches the pit edge with the Ferry at u 34 of 564 (the recording: 32), in its left rest. After post 2, a death on the Runway's red bridge (no presses up, step 3397) respawns at step 3422 at x 215.50 with kinetic clock 2804; walking on reaches the shaft with the down-lift at u 41 (top rest 0–89). On both respawn steps the kinetic clock (step − kinBase) is the post's `clock=`. R after post 2 (step 2851) restarts at the spawn with clock 0 and no post lit. Nothing off.
+
+**COMBINE (no win skips a slab):** the recording with one extra jump at every 2nd step (2,003 runs, 1,362 wins) and with two at random steps (1,200 runs, 579 wins): every win stood on all six slabs (checked against `moverOffset` each step). The pits under the shuttles, the shaft and the green slabs are open to the bottom; the 6-tile walls beside the lifts and the 2-row roofs over the green slabs and the Ferry stop every jump.
+
+**Run length and pace.** Clean run (the recording) **4,006 steps, 66.8 s**, 300 tiles: sprints (Across, the Coast, the Runway) between rides and walks (the brake pads and blue bridges at gear 1, the Ferry, the lifts).
+
+**Differences from `levels-w4.md` (accepted by design-lead 2026-11-24):**
+- **Width 300, not ≈ 350**: wider means more walking; 66.8 s is already in the upper half of 45–75 s.
+- **Room 3 is not "Down"**: v4.0's third room ended the level going down; here it is section 1's easy end on the lift's upper level (row 6), so it is named "Level". Its slab rests 150 steps (window ≥ 30 asked).
+- **Runway has no back-up**: the down-lift sets you down at the shaft wall (the back wall) at speed 0, and 10 tiles is enough runway; w1-03's turn-back would need the runway behind the lift, across its path.
+- **The shaft has no floor**: with a 1-deep dip, a player could drop down the empty shaft and hop out, skipping the down-lift. Walking into the empty shaft is a death (respawn at post 2, 12 tiles back).
+- **Coast pad 2 lower, 5-tile gap** (w2-05 v2's short Coast), as the long-level windows ask (33).
+- **Seen on screen:** not looked at; the preview pane runs hidden at about one step every 2 s.
+
+**Fastest known:** 3946 steps (`252R 1+ 1. 1+ 1. 1+ 159. 179R 1RJ 132R 1. 1- 128. 340R 1R- 588R 1+ 237. 424R 1R- 562R 1+ 1. 1+ 1. 1+ 317R 1R- 1R 1R- 1R 1R- 607R`: the recording with each wait trimmed to its earliest; a random search around the recording).
+
+**Solution:** 4,006 steps (66.8 s), deathless from the load, lights post 1 at step 1525 and post 2 at step 2787. `tests/levels` passes, including ±3 on every transition and the kinetic and checkpoint rules.
+
+## w5-01 Spark
+
+**Teaches:** a colored bolt only hits its own color.
+
+**Bolts as built (first real use of the sim; notes for w5-01..w5-03).** Before building, the spec's "Room B" acceptance cases were replayed through the sim on a scratch level: grey standing hit on step 76; red never hits a standing body; white hits standing (76), never a body walking through; a straight-up jump survives for J on steps 41–73 (33 steps), J 40 is hit on step 84, J 74 on step 76; exit beats a hit on the same step (exit touch and first overlap both on step 44: won); after each death the next hit is again on run step 76 (respawn rewinds the clock). All as specified; no sim, parser or spec problem found. Note for the measuring method: the hit test uses the band at the **start** of the step, so a runner turning red while leaving a red lane can show band 4 inside the lane for one step without being hit (by rule; check 7).
+
+Every lane here is speed 2 (3.75 tiles/s). "Dense" lanes use period 32: a bolt every 2 tiles, so a body inside the lane always overlaps a bolt once the lane has filled (60 steps for a lane 6 tiles tall).
+
+One screen (30 × 13), w1-05's grammar with a bolt instead of a wall: safe runway (cols 0–15, spawn col 1, open sky) → red bridge (cols 16–21) over a death pit under a safe roof (2 tiles of headroom, flush with the bridge) → exit pad (`E` col 27).
+
+- `emitter: 4 3 dir=d range=6 speed=2 period=32 band=R` — the demo lane, 3 tiles from the spawn, hanging under a safe block at (4, 2). Walking from the spawn, the body is inside it on steps 48–72 and the first bolt reaches head height on step 60: a red bolt falls through the walking (blue) runner about one second in. Nobody can be red there going right (2.4 tiles from the spawn; red needs 3.23).
+- `emitter: 12 3 dir=d range=6 speed=2 period=32 band=R` — the test lane, dense. A sprint from the spawn is red there and is hit (step 69; with any idle 0–60 first, steps 74–99). The lane is full by step 60 and the earliest red arrival is step 69, so the empty-at-start rule leaves no gap to sprint through.
+- **The decision:** cross col 12 in another color, then turn red in the 3 safe tiles before the bridge. Yellow cruise and one press up: **24 steps** (83–106 steps of running, x 12.47–15.92). Green and two presses: 36 steps. Walking blue and three presses: **72 steps** (first press at x 9.83–13.38). Bolts never constrain timing here (the lane is dense, so arrival phase does not matter): the windows are positions.
+- **Fair line:** walk in gear 1 and press up three times anywhere from x 9.8 to 13.4 (72 steps), or the recorded yellow line (24 steps).
+- **Removal:** without the emitters, the plain sprint from the spawn wins (step 143). Sweep of 25,000 lines (gears 0–3 up presses before and after a run of 1–300 steps, jumps at 4 points, plus 20,000 random logs): 2,490 wins without lanes, 2,109 of them red through col 12; with the lanes 404 wins. Strict check on 15,000 of those lines (band at the start of a step red while the body overlaps the col-12 lane): **0 wins red inside the lane** (249 wins). The red bridge's roof stops a yellow jump over it, as in w1-05.
+- **Safe spots:** the whole runway (spawn included) and the 3 tiles after the lane.
+- **Hints (Must, cold start):** `hint: move 1 6` over the spawn (box cols 0–2, rows 5–6) and `hint: shiftUp 14 6` over the second safe tile after the lane (box cols 13–15; col 13, the first tile, would put the box on the lane). Both 3 rows above the floor, clear of both lanes and the HUD. The glyph centre x 14.5 sits in the middle of the yellow press window (12.47–15.92).
+
+**Fastest known:** 156 steps (`1R+ 1R 1R+ 80R 1R+ 300R`: shift to gear 3 while starting, last press as early as the window allows). Leaderboard floor 85%.
+
+**Solution:** 182 steps. Stand 20, shift up twice standing, run 94 steps, press up once at x 14.0 (window 83–106), sprint the bridge. ±3 passes on every transition.
+
+## w5-02 Keep Moving
+
+**Teaches (twist):** a white bolt hits only a runner standing still, so a safe pad is no longer a safe stop.
+
+69 × 13, scrolls. Room 1 is w1-04's Brake unchanged under the rain: runway cols 0–6, red bridge cols 7–12 under a safe roof, 8-tile safe pad cols 13–20, 12-tile blue bridge cols 21–32 (no roof). Room 2: safe floor cols 33–40 (no rain: stop and think), red bridge cols 41–46 under a safe roof, 6-tile safe pad cols 47–52, 10-tile green bridge cols 53–62 (no roof), exit pad (`E` col 66). A safe ceiling at row 2 over each pad carries the emitters.
+
+- **16 emitters (the cap):** `emitter: <c> 3 dir=d range=6 speed=2 period=32 phase=<p> band=W` for c = 13–21 (phases 0, 12, 24, 4, 16, 28, 8, 20, 0) and c = 47–53 (phases 4, 16, 28, 8, 20, 0, 12). A lane in every column (0.5-tile gaps are narrower than the 0.75-tile body), so a body standing anywhere on a pad overlaps a lane; each lane is dense. Staggered phases are only for the look; density does not depend on them.
+- **Why cols 21 and 53:** with lanes over the pads only, a body could let go and stop with its box over the last pad tile and the first bridge tile, just outside the last lane (x 21.24 in room 1): 11 stood wins in the sweep. The extra lanes over the first bridge tile close that; a body walking blue (or running green) under them is never hit.
+- **The decision:** shed red **while moving**. Room 1: three presses down while running, first press at x 11.09–18.29, **37 steps** (w1-04's window, unchanged). Room 2: two presses down (gear 4 → 2) while running, first press at x 44.94–51.74, **35 steps**. Letting go only as a brake (and pressing down or jumping before you stop) also works; stopping does not. The room-2 shift up is a position choice on the dry floor (press at x 31.5–38.3 while walking, 136 steps; or stop there, shift up standing, and run: 34 steps for the brake).
+- **Phase:** the rain is dense and full by step ~92, long before anyone reaches a pad, so every window is the same at any arrival time.
+- **No wall stop** on the intended line (projectiles.md: no white lane where the line wall-stops).
+- **Removal:** sweep of 2,781 structured lines (sprint 40–130 steps, then a running brake, or let go for 10–90 steps and press down standing, or let go and jump; room 2 the same with two or three presses; plus 5,000 random logs). Room 1: 133 wins with rain, **0 that stand on the pad**; without the emitters 322 wins, **187 standing on the pad** (the w1-04 let-go line). Room 2: 253 wins, **0 standing**; without emitters 283, **30 standing**. (Random logs win neither version.)
+- **Safe spots:** the runway (spawn), room 2's dry floor (cols 33–40), the exit pad. The pads are no longer stop spots, which is the twist.
+- **Hints:** none (spec).
+
+**Fastest known:** 546 steps (`1R+ 1R 1R+ 1R 1R+ 94R 1R- 1R 1R- 1R 1R- 223R 1R+ 1R 1R+ 1R 1R+ 116R 1R- 1R 1R- 5R 1RJ 300R`: late room-2 brake, then a jump keeps the braking speed onto the green bridge; coordinate-descent search from the best sweep line).
+
+**Solution:** 721 steps. Stand 20, shift up to gear 4, sprint 81, three presses down at x 14.7, walk 360, three presses up at x 34.8, sprint 77, two presses down at x 48.3, run the green bridge. ±3 passes on every transition.
+
+## w5-03 Hurdles
+
+**Teaches:** grey bolts hit everyone: jump the low ones, stay down under the high ones.
+
+94 × 15, scrolls; the level steps down from left to right, so no climb is ever needed (a climb would be a wall stop, and a standing jump has no air control).
+
+1. **Green hurdles.** Safe spawn ledge (cols 0–7, top row 8) → walk off 1 tile onto a 14-tile **green** floor (cols 8–21, row 9) over a pit → safe floor. `emitter: 22 8 dir=l range=15 speed=2 period=240` sits over the first safe tile after the green and fires at foot height; bolts sink into the spawn ledge's face, below the feet of a player standing on it. Jump them green: a green flight is 4.8 tiles and lands green.
+2. **Yellow, stay down.** Safe floor (cols 22–28: stop, shift to yellow) → 24-tile **yellow** floor (cols 29–52, row 9) over a pit → safe floor. `emitter: 55 6 dir=l range=27 speed=2 period=32`, head height (the bolt passes 0.75 tiles over a standing head), dense, hanging under a block at (55, 5); bolts sink into an overhang at cols 27–28 (2 tiles of headroom under it). Any jump here meets a bolt, and a yellow flat jump drags to green and falls through anyway.
+3. **Mixed, safe floor, timing only.** From the row-9 floor, a 1-tile drop onto a 10-tile high floor (cols 59–68, row 10: foot height), then a 2-tile drop onto the low floor (row 12: the same bolts pass overhead) to the exit (`E` col 91). `emitter: 87 9 dir=l range=29 speed=2 period=240`, hanging under a block at (87, 8); bolts sink into the face at (58, 9), right under a player waiting on the row-9 floor: the cue to go.
+
+- **One grey emitter on screen:** emitters at cols 22, 55, 87 (33 and 32 apart; the view is 30 wide).
+- **Windows (recorded line):** section 1, first hurdle **34 steps** (jump at x 9.4–12.7), second **40 steps** (the bolt just leaving the emitter, landing on the safe floor); shift up to yellow on the safe floor **44 steps** (x 24.7–29.0); section 3, go 20 steps after a bolt sinks, jump at x 61.7–66.6, **34 steps**.
+- **Arrival phase (section 1):** you can wait on the spawn ledge as long as you like, so every phase can happen. Greedy search per arrival phase (idle 0–232 every 8 steps): every phase is solvable with one or two jumps, the tightest jump window over all phases is **19 steps** (idle 40), most are 25–46.
+- **Arrival phase (section 3):** going when a bolt sinks, or up to 40 steps later: one jump, 33–34 steps; 60–80 steps later: one jump, 22–28 steps; 100–120 steps later: 16 and 10 steps (under 18: the next bolt meets you at the drop); 140–180 steps later: two jumps needed (163–318 two-jump wins per phase); 200–220 steps later (the next cycle): one jump, 35 steps. Waiting is always safe on the row-9 floor and on the low floor, so the fair line is "wait for a bolt to sink at your feet, then go".
+- **Fair line:** shift up once standing; walk off at green and jump each bolt (34 and 40 steps); shift up once on the safe floor (44 steps); run the yellow floor without jumping (no timed input); stop on the safe floor; when a bolt sinks into the face below you, run and jump once (34 steps); hold right.
+- **Removal:** without the emitters, the straight run (gear 2, one press up on the safe floor, hold right) wins on step 705; with them it is hit on step 142. **Section 1 with no jump: 0 of 240 arrival phases** clear the green floor. **Jumps on yellow:** after the recorded opening, a jump on each of the 163 steps spent on the yellow floor: **0 clear it** (without emitters 53 of 165 do, the late ones landing on the safe floor); 2 further jumps taken under the overhang, on the safe floor, bonk and land yellow (not jumps on yellow). Section 3 with no jump: hit at every one of 12 sampled departure phases.
+- **Not cheese, noted:** gear 3 and gear 4 lines also clear section 1 (970 and 213 of a coarse sweep; gear 1: 0): a yellow takeoff from the ledge drags to green and lands green (w2-02's Coast), and every one of them still jumps the bolts.
+- **Safe spots:** the spawn ledge, the safe floor after the green (cols 22–28), the safe floor after the yellow (cols 53–58), the low floor. The high floor is the only safe-tile stretch you cannot stand on.
+- **Hints:** none (spec).
+
+**Fastest known:** 721 steps (`1R+ 106R 1RJ 96R 1R+ 315R 1RJ 600R`: one green hurdle at the right phase, no stop before section 3; greedy plus coordinate-descent search, so a lower one may exist).
+
+**Solution:** 1,028 steps (17.1 s). Stand 20, shift up once, run 99 and jump at x 11.0, run 94 and jump, run 59 and press up at x 26.6, run 190 over the yellow floor, let go and wait 257 steps on the safe floor (a bolt sinks at step 704; go at 724), run 56 and jump at x 64.1, hold right to the exit. ±3 passes on every transition.
+
+**Checks (w5-01..w5-03, at build time):** `npx vitest run tests/levels`: all 406 tests passed once all three levels were in (that run included the other sitting's w4 files). A later full run had 3 failures, all 30-second robustness timeouts on other sittings' long levels (w2-05 41 s, w4-05 38 s, w5-05 47 s) while sweeps were loading the machine. `-t "w5-0[123]"` on its own: 42 passed. `npx vitest run scripts/levels-table.test.ts`: fails only on the missing `LEVELS` rows (w5-01..03, plus w4-05 from the other sitting).
+
+`LEVELS` rows needed (backend): see the report; version 1 each.
+
+## w5-05 Full Spectrum
+
+**Teaches:** nothing new (COMBINE, long finale; `levels-w5.md` "w5-05" v4.1, level plan v4.1 "Long levels"): every bolt kind (red, yellow, white, grey), a grey lift and a green slab, with runway, drag, step-down and brake, as one journey. No hints, no sweep, no Tandem.
+
+345 × 15, scrolls. Rows 0–3 hold no colored tile, exit, lane or slab path. Two slabs (speed 2), six emitters (all speed 2), three posts:
+
+```
+mover: 92 12 8x1 safe speed=2 phase=96 path=w90,u6,w90,d6      (Lift; cycle 372)
+mover: 113 6 6x1 G speed=2 phase=327 path=w120,d6,w30,u6        (Moving Bridge; cycle 342)
+emitter: 17 6 dir=d range=4 speed=2 period=32 band=R            (Rain, dense)
+emitter: 43 14 dir=u range=10 speed=2 period=32 band=Y          (Coast fountain, dense, rises from the pit)
+emitter: 99 5 dir=l range=8 speed=2 period=32 band=W            (Lift: head height over the top rest)
+emitter: 174 10 dir=l range=15 speed=2 period=240 phase=190     (Hurdles, grey, foot height)
+emitter: 212 8 dir=l range=27 speed=2 period=32                 (Stay down, grey, head height, dense)
+emitter: 238 11 dir=l range=11 speed=2 period=32 band=W         (Brake pad, body height)
+checkpoint: 80 11 clock=850
+checkpoint: 148 9 clock=1642
+checkpoint: 254 11 clock=2675
+```
+
+| # | Room | Cols | What you do | Window(s), steps |
+|---|---|---|---|---|
+| 1 | Rain | 0–27 | gear 3 standing; run yellow through the dense red lane (col 17); press up in the 4 safe tiles after it; red on the red bridge (22–27, roof) (w5-01) | press up 31 |
+| 2 | Coast in yellow rain | 28–51 | 10 safe tiles; red runway (5), 5-col gap, yellow pad 2 lower; a dense yellow fountain rises in the gap's first column: take off red and you are still red in it, then drag to yellow on the pad | jump 32 |
+| 3 | Blue bridge | 52–77 | 12 safe tiles, press down twice; 14-tile blue bridge (no roof) | 32 |
+| — | **Post 1** | **80** (row 11) | 12 safe tiles before the lift dip | |
+| 4 | Lift under white | 92–99 | 8-wide grey lift in a 1-deep dip rises 6 tiles to the upper ledge; a white lane sweeps head height over its top rest. Walk straight on at gear 1 and keep walking: you cross it while it rises and step off at the top. Standing on it dies; walking on too early reaches the far wall before the top (a wall stop is white) and dies | board: reach the dip edge in a 55-step span of each 372-step cycle |
+| 5 | Moving Bridge | 100–119 | 12-tile upper ledge, press up once; green slab in a 6-col gap under a 2-row roof, level for 120 steps (w4-03) | press up 159; go: 125 of each 342 |
+| 6 | Step Down | 120–145 | 12-tile ledge, three presses up; walk off red over a 3-col pit onto the red floor 4 below (w2-03) | 91 |
+| — | **Post 2** | **148** (row 9) | 12 safe tiles; the hurdle bolts sink into this ledge's face, under your feet | |
+| 7 | Hurdles | 146–183 | press down to gear 2 (67); walk off onto the 14-tile green floor 1 below and jump the grey foot-height bolt (period 240) (w5-03) | jump 35 |
+| 8 | Stay down | 184–209 | 10 safe tiles, press up to gear 3; 24-tile yellow floor under a dense grey head-height stream: do not jump (w5-03) | press up 141 |
+| 9 | Brake | 210–251 | 12 safe tiles, press up; red bridge (roof); 10-tile pad 1 lower swept at body height by white bolts; three presses down while running; 14-tile blue bridge (w5-02) | press up 97; brake 30 |
+| — | **Post 3** | **254** (row 11) | 11 safe tiles of runway | |
+| 10 | Runway | 252–270 | three presses up while walking; red on the red bridge (265–270, roof) (w1-03) | 212 |
+| 11 | short Coast | 271–296 | 12 safe tiles; red runway (5), 5-col gap, yellow pad 2 lower (w2-05's) | jump 32 |
+| 12 | Home | 297–344 | 12 safe tiles, press down twice; 28-tile blue bridge; exit col 341 | 84 |
+
+Each window moves one input (or press group) earlier and later with every other input placed by position, as a player would; ±120 was the search range, so 159 and 212 are cut off. Every timed window is at least 30 except Rain's press (31 is fine), the first Coast's 32 and room 3's 32; all are ≥ 25, and the last section's are all ≥ 32.
+
+**Clocks and late arrival.** The red, yellow, head-height grey and both white lanes are dense (a bolt every 2 tiles), so they do not care when you arrive. The slabs and the hurdle bolts are timed for the recording, which never waits, and each is entered from safe ground where waiting is free: the lower floor before the lift dip (the dip has a floor and no lane at its height), the upper ledge before the green slab, the post-2 ledge before the hurdles (the bolts sink into its face below a standing player's feet: go when one sinks, as in w5-03). Each post's `clock=` is the recording's step when the runner passes the post's respawn x (x 80.5 at step 850, walking; x 148.5 at step 1642; x 254.5 at step 2675, walking). Measured from each post (sim):
+- **Post 1, Lift.** Respawn and walk on at once: on the lift at the recording's phase. Waiting D steps at the post first: D 0–36 board in time (again from 342, the next cycle); otherwise you reach the dip while the lift is away or rising and wait (nothing kills you down there).
+- **Post 2, Hurdles.** Respawn at gear 1, press up once and go: jump window 35. Waiting D first: one jump wins for D 0–48 and 192–288 (sampled every 12 steps; the cycle is 240), windows 26–39; between those, one jump is not enough and you wait on the ledge.
+- **Green slab** (standing on the upper ledge at x 103, then press up and go): wins for 125 of every 342 steps.
+- **Post 3:** no kinetic piece after it.
+
+**Deliberate deaths (sim).** Stand on the lift after post 1: hit at step 1190 (y 7.0, rising into the top rest); respawn at step 1215 at x 80.50, gear 1, band 0, kinetic clock 850; the recorded inputs from there win. No jump on the green floor after post 2: hit at step 1829; respawn at 1854, x 148.50, clock 1642; press up and the recorded jump win. No presses up after post 3: fall at step 2923; respawn at 2948, x 254.50, clock 2675; wins. R after post 1 (step 900): step 0 at the spawn, no post lit. Nothing off.
+
+**Every bolt room's wrong choice dies** (recording up to the room, then the wrong input): sprint red from the spawn into the red lane (0 of 401 idle times 0–400 get past it); take off yellow on the Coast (hit in the fountain, step 269, x 43.0); stand on the lift (hit); no jump on green (hit); jump on the yellow floor (0 wins of 161, one jump at each step spent on it); let go on the brake pad, or brake late and stop at its end (hit, band 0).
+
+**COMBINE (no win skips a room):** the recording with one extra jump at every 2nd step (1,870 runs, 1,358 wins) and with two at random steps (1,000 runs, 534 wins): every win stood on the lift and the green slab and overlapped the red lane, the yellow fountain, the lift's white lane, the hurdle lane and the pad's white lane (checked each step against `moverOffset` and the lane cells). No win touches the head-height grey lane, by design: you run under it, and no win jumps on the yellow floor (above). Roofs over the red bridges and the green slab, the 6-tile wall beside the lift, the blue bridges' length (14, 14, 28) and the open pits stop every jump past a room.
+
+**Run length and pace.** Clean run (the recording) **3,739 steps, 62.3 s**, 345 tiles (5.5 tiles/s): sprints (Rain, both Coasts, the Step Down, the Brake, the Runway) between walking rooms (three blue bridges, the lift crossing at gear 1, the green slab at gear 2).
+
+**Differences from `levels-w5.md` (for design-lead):**
+- **Width 345, not ≈ 420–450** (inside level plan v4.1's 300–450): 62.3 s is already mid-range of 60–75 s; more width is more walking.
+- **The Lift is crossed, not ridden standing.** Rain over a shaft would need a floor to sink into. Instead an 8-wide lift rises while you walk across it, and one white lane sweeps head height over its top rest. A standing rider dies at the top; a walker who starts too early is stopped by the far wall (white) and dies; the window is the 55-step arrival span above.
+- **The Coast's yellow rain rises from the pit** (`dir=u`, emitter on the bottom row, sinking into a block at row 4): a falling lane would need a sink in the pit, which is a ledge to land on.
+- **The brake pad's white rain is one horizontal lane at body height** (a horizontal lane reaches every standing spot), and the pad sits 1 tile below the red bridge so the lane sinks into the bridge's end. Pad 10 tiles (w5-02: 8), so the moving brake has 30 steps.
+- **Post 2's `clock=`** is the recording's step at x 148.5 while it brakes from red (not a walker's); the hurdle `phase=190` puts both the recording and a player who respawns, presses up and goes mid-window (35 steps each).
+- `levels-w5.md`'s first w5-05 line still says "no checkpoints"; the v4.1 paragraph asks for 3 posts, which is what is built.
+- **Seen on screen:** looked at in the dev build (port 5195, `?level=w5-05&replay=1`): room 1 draws (red lane under its block, red bridge under its roof); the pane ran the replay too slowly to watch further rooms.
+
+**Fastest known:** 3652 steps (the recording with two extra jumps, a random pair from the sweep above; no faster line found).
+
+**Solution:** 3,739 steps (62.3 s), deathless from the load, lights post 1 at step 833, post 2 at 1638, post 3 at 2658. `tests/levels` passes for w5-05, including ±3 on every transition (that case takes about 25 s alone, close to the 30 s test timeout on a busy machine; w2-05 and w4-05 timed out the same way in a loaded full run) and the kinetic and checkpoint rules.

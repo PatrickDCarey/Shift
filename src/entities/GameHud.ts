@@ -10,7 +10,7 @@
 import type Phaser from 'phaser';
 import { hexToNumber, palette, PIXEL_KEYS } from '../fx';
 import { FOCUS_PROMPT_TEXT } from './focusPrompt';
-import { blockHeight, blockWidth, centeredX, wrapText } from './hudText';
+import { blockHeight, blockWidth, centeredX, fitTitle, titleLeft, wrapText, type TitleBounds } from './hudText';
 import { GEAR_METER_LAYOUT } from '../ui';
 
 const DEPTH_HUD = 200;
@@ -30,8 +30,11 @@ export const GEAR_METER_AREA = {
 /** Pixels below the top edge used by the HUD (gear meter plus margin); HUD messages start here. */
 export const HUD_BOTTOM = GEAR_METER_AREA.y + GEAR_METER_AREA.height + MARGIN;
 
+/** The title starts right of the gear panel (plus a margin) and stays inside the screen. */
+export const TITLE_BOUNDS: TitleBounds = { minLeft: GEAR_METER_AREA.x + GEAR_METER_AREA.width + MARGIN, rightMargin: MARGIN };
+
 export interface HudLayout {
-  /** Level title: top centre, so it never sits under the gear meter. */
+  /** Level title: top centre, clamped to start right of the gear meter (`titleLeft`). */
   readonly title: { readonly x: number; readonly y: number };
   /** Load/parse/replay messages: left, below the gear meter. */
   readonly messages: { readonly x: number; readonly y: number };
@@ -116,7 +119,7 @@ class HudText {
     const { width } = this.scene.scale;
     let left = x;
     let top = y;
-    if (anchor === 'topCenter') left = centeredX(width, boxW);
+    if (anchor === 'topCenter') left = titleLeft(width, boxW, TITLE_BOUNDS);
     else if (anchor === 'topRight') left = x - boxW;
     else if (anchor === 'bottomCenter') {
       left = centeredX(width, boxW);
@@ -140,7 +143,7 @@ export class GameHud {
       t.setVisible(true);
       return t;
     };
-    shown(new HudText(scene, { anchor: 'topCenter', x: layout.title.x, y: layout.title.y, color: textMuted }), title);
+    shown(new HudText(scene, { anchor: 'topCenter', x: layout.title.x, y: layout.title.y, color: textMuted }), fitTitle(title, width, PAD_X, TITLE_BOUNDS));
     this.debug = new HudText(scene, { anchor: 'topRight', x: width - MARGIN, y: MARGIN, color: text });
     // Plain text, no input handling: it never blocks a key or a click.
     this.focusPrompt = new HudText(scene, { anchor: 'bottomCenter', x: 0, y: height - MARGIN, color: text });

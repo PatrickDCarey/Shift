@@ -38,6 +38,7 @@ A **checkpoint post** in a long level lights when you pass it. After that, a dea
 ## Readability
 
 - The post is a short safe-tile pole with a flag or lamp: unlit (outline) and lit (filled, with a short rise animation; static under reduced motion). Shape changes, not only color.
+- **Idle post presence (2026-11-24, after a real-browser look):** a player must see an unlit post as soon as it scrolls on screen, before reaching it. The first build (1 px pole, small hollow lamp, 16×24) is too faint on the dark backdrop. The idle post needs: a pole at least 2 px wide; a lamp whose outline is at least 2 px or that has a dim solid fill inside its outline; a 1 px dark rim on pole and lamp so it separates from the backdrop; contrast with the backdrop at least that of a safe tile's edge; at least 24 px tall (32 is fine). It must stay neutral (no gear color or band pattern: it is not color-gated), must not look like the exit, and must stay clearly different in shape from the lit post (the pennant stays the lit-only mark). Same look in every effects mode. Check: on w2-05 at the step the post's column enters the view, a viewer who has never seen it can point to it within 2 s.
 - On respawn at a post, the respawn wipe or flash plays at the post as it does at the spawn.
 - Audio: a single bright cue on activation (audio-designer).
 

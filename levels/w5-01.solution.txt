@@ -1,0 +1,12 @@
+level: w5-01
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.        stand at the spawn
+# 1+ 1. 1+   shift up to gear 3 (yellow cruise)
+# 94R        run right; the col-4 and col-12 red rain falls through the yellow runner
+# 1R+        shift up once at x 14.0, just past the col-12 lane: red at x 14.7
+# 64R        sprint over the red bridge into the exit
+# Window for the last press: 83-106 steps of running (24 steps, x 12.47-15.92).
+steps: 182
+---
+20. 1+ 1. 1+ 94R 1R+ 64R

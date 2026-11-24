@@ -1,0 +1,20 @@
+level: w4-05
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned. Deathless from the
+# load; lights post 1 at step 1525 and post 2 at step 2787.
+# 252R   walk at gear 1 onto the first shuttle while it rests and on to its front (x 15.6)
+# 1+ 1. 1+ 1. 1+ 147.   shift up to gear 4 standing; ride to the dock (docked from step 393)
+# 179R   at step 405 run: yellow through the red door, red on the red bridge, on along the recovery stretch
+# 1RJ    jump at x 60.9 off the red runway: drag to yellow, land yellow on the pad
+# 132R 1. 1- 164.   walk onto the lift, shift down to gear 2 standing, ride it 6 up
+# 319R   walk off at gear 2, cross the green slab while it is level, onto the brake pad
+# 1R- 584R   press down at x 115.1 (blue for the bridge), walk past post 1 to the ferry
+# 1+ 238.   board the ferry at its back, shift up standing, ride to the green bridge
+# 398R   leave at gear 2 while docked, cross the green bridge and the second green slab while level
+# 1R- 614R   press down at x 196.1, walk the blue bridge, past post 2, onto the down-lift
+# 1+ 1. 1+ 1. 1+   shift up to gear 4 on the lift (held against the shaft wall, white)
+# 271R   ride down, run from the lift: red on the red bridge
+# 1R- 1R 1R- 1R 1R- 687R   press down three times at x 259.2, walk the blue bridge home (won at step 4006)
+steps: 4006
+---
+252R 1+ 1. 1+ 1. 1+ 147. 179R 1RJ 132R 1. 1- 164. 319R 1R- 584R 1+ 238. 398R 1R- 614R 1+ 1. 1+ 1. 1+ 271R 1R- 1R 1R- 1R 1R- 687R

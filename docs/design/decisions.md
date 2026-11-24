@@ -602,3 +602,38 @@ A miss on 4 with mostly late pins after the batch 10 glyph move comes back to de
 1. **Kinetic clock set to the post's `clock=` on respawn (default 0): ACCEPTED.** Reason: the room after a post plays the same every life, so a retry teaches (pillars 1 and 3) and the ±3 and box rules can be checked. Level time still runs on. Acceptance 8 rewritten (formula at `clock` + steps since respawn; two lives identical).
 2. **Forward-only activation, judged on the post's column at any height: ACCEPTED.** Reason: walking back never moves your respawn backwards, and a post cannot be jumped over; "last touched wins" bought nothing in left-to-right levels. New acceptance 9.
 3. **Fixed rules noted, no objection:** order win, post, death; fresh spawn after the 24-step freeze with held keys carried; level time counts every frame after a post is lit; shipped recording deathless from the start; placement (on `.` over `#`, ≤ 4, ≥ 20 after spawn, ≥ 40 apart, no `&` or `sweep:`, respawn box clear of slab paths, lanes, exits, hints, HUD). Reason: all fair and readable; the spacing fits a post every 3–4 rooms.
+
+## 2026-11-24 (evening) — Expansion level review: w2-05 v2, w4-01..03, w4-05, w5-01..03 (level plan v4.2)
+
+**Input:** `levels/README.md` (w2-05 v2, w4-01, w4-02, w4-03, w4-05) and `levels/README-w5.md` (w5-01..03); all eight pass replay, ±3, kinetic and checkpoint rules. Orchestrator's real-browser look at posts and slabs. **All eight APPROVED as built; no geometry, recording or tuning change.**
+
+### w4-01 Lift, w4-02 Ferry, w4-03 Moving Bridge
+- **2-row roofs (all three):** accepted — a 1-row roof's top is exactly jump height, so it was a platform that skipped the lesson (w4-01 cheese at 340 steps).
+- **w4-02 pit 16 columns, not 14:** accepted — a 4-wide slab moving 12 sweeps 16 columns and nothing solid may sit in a swept area; the spec's 14 was my arithmetic.
+- **w4-02 roof over the whole track:** accepted — a bridge-only roof let a yellow jump off the moving shuttle drag to green and win without the dock; every remaining expert line still needs the dock.
+- **w4-03 window 97 steps (39 level + 58 scoop), not ~22:** accepted — wider is fairer, and the scoop still lands you green on the slab, so the color lesson is intact (static `G` and `safe`-slab removals prove it).
+
+### w2-05 Long Haul v2
+- **Width 306, not 330–380:** accepted — inside 300–450, and 63.4 s already sits near the top of the 50–65 s target.
+- **Commit gap 3, not 4:** accepted — 4 gives 21 steps, under the long-level 25; 3 gives 31.
+- **Short Coast pad 2 lower, not 3:** accepted — the 15-row limit; window 33 ≥ 30 and a walk-off still falls.
+- **Runway without a back-up (blue bridge in, standing-pace runway):** accepted — the lesson is "red takes distance"; arriving at walking pace off the blue keeps it, and the reversal is not worth a 3-row drop room.
+- **Section 2 order (Brake 37, Shift 53, Commit 31 last): accepted, no swap** — all three windows are ≥ 25 and within 6 steps of each other, so "hardest first" is not broken in any way a player feels; swapping costs a two-room rebuild and re-record for nothing measurable. Cold play watches Commit deaths and the replay from post 1 (about 27 s).
+
+### w4-05 Commute
+- **Width 300, not ~350:** accepted — 66.8 s is inside 45–75 s.
+- **Room 3 "Level", not a descent:** accepted — section 1's easy end; slab rest 150 (≥ 30).
+- **Runway from a standing start at the shaft wall:** accepted — same reasoning as w2-05's Runway; the shaft wall is the back wall.
+- **Shaft with no floor:** accepted — a floor would let you skip the lift (COMBINE rule); an open shaft is a visible pit, the lift and its track are always drawn, and a death costs 12 tiles to post 2.
+- **Late arrival waits up to 9.4 s on safe ground:** accepted, and the long-level rule is clarified — "no forced wait over 3 s" applies to the fair line (here ≤ 1.2 s); missing a cycle may cost one cycle (≤ 10 s) of waiting on safe ground, which is always cheaper than a death and is w4-02's own lesson.
+- **Post clocks set to the walker's phase:** accepted — a respawned walker meets every slab as the recording does, so every window holds after a post death.
+
+### w5-01 Spark, w5-02 Keep Moving, w5-03 Hurdles
+- **w5-01:** accepted as built — the walking-blue line (72 steps) is the fair line; the 24-step yellow line is an expert line.
+- **w5-02, 16 white lanes (the cap) incl. two over the first bridge tile:** accepted — without them a body stopped on the pad's last edge survived (11 stood wins); the twist must be total.
+- **w5-03 steps down with no climbs:** accepted — the climb version had an 11-step window.
+- **w5-03 last stretch (period 240; going 100–120 steps after a sink gives 16/10-step windows, 140–180 needs two jumps): ACCEPTED, the wait is the fair line, no change.** Reason: the fairness floor asks for one line with every window ≥ 18, and "go when a bolt sinks at your feet" gives 34 steps (≥ 22 for anything up to 80 steps late); waiting is free on safe ground, the sinking bolt is a visible cue right under the player, and choosing *when* to go is pillar 1. A different period only moves the bad band. **Trigger:** if a cold player dies there 3+ times or calls a death unfair, design asks level-designer for a shorter period or range (measured, not guessed).
+
+### Checkpoint post look
+- **The idle post needs more presence (Must, art only):** a player must see a post coming, so the 1 px pole with a small hollow lamp is not enough against the dark backdrop. Spec added to `features/checkpoints.md` "Readability"; request to art-director. The lit post (pennant) is accepted as is. Reason: pillar 2; the post is how a long level says "you won't lose this".
+- **Slab ghost look and the title/HUD overlap fix:** noted, nothing to rule.

@@ -1,0 +1,15 @@
+level: w5-02
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 20.                    stand at the spawn
+# 1+ 1. 1+ 1. 1+         shift up to gear 4
+# 81R                    sprint across the red bridge onto the rained pad
+# 1R- 1R 1R- 1R 1R-      shift down to gear 1 at x 14.7 while running (window x 11.1-18.3, 37 steps), never stopped
+# 360R                   walk the blue bridge onto room 2's dry floor
+# 1R+ 1R 1R+ 1R 1R+      shift up to gear 4 while walking (x 34.8): red at x 38.0
+# 77R                    sprint across the second red bridge onto the second rained pad
+# 1R- 1R 1R-             shift down to gear 2 at x 48.3 while running (window x 44.9-51.7, 35 steps)
+# 165R                   run the green bridge into the exit
+steps: 721
+---
+20. 1+ 1. 1+ 1. 1+ 81R 1R- 1R 1R- 1R 1R- 360R 1R+ 1R 1R+ 1R 1R+ 77R 1R- 1R 1R- 165R

@@ -102,7 +102,9 @@ describe('no secrets in committable files', () => {
 
   it('no secret file names or secret content', () => {
     expect(committableFiles().flatMap(fileProblems)).toEqual([]);
-  });
+    // Scans every committable file: about 2 s alone, but over the 5 s default when the
+    // long-level robustness tests run beside it.
+  }, 60_000);
 });
 
 describe('secret check self-check (fake keys built at run time)', () => {

@@ -50,3 +50,26 @@ export function wrapText(text: string, maxWidthPx: number): string {
   }
   return lines.join('\n');
 }
+
+/** Free space beside the gear meter: where a title may start and the right margin it keeps. */
+export interface TitleBounds {
+  readonly minLeft: number;
+  readonly rightMargin: number;
+}
+
+/**
+ * Left edge of the title's box: centred, but never left of `minLeft` (the gear panel's right edge
+ * plus a margin) and never past the right margin.
+ */
+export function titleLeft(span: number, boxW: number, bounds: TitleBounds): number {
+  const centred = centeredX(span, boxW);
+  return Math.max(bounds.minLeft, Math.min(centred, span - bounds.rightMargin - boxW));
+}
+
+/** The title that fits beside the gear meter: drops a trailing `[...]` suffix (the replay note) first. */
+export function fitTitle(full: string, span: number, padX: number, bounds: TitleBounds): string {
+  const room = span - bounds.rightMargin - bounds.minLeft - 2 * padX;
+  if (blockWidth(full) <= room) return full;
+  const short = full.replace(/\s+\[[^\]]*\]$/, '');
+  return blockWidth(short) <= room ? short : short.slice(0, Math.max(1, Math.floor((room + 1) / ADVANCE)));
+}

@@ -1,0 +1,40 @@
+# World 5, level 3. Teach: grey bolts hit everyone: jump the low ones, stay down under the high ones.
+# Target first-time solve: 30-45 s. No hints.
+# Layout (94 x 15, scrolls; the level steps down left to right):
+#   1 Green hurdles: safe spawn ledge (cols 0-7, top row 8) -> 14-tile green trench floor (cols 8-21,
+#     row 9) over a pit -> safe floor (cols 22-28). Grey emitter at (22, 8) fires left at foot height
+#     (speed 2, period 240, a bolt every 15 tiles); bolts sink into the spawn ledge's face. Walk off the
+#     ledge green and jump each bolt: a green flight is 4.8 tiles and lands green.
+#   2 Yellow, stay down: safe floor (stop and think, shift to yellow) -> 24-tile yellow floor (cols 29-52)
+#     over a pit -> safe floor. Grey emitter at (55, 6), head height (0.75 tiles over a standing head),
+#     dense (period 32, a bolt every 2 tiles); bolts sink into the overhang at cols 27-28 (2 tiles of
+#     headroom under it). Any jump here meets a bolt, and a yellow flat jump drags to green and falls.
+#   3 Mixed, safe floor, timing only: from the safe floor at row 9, a 1-tile drop onto a 10-tile high
+#     floor (cols 59-68, row 10: foot height) and a 2-tile drop onto the low floor (row 12: head height)
+#     to the exit. One grey emitter at (87, 9), period 240; bolts sink into the face at (58, 9), at the
+#     feet of a player waiting on the row-9 floor. Go when one sinks: one jump, 34-step window.
+# One grey emitter on screen at once: emitters are 33 and 32 columns apart (the view is 30).
+id: w5-03
+title: Hurdles
+world: 5
+teaches: grey bolts hit everyone: jump the low ones, stay down under the high ones
+version: 1
+emitter: 22 8 dir=l range=15 speed=2 period=240 phase=0
+emitter: 55 6 dir=l range=27 speed=2 period=32
+emitter: 87 9 dir=l range=29 speed=2 period=240 phase=0
+---
+..............................................................................................
+..............................................................................................
+..............................................................................................
+...........................##.................................................................
+...........................##.................................................................
+...........................##..........................#......................................
+...........................##.................................................................
+.@............................................................................................
+########...............................................................................#......
+########GGGGGGGGGGGGGG#######YYYYYYYYYYYYYYYYYYYYYYYY######...................................
+########..............#######........................################.........................
+########..............#######........................################......................E..
+########..............#######........................#########################################
+########..............#######........................#########################################
+########..............#######........................#########################################
