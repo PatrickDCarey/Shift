@@ -333,7 +333,7 @@ describe('submitRun skip rule (long levels)', () => {
   it('shouldSubmitRun is false for malformed runs', () => {
     expect(shouldSubmitRun(run(MAX_RUN_STEPS))).toBe(true);
     expect(shouldSubmitRun(run(0))).toBe(false);
-    expect(shouldSubmitRun(null)).toBe(false);
-    expect(shouldSubmitRun({})).toBe(false);
+    expect(shouldSubmitRun(null as never)).toBe(false);
+    expect(shouldSubmitRun({} as never)).toBe(false);
   });
 });

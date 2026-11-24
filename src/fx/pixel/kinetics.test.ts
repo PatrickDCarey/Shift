@@ -8,6 +8,7 @@ import { buildPixelAssets } from './atlas';
 import { BOLT_KINDS, BOLT_SIZE, EMITTER_SIZE, bakeBolt, bakeEmitter, bakeShimmer, bakeSink } from './bolts';
 import { DIRS, SLAB_KINDS, SLAB_SIZE, bakeChevron, bakeSlabSegment, bakeTrackCell, slabSegments, TRACK_CELLS } from './movers';
 import { POST_H, POST_W, bakePost, bakePostRise } from './posts';
+import { SWEEP_TILE, bakeSweepEdge, bakeSweepFill, bakeSweepMarker } from './sweep';
 import { getPixel, type Raster } from './raster';
 
 const luma = (r: Raster, x: number, y: number): number => {
@@ -135,5 +136,27 @@ describe('checkpoint post', () => {
     const rows = [0, 1, 2].map((f) => grey(bakePostRise(f)).findIndex((v, i) => v >= 0 && i % POST_W >= 9));
     expect(rows[0]).toBeGreaterThan(rows[1]!);
     expect(rows[1]).toBeGreaterThan(rows[2]!);
+  });
+});
+
+describe('sweep', () => {
+  const lit = (r: Raster): number => grey(r).filter((v) => v >= 0).length;
+
+  it('edge and fill tile seamlessly in 16 x 16 and animate', () => {
+    for (let f = 0; f < 3; f++) expect([bakeSweepEdge(f).width, bakeSweepEdge(f).height]).toEqual([SWEEP_TILE, SWEEP_TILE]);
+    expect(diff(bakeSweepEdge(0), bakeSweepEdge(1))).toBeGreaterThan(0);
+    expect(diff(bakeSweepFill(0), bakeSweepFill(1))).toBeGreaterThan(0);
+    for (const e of [bakeSweepEdge(0), bakeSweepEdge(2)]) {
+      for (let x = 0; x < 16; x++) expect(luma(e, x, 0) >= 0).toBe(luma(e, x, 8) >= 0);
+      expect(luma(e, 15, 3)).toBeGreaterThanOrEqual(0);
+      expect(luma(e, 14, 11)).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('the hatch is sparse enough to read geometry beneath, and the marker points left', () => {
+    expect(lit(bakeSweepFill(0))).toBe(64);
+    const m = bakeSweepMarker();
+    expect(luma(m, 0, 7) >= 0 || luma(m, 0, 8) >= 0).toBe(true);
+    expect(luma(m, 0, 0)).toBe(-1);
   });
 });

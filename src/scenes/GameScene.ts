@@ -82,7 +82,7 @@ export class GameScene extends Phaser.Scene {
   private store!: SaveStore;
   private levelView!: LevelView;
   private bodies!: BodyViews;
-  /** Null for levels without movers or emitters. */
+  /** Null for levels without movers, emitters, posts or a sweep. */
   private kinetics: KineticsView | null = null;
   private hintView: HintView | null = null;
   private restartCard!: RestartCardController;

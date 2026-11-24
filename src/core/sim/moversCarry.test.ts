@@ -149,3 +149,32 @@ describe('no regression guard', () => {
     expect(advance(base, createSim(base, params), frames)).toEqual(advance(plain, createSim(plain, params), frames));
   });
 });
+
+describe('K-M1: a ceiling stops the carry and the body is left below the slab', () => {
+  // Lift L (origin row 10, rises to 4) under a ceiling tile at row 5: the head (1.5 above the feet) meets its face at feet 7.5.
+  const lvl = arena(
+    30,
+    20,
+    [{ row: 9, col: 10, chars: '@' }, { row: 5, col: 10, chars: '#' }, floorRow(30, 19)],
+    [slab(10, 10, 3, liftPath)],
+  );
+  const s = runFromSpawn(lvl, repeat(200, ''));
+  it('feet stop at the ceiling face, grounded false from the contact step', () => {
+    expect(at(s, 99).player.grounded).toBe(true);
+    expect(at(s, 99).player.y).toBe(7.5625);
+    // Step 100: head exactly touches the ceiling face (contact, not overlap): still carried.
+    expect(at(s, 100).player.y).toBe(7.5);
+    expect(at(s, 100).player.grounded).toBe(true);
+    // Step 101: the carry is blocked, the slab rises through the feet and does not re-land the body.
+    expect(at(s, 101).player.y).toBe(7.5);
+    expect(at(s, 101).player.grounded).toBe(false);
+    expect(s.slice(100, 110).every((st) => !st.player.grounded)).toBe(true);
+  });
+  it('the box never overlaps the ceiling row and the body is never re-landed on the slab', () => {
+    const headRoom = s.map((st) => st.player.y - params.playerHeight);
+    expect(headRoom.every((h) => h >= 6 - 1e-9)).toBe(true);
+    expect(s.every((st) => st.status === 'playing')).toBe(true);
+    const slabTop = (n: number): number => top(n);
+    expect(at(s, 156).player.y).toBeGreaterThan(slabTop(156));
+  });
+});

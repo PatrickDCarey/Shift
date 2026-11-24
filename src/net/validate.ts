@@ -2,13 +2,13 @@
 // untrusted: a wrong shape is a failure, never a crash. Owner: backend-engineer.
 
 import { isDisplayName } from '../core/types';
+import { MAX_RUN_STEPS } from './submitPolicy';
 import type { LeaderboardEntry } from './types';
 
 /** Shape of a level id, matching the `runs_level_id_format` check in 0001_runs.sql. */
 export const LEVEL_ID_PATTERN = /^w[0-5]-[0-9]{2}$/;
 export const MAX_LIMIT = 100;
 export const MAX_OFFSET = 10_000;
-const MAX_STEPS = 36_000; // the server's MAX_RUN_STEPS and runs_steps_range (0002)
 
 export function isLevelId(value: unknown): value is string {
   return typeof value === 'string' && LEVEL_ID_PATTERN.test(value);
@@ -32,7 +32,7 @@ function parseEntry(row: unknown): LeaderboardEntry | null {
   if (!isRecord(row)) return null;
   const { display_name: name, steps, verified, created_at: createdAt } = row;
   if (typeof name !== 'string' || !isDisplayName(name)) return null; // the shared allow-list: what the server can write
-  if (typeof steps !== 'number' || !Number.isInteger(steps) || steps < 1 || steps > MAX_STEPS) return null;
+  if (typeof steps !== 'number' || !Number.isInteger(steps) || steps < 1 || steps > MAX_RUN_STEPS) return null;
   if (typeof verified !== 'boolean') return null;
   if (typeof createdAt !== 'string' || createdAt.length > 64 || Number.isNaN(Date.parse(createdAt))) {
     return null;

@@ -6,7 +6,7 @@ import type { DeathCause, InputFrame, Level, PlayerState, SimEvent, SimParams, S
 import { createSim } from './create';
 import { recordInput } from './input';
 import { boxAt, overlapsTile } from './geometry';
-import { bodyHit, type HitCtx } from './hazards';
+import { bodyCaught, bodyHit, type HitCtx } from './hazards';
 import { postRespawn, tickFrozen } from './checkpoints';
 
 /** A `restart` press: status restarting, respawn on the next step. Nothing else runs. */
@@ -80,13 +80,17 @@ export function outcomePhase(
   if (p0.home && (p1 === null || p1.home)) {
     return { ...out('won', [{ type: 'won' }]), events: [...events.filter((e) => e.type !== 'fallThrough'), ...homeEvents, { type: 'won' }] };
   }
-  const fell0 = fellOut(p0, level, params);
-  const fell1 = p1 !== null && fellOut(p1, level, params);
-  const hit0 = hits !== undefined && bodyHit(level, params, p0, 0, hits);
-  const hit1 = hits !== undefined && p1 !== null && bodyHit(level, params, p1, 1, hits);
-  if (!fell0 && !fell1 && !hit0 && !hit1) return out(null, []);
-  const body = fell0 || hit0 ? 0 : 1;
-  const fell = body === 0 ? fell0 : fell1;
-  const cause: { cause?: DeathCause } = fell ? {} : { cause: 'hit' };
-  return out('dead', [{ type: 'died', body, ...cause }]);
+  const dead = (p: PlayerState | null, id: 0 | 1): DeathCause | 'fall' | null => {
+    if (p === null) return null;
+    if (fellOut(p, level, params)) return 'fall';
+    if (hits === undefined) return null;
+    if (bodyHit(level, params, p, id, hits)) return 'hit';
+    return bodyCaught(level, p, hits) ? 'sweep' : null;
+  };
+  const d0 = dead(p0, 0);
+  const d1 = d0 === null ? dead(p1, 1) : null;
+  const cause = d0 ?? d1;
+  if (cause === null) return out(null, []);
+  const body = d0 === null ? 1 : 0;
+  return out('dead', [{ type: 'died', body, ...(cause === 'fall' ? {} : { cause }) }]);
 }

@@ -1,8 +1,10 @@
 /**
  * Draws the expansion's moving things from `kineticsPlan.ts`: slabs (solid or ghost for the body's
  * band, with direction chevrons), their dotted tracks, emitters with the tell glow, bolts (sprites
- * keyed by fire step, so they are reused) and the pass-through shimmer. Built only for levels that
- * have movers or emitters (`forLevel` returns null otherwise: nothing created, nothing per frame).
+ * keyed by fire step, so they are reused) and the pass-through shimmer; it also owns the checkpoint
+ * posts (`PostView`) and the sweep (`SweepView`). Everything is evaluated at the kinetic clock
+ * (`kineticStep`). Built only for levels that have movers, emitters, posts or a sweep (`forLevel`
+ * returns null otherwise: nothing created, nothing per frame).
  * Reduced effects or reduced motion replaces the glow with the static `tell` frame. Fires the shot
  * cue once per shot leaving an on-screen emitter. Render only; never writes sim state.
  *
@@ -11,10 +13,11 @@
 import type Phaser from 'phaser';
 import { kineticStep, nextShotIn } from '../core';
 import type { Emitter, Level, SimState, Tuning } from '../core/types';
-import { BOLT_SIZE, hexToNumber, palette, PIXEL_KEYS, SHIMMER_FRAMES } from '../fx';
+import { hexToNumber, palette, PIXEL_KEYS, SHIMMER_FRAMES } from '../fx';
 import { playPost, playShot } from '../audio';
 import type { EffectPrefs } from './effectPrefs';
 import { PostView } from './PostView';
+import { SweepView } from './SweepView';
 import {
   kineticsSnapshot,
   planKinetics,
@@ -58,16 +61,17 @@ export class KineticsView {
   private readonly fixed: Img[] = [];
   private lastStep = -1;
   private readonly posts: PostView | null;
+  private readonly sweep: SweepView | null;
 
   /** Null when the level has no movers and no emitters. */
   static forLevel(scene: Phaser.Scene, level: Level, tuning: Tuning, stepHz: number, deps: KineticsDeps = {}): KineticsView | null {
-    if ((level.movers ?? []).length + (level.emitters ?? []).length + (level.checkpoints ?? []).length === 0) return null;
+    if ((level.movers ?? []).length + (level.emitters ?? []).length + (level.checkpoints ?? []).length === 0 && level.sweep === undefined) return null;
     const opts: PlanOptions = {
       tileSize: tuning.tileSize,
       tellSteps: tellStepsOf(tuning, stepHz),
       bodyWidthTiles: tuning.playerWidthTiles,
       bodyHeightTiles: tuning.playerHeightTiles,
-      shotSizeTiles: BOLT_SIZE / tuning.tileSize,
+      shotSizeTiles: tuning.projectileSizeTiles,
     };
     return new KineticsView(scene, level, opts, deps.onShot ?? ((band, onScreen) => void playShot(band ?? undefined, onScreen)), deps.onPost ?? (() => void playPost()));
   }
@@ -80,6 +84,7 @@ export class KineticsView {
     onPost: () => void,
   ) {
     this.posts = PostView.forLevel(scene, level, opts.tileSize, onPost);
+    this.sweep = SweepView.forLevel(scene, level);
     this.buildStatic();
     (level.movers ?? []).forEach((m) => this.slabs.push(this.buildSlab(m.width)));
     (level.emitters ?? []).forEach((e) => this.emitters.push(this.buildEmitter(e)));
@@ -136,6 +141,8 @@ export class KineticsView {
     this.drawShots(plan);
     this.drawShimmers(plan.shimmers, prefs.reducedMotion, kineticStep(state));
     this.posts?.update(state, timeMs, prefs.reducedMotion);
+    const view = this.scene.cameras.main.worldView;
+    this.sweep?.update(prev, state, alpha, { x: view.x, y: view.y, w: view.width, h: view.height }, timeMs, prefs.reducedMotion);
     this.fireCues(state);
   }
 
@@ -222,5 +229,6 @@ export class KineticsView {
     all.forEach((i) => i.destroy());
     this.shots.clear();
     this.posts?.destroy();
+    this.sweep?.destroy();
   }
 }

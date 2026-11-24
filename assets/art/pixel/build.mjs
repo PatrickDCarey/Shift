@@ -375,6 +375,9 @@ try {
       put(px.bakePost('idle'), 4 + 144 + 16, 140);
       put(px.bakePost('lit'), 4 + 144 + 40, 140);
       for (let f = 0; f < 3; f++) put(px.bakePostRise(f), 4 + 144 + 64 + f * 18, 140);
+      for (let f = 0; f < 3; f++) pngMask(px.bakeSweepEdge(f), fx.palette.ui.text, 4 + 144 + 16 + f * 18, 170);
+      for (let f = 0; f < 4; f++) pngMask(px.bakeSweepFill(f), fx.palette.ui.textMuted, 4 + 144 + 16 + f * 18, 190);
+      pngMask(px.bakeSweepMarker(), fx.palette.ui.text, 4 + 144 + 16 + 4 * 18, 170);
       return out;
     };
     void names;

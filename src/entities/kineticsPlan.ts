@@ -5,7 +5,7 @@
  * and are blended like the bodies are (`renderBodyPosition`): only across two consecutive playing steps.
  * Phaser-free, so it runs in Node tests. Owner: gameplay-engineer [scene].
  */
-import { BAND_COLORS, kineticStep, moverCorners, moverOffset, nextShotIn, shotsAt } from '../core';
+import { BAND_COLORS, kineticStep, moverCorners, moverOffset, nextShotIn, shotsAt, sweepFront } from '../core';
 import type { Band, ColoredBand, Emitter, KinDir, Level, Mover, SimState } from '../core/types';
 import { kineticFrameNames, slabSegments, type BoltKind, type SlabKind } from '../fx';
 import { lerp, renderBodyPosition } from './interpolation';
@@ -285,6 +285,8 @@ export interface KineticsSnapshot {
   readonly movers: readonly { readonly x: number; readonly y: number; readonly holds: boolean }[];
   readonly emitters: readonly { readonly tell: boolean }[];
   readonly shots: readonly { readonly emitter: number; readonly firedAt: number; readonly x: number; readonly y: number }[];
+  /** Sweep front x in tiles at the kinetic clock, or null when the level has no sweep. */
+  readonly sweepFront: number | null;
 }
 
 export function kineticsSnapshot(level: Level, state: SimState, tellSteps: number): KineticsSnapshot {
@@ -292,6 +294,7 @@ export function kineticsSnapshot(level: Level, state: SimState, tellSteps: numbe
   const k = kineticStep(state);
   return {
     step: k,
+    sweepFront: level.sweep === undefined ? null : sweepFront(level.sweep, k, level.width),
     movers: (level.movers ?? []).map((m) => {
       const off = moverOffset(m, k);
       return { x: m.origin.col + off.x, y: m.origin.row + off.y, holds: slabHolds(m, laneBody(level, state, m.origin.row)) };

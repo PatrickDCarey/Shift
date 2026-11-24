@@ -318,7 +318,7 @@ export function buildPixelAssets(): PixelAssets {
       reducedEffects: { speedLines: 'off', ringBurst: 'on unless reduced motion', dustLand: 'on' },
     }),
     kinetics: packAtlas('pixel-kinetics.png', kineticItems(), 512, {
-      naming: 'slab/<safe|blue|green|yellow|red>/<solid|ghost>/<L|M|R|S> (16x16, origin (0, 0)), slab/chevron/<l|r|u|d> (8x8 white mask, origin (0.5, 0.5)), track/<h|v|ne|nw|se|sw|stop/l|stop/r|stop/u|stop/d> (16x16 white mask), emitter/<l|r|u|d>/<grey|white|blue|green|yellow|red>/<idle|tell> (16x16), bolt/<kind> (8x8, origin (0.5, 0.5)), bolt/shimmer/<0-3> (16x16 white mask), bolt/sink/<l|r|u|d> (16x16 white mask), checkpoint/<idle|lit> and checkpoint/rise/<0-2> (16x24, origin (0.5, 1); reduced motion: lit only)',
+      naming: 'slab/<safe|blue|green|yellow|red>/<solid|ghost>/<L|M|R|S> (16x16, origin (0, 0)), slab/chevron/<l|r|u|d> (8x8 white mask, origin (0.5, 0.5)), track/<h|v|ne|nw|se|sw|stop/l|stop/r|stop/u|stop/d> (16x16 white mask), emitter/<l|r|u|d>/<grey|white|blue|green|yellow|red>/<idle|tell> (16x16), bolt/<kind> (8x8, origin (0.5, 0.5)), bolt/shimmer/<0-3> (16x16 white mask), bolt/sink/<l|r|u|d> (16x16 white mask), checkpoint/<idle|lit> and checkpoint/rise/<0-2> (16x24, origin (0.5, 1); reduced motion: lit only), sweep/edge/<0-2> and sweep/fill/<0-3> (16x16 white masks, tile the edge vertically and the fill both ways, origin (0, 0); reduced motion: frame 0), sweep/marker (12x16 white mask, origin (0, 0.5))',
       note: 'Masks are pure white, tint at runtime. Coloured frames are baked from palette.json. Under reduced motion show emitter tell frames statically; shimmer frame 1 only.',
     }),
   };

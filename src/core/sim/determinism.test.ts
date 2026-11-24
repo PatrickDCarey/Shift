@@ -97,3 +97,21 @@ describe('determinism fixture: two slabs, two emitters', () => {
     expect(fnv(a)).toBe('65955fb');
   });
 });
+
+describe('determinism fixture 2: a slab and a sweep', () => {
+  const swept = {
+    ...arena(80, 24, [{ row: 9, col: 6, chars: '@' }, floorRow(80, 19)], [slab(12, 12, 3, liftPath)]),
+    sweep: { x0: 0, speed: 2 as const, delay: 100 },
+  };
+  const log = scriptedLog(3000, 4242);
+  const a = runFromSpawn(swept, log);
+
+  it('two runs are deep-equal on every step', () => {
+    expect(runFromSpawn(swept, log)).toEqual(a);
+  });
+
+  it('is caught by the sweep and matches its pinned fingerprint', () => {
+    expect(a.some((st) => st.events.some((e) => e.type === 'died' && e.cause === 'sweep'))).toBe(true);
+    expect(fnv(a)).toBe('7ae3fb00');
+  });
+});

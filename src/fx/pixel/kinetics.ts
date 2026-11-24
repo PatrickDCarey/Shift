@@ -11,6 +11,7 @@
  *  bolt/<grey|white|blue|green|yellow|red>                     8x8, origin (0.5, 0.5)
  *  bolt/shimmer/<0-3>                                          16x16 white mask, origin (0.5, 0.5)
  *  bolt/sink/<l|r|u|d>                                         16x16 white mask, origin (0, 0)
+ *  sweep/edge/<0-2>, sweep/fill/<0-3>, sweep/marker           16x16 / 16x16 / 12x16 white masks (see sweep.ts)
  *  checkpoint/<idle|lit>, checkpoint/rise/<0-2>               16x24, origin (0.5, 1)  (see posts.ts)
  */
 import type { PackItem } from './atlas';
@@ -21,19 +22,21 @@ import {
   DIRS, SLAB_KINDS, SLAB_SEGMENTS, SLAB_STATES, TRACK_CELLS, bakeChevron, bakeSlabSegment, bakeTrackCell,
 } from './movers';
 import { POST_ORIGIN, POST_RISE_FRAMES, bakePost, bakePostRise, postFrameNames } from './posts';
+import { SWEEP_EDGE_FRAMES, SWEEP_FILL_FRAMES, SWEEP_MARKER_ORIGIN, SWEEP_TILE_ORIGIN, bakeSweepEdge, bakeSweepFill, bakeSweepMarker, sweepFrameNames } from './sweep';
 import type { SlabKind, SlabSegment, SlabState, TrackCell, Dir } from './movers';
 
 export function kineticFrameNames(): {
   slab: (kind: SlabKind, state: SlabState, seg: SlabSegment) => string;
   chevron: (dir: Dir) => string;
   track: (cell: TrackCell) => string;
-} & ReturnType<typeof boltFrameNames> & { post: ReturnType<typeof postFrameNames> } {
+} & ReturnType<typeof boltFrameNames> & { post: ReturnType<typeof postFrameNames>; sweep: ReturnType<typeof sweepFrameNames> } {
   return {
     slab: (kind, state, seg) => `slab/${kind}/${state}/${seg}`,
     chevron: (dir) => `slab/chevron/${dir}`,
     track: (cell) => `track/${cell}`,
     ...boltFrameNames(),
     post: postFrameNames(),
+    sweep: sweepFrameNames(),
   };
 }
 
@@ -58,5 +61,8 @@ export function kineticItems(): PackItem[] {
   items.push({ name: n.post.idle, raster: bakePost('idle'), pivot: POST_ORIGIN });
   items.push({ name: n.post.lit, raster: bakePost('lit'), pivot: POST_ORIGIN });
   for (let f = 0; f < POST_RISE_FRAMES; f++) items.push({ name: n.post.rise(f), raster: bakePostRise(f), pivot: POST_ORIGIN });
+  for (let f = 0; f < SWEEP_EDGE_FRAMES; f++) items.push({ name: n.sweep.edge(f), raster: bakeSweepEdge(f), pivot: SWEEP_TILE_ORIGIN });
+  for (let f = 0; f < SWEEP_FILL_FRAMES; f++) items.push({ name: n.sweep.fill(f), raster: bakeSweepFill(f), pivot: SWEEP_TILE_ORIGIN });
+  items.push({ name: n.sweep.marker, raster: bakeSweepMarker(), pivot: SWEEP_MARKER_ORIGIN });
   return items;
 }

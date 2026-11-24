@@ -42,3 +42,15 @@ Code: `src/fx/pixel/posts.ts` (exported from `src/fx/pixel`), frames in the same
 Place at x = (col + 0.5) * 16, y = the floor's top edge; the post is 1.5 tiles tall and 1 wide, over the post's own cell and the one above it. Helpers: `postFrameNames()` (also `kineticFrameNames().post`), `POST_W`, `POST_H`, `POST_ORIGIN`, `POST_RISE_FRAMES`, `bakePost`, `bakePostRise`. Colours come from `palette.json` (`safeTile`, `ui.text`, `ui.textMuted`); no new entries.
 
 Greyscale: idle is a boxy lamp (bright outline, dim fill, dark rim) on a 2 px pole; lit is a flag silhouette (pennant, ball) on a 2 px pole. Different shapes, no hue involved; both are drawn in the safe-tile greys. `kinetics.test.ts` enforces >= 30 differing greyscale pixels, a different silhouette, the outline > fill > rim luma order and the 2 px pole. Contrast: idle pole and lamp outline use the safe-tile edge colour (same as the tiles) with a dark rim; lit parts use `ui.text`/safe edge on the near-black background (well over 3:1).
+
+## Sweep (advancing front, Should)
+
+Code: `src/fx/pixel/sweep.ts` (exported from `src/fx/pixel`; names via `sweepFrameNames()` or `kineticFrameNames().sweep`). All frames are pure white masks in `pixel-kinetics`: no band colour or band pattern, so it never reads as a gear. Previews at the bottom of `kinetics.png` and `kinetics-grey.png`.
+
+| Frame | Size (px) | Origin | Notes |
+|---|---|---|---|
+| `sweep/edge/<0-2>` | 16x16 | (0,0) | Hard front: 2 px bar at x 14-15, ragged saw-tooth on its left (0-3 px). Tile **vertically** every 16 px (17 tiles cover 270 px) in a column at x = frontPx - 16; the saw period is 8, so it is seamless. 3 frames, about 8 fps (teeth crawl). Reduced motion: frame 0. Tint `ui.text`. |
+| `sweep/fill/<0-3>` | 16x16 | (0,0) | Swept area: thin 45-degree hatch, one pixel in four (25%), so geometry beneath stays readable. Tile both ways from the view's left edge to frontPx - 16, under bodies. 4 frames scroll one pixel each (about 6 fps). Reduced motion: frame 0. Tint `ui.textMuted` at low alpha. |
+| `sweep/marker` | 12x16 | (0,0.5) | Left-pointing arrowhead for the left screen edge while the front is off screen. The gap bar (up to 15 tiles) is a plain rectangle the scene draws beside it. |
+
+Greyscale: shape only. A saw-tooth edge with a solid bar, and a diagonal hatch that no gear pattern uses (blue horizontal stripes, green dots, yellow zigzag, red checker): "something sharp is advancing". Colour is never needed. The hatch is never denser than 25% and sits behind the front, so tiles just ahead of the edge are not covered. `kinetics.test.ts` checks tile sizes, vertical seamlessness, animation, hatch density and the marker.

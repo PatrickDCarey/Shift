@@ -8,7 +8,8 @@
 import { moverOffset } from '../motion';
 import { SIM_EPSILON, type Level, type Mover, type PlayerState, type SimParams } from '../types';
 import { sweepX, sweepY } from './collision';
-import { gateFor, type Gate } from './gating';
+import { boxAt, overlapsTile } from './geometry';
+import { gateFor, solidAll, type Gate } from './gating';
 import { withPlayer, type StepCtx, type Work } from './work';
 
 /** One slab at one run step: its top face. */
@@ -71,11 +72,16 @@ export function carryPhase(w: Work, ctx: StepCtx): Work {
   return withPlayer(w, { x, y: res.hit === null ? next.top : res.y });
 }
 
+/** True if standing on a slab top at (x, feet) would put the head into a solid tile: a ceiling stops the slab, it never carries a body through. */
+const headInCeiling = (ctx: StepCtx, gate: Gate, x: number, feet: number): boolean =>
+  overlapsTile(ctx.level, boxAt(x, feet, ctx.params), (t) => solidAll(t, gate));
+
 /**
  * Phase 8 slab floor: the top (feet y) of the slab the body lands on or stands
  * on at t+1, or null. `y0` = feet before the vertical move, `y1` = after the
  * tile sweep. Landing is swept: feet at or above the top at t and at or below
- * the top at t+1. A jump this step or a ceiling bonk never lands.
+ * the top at t+1. A jump this step or a ceiling bonk never lands, nor does a
+ * slab top that would put the head into a solid tile (K-M1).
  */
 export function slabFloor(w: Work, ctx: StepCtx, gate: Gate, y0: number, y1: number, bonked: boolean): number | null {
   const movers = ctx.level.movers;
@@ -86,7 +92,8 @@ export function slabFloor(w: Work, ctx: StepCtx, gate: Gate, y0: number, y1: num
     const a = slabAt(m, i, ctx.t);
     const b = slabAt(m, i, ctx.t + 1);
     const swept = y0 <= a.top + SIM_EPSILON && y1 >= b.top - SIM_EPSILON;
-    if ((swept || nearTop(b, y1)) && overlapsX(b, w.player.x, ctx.params) && (best === null || b.top < best)) best = b.top;
+    const holds = (swept || nearTop(b, y1)) && overlapsX(b, w.player.x, ctx.params);
+    if (holds && !headInCeiling(ctx, gate, w.player.x, b.top) && (best === null || b.top < best)) best = b.top;
   });
   return best;
 }

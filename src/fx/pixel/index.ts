@@ -13,3 +13,4 @@ export * from './movers';
 export * from './bolts';
 export * from './kinetics';
 export * from './posts';
+export * from './sweep';

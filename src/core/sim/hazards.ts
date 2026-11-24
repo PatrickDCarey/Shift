@@ -5,7 +5,7 @@
  * live shot's box at t+1 and the shot can hit the band the body had at the
  * START of the step (null = grey hits all, 0 = white, 1-4 that band).
  */
-import { shotsAt } from '../motion';
+import { shotsAt, sweepFront } from '../motion';
 import { SIM_EPSILON, type Band, type Level, type PlayerState, type SimParams } from '../types';
 import { boxAt } from './geometry';
 
@@ -18,11 +18,10 @@ export interface HitCtx {
 /** True if body `id` (box after phases 7-8) is hit by a bolt alive at ctx.t1. Home bodies are never hit. */
 export function bodyHit(level: Level, params: SimParams, p: PlayerState, id: 0 | 1, ctx: HitCtx): boolean {
   const emitters = level.emitters;
-  const size = params.projectileSize;
-  if (!emitters || size === undefined || p.home) return false; // optional in SimParams until tech-lead makes it required
+  if (!emitters || p.home) return false;
   const box = boxAt(p.x, p.y, params);
   const band = ctx.startBands[id];
-  const half = size / 2;
+  const half = params.projectileSize / 2;
   return emitters.some(
     (e) =>
       (e.band === null || e.band === band) &&
@@ -34,4 +33,10 @@ export function bodyHit(level: Level, params: SimParams, p: PlayerState, id: 0 |
           box.bottom > s.y - half + SIM_EPSILON,
       ),
   );
+}
+
+/** True if the sweep front has reached body `p`'s centre at t1 (kinetics.ts `Sweep`). Air does not save you; home bodies are never caught. */
+export function bodyCaught(level: Level, p: PlayerState, ctx: HitCtx): boolean {
+  const sw = level.sweep;
+  return sw !== undefined && !p.home && sweepFront(sw, ctx.t1, level.width) >= p.x;
 }

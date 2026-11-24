@@ -33,7 +33,7 @@ const POSTS = [{ cell: { col: 30, row: 4 }, clock: 0 }, { cell: { col: 80, row: 
 const level = (extra: Partial<Level>): Level => ({ ...gridLevel(['.@..E', '#####']), ...extra });
 const st = (step: number, checkpoint?: { index: number; kinBase: number }, status: 'playing' | 'dead' = 'playing'): SimState =>
   ({ step, status, player: { x: 1, y: 9, band: 0, graceBand: null }, twin: null, ...(checkpoint ? { checkpoint } : {}) }) as unknown as SimState;
-const TUNING = { tileSize: 16, playerWidthTiles: 0.75, playerHeightTiles: 1.5, emitterTellMs: 300 } as unknown as Tuning;
+const TUNING = { tileSize: 16, playerWidthTiles: 0.75, playerHeightTiles: 1.5, emitterTellMs: 300, projectileSizeTiles: 0.5 } as unknown as Tuning;
 
 describe('postFrame', () => {
   it('is idle unlit, rises over three frames once lit, then holds lit', () => {
