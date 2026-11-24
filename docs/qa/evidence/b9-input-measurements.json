@@ -732,179 +732,158 @@
   ],
   "M3 R in the death freeze": {
     "trials": 36,
-    "analysed": 24,
-    "rightHeldAtRespawn": 16,
+    "analysed": 21,
+    "rightHeldAtRespawn": 12,
     "rightHeldButNotMovingWithin100ms": 0,
-    "maxMoveStep": 16,
-    "maxRToRespawnMs": 74,
+    "maxMoveStep": 17,
+    "maxRToRespawnMs": 72,
     "results": [
       {
         "mode": "dead",
-        "rToRespawnMs": 56,
+        "rToRespawnMs": 67,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 49,
-        "moveStep": 4
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 22,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 21,
-        "moveStep": 1
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 60,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 40,
-        "moveStep": 4
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 40,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 36,
-        "moveStep": 4
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 22,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 56,
-        "moveStep": 4
+        "moveAfterRespawnMs": 65,
+        "moveStep": 6
       },
       {
         "mode": "dead",
         "rToRespawnMs": 61,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 35,
+        "moveAfterRespawnMs": 42,
         "moveStep": 4
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 59,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 104,
-        "moveStep": 7
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 19,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 125,
-        "moveStep": 7
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 54,
+        "rToRespawnMs": 23,
         "rightHeldAtRespawn": true,
         "moveAfterRespawnMs": 40,
+        "moveStep": 2
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 41,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 43,
         "moveStep": 3
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 63,
+        "rToRespawnMs": 40,
         "rightHeldAtRespawn": true,
         "moveAfterRespawnMs": 37,
-        "moveStep": 3
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 56,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 40,
         "moveStep": 3
       },
       {
         "mode": "dead",
         "rToRespawnMs": 42,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 45,
-        "moveStep": 2
+        "moveAfterRespawnMs": 42,
+        "moveStep": 4
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 74,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 44,
-        "moveStep": 5
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 61,
+        "rToRespawnMs": 67,
         "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 100,
+        "moveAfterRespawnMs": 246,
+        "moveStep": 17
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 72,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 109,
         "moveStep": 8
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 58,
-        "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 243,
-        "moveStep": 16
+        "rToRespawnMs": 22,
+        "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 40,
+        "moveStep": 2
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 56,
+        "rToRespawnMs": 60,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 37,
+        "moveAfterRespawnMs": 44,
         "moveStep": 4
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 61,
-        "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 58,
-        "moveStep": 4
-      },
-      {
-        "mode": "dead",
-        "rToRespawnMs": 17,
+        "rToRespawnMs": 20,
         "rightHeldAtRespawn": true,
         "moveAfterRespawnMs": 45,
         "moveStep": 2
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 45,
+        "rToRespawnMs": 21,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 60,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 40,
         "rightHeldAtRespawn": true,
+        "moveAfterRespawnMs": 43,
+        "moveStep": 3
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 23,
+        "rightHeldAtRespawn": false,
         "moveAfterRespawnMs": 41,
-        "moveStep": 3
+        "moveStep": 2
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 56,
+        "rToRespawnMs": 63,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 141,
+        "moveStep": 11
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 61,
+        "rightHeldAtRespawn": false,
+        "moveAfterRespawnMs": 243,
+        "moveStep": 15
+      },
+      {
+        "mode": "dead",
+        "rToRespawnMs": 40,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 22,
+        "moveAfterRespawnMs": 46,
         "moveStep": 3
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 41,
+        "rToRespawnMs": 46,
         "rightHeldAtRespawn": true,
-        "moveAfterRespawnMs": 42,
+        "moveAfterRespawnMs": 39,
         "moveStep": 3
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 59,
+        "rToRespawnMs": 70,
         "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 54,
-        "moveStep": 5
+        "moveAfterRespawnMs": 173,
+        "moveStep": 12
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 58,
+        "rToRespawnMs": 27,
         "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 78,
-        "moveStep": 6
+        "moveAfterRespawnMs": 208,
+        "moveStep": 12
       },
       {
         "mode": "dead",
-        "rToRespawnMs": 66,
+        "rToRespawnMs": 64,
         "rightHeldAtRespawn": false,
-        "moveAfterRespawnMs": 65,
-        "moveStep": 5
+        "moveAfterRespawnMs": 100,
+        "moveStep": 9
       }
     ]
   }

@@ -111,3 +111,14 @@ Fix idea: `if (this.twinMeter !== null) this.gearMeter.setParked(state.player.ho
 Update 2026-11-20 (B8-09, BUG-6 observation, HEAD e60c755 plus batch 8): in full run 1 (209 tests), the `--last-failed` rerun, three further spec runs and 3 boots of the unzipped release zip (about 330 page boots), no `Boot: ... loaded on attempt` warning, no `#boot-error` and no `window.__redshift never appeared` was seen outside the tests that inject the failure on purpose (`boot-retry.spec.ts`). No new failure, so BUG-6 stays "fixed, pending observation".
 
 Update 2026-11-23 (B9-04, BUG-6 observation, HEAD 50eb482): full run 1 (209 tests), the `--last-failed` rerun and a tandem-scene spec run, about 220 page boots, no `Boot: ... loaded on attempt` warning and no `#boot-error` outside `boot-retry.spec.ts`. The two flaky failures in run 1 (settings 4, pixel 2x) were not boot failures. BUG-6 stays "fixed, pending observation".
+
+### BUG-9: a shot is alive at run step 0 (at the muzzle) although projectiles.md says the lane is empty at t 0
+Status: open (spec or code to align; no gameplay effect found)
+Severity: polish
+Owner: design-lead (wording of `projectiles.md` check 5 / "Shots") with tech-lead (`shotsAt`, `src/core/motion/paths.ts`)
+Build/commit: c5cdcc0 plus uncommitted expansion work
+Steps: 1. `?level=w5-01` (emitters `phase` 0). 2. Read `window.__redshift.kinetics.shots` on the first step (`kineticStep` 0), and again on the first step after a death or R.
+Expected: `projectiles.md` Shots: "The lane is empty at t 0 ... every attempt starts with the same empty lane"; check 5: "At t 0 no shot is alive".
+Actual: one shot per phase-0 emitter, `firedAt` 0, at the emitter's centre (distance 0), on step 0 and again after every respawn or restart. This matches check 1 ("the shot that leaves at s 0") and the code's `(s + phase) mod period = 0` for s >= 0, so the two sentences of the spec disagree; the picture is a bolt appearing at the muzzle at step 0 with no tell before it.
+Evidence: `tests/e2e/b11-kinetics.spec.ts` "w5-01 a red sprint ... restarts" asserts `shots.every(firedAt === 0)` right after the respawn (passes); same data in the cadence test (`firedAt` 0 at k 0).
+Note: harmless for the shipped levels (the s = 0 shots start at ceiling emitters, 3 tiles from the spawn at the nearest). Decide whether "empty at t 0" means "no shot before step 1" and if so start `s` at 1 for phase 0, or reword the spec.
