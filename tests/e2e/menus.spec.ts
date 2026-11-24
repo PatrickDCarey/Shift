@@ -140,7 +140,7 @@ test.describe('level select', () => {
     expect(model?.clearedText).toBe(`CLEARED 0/${ids.length}`);
   });
 
-  test('arrows and WASD move focus; down from world 1 lands in world 2 then 3; Enter on a locked cell starts nothing (check 12)', async ({ page }) => {
+  test('arrows and WASD move focus; down from world 1 walks worlds 2 to 5 and stops; Enter on a locked cell starts nothing (check 12)', async ({ page }) => {
     await gotoTitle(page);
     await openLevelSelectFromTitle(page);
     await tap(page, 'ArrowRight');
@@ -162,11 +162,21 @@ test.describe('level select', () => {
     await tap(page, 'ArrowDown');
     await expect.poll(() => menuFocus(page, 'LevelSelect')).toBe('w3-01');
     await nextFrames(page);
+    // Five world rows since the expansion: down again reaches worlds 4 and 5.
+    await tap(page, 'ArrowDown');
+    await expect.poll(() => menuFocus(page, 'LevelSelect')).toBe('w4-01');
+    await nextFrames(page);
+    await tap(page, 'ArrowDown');
+    await expect.poll(() => menuFocus(page, 'LevelSelect')).toBe('w5-01');
+    await nextFrames(page);
     await tap(page, 'ArrowDown'); // last row: stays
     await nextFrames(page);
-    expect(await menuFocus(page, 'LevelSelect')).toBe('w3-01');
-    await tap(page, 'ArrowUp');
-    await expect.poll(() => menuFocus(page, 'LevelSelect')).toBe('w2-01');
+    expect(await menuFocus(page, 'LevelSelect')).toBe('w5-01');
+    for (const id of ['w4-01', 'w3-01', 'w2-01']) {
+      await tap(page, 'ArrowUp');
+      await expect.poll(() => menuFocus(page, 'LevelSelect')).toBe(id);
+      await nextFrames(page);
+    }
     await tap(page, 'Enter');
     await pollScenes(page, ['Game']);
     expect((await waitForHook(page)).levelId).toBe('w2-01');
