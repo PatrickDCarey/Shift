@@ -194,6 +194,6 @@ World 3 would have reverted to the v2.0 Gates world (speed gates Must again; `fe
 | 3 Tandem | 5 | Must | all approved | Tandem (sim + scene built; stays, owner 2026-11-16) |
 | 2 Flight (+ w2-05, v4.0) | +1 | Must | v2 approved 2026-11-24 | checkpoints |
 | 4 Motion (v4.0) | 5 | 4 Must, 1 Should | w4-01..03, w4-05 approved 2026-11-24; w4-04 not built | movers, checkpoints; sweep (Should) |
-| 5 Signals (v4.0) | 5 | 4 Must, 1 Should | w5-01..03 approved 2026-11-24; w5-05 pending review; w5-04 not built | emitters, checkpoints; sweep (Should) |
+| 5 Signals (v4.0) | 5 | 4 Must, 1 Should | w5-01..03, w5-05 approved 2026-11-24; w5-04 not built | emitters, checkpoints; sweep (Should) |
 | Gates | 4 | Could (post-jam) | not started | speed gates, ice |
-| **Total (v4.2)** | **25 + 4 Could** | 23 Must, 2 Should | 22 of 23 Must approved (w5-05 left) | |
+| **Total (v4.2)** | **25 + 4 Could** | 23 Must, 2 Should | 23 of 23 Must approved (w5-05 on 2026-11-24 late) | |

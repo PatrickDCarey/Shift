@@ -1,6 +1,6 @@
 # World 5 — Signals (level specs)
 
-_Owner: design-lead. Written 2026-11-23 (expansion, `decisions.md` 2026-11-23 "Expansion"), reconciled with tech-lead's `docs/tech/expansion-approach.md` the same day: no checkpoints, shot speeds 2 or 4 (3.75 or 7.5 tiles/s), lanes empty at the start of every run, recordings ≤ 5,400 steps. Built by level-designer in `levels/`. Rules: GDD v1.12 §4.17 (bolts), §4.16 (movers), §4.18 (sweep, Should); specs `features/projectiles.md`, `moving-objects.md`, `sweep.md`. World name in level select: **5 SIGNALS**._
+_Owner: design-lead. Written 2026-11-23 (expansion, `decisions.md` 2026-11-23 "Expansion"), reconciled with tech-lead's `docs/tech/expansion-approach.md` the same day: shot speeds 2 or 4 (3.75 or 7.5 tiles/s), lanes empty at the start of every run, recordings ≤ 5,400 steps. Checkpoints were ruled out that day and brought back as Must for long levels on 2026-11-24 (`decisions.md` "Long levels redefined"): w5-05 has 3 posts; w5-01..04 have none. Built by level-designer in `levels/`. Rules: GDD v1.12 §4.17 (bolts), §4.16 (movers), §4.18 (sweep, Should); specs `features/projectiles.md`, `moving-objects.md`, `sweep.md`. World name in level select: **5 SIGNALS**._
 
 World 5 is the action world: things fly at you on fixed clocks, and the dodge is usually **a color, not a reflex**. It needs world 1–2 skills, and world 4's lifts for its finale. Single-runner only.
 
@@ -12,7 +12,7 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 | w5-02 | Keep Moving | puzzle (twist) | no | Must | 25–40 s | 2/5 |
 | w5-03 | Hurdles | action (teach grey) | no | Must | 30–45 s | 3/5 |
 | w5-04 | Chase | action (sweep + bolts) | medium (≈ 100 tiles) | Should | 40–60 s | 4/5 |
-| w5-05 | Full Spectrum | flow and action (finale) | **yes** (≈ 150 tiles, clean run ≤ 80 s) | Must | 3–4 min | 4/5 |
+| w5-05 | Full Spectrum | flow and action (finale) | **yes** (345 tiles, 12 rooms, 3 posts, clean run 62.3 s) | Must | 4–8 min | 4/5 |
 
 ## w5-01 Spark
 
@@ -56,7 +56,7 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 
 ## w5-05 Full Spectrum (long finale)
 
-**Combines:** all three bolt kinds, a lift, the colored slab, runway, drag, walls. No sweep, no checkpoints.
+**Combines:** all three bolt kinds, a lift, the colored slab, runway, drag, walls. No sweep; 3 checkpoint posts (long level, v4.1).
 
 **v4.1 (2026-11-24): 12 rooms, ≈ 420–450 tiles, 60–75 s clean, 3 posts (`level-plan.md` "Long levels").** Each of the four rooms below becomes a three-room section, hardest first, with a post after sections 1–3: (1) Rain, then a red Coast through yellow rain, then a slow blue bridge; (2) the Lift under white rain, a green Moving Bridge, a walk-off Step Down; (3) Hurdles on green, grey head-height bolts on yellow, a Brake to blue under white rain on the pad; (4) easiest: a Runway, a short Coast, a blue walk home. Recovery stretches carry no white rain. No sweep.
 
@@ -67,8 +67,10 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 3. **Hurdles:** grey foot-height bolts on a green floor, then a green moving bridge with a long rest.
 4. **Home (easy):** red runway, red wall, a brake to a blue bridge with white rain on the pad (w5-02), the exit.
 
-- Clean run ≤ 4,800 steps (80 s); par 60–75 s; first clear 3–4 minutes with deaths mostly in room 1.
+- Clean run ≤ 4,500 steps (75 s); par 60–75 s; first clear 4–8 minutes with deaths mostly in the first room of each section.
 - **COMBINE rule:** no win skips any bolt kind, the lift or the colored slab.
+- **APPROVED v1 as built (2026-11-24).** 345 × 15, 12 rooms, posts at cols 80, 148, 254 (clocks 850, 1642, 2675). Sections: (1) Rain (dense red lane, press up 31) → red Coast through a dense yellow fountain rising from the pit (`dir=u`; jump 32) → blue bridge (32); (2) Lift: an 8-wide grey lift rising 6 under one white head-height lane, **crossed walking while it rises** (arrival span 55 of each 372-step cycle; standing or a wall stop dies) → green Moving Bridge (go 125 of 342) → Step Down (91); (3) Hurdles on green (grey foot height, period 240, `phase=190`, jump 35) → stay down on yellow under a dense grey head-height stream (no timed input; 0/161 jumps win) → Brake to blue on a 10-tile pad 1 lower, swept at body height by one white lane (brake 30); (4) Runway (212) → short Coast (32) → 28-tile blue bridge home (84). Late arrivals at the lift, the slab and the hurdles wait on safe ground. Every win uses both slabs and five of six lanes (the head-height grey lane is run under). Recording 3,739 (62.3 s), fastest known 3,652.
+- **Deviations accepted:** width 345 (62.3 s is mid-range; more width is more walking); the lift crossed, not ridden (white rain needs you moving; "keep walking on the lift" is w4-01 + w5-02, not a new idea); the yellow rain rising from the pit (a falling lane needs a sink, which is a ledge); the pad's one horizontal white lane, pad 1 lower; post 2's clock and hurdle `phase=190` putting a respawned runner mid-window (35); section 3's brake (30) after Hurdles (35), within 5 steps, as w2-05's section-2 ruling.
 
 ## Cold-play checks (playtester, when built)
 
@@ -80,3 +82,5 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
    - w5-01: did you notice the first bolt pass through you? First death at the col-12 lane: did you understand why (red), and did the `shiftUp` glyph after the lane say "turn red here"?
    - w5-02: did you try to stop on the first pad, and how many deaths before you braked while moving? Did you use room 2's dry floor to stop and think?
    - w5-03: deaths per section; did you ever jump on yellow? In the last stretch, did you wait for a bolt to sink before going, or run straight in (count deaths there; the trigger above)? Any death called unfair.
+   - **w5-05 (finale):** first note which worlds the player cleared before it (did they ever see world 4's lift and slab? world 3?). Count deaths per room, grouped by section, and total minutes. **Room 4 Lift:** deaths standing on it vs. stopped at the far wall, and whether a late player waited on the floor or jumped in. **Room 2 Coast:** deaths in the yellow fountain (took off yellow?). **Room 7 Hurdles:** did they go when a bolt sank at the post-2 ledge? **Room 8:** any jump on yellow. **Room 9 Brake:** stops on the pad. Did they see each post coming, and did any death make them want to quit (say where)?
+   - **w5-05 triggers:** 5+ deaths in any one room, a room called unfair, or a quit → design asks level-designer for a measured change to that room only. Any death in section 4 is reported on its own (it is the victory lap).

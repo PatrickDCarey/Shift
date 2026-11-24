@@ -637,3 +637,13 @@ A miss on 4 with mostly late pins after the batch 10 glyph move comes back to de
 ### Checkpoint post look
 - **The idle post needs more presence (Must, art only):** a player must see a post coming, so the 1 px pole with a small hollow lamp is not enough against the dark backdrop. Spec added to `features/checkpoints.md` "Readability"; request to art-director. The lit post (pennant) is accepted as is. Reason: pillar 2; the post is how a long level says "you won't lose this".
 - **Slab ghost look and the title/HUD overlap fix:** noted, nothing to rule.
+
+## 2026-11-24 (late) — w5-05 Full Spectrum review (the finale)
+
+**Input:** `levels/README.md` w5-05 (345 × 15, 12 rooms, 3 posts, 3,739 steps = 62.3 s); passes replay, ±3, kinetic and checkpoint rules. **APPROVED as built; no geometry, recording or tuning change.** All Must levels (23) are now approved.
+- **Deviations (width 345, lift crossed walking under one white lane, yellow fountain `dir=u`, one horizontal white lane on a pad 1 lower, post 2 clock and hurdle `phase=190`): all accepted** — each keeps its room's lesson and the sim proves every wrong choice dies; details in `levels-w5.md`.
+- **"Hardest room early, last third easy": met.** Each section opens on its hardest read (Rain, Lift, Hurdles), and section 4 has only re-runs of world 1–2 rooms with windows ≥ 32; section 3's brake (30) after Hurdles (35) is within 5 steps, as w2-05's ruling.
+- **Three bolt colours plus two slabs in 62 s: fair.** Every room is one already solved, a post every three rooms caps a death at about 15–20 s of replay, and the lift, slab and hurdles are all entered from safe ground where waiting is free (≤ 6.2 s).
+- **Reaching it without world 3 or world 4: accepted, no unlock change.** World 5 never needs Tandem; the lift and slab follow the tile color rule and are always drawn with their track. The owner's unlock rule stands; the cold play records which worlds the player had cleared, and the trigger in `levels-w5.md` decides any change.
+- **±3 case at about 25 s of a 30 s timeout:** a CI flake risk, not a design issue; request to tech-lead.
+- **Stale "no checkpoints" lines in `levels-w5.md`:** fixed.
