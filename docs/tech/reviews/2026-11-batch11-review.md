@@ -98,3 +98,65 @@ Security: no key, URL or secret in any changed file. The migration only replaces
 - `tests/levels/robustness.test.ts`: a trial in a post level fails at its first `died` event; planted self-check shows the same perturbed run passes without the post and fails with it.
 - `kineticRules.ts` exports `keepOutAreas`, `overlapsCells`, `underHud` for reuse (no rule change). Recording ≤ 5,400 steps was already there.
 - Run: `npx vitest run tests/levels` 351/351 green (w4-02 had its recording by the time of the run).
+
+## 7. B11-22: slabs (B11-13), bolts (B11-17), scene kinetics (B11-14 and follow-ups) (2026-11-24)
+
+Read from HEAD `188c258` (code, not reports). Read-only sitting (QA running e2e in parallel): no test run by this review; `npm run check` green at HEAD with 3,363 tests per the orchestrator.
+
+### Verdicts
+
+| Area | Verdict |
+|---|---|
+| [sim] slabs B11-13 (`movers.ts` 106, `moversKit.ts` 43, edits in `move.ts`, `step.ts`, `create.ts`, `work.ts`) | **Approve with one required change** (K-M1, not reachable in shipped levels). |
+| [sim] bolts B11-17 (`hazards.ts` 37, `status.ts` 92, `params.ts` 54, `determinism.test.ts` fixture) | **Approve.** The §5 plan landed as written: `deriveParams` maps `projectileSize` (`params.ts:52`), `SimParams.projectileSize` is required (`contracts/tuning.ts:218`). |
+| [scene] `KineticsView` 226, `kineticsPlan` 302, `PostView` 71, `sealedPockets` 88, `BodyViews` 111, `debugHook` 89, `GameScene` 337, title fix (`hudText.ts` 75, `GameHud.ts` 169) | **Approve** (two LOW). `TELL_MS_FALLBACK` is gone; the tell is `round(emitterTellMs * stepHz / 1000)` (`KineticsView.ts:48-50`), §5 step 4 done. |
+
+### [sim] checks
+
+- **Step order** matches `architecture.md` §3.1 and §3.6: `carryPhase` sits between gravity and Move X (`step.ts:17-31`); slab landing and slab support are inside phase 8 (`move.ts:34-43`); the hit test is in phase 14 after home and won (`status.ts:80-91`), with `t1 = kineticStep + 1` and `startBands` from the pre-step state (`step.ts:50-53`). Exit beats hit (`hazardsAcceptance.test.ts:110`).
+- **Determinism.** No module state. Slab positions are `moverOffset(m, t)` of the integer kinetic clock; carry deltas are differences of those (exact multiples of 1/32); feet snap to `slabAt(t+1).top` instead of accumulating (`movers.ts:66-71`). Tests assert exact values (`moversCarry.test.ts:27-28`; Tandem `toBe(10 - 48 * 0.0625)`). Every kinetic call reads `ctx.t = kineticStep(state)` (`step.ts:78`). No `Math.random` or `Date`.
+- **Old path.** Every new branch is gated on `level.movers` or `level.emitters` (`movers.ts:59, 82`, `move.ts:49`, `create.ts:23`, `hazards.ts:22`); with `landsOnSlab` false `res0` is used unchanged, and `feet` reduces to `Math.round(res.y)` whenever grounded without a slab. `moversCarry.test.ts:142-150` checks `movers: []` is deep-equal to none. Bit-identical.
+- **Top-only.** Phase 7 and the phase 8 ceiling test never see slabs; no push, crush or kill (`moversCarry.test.ts:97-121`).
+- **Swept landing cannot tunnel.** It is an ordering test (`y0 <= top(t) + eps` and `y1 >= top(t+1) - eps`, `movers.ts:88`), so it holds at any fall or slab speed, not only the allowed {1, 2}. Nearest top wins, then the tile if nearer (`move.ts:35`).
+- **Carry blocked by tiles:** X swept with the band-at-start gate, no `wallStop`, `vx` kept (`movers.ts:68`, check 6). A downward carry onto a tile stops on it.
+- **Edge choices 4a** (design 2026-11-24): a jump step never lands (`movers.ts:82`); a safe slab letting go emits no `fallThrough` (`lettingGo` lists coloured slabs only, `movers.ts:98`); downward carry blocked by a tile. All three match.
+- **Bolts.** Strict box test with `SIM_EPSILON` on all four sides, a square of `projectileSize` centred on the shot at `t1` (`hazards.ts:25-35`); band rule `null` hits all, else equal to the start band (W = 0 falls out of the same equality). Home bodies are never hit. Death order per body: fall (no cause), then hit; both bodies give body 0 (`status.ts:85-91`).
+- **Tandem:** both bodies carried, two slabs, home body never moved (`moversAcceptance.test.ts:101-134`); a twin hit dies as body 1 (`hazardsAcceptance.test.ts:126`). The parser refuses posts in Tandem levels (`level/checkpoints.ts:144`), so `postRespawn` not placing the twin at a post is correct.
+- **Tests** pin exact steps and positions (hits on 76, 84, 276; respawn deaths 76 and 177; carry 6.725; landing step 135). The FNV fingerprint (`determinism.test.ts:97`) is a golden of current output, acceptable because the deep-equal pair beside it checks the property itself. Coverage by inspection: every branch of `movers.ts`, `hazards.ts` and `checkpoints.ts` is reached by a named test.
+
+### [scene] checks
+
+- **Imports:** core values only from `../core` (`kineticStep`, `nextShotIn`, `moverOffset`, `shotsAt`, `moverCorners`, `BAND_COLORS`), types from `../core/types`. `GameScene.ts` imports `SimEvent` as a type only.
+- **Nothing for plain levels:** `KineticsView.forLevel` returns null with no movers, emitters or posts (`KineticsView.ts:64`); `PostView.forLevel` returns null without posts.
+- **Pooling:** shot sprites are keyed `emitter:firedAt` (`kineticsPlan.ts:219`); keys not live this frame go to `free` (`KineticsView.ts:166-171`), so a restart or post respawn that rewinds the clock just re-keys. A level change or restart is a scene restart: `teardown` destroys every image, including `free`, shimmers and posts (`KineticsView.ts:218-225`, `GameScene.ts:328`). No leak.
+- **Shot cue:** one `onShot` per shot leaving an emitter per kinetic step, catch-up capped at 5 steps, silent while not playing or when the clock did not move (pause, freeze); a rewind fires only the current step (`KineticsView.ts:194-211`). Off-screen shots pass `onScreen = false` and are dropped in `src/audio/sfx.ts:69`, which also rate-limits. Correct.
+- **Reduced motion and effects:** tell glow off under either (`KineticsView.ts:133`) with the static tell frame from the plan; shimmer held on frame 1 under reduced motion; post rise skipped (`PostView.ts:245`). Prefs are read live each frame.
+- **QA hook:** `window.__redshift` and the new `kinetics`, `checkpoint` and `kineticStep` fields exist only behind `if (QA_HOOK)` (`debugHook.ts:381, 385`; `GameScene.ts:164, 335`); `QA_HOOK` is fixed at build time (`qaHook.ts`). The package script refuses `VITE_QA_HOOK` in the environment (`scripts/lib/checks.mjs:41-42`) and scans the built files for the hook name (`checks.mjs:10, 72`), so it cannot reach the itch.io zip.
+- **`sealedPockets`:** a region with any cell a slab sweeps is never sealed (`sealedPockets.ts:467`). Conservative on purpose: a lift that never leaves the pocket also unseals it, so the restart card may not appear there, but it can never tell a rider they are stuck. Accepted.
+- **Title fix:** `titleLeft` clamps the centred title to the right of the gear panel; `fitTitle` drops the replay suffix, then truncates; tested with the longest real title (`hud.test.ts`). Approve.
+- **Sizes:** every file at most 337 lines, no function over about 35 lines, nesting at most 3.
+
+### Findings
+
+| Id | Sev | Where | Finding |
+|---|---|---|---|
+| K-M1 | MEDIUM | `src/core/sim/movers.ts:80-91` with `:70-71` | **An upward carry blocked by a ceiling re-lands the body on the slab, inside the ceiling.** `carryPhase` stops the feet at contact (`res.y`, below the slab's top at t+1). In phase 8 a body grounded at the start has `dy = 0`, so `y0 = y1 = res.y`; `slabFloor`'s swept test then holds (`y0 <= top(t)`, `y1 >= top(t+1)`) and snaps the feet to `top(t+1)`, pushing the head into the ceiling tile. The next step repeats it, so the body rides up through solid tiles. Contract (`architecture.md` §3.6, `moving-objects.md` line 41): the slab rises through the feet and the body is no longer supported. No test covers it. Not reachable in shipped levels (the `tests/levels` `slabRoom` rule keeps 2 empty rows over every swept area; the body is 1.5 tall), so it does not block. Request filed to [sim]. |
+| K-L1 | LOW | `src/core/sim/hazards.ts:22` | C-L1 still open: dead `size === undefined` guard and stale comment (request already in `requests.md`). |
+| K-L2 | LOW | `src/entities/KineticsView.ts:70` | Shimmer overlap uses `BOLT_SIZE / tileSize` (sprite pixels) instead of `tuning.projectileSizeTiles`. Equal today (8 / 16 = 0.5); if either changes, the "harmless" shimmer and the sim's hit box disagree. Use the tuning value. |
+| K-L3 | LOW | `src/scenes/GameScene.ts:85`, `src/entities/KineticsView.ts:4-5` | Comments say "levels without movers or emitters"; posts-only levels also build the view (`KineticsView.ts:64`). Comment fix. |
+| K-N1 | note | `src/core/sim/checkpoints.ts:42` calling `create.ts:23` | `spawnBody` at a post asks `slabUnder` at t = 0, not at `post.clock`. Unreachable (checkpoint rules keep the respawn box clear of swept areas); no change asked. |
+
+### §6 LOW notes
+
+| Id | Status |
+|---|---|
+| C-L1 `hazards.ts:22` dead guard | **Open** (= K-L1; request already filed). |
+| C-L2 `MAX_RUN_STEPS` lockstep | **Open**, with a third copy: `src/net/validate.ts:11` `MAX_STEPS = 36_000`. Request filed. |
+| C-L3 `shouldSubmitRun(run: unknown)` | **Open** (`src/net/submitPolicy.ts:11`; the only caller, `client.ts:220`, already holds a `RunResult`). Request filed. |
+| C-L4 `posts.ts` header | **Closed**: idle post redrawn with a 2 px pole at x 7-8 (`posts.ts:58, 67`); the header matches (`posts.ts:7`). |
+
+### Fix list
+
+- [sim]: K-M1 (with a test), K-L1.
+- [scene]: K-L2, K-L3 (next sitting, not blocking).
+- backend-engineer: C-L2, C-L3.
