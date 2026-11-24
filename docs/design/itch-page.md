@@ -2,7 +2,7 @@
 
 _Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6, 14 levels). Every claim was checked in the repo on that date; the checklist at the bottom lists what to re-check at submit. **Re-checked 2026-11-20 (B7-17)** against the batch 7 build: the settings screen, the wired sound effects, the restart card and the page art (`docs/art/itch/`) are now in the copy, §5 and §7. Spelling: **American ("color")**. The game's on-screen text never uses the word, so this follows the GDD and the code, which both say "color"._
 
-> NOTE (2026-11-24, B12-A3): **re-counted for the expansion build** (HEAD 31ff26a): 23 levels in 5 worlds, all 23 approved (`decisions.md` 2026-11-24 late). Changed: the count line and world bullets, the "how it plays" paragraph (things that move), the long-level and checkpoint lines, Stuck?, accessibility (slabs, bolts, posts), the average session (§4), the jam form text (§6), the shot list and Delivered table (§5: three new shots wanted) and §7. **w4-04 Outrun and w5-04 Chase (the sweep, Should) are in progress and are NOT counted**: the only mention is the marked "IF SHIPPED" block in §3, which the producer deletes unless both ship. If the build falls back to `rc-batch10` (14 levels), restore this file from git at commit 188c258. Trailer shot list: `docs/design/trailer.md`.
+> NOTE (2026-11-24, B12-A3): **re-counted for the expansion build** (HEAD 31ff26a): 23 levels in 5 worlds, all 23 approved (`decisions.md` 2026-11-24 late). Changed: the count line and world bullets, the "how it plays" paragraph (things that move), the long-level and checkpoint lines, Stuck?, accessibility (slabs, bolts, posts), the average session (§4), the jam form text (§6), the shot list and Delivered table (§5: three new shots wanted) and §7. **(Superseded 2026-11-24, sweep review: w4-04 and w5-04 are approved and counted; the page now says 25 levels, see the note in §3.)** w4-04 Outrun and w5-04 Chase were then in progress and NOT counted: the only mention is the marked "IF SHIPPED" block in §3, which the producer deletes unless both ship. If the build falls back to `rc-batch10` (14 levels), restore this file from git at commit 188c258. Trailer shot list: `docs/design/trailer.md`.
 
 Paste each section into the itch.io field named in its heading. Lines in `> NOTE` blocks are instructions, not copy: do not paste them.
 
@@ -46,21 +46,21 @@ Listen for the music: it follows your pace. A heavy clunk means a long flight ju
 
 > NOTE: the next line is the only place the level and world count appears. Change it here if worlds are added or cut.
 
-**23 levels in 5 worlds: Gears, Flight, Tandem, Motion and Signals.**
+**25 levels in 5 worlds: Gears, Flight, Tandem, Motion and Signals.**
 
 - **Gears (5 levels)** teaches the color rule with no text: shifting, building speed, braking, and walls that stop only their own color.
 - **Flight (5)** is about committing at takeoff. Long flights cost you speed, one color every 6 tiles. It ends with **Long Haul**, one long run through everything so far.
 - **Tandem (5)** gives you a second runner on a second floor. Both obey the same keys. Put them out of step to bring both home. This is the hardest world.
-- **Motion (4)** has lifts, shuttles and moving bridges. A grey slab carries anyone. A colored one only holds you while you match it, so you cross it at its pace. It ends with **Commute**, a long level.
-- **Signals (4)** has bolts. A colored bolt hits only its own color, a white bolt hits only a runner standing still, and a grey bolt hits everyone. It ends with **Full Spectrum**, the long finale.
+- **Motion (5)** has lifts, shuttles and moving bridges. A grey slab carries anyone. A colored one only holds you while you match it, so you cross it at its pace. It ends with **Commute**, a long level.
+- **Signals (5)** has bolts. A colored bolt hits only its own color, a white bolt hits only a runner standing still, and a grey bolt hits everyone. It ends with **Full Spectrum**, the long finale.
 
 The three long levels take about a minute once you know the way and several minutes the first time. Each has checkpoint posts: after you pass one, a death sends you back to it, not to the start. The rest are short rooms of 10 to 40 seconds.
 
-> NOTE — IF SHIPPED: producer, delete the marked block below unless **both** w4-04 Outrun and w5-04 Chase are in the final build. If they ship, paste the line, change the count line to "25 levels", Motion and Signals to "(5)", and re-check §7's count item. If only one ships, rewrite the line for that one level.
+> NOTE (2026-11-24, sweep review): w4-04 Outrun and w5-04 Chase are **APPROVED as built** (2e2e9cc, `decisions.md` "Sweep levels"), so the count line says 25 and Motion and Signals say (5); the line below is now copy. If either is pulled from the final build: one pulled → count 24, that world back to (4), rewrite the line for the other level; both pulled → count 23, both worlds (4), delete the marked block.
 
-<!-- IF SHIPPED: w4-04 Outrun and w5-04 Chase (sweep) -->
+<!-- SWEEP: w4-04 Outrun and w5-04 Chase -->
 **Outrun** and **Chase** add a front that sweeps in from the left. Stay ahead of it, and save your walking for where the floor makes you walk.
-<!-- /IF SHIPPED -->
+<!-- /SWEEP -->
 
 Start with Gears, then Flight: every later world builds on them. Motion and Signals need nothing from Tandem, so if Tandem stalls you, go on to them. The first level of every world is open from the start.
 
@@ -216,9 +216,9 @@ In Redshift, your pace is your color, and colored platforms are only solid while
 
 > NOTE (2026-11-24, B12-A3, against 31ff26a): the count, world, long-level and accessibility items below were rewritten for the expansion and are **unticked until re-checked against the final package** (B12-E3). The other ticks stand from 2026-11-23; re-tick them on the same package.
 
-- [ ] **Level and world count:** 23 levels in 5 worlds (GEARS 5, FLIGHT 5, TANDEM 5, MOTION 4, SIGNALS 4) on the level select's `CLEARED n/23`, with w4-04 and w5-04 absent (gaps)? If they ship: 25, and the IF SHIPPED block goes in; if not, the block is deleted. If anything is cut, change the count line, that world's bullet and the average session. *(Design's count 2026-11-24 from `decisions.md` "all Must levels (23) are now approved" and QA B11-19 item 5: five rows, `CLEARED n/23`. Earlier: 14 in worlds 1–3, world 0 filtered out in `levelSelect.ts` and `progress.ts`.)*
+- [ ] **Level and world count:** 25 levels in 5 worlds (GEARS 5, FLIGHT 5, TANDEM 5, MOTION 5, SIGNALS 5) on the level select's `CLEARED n/25`, with no gaps? (2026-11-24: w4-04 and w5-04 approved as built; the SWEEP block is copy. If either is pulled, follow the note above that block.) If anything is cut, change the count line, that world's bullet and the average session. *(Design's count 2026-11-24 from `decisions.md` "all Must levels (23) are now approved" and QA B11-19 item 5: five rows, `CLEARED n/23`. Earlier: 14 in worlds 1–3, world 0 filtered out in `levelSelect.ts` and `progress.ts`.)*
 - [ ] **Long levels:** exactly Long Haul (w2-05), Commute (w4-05) and Full Spectrum (w5-05) have checkpoint posts; a death after a lit post respawns there; R restarts from the start; a lit post is forgotten on leaving the level (`checkpoints.md`, QA B11-19 item 4). "About a minute once you know the way": the recordings are 63.4 s, 66.8 s and 62.3 s.
-- [ ] **Things that move:** grey slabs carry anyone, colored slabs hold only their color, bolts follow the white/grey/colored rule (`moving-objects.md`, `projectiles.md`); the copy promises nothing else (no crushers, no aiming bolts, no sweep unless shipped).
+- [ ] **Things that move:** grey slabs carry anyone, colored slabs hold only their color, bolts follow the white/grey/colored rule (`moving-objects.md`, `projectiles.md`); the copy promises nothing else (no crushers, no aiming bolts; the sweep only as the SWEEP block's one line).
 - [ ] **Accessibility for the new objects:** slabs and bolts carry their band's pattern, grey bolts have a different silhouette, the track is always drawn, the emitter tell is a still frame under reduced motion, and the post changes shape when lit (art sheets, QA B11-19 item 6). If any of these is not as built, cut that clause, not the bullet.
 - [ ] **Difficulty line:** "Tandem is the hardest world" and "Motion and Signals need only Gears and Flight" still true after the B12-C2 cold play (`decisions.md` triage).
 - [x] **First level of every world open from the start** (`src/save/progress.ts` unlock rule). *(2026-11-23: `isPlayable`. 2026-11-24: QA B11-19 item 5, first level of each of the five rows open on a fresh save.)*

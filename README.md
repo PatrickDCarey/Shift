@@ -10,9 +10,10 @@ Your speed is your color. Stand still and you're white; sprint and you're red. C
 
 ## What's in this build
 
-- **23 levels in 5 worlds:** Gears (5), Flight (5), Tandem (5), where one throttle drives two runners at once, Motion (4) and Signals (4). The first level of each world is open; each other level unlocks when you clear the one before it.
+- **25 levels in 5 worlds:** Gears (5), Flight (5), Tandem (5), where one throttle drives two runners at once, Motion (5) and Signals (5). The first level of each world is open; each other level unlocks when you clear the one before it.
 - **Moving platforms** (world 4): grey lifts and shuttles carry anyone, and a colored platform only holds a runner of its color. You land on top and ride; riding never changes your speed or color.
 - **Bolts from launchers** (world 5): a colored bolt only hits a runner of that color, a white bolt only a runner standing still, and a grey bolt hits everyone. A launcher glows just before it fires.
+- **The sweep:** in Outrun (4-4) and Chase (5-4) a front chases you from the left at a steady pace; anything it passes is gone, so you slow down only where you can afford to.
 - **Long levels with checkpoints:** Long Haul (2-5), Commute (4-5) and Full Spectrum (5-5) run across many rooms and have checkpoint posts. After a post lights, a death sends you back to it while the clock keeps running; R restarts the whole level.
 - **Local best times.** Your clears and best time per level are saved in your browser and shown on the level select and results screens. If the browser blocks storage, the game still plays and the title screen says progress is not being saved.
 - **Settings** (from the title screen or the pause menu): Sound, Reduced motion and Reduced effects, each on or off and saved at once. Reduced motion follows your system setting until you change it.

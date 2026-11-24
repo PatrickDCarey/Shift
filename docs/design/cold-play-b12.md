@@ -100,6 +100,14 @@ Parts B and C unlock w4-05 and w5-05, and part A unlocks w2-05, so play every pa
 8. Any death in the last section (rooms 10–12)? Report each one on its own.
 9. Did you see each post coming? Did any death make you want to quit? Say where.
 
+### Added after the sitting began: w4-04 and w5-04 (for triage, not new instructions)
+
+_2026-11-24, design-lead. The packaged build has 25 levels, so w4-04 Outrun and w5-04 Chase sit in the rows that part B calls gaps. The playtester has already read this script and is not asked to change the sitting. Design uses these points when triaging whatever the report says about them (including "not played")._
+
+- **w4-04 Outrun:** attempts and minutes; deaths by the front and where (before the lift, waiting for a second lift, on the upper blue bridge); did the left-edge marker read as "something is coming"; any front death called unfair. Trigger: 2+ deaths waiting for a second lift, or one called unfair → measured lift/delay change.
+- **w5-04 Chase:** attempts and minutes; hit vs. front deaths; gauntlet (cols 38–44) deaths and colour; the player's own words for what the gauntlet wanted. Trigger: 3+ gauntlet deaths without naming green → `shiftDown` hint.
+- **Both:** did the front make a sound (none is expected; a hit-death sound on catch is)?
+
 ## Pass marks (findings for design-lead, not engineering pass/fail)
 
 | Level | Pass |

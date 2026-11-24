@@ -63,6 +63,9 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 
 - `sweep: x0=<spawn − 6> speed=2 delay=90`. About 90 tiles. The intended line keeps ≥ 3 tiles of lead at its closest.
 - **Removal:** without the sweep, a gear-1 walk with long rests wins; with it, it must not.
+- **APPROVED v1 as built (2026-11-24).** 102 × 15, `sweep: x0=-2 speed=2 delay=90`, spawn col 4; a slow grey lift (`speed=1`, leaves step 720, top 912) up a 6-tile wall. Windows 37, 111, 153, 113; closest gap 5.65 tiles (90 steps), ≥ 3 as specified; a stop still wins for 90–128 steps anywhere. Recording 1,454 (24.2 s), fastest known 1,430. No hints.
+- **Missing the lift is a sweep death about 6 s later, with no second chance: ACCEPTED.** The boarding slack is 113 steps (1.9 s) plus a 180-step rest, so missing it means a long dawdle, not a mistimed input (pillar 3); the lift leaving without you is visible, and the gap bar shrinking says the rest. The lift is the level's deadline, which is exactly the budget lesson; a lift that came back before the front would erase it. R is always available. **Trigger:** 2+ cold deaths waiting for a second lift, or one called unfair → design asks level-designer for a measured change (a longer bottom rest, or a later `delay`), not a cue glyph.
+- Deviation accepted: 24.2 s clean, under the 30–45 s first-clear target only because that target includes deaths; inside the medium-level rule (40–120 tiles, under about 25 s).
 
 ## w4-05 Commute (long)
 
@@ -91,4 +94,5 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
    - w4-01: did you try to climb or jump the wall first? Did you ever stand on the roof over the bridge (should be impossible)?
    - w4-02: how many falls before you waited for the dock; did you read the roof as "no jumping here" or feel boxed in?
    - w4-03: tries to the crossing; did the scoop (stepping on while it rises) feel like luck or like a choice?
+   - w4-04 (added 2026-11-24 after the sweep review): did the left-edge marker and its bar say "something is coming" before the front came on screen? Deaths by the front, and where (before the lift, waiting for a second lift, on the upper blue bridge). Did a death by the front feel fair?
    - w4-05: did you see each post coming before you reached it (the idle-post fix)? Deaths in the open shaft, and whether the lift being away read as "wait"; longest wait at a shuttle and whether it felt like dead time; whether a post respawn put you in a room that felt the same as the first time.

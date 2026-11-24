@@ -27,8 +27,9 @@ Phase 14, after shots: a non-home body dies (`cause: 'sweep'`, or `'hit'` if tec
 ## Readability
 
 - A full-height band with a hard edge and a scrolling hatch behind it (static under reduced motion), under the bodies.
-- While the front is off-screen left, a left-edge marker with a bar for the gap (up to 15 tiles). The camera never pans back.
-- Audio (Could): a hum whose volume follows the gap.
+- While the front is off-screen left, a left-edge marker with a bar for the gap (up to 15 tiles). The camera never pans back. **Ruled 2026-11-24:** 4 px per tile is kept, **capped at 15 tiles (60 px)**: a full bar means "15 or more, not yet", and it shrinks only when the gap starts to matter (w4-04 opens 21–27 tiles back, which uncapped would draw about 100 px). Should.
+- Swept-area fill alpha **0.5: kept** (the hatch plus the hard edge carry the read; nothing behind the front can be stood on anyway).
+- Audio (**Could**, not before freeze unless audio's Must list is empty): a hum whose volume follows the gap, at the hook in `SweepView.ts`. A catch already plays `hitDeath`.
 
 ## Tuning
 
