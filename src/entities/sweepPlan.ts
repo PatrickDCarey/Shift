@@ -30,6 +30,13 @@ export interface SweepLayout {
 const T = 16;
 /** Longest gap the marker bar shows (sweep.md: up to 15 tiles). */
 export const MAX_GAP_TILES = 15;
+/** Gap bar scale (design ruling: 4 px per tile, so at most 60 px). */
+export const BAR_PX_PER_TILE = 4;
+
+/** Width of the gap bar for a gap in tiles, capped at MAX_GAP_TILES (60 px). */
+export function gapBarPx(gapTiles: number): number {
+  return Math.max(1, Math.round(Math.min(MAX_GAP_TILES, gapTiles) * BAR_PX_PER_TILE));
+}
 /** Teeth crawl about 8 fps; the hatch scrolls about 6 fps (docs/art/kinetics.md). */
 const EDGE_MS = 125;
 const FILL_MS = 166;

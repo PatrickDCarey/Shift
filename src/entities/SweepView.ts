@@ -8,14 +8,12 @@
 import type Phaser from 'phaser';
 import type { Level, SimState } from '../core/types';
 import { hexToNumber, palette, PIXEL_KEYS, SWEEP_MARKER_W } from '../fx';
-import { edgeFrame, fillFrame, sweepFrontTiles, sweepLayout, type Rect } from './sweepPlan';
+import { edgeFrame, fillFrame, gapBarPx, sweepFrontTiles, sweepLayout, type Rect } from './sweepPlan';
 
 const DEPTH_FILL = 4; // above tiles and posts, below the bodies (9, 10)
 const DEPTH_EDGE = 4.5;
 const DEPTH_MARKER = 190; // under the HUD (200)
 const FILL_ALPHA = 0.5;
-/** Placeholder scale for the gap bar: px per tile of gap (design: up to 15 tiles). */
-const BAR_PX_PER_TILE = 4;
 const BAR_H = 4;
 const MARKER_X = 2;
 
@@ -60,7 +58,7 @@ export class SweepView {
     const gap = layout.markerGapTiles;
     this.marker.setVisible(gap !== null);
     this.bar.setVisible(gap !== null && gap > 0);
-    if (gap !== null) this.bar.setSize(Math.max(1, Math.round(gap * BAR_PX_PER_TILE)), BAR_H);
+    if (gap !== null) this.bar.setSize(gapBarPx(gap), BAR_H);
   }
 
   private place(img: Phaser.GameObjects.TileSprite, rect: Rect | null, frame: string): void {

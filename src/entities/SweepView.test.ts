@@ -3,7 +3,7 @@ import type { Level, SimState, Sweep, Tuning } from '../core/types';
 import { kineticsSnapshot } from './kineticsPlan';
 import { KineticsView } from './KineticsView';
 import { SweepView } from './SweepView';
-import { edgeFrame, fillFrame, MAX_GAP_TILES, sweepFrontTiles, sweepLayout } from './sweepPlan';
+import { edgeFrame, fillFrame, gapBarPx, MAX_GAP_TILES, sweepFrontTiles, sweepLayout } from './sweepPlan';
 import { gridLevel } from './testkit';
 
 const SWEEP: Sweep = { x0: 0, speed: 2, delay: 90 };
@@ -106,5 +106,15 @@ describe('QA hook snapshot', () => {
   it('reports the sweep front in tiles at the kinetic clock, null without a sweep', () => {
     expect(kineticsSnapshot(level({ sweep: SWEEP }), st(190), 18).sweepFront).toBe(6.25);
     expect(kineticsSnapshot(level(), st(190), 18).sweepFront).toBeNull();
+  });
+});
+
+describe('gap bar', () => {
+  it('is 4 px per tile, capped at 15 tiles (60 px)', () => {
+    expect([14, 15, 16, 27].map(gapBarPx)).toEqual([56, 60, 60, 60]);
+  });
+  it('stays at 60 px when the front is 27 tiles behind the view', () => {
+    const gap = sweepLayout(-27 + 100 / 16, VIEW).markerGapTiles;
+    expect(gapBarPx(gap as number)).toBe(60);
   });
 });
