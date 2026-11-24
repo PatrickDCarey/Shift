@@ -15,6 +15,12 @@ Shot list and placement: `docs/design/itch-page.md` section 5.
 | `shot-greyscale-w1-05.png` | 960x540 | Optional screenshot 6 | shot 2 in greyscale: the patterns and the solid/hollow drawing carry the rule |
 | `redshift-runway.gif` | 480x270, 7.1 s, 30 fps, 0.25 MB | GIF (page body) | w1-03: a failed yellow run falls through the red bridge; then walk back, shift up to gear 4, sprint across |
 
+| `shot-6-w4-03-moving-bridge.png` | 960x540 | Screenshot 6 (B12-E1) | w4-03 Moving Bridge, green runner on the solid green slab at rest, its dotted track visible |
+| `shot-7-w5-01-spark.png` | 960x540 | Screenshot 7 | w5-01 Spark, yellow runner with a red bolt passing through it (colour mismatch: no hit), launchers and pink lane markers |
+| `shot-8-w2-05-checkpoint.png` | 960x540 | Screenshot 8 | w2-05 Long Haul, lit white post with the blue runner past it |
+| `shot-9-w4-04-outrun.png` | 960x540 | Screenshot 9 (added after the request; sweep levels were approved later) | w4-04 Outrun, saw-toothed front and hatched swept zone close behind the blue runner by the lift |
+| `shot-greyscale-w5-01.png` | 960x540 | Optional screenshot 10 | shot 7 in greyscale: the bolt, patterns and outlines still read |
+
 Screenshots are the game canvas at 2x (960x540, the embed size), taken by Playwright Chromium. The GIF is 2:1 nearest-neighbour
 of the same frames (480x270 is the game's own pixel grid, so it is lossless), 64-colour palette, no dither, loops forever.
 The win overlay is not shown: the last frame is held for 0.7 s, then it loops.
@@ -35,3 +41,12 @@ expects the build on port 5185). Requires `ffmpeg` on PATH.
 6. Greyscale: `ffmpeg -i shot-2...png -vf format=gray,format=rgb24 out.png`.
 
 Steps used: shot 1 step 72, shot 2 step 66, shot 3 step 131, shot 4 step 150, shot 5 step 132, cover step 108 (counted from the solution's first frame).
+
+## Expansion shots (B12-E1, 2026-11-24)
+
+Shots 6-9 come from `tools/exp2.mjs <level> <out-prefix> <steps,...>`: it drives the level's `.solution.txt` with real keys, one 60 Hz
+step per tick, after pressing R so the kinetic clock starts at 0 (so kinetic step = solution step). Needs a **dev server with the QA hook**
+on 5185: `VITE_QA_HOOK=1 npx vite --port 5185 --strictPort` (no `[replay]` label in the HUD, unlike `?replay=1`; `tools/exp.mjs` is that
+variant, kept for reference). Steps: shot 6 w4-03 step 140, shot 7 w5-01 step 110, shot 8 w2-05 step 520, shot 9 w4-04 step 1000.
+Greyscale as before (`ffmpeg ... format=gray,format=rgb24`).
+Dated: the cover, `shot-1..5` and the GIF show worlds 1-3 only and the old HUD; the owner's new cover and trailer replace them.
