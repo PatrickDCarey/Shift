@@ -76,6 +76,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 **Intent.** World 4's long level, a journey rather than a trick: three rooms read left to right as one route, no checkpoints, so it is built to the long-level rules (hardest room first, the last third easy).
 
 1. **Across (hardest, first):** a shuttle over a long pit docking at a red wall with one safe tile and a red bridge after it (w1-05's answer, arrive yellow, shift up past the wall), timed against the dock.
+   - **v2 (2026-11-24, B12-C3), APPROVED:** the shuttle rests at the near dock from step 0 (`phase=0 path=w260,r10,w160,l10`, cycle 740), the far dock rest is 160, the door is at col 30 with 4 safe tiles before the red bridge (35–40), the run window is ≥ 185 and the press window ≥ 39 from every standing spot. **A red arrival is stopped by the door, then wins by holding on (it re-ramps below red through the door and is red by the bridge): accepted.** The stop is the red-wall lesson itself, and passing the door not red is the answer, so the idea is used, not skipped. The trade-off for a press window of 39 instead of about 23 is accepted (pillar 3).
 2. **Up:** a safe runway, a red bridge into a Coast jump onto a yellow pad 2 lower (w2-02), then a grey lift 6 up.
 3. **Down (easy):** a green moving bridge with a long rest (window ≥ 30), then a long brake pad and a blue bridge to the exit (w1-04).
 

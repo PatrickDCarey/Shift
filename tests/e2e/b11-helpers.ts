@@ -119,6 +119,29 @@ export class Clocked {
     return new Clocked(page);
   }
 
+  /**
+   * Like {@link open} for a menu page (no `?level=`): ready when a Title or Game scene is active, since the QA hook only
+   * exists once a Game scene does. `observe()` is not usable until a level is running; `hold`, `tap`, `frame` are.
+   */
+  static async openMenus(page: Page, search = ''): Promise<Clocked> {
+    await page.clock.install({ time: 0 });
+    await page.clock.pauseAt(1000);
+    await page.goto(`./${search}`);
+    const t0 = Date.now();
+    const up = (): Promise<boolean> =>
+      page.evaluate(() => {
+        const g = (window as unknown as { __game?: { scene: { scenes: { sys: { isActive(): boolean; settings: { key: string } } }[] } } }).__game;
+        return !!g && g.scene.scenes.some((s) => s.sys.isActive() && (s.sys.settings.key === 'Title' || s.sys.settings.key === 'Game'));
+      });
+    while (!(await up())) {
+      if (Date.now() - t0 > 60_000) throw new Error('no Title or Game scene within 60 s');
+      await page.clock.runFor(50);
+      await page.waitForTimeout(20);
+    }
+    await page.evaluate(PAGE_DRIVER);
+    return new Clocked(page);
+  }
+
   /** What the hook shows now (and, while a script runs, applies the keys for the coming step). */
   observe(): Promise<Obs> {
     return this.page.evaluate(() => (window as unknown as { __qObserve: () => unknown }).__qObserve()) as Promise<Obs>;

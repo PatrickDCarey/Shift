@@ -68,6 +68,20 @@ export interface Tuning {
    * steps). The sim never reads it; shot timing is the `Emitter` header alone.
    */
   readonly emitterTellMs: number;
+  /**
+   * Render only: when one body is followed, the camera's x target leads it in
+   * its direction of travel by this many tiles at red speed, scaled by speed
+   * and eased (features/camera-lookahead.md). Finite, 0..12 (0 = off; the cap
+   * keeps the runner at least 3 tiles inside the 30-tile view). Never enters
+   * `SimParams`: the sim, replays, solutions and golden hashes do not read it.
+   */
+  readonly cameraLookAheadTiles: number;
+  /**
+   * Render only: time constant the look-ahead offset eases with, ms (the lead
+   * only; the body follow is unchanged). Same under reduced motion. Never
+   * enters `SimParams`.
+   */
+  readonly cameraLookAheadEaseMs: number;
 }
 
 /** Runtime check applied to one tuning value. */
@@ -76,6 +90,7 @@ export type TuningFieldKind =
   | 'positiveNumber' // finite > 0
   | 'framesPerTile' // integer in 1..12 (render animation rate)
   | 'tileCount' // integer in 1..256 (render distance in whole tiles)
+  | 'leadTiles' // finite in 0..12 (render camera lead, fractional tiles)
   | 'ms' // finite >= 0, converted with round(ms * stepHz / 1000)
   | 'gear' // integer in GEARS
   | 'band' // integer in BANDS
@@ -91,7 +106,7 @@ type KindFor<T> = [T] extends [PerBand<number>]
       ? 'gear'
       : [T] extends [Band]
         ? 'band'
-        : 'positiveInteger' | 'positiveNumber' | 'ms' | 'framesPerTile' | 'tileCount';
+        : 'positiveInteger' | 'positiveNumber' | 'ms' | 'framesPerTile' | 'tileCount' | 'leadTiles';
 
 /** One entry per `Tuning` key, no more, no fewer (enforced by the mapped type). */
 export const TUNING_SCHEMA: { readonly [K in keyof Tuning]-?: KindFor<Tuning[K]> } = {
@@ -121,10 +136,14 @@ export const TUNING_SCHEMA: { readonly [K in keyof Tuning]-?: KindFor<Tuning[K]>
   cameraMaxApartTiles: 'tileCount',
   projectileSizeTiles: 'positiveNumber',
   emitterTellMs: 'ms',
+  cameraLookAheadTiles: 'leadTiles',
+  cameraLookAheadEaseMs: 'ms',
 };
 
 const MAX_FRAMES_PER_TILE = 12;
 const MAX_TILE_COUNT = 256;
+/** View is 30 tiles wide (480 px / 16); 12 keeps the followed body 3 tiles inside it. */
+const MAX_LEAD_TILES = 12;
 
 const isIntegerIn = (v: unknown, min: number, max: number): boolean =>
   Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
@@ -142,6 +161,7 @@ const FIELD_CHECKS: Readonly<Record<TuningFieldKind, (v: unknown) => boolean>> =
   positiveNumber: (v) => isFiniteNumber(v) && v > 0,
   framesPerTile: (v) => isIntegerIn(v, 1, MAX_FRAMES_PER_TILE),
   tileCount: (v) => isIntegerIn(v, 1, MAX_TILE_COUNT),
+  leadTiles: (v) => isFiniteNumber(v) && v >= 0 && v <= MAX_LEAD_TILES,
   ms: (v) => isFiniteNumber(v) && v >= 0,
   gear: (v) => GEARS.includes(v as Gear),
   band: (v) => BANDS.includes(v as Band),

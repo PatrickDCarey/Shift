@@ -701,3 +701,12 @@ Run: 25 passed (b11 x 24 plus b9 M3) in 6.7 min, `--workers=1`, against a QA-hoo
 Not verified: the exit-never-in-slab and ceiling cases (sim unit tests only), tandem movers, forward-only posts and post respawn after two deaths (unit), w5-05, 60 fps, audio of the shot cue, the shimmer-through-body look (render only, not asserted), greyscale reading of the five-row select (shapes visible by eye in the screenshot).
 
 BUG-9 (polish): a phase-0 shot is alive at step 0, against "lane empty at t 0".
+
+## 14. B12 QA line (design-lead, 2026-11-24): taps, w1-04, death-to-control, w4-01
+
+Spec `tests/e2e/b12-taps.spec.ts` (frozen stepped clock, `Clocked.openMenus` added to `b11-helpers.ts`); numbers in `docs/qa/evidence/b12-taps.json`. Run alone: `npx playwright test tests/e2e/b12-taps.spec.ts --workers=1`.
+
+1. Menu taps (1..6 frames, keydown then N rendered frames then keyup): every key that does something registered at every length, on title (ArrowDown, Enter), level select (ArrowRight, ArrowDown, Escape), settings (ArrowDown, ArrowRight, Enter, Escape), pause (ArrowDown, Enter, Escape), controls (Escape) and in game (Escape opens pause, Space jump, ShiftRight, ShiftLeft, R). ArrowRight on title/pause and Escape on title do nothing at any length (no-ops, not drops). No bug. Not covered: a 0-frame tap (down and up inside one frame; `HeldKeys.takePressed` is written for it), real-time jitter, Results screen.
+2. w1-04: the recording and a "let go on the pad, stop, three shift-downs, walk" variant both win (steps 469 and 548), Results opens (NEXT LEVEL -> w1-05), the save has w1-04 and the best step. 3 repeats and "right after a death" not run.
+3. Death-to-control (Right held from the death step): 27-28 frames on w4-05 (v1 and v2) and w5-03 (v1) for fall deaths; a w5-03 "hit" run came out identical but its death was likely a fall through a green tile (last live y 8.52), so a true bolt hit was not isolated. Leaving the ground to the death line adds 37 steps on w4-05 v2 (pit).
+4. w4-01 lift to bridge: from the top rest the runner never shows band 0 on the bridge; gear 1 crosses, gears 2-4 fall at the bridge start (band = gear). Starting at 80 frames into the top rest, the lift is already descending when the runner reaches the ledge and the runner is stopped by the wall below it.

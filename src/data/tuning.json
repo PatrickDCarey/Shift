@@ -24,5 +24,7 @@
   "sprintFramesPerTile": 2,
   "cameraMaxApartTiles": 28,
   "projectileSizeTiles": 0.5,
-  "emitterTellMs": 300
+  "emitterTellMs": 300,
+  "cameraLookAheadTiles": 6,
+  "cameraLookAheadEaseMs": 350
 }

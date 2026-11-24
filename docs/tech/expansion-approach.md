@@ -312,3 +312,55 @@ Design reversed ruling 2 (`decisions.md` 2026-11-24, `level-plan.md` v4.1, `feat
 
 - **`SimParams.projectileSize` is required** (batch 11 checkpoint review). `motion/testkit.ts` maps it; typecheck clean. The `size === undefined` test in `sim/hazards.ts:22` is now dead code; [sim] drops it next sitting (`requests.md`).
 - **Design:** acceptance 8 (kinetic clock resets to `post.clock` on a post respawn) and "forward only" activation (design wrote "last touched wins").
+
+## 9. Camera look-ahead (Should, 2026-11-24)
+
+Spec: `docs/design/features/camera-lookahead.md` (decisions.md "Batch 12 cold playtest triage" items 5 and 7). **Final brief** (design answered tech-lead's questions 2026-11-24). Lane: **[scene]** only. Render only: no sim, contract, level-format or golden-hash change.
+
+### 9.1 Tuning (done)
+
+`cameraLookAheadTiles` is in `Tuning` and `TUNING_SCHEMA` (`src/core/contracts/tuning.ts`, kind `leadTiles`: finite, 0..12; 0 turns the feature off, 12 keeps the runner 3 tiles inside the 30-tile view) and in `tuning.json` at **6**, written by tech-lead on design-lead's ruling because the lockstep test needs JSON and type in one commit. `cameraLookAheadEaseMs` (kind `ms`) is in both at **350**, same ruling and route. Neither is in `SimParams`; `deriveParams` ignores both like `cameraMaxApartTiles`.
+
+### 9.2 Where the camera target is computed today
+
+- `src/scenes/GameScene.ts:288` calls `rig.follow(level, cameraBodies(snapped, state), ..., delta)` once per frame; `:289` already reads `state.player.vx` for the tint.
+- `src/entities/BodyViews.ts:42-46` `cameraBodies`: whole-pixel feet + `home`, **no velocity**.
+- `src/entities/camera.ts:57-69` `cameraFocus`: one active body -> that body (`:62`); two within `cameraMaxApartTiles` -> midpoint; further -> the runner (`:63`). `axisScroll` (`:9-13`) clamps to the level or centres a level narrower than the view.
+- `src/entities/cameraRig.ts:49-60` `follow`: `tandemCamera` -> `FocusPan.apply` (`focusPan.ts:30-51`, which only pans when a Tandem body goes home, and is instant under reduced motion) -> `cameraScroll` -> `setScroll`.
+
+The single-body follow has **no easing** and keeps none: design ruled that only the lead eases (decisions.md item 7).
+
+### 9.3 How to apply it
+
+- New pure module `src/entities/lookAhead.ts` (< 80 lines): `leadTargetPx(vx, tuning) = sign(vx) * cameraLookAheadTiles * tileSize * min(|vx| / colorBandEdges[3], 1)` (red edge 10.5, so any red speed gets the full 6 tiles; the spec allows the band-4 threshold), and a small `LookAhead` class holding the current lead, eased each frame with the existing `easeToward(lead, target, deltaMs, tuning.cameraLookAheadEaseMs)` (`interpolation.ts:60`). `reset()` sets it to 0. Both numbers come from tuning; no constants in the module.
+- Apply in `CameraRig.follow` only when the level has **one body** (`bodies.length === 1`): add the rounded offset to `framed.x` **before** `cameraScroll`, so the existing clamp handles level edges and a level narrower than the view still never scrolls. Tandem levels get lead 0 in every framing, including the fallbacks that follow one body (one home, or past `cameraMaxApartTiles`), and and take exactly today's path: no change to `FocusPan`, the edge arrow or the exit arrow.
+- Pass the runner's `vx` in (extend `follow`'s arguments or add `vx` to the runner `CameraBody`); keep `cameraFocus` itself unchanged so `tests/levels` keep using it as is.
+- Turning: the target flips sign; the ease carries the offset through 0, never a snap. Walking-range speed changes are instant in the sim (gears 0..1), so this matters even at low speed. Standing: target 0, eases back to centred.
+- Wall stop, landing, speed drop: no special case; the target follows `vx` and the lead eases.
+- Respawn, post respawn, R and level load: `reset()` (lead 0 at once) on the frame the body teleports, with the camera's existing snap (death/respawn and `restart` events, `contracts/state.ts:153-154`; check which event marks a post respawn). A new level builds a new `CameraRig`, so it starts at 0. No pan.
+- Reduced motion: **the same 350 ms ease** (design ruling; a snap would be a jump cut on every turn). `setReducedMotion` does not touch the lead.
+- Vertical: no lead.
+- Whole pixels: round the offset once and add it to the integer focus; the body may drift a pixel against the view only while the offset is still easing.
+
+### 9.4 Tests that assume camera positions
+
+- `tests/levels/hintPlacement.ts:101-120` and `checkpointRules.ts:64` check hint and post boxes against **every reachable clamped scroll** (`axisScroll` at +/- infinity). The offset goes through the same clamp, so the reachable range is unchanged: **no change needed**.
+- `tests/levels/levelRules.ts:105` `startScroll` (HUD clear at the starting camera) frames the spawn with `cameraFocus`; the body stands on frame 1 and the offset starts at 0, so it holds: **no change needed**, provided the offset is 0 on the first frame and after every reset.
+- e2e (QA owns): specs that read the camera while the runner moves (`clarity.spec.ts`, `b10-hints.spec.ts`, `b11-checkpoints.spec.ts`, `tandem-scene.spec.ts`, `helpers.ts`) may shift on single-body levels. Tandem specs must not change (spec acceptance 3). QA re-runs them after the [scene] change; the QA hook may expose the current offset in px for acceptance 1-2.
+
+### 9.5 Tests to write ([scene]: `src/entities/lookAhead.test.ts` plus rig-level cases)
+
+1. Target 0 at vx 0; +/- full lead at |vx| >= 10.5; linear in between; sign follows vx; `cameraLookAheadTiles: 0` gives 0 everywhere.
+2. Spec acceptance 1: after 1 s at red speed (60 frames of 16.7 ms) the lead is >= 4.5 tiles (view right edge >= body x + 19.5); mirrored left.
+3. Spec acceptance 2: after letting go, the lead is not 0 in the first 6 frames and is within 1 px of 0 after 60.
+4. Spec acceptance 3: on a flip at red speed the lead changes by <= 10 px per 16.7 ms frame (also with reduced motion on).
+5. Spec acceptance 4: `reset()` gives lead 0 on the next frame (respawn, post, R, load).
+6. Spec acceptance 5: two-body input gives today's scroll on every frame, in every Tandem framing.
+7. Clamp: a level 30 tiles wide or less never scrolls at full lead; at the right edge the scroll equals the max scroll.
+All with `deltaMs` driven explicitly, never real time.
+
+### 9.6 Risks
+
+- Spec acceptance 1 was restated by design (19.5 tiles ahead after 1 s at red) and fails without the lead, as a check should.
+- e2e camera assertions on single-body levels may need re-baselining (QA); none touch the sim or replays.
+- Cut freely at freeze: `cameraLookAheadTiles: 0` disables it with no code change.

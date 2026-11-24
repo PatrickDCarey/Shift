@@ -1,0 +1,496 @@
+{
+  "menus": {
+    "title ArrowDown": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "title ArrowRight": {
+      "1": false,
+      "2": false,
+      "3": false,
+      "4": false,
+      "5": false,
+      "6": false
+    },
+    "title Enter (SETTINGS)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "settings ArrowDown": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "settings ArrowRight": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "settings Enter": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "settings Escape": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "title Escape": {
+      "1": false,
+      "2": false,
+      "3": false,
+      "4": false,
+      "5": false,
+      "6": false
+    },
+    "title Enter (LEVELS)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "levelselect ArrowRight": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "levelselect ArrowDown": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "levelselect Escape": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    }
+  },
+  "pause": {
+    "game Escape (open pause)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "pause ArrowDown": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "pause ArrowRight": {
+      "1": false,
+      "2": false,
+      "3": false,
+      "4": false,
+      "5": false,
+      "6": false
+    },
+    "pause Enter (CONTROLS)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "controls Escape": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "pause Escape (close)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    }
+  },
+  "game": {
+    "jump (Space)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "shift up (ShiftRight)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "shift down (ShiftLeft)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    },
+    "R (restart)": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true,
+      "5": true,
+      "6": true
+    }
+  },
+  "w1-04 clear: recording": {
+    "status": "won",
+    "wonAtStep": 469,
+    "scenes": [
+      "Game",
+      "Results"
+    ],
+    "save": {
+      "completedLevels": [
+        "w1-04"
+      ],
+      "bestSteps": {
+        "w1-04": 469
+      }
+    },
+    "resultsModel": {
+      "list": {
+        "items": [
+          {
+            "id": "next",
+            "label": "ENTER: NEXT LEVEL"
+          },
+          {
+            "id": "retry",
+            "label": "R: RETRY"
+          },
+          {
+            "id": "levels",
+            "label": "ESC: LEVELS"
+          }
+        ],
+        "focus": 0
+      },
+      "caption": "1-4 BRAKE",
+      "clearText": "CLEAR",
+      "timeText": "TIME 0:07.81",
+      "bestText": "BEST 0:07.81",
+      "marker": "FIRST CLEAR",
+      "notSaved": false,
+      "nextLevelId": "w1-05"
+    },
+    "finalStatus": "won"
+  },
+  "w1-04 clear: let go on the pad, stop, shift down 3x, walk": {
+    "status": "won",
+    "wonAtStep": 548,
+    "scenes": [
+      "Game",
+      "Results"
+    ],
+    "save": {
+      "completedLevels": [
+        "w1-04"
+      ],
+      "bestSteps": {
+        "w1-04": 548
+      }
+    },
+    "resultsModel": {
+      "list": {
+        "items": [
+          {
+            "id": "next",
+            "label": "ENTER: NEXT LEVEL"
+          },
+          {
+            "id": "retry",
+            "label": "R: RETRY"
+          },
+          {
+            "id": "levels",
+            "label": "ESC: LEVELS"
+          }
+        ],
+        "focus": 0
+      },
+      "caption": "1-4 BRAKE",
+      "clearText": "CLEAR",
+      "timeText": "TIME 0:09.13",
+      "bestText": "BEST 0:09.13",
+      "marker": "FIRST CLEAR",
+      "notSaved": false,
+      "nextLevelId": "w1-05"
+    },
+    "finalStatus": "won"
+  },
+  "death-to-control w4-05": {
+    "levelFileVersion": "2",
+    "results": [
+      {
+        "kind": "fall",
+        "deathStep": 238,
+        "respawnFrames": 26,
+        "controlFrames": 27,
+        "controlSteps": 1,
+        "stepAtControl": 1
+      },
+      {
+        "kind": "fall",
+        "deathStep": 238,
+        "respawnFrames": 27,
+        "controlFrames": 28,
+        "controlSteps": 1,
+        "stepAtControl": 1
+      }
+    ]
+  },
+  "w5-03 delayed 47": {
+    "deathStep": 171,
+    "prev": {
+      "x": 11.107999999999976,
+      "y": 8.520833333333334,
+      "vx": 6,
+      "vy": -13.75,
+      "gear": 2,
+      "band": 2,
+      "grounded": false
+    }
+  },
+  "death-to-control w5-03": {
+    "levelFileVersion": "1",
+    "results": [
+      {
+        "kind": "fall",
+        "deathStep": 184,
+        "respawnFrames": 26,
+        "controlFrames": 27,
+        "controlSteps": 1,
+        "stepAtControl": 1
+      },
+      {
+        "kind": "fall",
+        "deathStep": 184,
+        "respawnFrames": 26,
+        "controlFrames": 27,
+        "controlSteps": 1,
+        "stepAtControl": 1
+      },
+      {
+        "kind": "hit (delay 47, last live y 8.52)",
+        "deathStep": 171,
+        "respawnFrames": 26,
+        "controlFrames": 27,
+        "controlSteps": 1,
+        "stepAtControl": 1
+      }
+    ]
+  },
+  "w4-05 fall: last grounded step vs death step": {
+    "header": "2",
+    "lastGrounded": 201,
+    "deathStep": 238,
+    "fallSteps": 37
+  },
+  "w4-01 lift-to-bridge": [
+    {
+      "gear": 1,
+      "waitAtTop": 0,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "playing",
+      "endX": 24.53,
+      "endY": 6,
+      "bandOnFirstBridgeContact": 1,
+      "bridgeX": 18.025000000000137,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 1,
+      "waitAtTop": 40,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "playing",
+      "endX": 24.53,
+      "endY": 6,
+      "bandOnFirstBridgeContact": 1,
+      "bridgeX": 18.025000000000137,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 1,
+      "waitAtTop": 80,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "playing",
+      "endX": 11.63,
+      "endY": 6.44,
+      "bandOnFirstBridgeContact": -1,
+      "bridgeX": -1,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 2,
+      "waitAtTop": 0,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "dead",
+      "endX": 23.26,
+      "endY": 16.75,
+      "bandOnFirstBridgeContact": 2,
+      "bridgeX": 18.05800000000004,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 2,
+      "waitAtTop": 40,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "dead",
+      "endX": 23.26,
+      "endY": 16.75,
+      "bandOnFirstBridgeContact": 2,
+      "bridgeX": 18.05800000000004,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 2,
+      "waitAtTop": 80,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "playing",
+      "endX": 11.63,
+      "endY": 6.44,
+      "bandOnFirstBridgeContact": -1,
+      "bridgeX": -1,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 3,
+      "waitAtTop": 0,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "dead",
+      "endX": 23.63,
+      "endY": 16.75,
+      "bandOnFirstBridgeContact": 3,
+      "bridgeX": 18.118000000000013,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 3,
+      "waitAtTop": 40,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "dead",
+      "endX": 23.63,
+      "endY": 16.75,
+      "bandOnFirstBridgeContact": 3,
+      "bridgeX": 18.118000000000013,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 3,
+      "waitAtTop": 80,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "playing",
+      "endX": 11.63,
+      "endY": 6.5,
+      "bandOnFirstBridgeContact": -1,
+      "bridgeX": -1,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 4,
+      "waitAtTop": 0,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "dead",
+      "endX": 23.63,
+      "endY": 16.75,
+      "bandOnFirstBridgeContact": 4,
+      "bridgeX": 18.147000000000013,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 4,
+      "waitAtTop": 40,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "dead",
+      "endX": 23.63,
+      "endY": 16.75,
+      "bandOnFirstBridgeContact": 4,
+      "bridgeX": 18.147000000000013,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    },
+    {
+      "gear": 4,
+      "waitAtTop": 80,
+      "startKinY": 6,
+      "startBand": 0,
+      "endStatus": "playing",
+      "endX": 11.63,
+      "endY": 6.44,
+      "bandOnFirstBridgeContact": -1,
+      "bridgeX": -1,
+      "whiteFramesOnBridge": 0,
+      "wonAtStep": null
+    }
+  ]
+}

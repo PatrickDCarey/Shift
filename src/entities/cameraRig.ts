@@ -12,6 +12,7 @@ import { exitCue } from './exitCue';
 import { cameraScroll, type CameraBody } from './camera';
 import { EdgeArrowView } from './EdgeArrowView';
 import { FocusPan } from './focusPan';
+import { LookAhead } from './lookAhead';
 import { easeToward } from './interpolation';
 import { edgeArrowPlacement, tandemCamera } from './tandemView';
 
@@ -32,6 +33,7 @@ export class CameraRig {
   /** Last whole-pixel camera focus; kept when every body is home. */
   private lastFocus: { readonly x: number; readonly y: number } | null = null;
   private readonly pan = new FocusPan();
+  private readonly look: LookAhead;
   private reducedMotion = false;
   private tintSpeed = 0;
   private lastBackground = -1;
@@ -41,16 +43,21 @@ export class CameraRig {
     private readonly tuning: Tuning,
     private readonly exits: readonly { readonly col: number; readonly row: number }[] = [],
   ) {
+    this.look = new LookAhead(tuning);
     this.edgeArrow = new EdgeArrowView(scene);
     this.exitArrow = new EdgeArrowView(scene, DEPTH_EXIT_ARROW);
   }
 
-  /** Scroll from the snapped integer bodies; keeps the last scroll when every body is home. Then the edge arrow. */
-  follow(level: Level, bodies: readonly CameraBody[], twin: Feet | null, twinState: SimState['twin'], bodyHeightPx: number, deltaMs = 0): void {
+  /**
+   * Scroll from the snapped integer bodies; keeps the last scroll when every body is home. Then the edge arrow.
+   * `state` feeds the single-runner look-ahead (no lead on Tandem levels).
+   */
+  follow(level: Level, bodies: readonly CameraBody[], twin: Feet | null, twinState: SimState['twin'], bodyHeightPx: number, deltaMs = 0, state?: SimState): void {
     const ts = this.tuning.tileSize;
     const cam = this.scene.cameras.main;
     const framed = tandemCamera(bodies, bodyHeightPx, ts, this.tuning.cameraMaxApartTiles);
-    const target = framed ?? this.lastFocus;
+    const lead = framed !== null && bodies.length === 1 && state !== undefined ? this.look.update(state.player.vx, state.status, state.step, deltaMs) : 0;
+    const target = framed === null ? this.lastFocus : { ...framed, x: framed.x + lead };
     if (target !== null) {
       const active = framed === null ? 0 : bodies.filter((b) => !b.home).length;
       const focus = framed === null ? target : this.pan.apply(target, active, deltaMs, this.reducedMotion);

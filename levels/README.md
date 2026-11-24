@@ -24,10 +24,10 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w4-02 | Ferry | 4 | NEW: a shuttle carries you sideways; leave when it docks, at the pace the far side asks | 20–30 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18); no hints; roof over the whole track (see section) |
 | w4-03 | Moving Bridge | 4 | twist: a colored slab holds only its own color, so cross it at its pace while it is level | 25–40 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18); no hints |
 | w4-04 | Outrun | 4 | NEW: a front chases you at 3.75 tiles/s (the sweep): walk only where you can afford to | 30–45 s | **version 1, APPROVED** (design-lead 2026-11-24, as built); no hints; clean run 24.2 s, closest gap 5.65 tiles (90 steps) |
-| w4-05 | Commute | 4 | combine (long): lift, shuttle and colored slab, with runway, drag and the red wall (9 rooms, 2 posts) | 4–8 min | **APPROVED (design-lead 2026-11-24)**, version 1 (`levels-w4.md` v4.1); posts at cols 132 and 215 with `clock=`; no hints; clean run 66.8 s |
+| w4-05 | Commute | 4 | combine (long): lift, shuttle and colored slab, with runway, drag and the red wall (9 rooms, 2 posts) | 4–8 min | **version 2, APPROVED (design-lead 2026-11-24, as built)** (B12 triage finding 1: room 1 rework; v1 approved 2026-11-24, `levels-w4.md` v4.1); posts at cols 132 and 215 with `clock=`; no hints; clean run 67.7 s |
 | w5-01 | Spark | 5 | NEW: a colored bolt only hits its own color; turn red only after the red lane | 15–25 s | **APPROVED (design-lead 2026-11-24)**, version 1; `move` and `shiftUp` hint headers |
 | w5-02 | Keep Moving | 5 | TWIST: a white bolt hits only a runner standing still, so brake while moving | 25–40 s | **APPROVED (design-lead 2026-11-24)**, version 1; no hints; 16 emitters (the cap) |
-| w5-03 | Hurdles | 5 | NEW: grey bolts hit everyone: jump the low ones on green, stay down under the high ones on yellow | 30–45 s | **APPROVED (design-lead 2026-11-24)**, version 1; no hints |
+| w5-03 | Hurdles | 5 | NEW: grey bolts hit everyone: jump the low ones on green, stay down under the high ones on yellow | 30–45 s | **version 2, APPROVED (design-lead 2026-11-24)** (B12 triage finding 3: section 1 emitter moved to col 24; last stretch rebuilt with a red catcher tile, period 152, any departure ≥ 26 steps, close stops measured, see section); v1 approved 2026-11-24; no hints |
 | w5-04 | Chase | 5 | combine: the sweep at 7.5 tiles/s and colored rain: outrun it, never in the color of the lane | 40–60 s | **version 1, APPROVED** (design-lead 2026-11-24, as built); no hints; clean run 12.2 s, closest gap 7.9 tiles (63 steps) |
 | w5-05 | Full Spectrum | 5 | combine (long finale): red, yellow, white and grey bolts, a grey lift and a green slab, with runway, drag, step-down and brake (12 rooms, 3 posts) | 3–5 min | **version 1, APPROVED** (design-lead 2026-11-24, as built) (`levels-w5.md` v4.1); posts at cols 80, 148 and 254 with `clock=`; no hints; clean run 62.3 s; deviations for review: width 345 (not 420–450), lift crossed walking under one white head-height lane, yellow rain rises from the pit, one horizontal white lane over a 10-tile pad 1 lower, post 2 `clock=` is a braking runner's step (see section) |
 
@@ -548,22 +548,24 @@ One screen (28 × 15), two identical lanes stacked: runner on top (floor row 6),
 
 **Teaches:** nothing new (COMBINE, long; `levels-w4.md` "w4-05" v4.1, level plan v4.1 "Long levels"): lift, shuttle and colored slab, with runway, drag and the red wall, as one journey. No hints, no sweep, no bolts, no Tandem.
 
+**Version 2 (2026-11-24, `decisions.md` B12 triage finding 1, `requests.md` w4-05 v2 line): room 1 only.** A cold player could not leave room 1 (a 37-step board, a 90-step dock, a line that depended on where you stood). Rooms 2–9 keep their v1 geometry; their slabs and posts keep their v1 timing relative to the runner, 58 steps later (see "Clocks").
+
 300 × 15, scrolls. Rows 0–2 hold no colored tile, exit or slab path. Six slabs, all speed 2, and two posts:
 
 ```
-mover: 12 10 4x1 safe speed=2 phase=453 path=w90,r12,w90,l12   (Across shuttle; cycle 564)
-mover: 81 12 3x1 safe speed=2 phase=48 path=w90,u6,w90,d6      (Up lift; cycle 372)
-mover: 99 6 6x1 G speed=2 phase=115 path=w150,d6,w30,u6        (section 1 green slab, long rest; cycle 372)
-mover: 144 6 4x1 safe speed=2 phase=524 path=w90,r12,w90,l12   (Ferry; cycle 564)
-mover: 180 6 6x1 G speed=2 phase=223 path=w90,d6,w30,u6        (Moving Bridge; cycle 312)
-mover: 227 6 3x1 safe speed=2 phase=2 path=w90,d6,w90,u6       (down-lift; cycle 372)
-checkpoint: 132 5 clock=1543
-checkpoint: 215 5 clock=2804
+mover: 12 10 4x1 safe speed=2 phase=0 path=w260,r10,w160,l10    (Across shuttle; cycle 740; v1 phase=453 path=w90,r12,w90,l12)
+mover: 81 12 3x1 safe speed=2 phase=362 path=w90,u6,w90,d6      (Up lift; cycle 372; v1 phase=48)
+mover: 99 6 6x1 G speed=2 phase=57 path=w150,d6,w30,u6          (section 1 green slab, long rest; cycle 372; v1 115)
+mover: 144 6 4x1 safe speed=2 phase=466 path=w90,r12,w90,l12    (Ferry; cycle 564; v1 524)
+mover: 180 6 6x1 G speed=2 phase=165 path=w90,d6,w30,u6         (Moving Bridge; cycle 312; v1 223)
+mover: 227 6 3x1 safe speed=2 phase=316 path=w90,d6,w90,u6      (down-lift; cycle 372; v1 2)
+checkpoint: 132 5 clock=1601                                    (v1 1543)
+checkpoint: 215 5 clock=2862                                    (v1 2804)
 ```
 
 | # | Room | Cols | What you do | Window(s), steps |
 |---|---|---|---|---|
-| 1 | Across | 0–56 | walk onto the shuttle while it rests (left rest steps 111–200) and on to its front; shift up to gear 4 standing; run at the dock (docked 393–482): yellow through the 2-tile red door (col 31), red on the red bridge (33–38) under the door's mass (w1-05) | board: start walking up to 37 steps late; run: 94 (−15/+78) |
+| 1 | Across | 0–56 | spawn col 6; walk onto the shuttle while it rests at the near dock (steps 0–259, from the load and every room-1 respawn) and let go anywhere on it; shift up to gear 3 standing; run at the far dock (docked 420–579): yellow through the 2-tile red door (col 30), one press up on the 4 safe tiles past it (31–34), red on the red bridge (35–40) under the door's mass (w1-05). Pit 14 cols (12–25), approach 26–29 | board: start walking at any step 0–156; run ≥ 185; press ≥ 39 (both at every standing x) |
 | 2 | Up | 57–83 | red runway (5), 5-tile gap, yellow pad 2 lower: jump red, drag to yellow; 10 safe tiles; a grey lift (81–83, in a dip with a safe floor) 6 up a 6-tile wall; shift down to gear 2 while riding | jump 33; shift down 178; walk off 205 |
 | 3 | Level | 84–129 | a green slab (99–104) in a 6-col gap under a 2-row roof, level for 150 steps: cross at gear 2; brake pad (106–117), press down; blue bridge (118–129, no roof) | press down 84 |
 | — | **Post 1** | **132** | on a 14-tile recovery stretch, 12 tiles before the Ferry | |
@@ -575,15 +577,22 @@ checkpoint: 215 5 clock=2804
 | 8 | Runway | 230–245 | the shaft wall behind you, 10 safe tiles under a ceiling, a red bridge (6) under it: run from the lift, red by the bridge (w1-03, from a standing start) | — |
 | 9 | Home | 246–299 | 20 safe tiles, press down three times; a 26-tile blue bridge; exit pad (exit col 296) | 97 |
 
-Each window moves one input (or press group, or the step a wait ends) earlier and later with every other input placed by position or by its own step, as a player would; ±150 was the search range, so 205 and 291 are cut off.
+Each window moves one input (or press group, or the step a wait ends) earlier and later with every other input placed by position or by its own step, as a player would; ±150 was the search range, so 205 and 291 are cut off. Rooms 2–9 re-measured on v2 with the same script: jump 33, shift down 178, walk off 205, press down 84, Ferry shift up 84, leave 70 (−52/+17), Brake 44, lift-down presses 291, Home 97, all equal to v1.
 
-**Clocks and late arrival.** Every slab room is entered from safe ground (the spawn ledge, the 10-tile stretch before the lift, the upper ground, the post stretches, the ledge before each green slab), so a player who arrives late waits there for the next cycle (at most 564 steps, 9.4 s, at a shuttle) and never dies for it. On the recording the longest standing wait apart from the rides is about 70 steps (1.2 s, held against the wall on the up-lift); no forced wait is over 3 s. Each `phase=` puts the slab's rest where the recording arrives: the shuttle's left rest starts 30 steps before the runner reaches the pit, the up-lift's bottom rest as the runner reaches it, the green slabs' level rests just before the runner reaches the gap. Each post's `clock=` is **the recording's step when the runner, walking at gear 1, passes the post's respawn x** (x 132.5 at step 1543; x 215.5 at step 2804). A player who respawns there (standing, gear 1, instant 3 tiles/s on the first step) and walks on meets every slab after the post at the same phase as the recording, so every window above holds after a post death.
+**Room 1 v2, measured (the request's (a)–(d)):**
+- **(a) Board.** The shuttle rests at the near dock (cols 12–15) from step 0 to 259 of every attempt (`phase=0`; a death in room 1 respawns at the spawn on kinetic clock 0: walking off the shuttle's front dies at step 234, respawn at 259 with the shuttle back at offset 0). Holding right from the spawn at gear 1 and letting go on the shuttle boards it when the walk starts at **any step 0–156** (157 steps; asked 0–120), for every let-go spot from x 12.4 to 15.6 (same range for all). Starting later, the walker reaches the edge after the shuttle has left and waits on the spawn ledge (it is back at step 740).
+- **(b) Far dock** rests **160 steps** (420–579; asked ≥ 150). **(d) Cycle 740 steps, 12.3 s** (asked ≤ 750). A player who misses the dock rides back standing and gets the next one; a player who misses boarding waits on the spawn ledge.
+- **(c) Fair line, at every standing x on the docked shuttle** (x 22.375–25.625 every 0.25, 14 spots): stand in gear 3, hold right, one press up past the door. **Run window ≥ 185 steps** at every spot (press by position, x ≥ 31; worst 185 at the front, 191–193 at the back; it opens before the dock because a runner from the back reaches the front after the shuttle has docked, and closes after the rest because the shuttle leaving left is slower than the run). **Press window ≥ 39 steps** at every spot, counting only wins with no wall stop (run at step 440; press at x 29.0–34.9: from 1 tile before the door face to 0.1 before the bridge; red comes about 0.7 tiles after the press). Door face to bridge is 5 tiles (w1-05: 2, window 19); 4 tiles measured about 32, too close to the floor. (In the whole-level window script the run start shows 97, −15/+81, and the press 176: the run is capped there by the up-lift's fixed wait step, and the press count includes the wall-stop recoveries below.)
+- **Gear 4 from a stand** (what the cold player tried): at all 14 spots the runner is **red at the door and wall-stops at x 29.63** on the approach (safe floor, col 29). From the front spot a stand is red after 3.23 tiles and the door face is 4.4 tiles ahead. **Holding right after the stop then wins:** the stopped runner restarts at blue and is red again 3.23 tiles later, inside the 5.4 tiles to the bridge. This follows from a press window ≥ 30: the yellow press window is about (door-to-bridge + 0.7) tiles at 0.15 tiles a step, so 30 steps needs ≥ 3.8 tiles, and any gap over about 2.9 lets a wall-stopped runner re-ramp (w1-05's note). So in v2 being red at the door costs a bump, not a death: the door shows the w1-05 answer (the red runner is visibly stopped by the red wall, then goes through blue) but no longer forces it. **For design:** if the door must kill a red arrival, the press window cannot exceed about 23 steps.
+- **No shuttle skip:** 1,194 sprints from the spawn at gears 2–4 (with and without a back-up), jumping at every step 2–200: none reaches the approach without standing on the shuttle (the pit is 14 wide; a red jump covers under 10).
 
-**Deliberate deaths (sim, first use of posts with slabs):** after post 1, walking into the Ferry's pit dies at step 1908 and respawns at step 1933 standing at x 132.50, y 6, gear 1, band 0, kinetic clock 1543; holding right from there reaches the pit edge with the Ferry at u 34 of 564 (the recording: 32), in its left rest. After post 2, a death on the Runway's red bridge (no presses up, step 3397) respawns at step 3422 at x 215.50 with kinetic clock 2804; walking on reaches the shaft with the down-lift at u 41 (top rest 0–89). On both respawn steps the kinetic clock (step − kinBase) is the post's `clock=`. R after post 2 (step 2851) restarts at the spawn with clock 0 and no post lit. Nothing off.
+**Clocks and late arrival.** Every slab room is entered from safe ground (the spawn ledge, the 10-tile stretch before the lift, the upper ground, the post stretches, the ledge before each green slab), so a player who arrives late waits there for the next cycle (at most 564 steps, 9.4 s, at a shuttle) and never dies for it. On the recording the longest standing wait apart from the rides is about 70 steps (1.2 s, held against the wall on the up-lift); no forced wait is over 3 s. Each `phase=` puts the slab's rest where the recording arrives: the Across shuttle rests at the near dock from step 0 (v2), the up-lift's bottom rest as the runner reaches it, the green slabs' level rests just before the runner reaches the gap. Each post's `clock=` is **the recording's step when the runner, walking at gear 1, passes the post's respawn x** (v2: x 132.5 at step 1601; x 215.5 at step 2862). **v2 re-derivation:** the new room 1 hands the runner to room 2 at full red speed exactly 58 steps later than v1 (x 40.09 at step 537, v1 at step 479; 0.01 tiles apart), so every later slab `phase=` moved back 58 steps (mod its cycle) and both `clock=` values moved up 58: the runner, and a post respawn, meet every later slab at the same phase as in v1. Re-measured by replay, not assumed. A player who respawns there (standing, gear 1, instant 3 tiles/s on the first step) and walks on meets every slab after the post at the same phase as the recording, so every window above holds after a post death.
 
-**COMBINE (no win skips a slab):** the recording with one extra jump at every 2nd step (2,003 runs, 1,362 wins) and with two at random steps (1,200 runs, 579 wins): every win stood on all six slabs (checked against `moverOffset` each step). The pits under the shuttles, the shaft and the green slabs are open to the bottom; the 6-tile walls beside the lifts and the 2-row roofs over the green slabs and the Ferry stop every jump.
+**Deliberate deaths (sim, re-run on v2):** after post 1, walking into the Ferry's pit dies at step 1966 and respawns at step 1991 standing at x 132.50, y 6, gear 1, band 0, kinetic clock 1601; holding right from there reaches the pit edge with the Ferry at u 34 of 564 (as v1), in its left rest. After post 2, a death on the Runway's red bridge (no presses up, step 3455) respawns at step 3480 at x 215.50 with kinetic clock 2862; walking on reaches the shaft with the down-lift at u 41 (as v1; top rest 0–89). On both respawn steps the kinetic clock (step − kinBase) is the post's `clock=`. R after post 2 (step 2909) restarts at the spawn (x 6.5) with clock 0, no post lit and the shuttle at the near dock. Nothing off.
 
-**Run length and pace.** Clean run (the recording) **4,006 steps, 66.8 s**, 300 tiles: sprints (Across, the Coast, the Runway) between rides and walks (the brake pads and blue bridges at gear 1, the Ferry, the lifts).
+**COMBINE (no win skips a slab), re-run on v2:** the recording with one extra jump at every 2nd step (2,032 runs, 1,357 wins) and with two at random steps (1,200 runs, 557 wins): every win stood on all six slabs (checked against `moverOffset` each step). The pits under the shuttles, the shaft and the green slabs are open to the bottom; the 6-tile walls beside the lifts and the 2-row roofs over the green slabs and the Ferry stop every jump.
+
+**Run length and pace.** Clean run (the recording) **4,064 steps, 67.7 s** (v1 4,006), 300 tiles: sprints (Across, the Coast, the Runway) between rides and walks (the brake pads and blue bridges at gear 1, the Ferry, the lifts).
 
 **Differences from `levels-w4.md` (accepted by design-lead 2026-11-24):**
 - **Width 300, not ≈ 350**: wider means more walking; 66.8 s is already in the upper half of 45–75 s.
@@ -593,9 +602,9 @@ Each window moves one input (or press group, or the step a wait ends) earlier an
 - **Coast pad 2 lower, 5-tile gap** (w2-05 v2's short Coast), as the long-level windows ask (33).
 - **Seen on screen:** not looked at; the preview pane runs hidden at about one step every 2 s.
 
-**Fastest known:** 3946 steps (`252R 1+ 1. 1+ 1. 1+ 159. 179R 1RJ 132R 1. 1- 128. 340R 1R- 588R 1+ 237. 424R 1R- 562R 1+ 1. 1+ 1. 1+ 317R 1R- 1R 1R- 1R 1R- 607R`: the recording with each wait trimmed to its earliest; a random search around the recording).
+**Fastest known:** 4004 steps (`180R 1+ 1. 1+ 270. 39R 1R+ 155R 1RJ 124R 1. 1- 167. 320R 1R- 584R 1+ 191. 398R 1R- 645R 1+ 1. 1+ 1. 1+ 304R 1R- 1R 1R- 1R 1R- 607R`: a random search around the v2 recording, two seeds of 3,000 tries, both stopping at 4004; v1's was 3946).
 
-**Solution:** 4,006 steps (66.8 s), deathless from the load, lights post 1 at step 1525 and post 2 at step 2787. `tests/levels` passes, including ±3 on every transition and the kinetic and checkpoint rules.
+**Solution:** 4,064 steps (67.7 s), deathless from the load, lights post 1 at step 1583 and post 2 at step 2845. Room 1: walk to x 15.5, gear 3 standing, run at step 445 from x 25.5, press up at x 31.2; from the Coast jump on, v1's inputs 58 steps later. `tests/levels` passes, including ±3 on every transition and the kinetic and checkpoint rules. `LEVELS` row needed (backend-engineer): `'w4-05': { version: 2, fastest: 4004 }`.
 
 ## w5-01 Spark
 
@@ -642,29 +651,49 @@ One screen (30 × 13), w1-05's grammar with a bolt instead of a wall: safe runwa
 
 **Teaches:** grey bolts hit everyone: jump the low ones, stay down under the high ones.
 
-94 × 15, scrolls; the level steps down from left to right, so no climb is ever needed (a climb would be a wall stop, and a standing jump has no air control).
+94 × 15, scrolls; the level steps down from left to right, so no climb is ever needed.
 
-1. **Green hurdles.** Safe spawn ledge (cols 0–7, top row 8) → walk off 1 tile onto a 14-tile **green** floor (cols 8–21, row 9) over a pit → safe floor. `emitter: 22 8 dir=l range=15 speed=2 period=240` sits over the first safe tile after the green and fires at foot height; bolts sink into the spawn ledge's face, below the feet of a player standing on it. Jump them green: a green flight is 4.8 tiles and lands green.
-2. **Yellow, stay down.** Safe floor (cols 22–28: stop, shift to yellow) → 24-tile **yellow** floor (cols 29–52, row 9) over a pit → safe floor. `emitter: 55 6 dir=l range=27 speed=2 period=32`, head height (the bolt passes 0.75 tiles over a standing head), dense, hanging under a block at (55, 5); bolts sink into an overhang at cols 27–28 (2 tiles of headroom under it). Any jump here meets a bolt, and a yellow flat jump drags to green and falls through anyway.
-3. **Mixed, safe floor, timing only.** From the row-9 floor, a 1-tile drop onto a 10-tile high floor (cols 59–68, row 10: foot height), then a 2-tile drop onto the low floor (row 12: the same bolts pass overhead) to the exit (`E` col 91). `emitter: 87 9 dir=l range=29 speed=2 period=240`, hanging under a block at (87, 8); bolts sink into the face at (58, 9), right under a player waiting on the row-9 floor: the cue to go.
+1. **Green hurdles.** Safe spawn ledge (cols 0–7, top row 8) → walk off 1 tile onto a 14-tile **green** floor (cols 8–21, row 9) over a pit → safe floor (cols 22–28). `emitter: 24 8 dir=l range=17 speed=2 period=240 phase=0` (v1: col 22, range 15) sits 2 tiles into the safe floor at foot height; bolts sink into the spawn ledge's face. A stop within 1 tile before the emitter (x 23–24) is wholly on safe floor (the green ends at x 22). Jump the bolts green: a green flight is 4.8 tiles and lands green.
+2. **Yellow, stay down.** Unchanged: safe floor (stop, shift to yellow) → 24-tile **yellow** floor (cols 29–52) → now a 1-tile drop onto the safe floor of section 3. `emitter: 55 6 dir=l range=27 speed=2 period=32`, head height on the yellow floor; bolts sink into the overhang at cols 27–28.
+3. **Mixed, timing only (rebuilt).** A 12-tile safe floor (cols 53–64, row 10) → a **red post** `R` at (65, 9) → a 4-tile high floor (cols 65–68, row 10, foot height) → 2-tile drop to the low floor (row 12, head height) and the exit. `emitter: 87 9 dir=l range=22 speed=2 period=152 phase=0` (v1: range 29, period 240); bolts sink into the red post, so the whole safe floor before it is out of the lane. You walk through the post at any pace but red (w1-05: a red wall stops only red); a red runner is stopped by it outside the lane (right edge x 65.0, bolt's left edge 65.25), never hit.
+   - Why a post and no drop: in v1 you dropped 1 tile from the waiting floor into the lane. A jump pressed during that 15-step fall is lost (coyote and buffer cover 12), which splits the jump window in two; measured over all phases, the best split leaves ≈ 18 steps whatever the period (tried runway 58–63, high floor 2–10 tiles, period 64–320). With the waiting floor level with the high floor there is no dead zone.
+   - Why period 152 and a 4-tile high floor: no-jump exposure is just over one bolt spacing (9.5 tiles), so every phase meets a bolt, and never two that need separate jumps. Period 148 also works (worst 26); 144 has two-bolt phases (16); 156 lets a no-jump run through at one phase.
 
-- **One grey emitter on screen:** emitters at cols 22, 55, 87 (33 and 32 apart; the view is 30 wide).
-- **Windows (recorded line):** section 1, first hurdle **34 steps** (jump at x 9.4–12.7), second **40 steps** (the bolt just leaving the emitter, landing on the safe floor); shift up to yellow on the safe floor **44 steps** (x 24.7–29.0); section 3, go 20 steps after a bolt sinks, jump at x 61.7–66.6, **34 steps**.
-- **Arrival phase (section 1):** you can wait on the spawn ledge as long as you like, so every phase can happen. Greedy search per arrival phase (idle 0–232 every 8 steps): every phase is solvable with one or two jumps, the tightest jump window over all phases is **19 steps** (idle 40), most are 25–46.
-- **Arrival phase (section 3):** going when a bolt sinks, or up to 40 steps later: one jump, 33–34 steps; 60–80 steps later: one jump, 22–28 steps; 100–120 steps later: 16 and 10 steps (under 18: the next bolt meets you at the drop); 140–180 steps later: two jumps needed (163–318 two-jump wins per phase); 200–220 steps later (the next cycle): one jump, 35 steps. Waiting is always safe on the row-9 floor and on the low floor, so the fair line is "wait for a bolt to sink at your feet, then go".
-- **Fair line:** shift up once standing; walk off at green and jump each bolt (34 and 40 steps); shift up once on the safe floor (44 steps); run the yellow floor without jumping (no timed input); stop on the safe floor; when a bolt sinks into the face below you, run and jump once (34 steps); hold right.
-- **Removal:** without the emitters, the straight run (gear 2, one press up on the safe floor, hold right) wins on step 705; with them it is hit on step 142. **Section 1 with no jump: 0 of 240 arrival phases** clear the green floor. **Jumps on yellow:** after the recorded opening, a jump on each of the 163 steps spent on the yellow floor: **0 clear it** (without emitters 53 of 165 do, the late ones landing on the safe floor); 2 further jumps taken under the overhang, on the safe floor, bonk and land yellow (not jumps on yellow). Section 3 with no jump: hit at every one of 12 sampled departure phases.
-- **Not cheese, noted:** gear 3 and gear 4 lines also clear section 1 (970 and 213 of a coarse sweep; gear 1: 0): a yellow takeoff from the ledge drags to green and lands green (w2-02's Coast), and every one of them still jumps the bolts.
-- **Safe spots:** the spawn ledge, the safe floor after the green (cols 22–28), the safe floor after the yellow (cols 53–58), the low floor. The high floor is the only safe-tile stretch you cannot stand on.
+- **One grey emitter on screen:** emitters at cols 24, 55, 87 (31 and 32 apart; the view is 30).
+- **Windows (recorded line, one input moved, others fixed, full-level win):** first hurdle **36 steps** (jump at x 11.1), second **34 steps** (jump at x 20.0, landing x 24.7 with that bolt **3.0 tiles** out of the emitter; over the whole window it is 2.3–4.3 tiles out at landing); shift up to yellow on the safe floor **49 steps** (x 26.3); last stretch **34 steps** (jump at x 64.7).
+- **Arrival phase (section 1):** greedy chain per idle on the spawn ledge (same method as v1): tightest jump window **19 steps**, unchanged from v1. The second hurdle's steady-state window is 34–35 at every phase: v1's 40 came from the bolt leaving point-blank as you landed past the emitter, which is what the move removes (design-lead accepted 36/34, 2026-11-24).
+- **Last stretch, every departure phase** (stand on the section 3 floor where the recorded line stops, x 58.1, hold right from step 0 of departure, one jump; checked at **every step** of the 152-step cycle; "since sink" = steps since a bolt last sank into the post):
+
+  | since sink | no jump | best one-jump window (steps after departure) |
+  |---|---|---|
+  | 0 | hit at 84 | 34 (47–80) |
+  | 16 | hit at 79 | 34 (42–75) |
+  | 32 | hit at 75 | 33 (38–70) |
+  | 48 | hit at 70 | 33 (33–65) |
+  | 64 | hit at 65 | 34 (28–61) |
+  | 80 | hit at 60 | 32 (25–56) |
+  | 88 | hit at 58 | 31 (24–54) |
+  | **94** | hit at 56 | **26 (27–52), the worst** |
+  | 96 | hit at 100 | 28 (64–91) |
+  | 104 | hit at 98 | 31 (61–91) |
+  | 120 | hit at 93 | 34 (56–89) |
+  | 136 | hit at 89 | 33 (52–84) |
+  | 144 | hit at 86 | 34 (49–82) |
+
+  **Worst 26 steps** (phases 92–96 give 26–28, all others 29–34); **no phase needs two jumps**; **no jump: hit at all 152 phases**.
+- **Close stops (design-lead 2026-11-24, item 9): "go right after a bolt ends at the red tile" from any stop.** Stops from x 58.1 to 64.66 (38 stops, 0.10–0.27 tiles apart, made by walking on from the recorded stop and letting go), departures 0–30 steps after a bolt ends at the red tile (every 2 steps; every step for the 5 stops nearest the tile), one jump: **worst window 25 steps** (stops x 64.1–64.7, departing 23–30 steps after the bolt ends); no jump is hit in every case. Sample windows by stop x (departure 0 / 14 / 30 steps after the bolt ends): 58.1: 33/33/33; 59.7: 34/34/34; 62.3: 34/31/30; 63.6: 31/29/27; 64.66: 27/26/25. Departing later than that while pressed against the red tile can still be tight (a bolt is then 1–2 tiles in front of you at foot level): from x 63.5, leaving 100–130 steps after a bolt ends gives 1–21 steps. Design accepts this as long as going right after a bolt ends always works.
+- **Fair line:** shift up once standing; walk off at green and jump each bolt (36, 34); shift up on the safe floor past the emitter (49); run the yellow floor without jumping; drop onto the safe floor and stop; go whenever you like, one jump at the post or on the high floor (≥ 26); hold right.
+- **Removal:** without emitters the straight run (gear 2, one press up on the safe floor, hold right) wins on step 705; with them it is hit on step 155. **Section 1 with no jump: 0 of 480 arrival idles** clear the green. **Jumps on yellow:** after the recorded opening, a jump on each of the 165 steps spent over the yellow floor: **0 clear it** (without emitters 55 do). **Last stretch with no jump:** hit at every one of the 152 departure phases.
+- **Safe spots:** the spawn ledge, the safe floor after the green (cols 22–28), the section 3 floor (cols 53–64), the low floor.
 - **Hints:** none (spec).
 
-**Fastest known:** 721 steps (`1R+ 106R 1RJ 96R 1R+ 315R 1RJ 600R`: one green hurdle at the right phase, no stop before section 3; greedy plus coordinate-descent search, so a lower one may exist).
+**Solution:** 830 steps (13.8 s): `49. 1+ 1. 100R 1RJ 88R 1RJ 62R 1R+ 190R 40. 54R 1RJ 241R`. Stand 49, shift up, run 100 and jump at x 11.1, run 88 and jump at x 20.0, run 62 and press up at x 26.3, run 190 over the yellow floor, let go and stop (x 58.1), run 54 and jump at x 64.7, hold right to the exit. ±3 passes on every transition (`tests/levels`).
 
-**Solution:** 1,028 steps (17.1 s). Stand 20, shift up once, run 99 and jump at x 11.0, run 94 and jump, run 59 and press up at x 26.6, run 190 over the yellow floor, let go and wait 257 steps on the safe floor (a bolt sinks at step 704; go at 724), run 56 and jump at x 64.1, hold right to the exit. ±3 passes on every transition.
+**Checks:** `npx vitest run tests/levels scripts/levels-table.test.ts` (see the batch report).
 
-**Checks (w5-01..w5-03, at build time):** `npx vitest run tests/levels`: all 406 tests passed once all three levels were in (that run included the other sitting's w4 files). A later full run had 3 failures, all 30-second robustness timeouts on other sittings' long levels (w2-05 41 s, w4-05 38 s, w5-05 47 s) while sweeps were loading the machine. `-t "w5-0[123]"` on its own: 42 passed. `npx vitest run scripts/levels-table.test.ts`: fails only on the missing `LEVELS` rows (w5-01..03, plus w4-05 from the other sitting).
+**Fastest known:** 731 steps (`1R+ 60R 1RJ 70R 1RJ 60R 1R+ 295R 1RJ 600R`: no stop before section 3; grid plus coordinate descent, so a lower one may exist; v1 was 721).
 
-`LEVELS` rows needed (backend): see the report; version 1 each.
+`LEVELS` row: version 2, fastest 731 (backend).
 
 ## w5-04 Chase
 
