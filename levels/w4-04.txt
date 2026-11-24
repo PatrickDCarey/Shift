@@ -1,0 +1,35 @@
+# World 4, level 4. Teach: a front chases you at 3.75 tiles/s (between blue and green); walk only where you can afford to.
+# Target first-time solve: 30-45 s. Clean run 24.2 s.
+# Layout (102 x 15, scrolls). The sweep starts 6 tiles behind the spawn, waits 1.5 s, then moves right at
+#   3.75 tiles/s: blue (3) loses 0.75 tiles/s to it, green (6) gains 2.25, red (12) gains 8.25, a stop loses 3.75.
+# Lower floor: safe runway (cols 0-13, spawn col 4) -> red bridge (14-21) -> 8-tile safe brake pad (22-29)
+#   -> 12-tile blue bridge (30-41) -> safe (42-45) -> green bridge (46-53) -> safe (54-57)
+#   -> a slow grey lift (cols 58-60, speed 1: 6 tiles up in 3.2 s) at the foot of a 6-tile wall.
+# The lift leaves the bottom on step 720 (and every 624 steps). Miss it and the front reaches you before the next.
+#   Riding it costs 12 tiles of lead: everyone reaches the top on step 912 with 11.2 tiles in hand.
+# Upper floor: 6-tile safe ledge (61-66) -> 16-tile blue bridge (67-82): shift down on the lift, walk it blue;
+#   the lead falls to 5.7 tiles at its end -> safe runway (83-90): go red -> red bridge (91-96) -> exit pad.
+# No checkpoints (a level with a sweep has none).
+id: w4-04
+title: Outrun
+world: 4
+teaches: a front chases you at 3.75 tiles/s, between blue and green: walk only where you can afford to
+version: 1
+mover: 58 12 3x1 safe speed=1 phase=84 path=w180,u6,w60,d6
+sweep: x0=-2 speed=2 delay=90
+---
+......................................................................................................
+......................................................................................................
+......................................................................................................
+......................................................................................................
+...................................................................................................E..
+...................................................................................................E..
+.............................................................######BBBBBBBBBBBBBBBB########RRRRRR#####
+.............................................................######................########......#####
+.............................................................######................########......#####
+.............................................................######................########......#####
+.............................................................######................########......#####
+....@........................................................######................########......#####
+##############RRRRRRRR########BBBBBBBBBBBB####GGGGGGGG####...######................########......#####
+##############........########............####........#############................########......#####
+##############........########............####........#############................########......#####

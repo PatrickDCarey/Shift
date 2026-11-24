@@ -1,0 +1,17 @@
+level: w4-04
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 1R+ 1R 1R+ 1R 1R+   three presses up while starting: red by x 7.7, over the red bridge (cols 14-21)
+# 102R               run
+# 1R- 1R 1R- 1R 1R-  brake while running at x 22.9 (window 37 steps, x 20.1-25.7): blue by x 28.4
+# 351R               walk the blue bridge (cols 30-41)
+# 1R+                one press up at x 42.6 (window 111 steps): green over the green bridge (cols 46-53)
+# 174R               on to the lift; it is resting at the bottom (steps 540-720)
+# 1R- 721R           press down as you land on it (gear 1 for the blue bridge upstairs), hold right against
+#                    the wall: it leaves on step 720 and reaches the top on step 912; walk off, walk the
+#                    16-tile blue bridge (cols 67-82); closest to the front at its end: 5.65 tiles (90 steps)
+# 1R+ 1R 1R+ 1R 1R+  three presses up at x 83.1 on the safe runway: red over the red bridge (cols 91-96)
+# 89R                to the exit
+steps: 1454
+---
+1R+ 1R 1R+ 1R 1R+ 102R 1R- 1R 1R- 1R 1R- 351R 1R+ 174R 1R- 721R 1R+ 1R 1R+ 1R 1R+ 89R

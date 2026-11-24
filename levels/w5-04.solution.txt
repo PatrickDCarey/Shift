@@ -1,0 +1,16 @@
+level: w5-04
+levelVersion: 1
+# Found and checked by replaying through the real sim (createSim/step), not hand-tuned.
+# 1R+ 1R 1R+   two presses up while starting: yellow through the red lane at col 13
+# 92R 1R+      one press up at x 15.3 (window 40 steps, x 13.5-20.5): red through the yellow lane at col 20
+# 77R          over the red bridge (cols 22-29)
+# 1R- 1R 1R-   two presses down at x 30.7 (window 42, x 27.9-34.1): green through the gauntlet (cols 38-44)
+# 246R         and over the green bridge (cols 46-55)
+# 1R- 137R     one press down at x 56.3 (window 43, x 54.5-57.9): blue under the roof, over the blue bridge
+# 1R+ 1R 1R+ 1R 1R+  three presses up at x 63.6 (window 84): closest to the front at x 65.4, 7.9 tiles
+#              (63 steps); red through the yellow lane at col 69
+# 43R 1R- 122R one press down at x 70.3 (window 30, x 69.5-74.2): yellow through the red lane at col 76,
+#              over the yellow bridge (cols 78-86) to the exit
+steps: 731
+---
+1R+ 1R 1R+ 92R 1R+ 77R 1R- 1R 1R- 246R 1R- 137R 1R+ 1R 1R+ 1R 1R+ 43R 1R- 122R

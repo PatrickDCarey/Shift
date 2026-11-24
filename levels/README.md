@@ -23,10 +23,12 @@ Owner: level-designer. Format: `docs/tech/level-format.md`. Every level ships wi
 | w4-01 | Lift | 4 | NEW: a grey lift carries you; standing on it you stay white | 15–25 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18, `levels-w4.md`); `move` hint header over the spawn |
 | w4-02 | Ferry | 4 | NEW: a shuttle carries you sideways; leave when it docks, at the pace the far side asks | 20–30 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18); no hints; roof over the whole track (see section) |
 | w4-03 | Moving Bridge | 4 | twist: a colored slab holds only its own color, so cross it at its pace while it is level | 25–40 s | **APPROVED (design-lead 2026-11-24)**, version 1 (B11-18); no hints |
+| w4-04 | Outrun | 4 | NEW: a front chases you at 3.75 tiles/s (the sweep): walk only where you can afford to | 30–45 s | version 1, for review (batch 12); no hints; clean run 24.2 s, closest gap 5.65 tiles (90 steps) |
 | w4-05 | Commute | 4 | combine (long): lift, shuttle and colored slab, with runway, drag and the red wall (9 rooms, 2 posts) | 4–8 min | **APPROVED (design-lead 2026-11-24)**, version 1 (`levels-w4.md` v4.1); posts at cols 132 and 215 with `clock=`; no hints; clean run 66.8 s |
 | w5-01 | Spark | 5 | NEW: a colored bolt only hits its own color; turn red only after the red lane | 15–25 s | **APPROVED (design-lead 2026-11-24)**, version 1; `move` and `shiftUp` hint headers |
 | w5-02 | Keep Moving | 5 | TWIST: a white bolt hits only a runner standing still, so brake while moving | 25–40 s | **APPROVED (design-lead 2026-11-24)**, version 1; no hints; 16 emitters (the cap) |
 | w5-03 | Hurdles | 5 | NEW: grey bolts hit everyone: jump the low ones on green, stay down under the high ones on yellow | 30–45 s | **APPROVED (design-lead 2026-11-24)**, version 1; no hints |
+| w5-04 | Chase | 5 | combine: the sweep at 7.5 tiles/s and colored rain: outrun it, never in the color of the lane | 40–60 s | version 1, for review (batch 12); no hints; clean run 12.2 s, closest gap 7.9 tiles (63 steps) |
 | w5-05 | Full Spectrum | 5 | combine (long finale): red, yellow, white and grey bolts, a grey lift and a green slab, with runway, drag, step-down and brake (12 rooms, 3 posts) | 3–5 min | **version 1, APPROVED** (design-lead 2026-11-24, as built) (`levels-w5.md` v4.1); posts at cols 80, 148 and 254 with `clock=`; no hints; clean run 62.3 s; deviations for review: width 345 (not 420–450), lift crossed walking under one white head-height lane, yellow rain rises from the pit, one horizontal white lane over a 10-tile pad 1 lower, post 2 `clock=` is a braking runner's step (see section) |
 
 `w0-01` is the format example in `docs/tech/level-format.md`; it is not a file here.
@@ -522,6 +524,26 @@ One screen (28 × 15), two identical lanes stacked: runner on top (floor row 6),
 
 **Solution:** 268 steps (4.5 s). Shift up standing, wait 70, hold right: green at x 8.1, step down onto the rising slab (lands step 121, 0.25 below the ledge), carried level, across and on to the exit. `tests/levels` passes, including ±3 on every transition.
 
+## w4-04 Outrun
+
+**Teaches:** a front chases you at 3.75 tiles/s, between blue and green: walk only where you can afford to (`levels-w4.md` "w4-04"; `features/sweep.md`). First sweep level.
+
+**Sweep as built (first real use).** Checked through the sim on a scratch level before building (`sweep: x0=0 speed=2 delay=90`, a body standing at x 8.5): caught on step 226 with `cause: 'sweep'`, then on 477 and 728 (226 run steps every life: respawn rewinds the front). A gear-1 walker from x 8.5 is caught at x 64.87 on step 1128; gear 2 never is. All as the spec says; no sim, parser or spec problem found. In the dev build (port 5187, throttled pane, about 1–3 steps a second; looked at w5-04 standing still): the off-screen marker with its gap bar draws at the left edge, then the saw-toothed edge and the hatched band behind it come on screen, full height, and the runner dies on step 142 exactly as the sim says. w4-04 itself was only seen to step 73 (the front still off screen, the marker drawn); its lift was not watched in the browser.
+
+102 × 15, scrolls. `sweep: x0=-2 speed=2 delay=90` (spawn col 4). Lower floor (row 12): safe runway (cols 0–13) → red bridge (14–21) → 8-tile safe brake pad (22–29) → 12-tile blue bridge (30–41) → safe (42–45) → green bridge (46–53) → safe (54–57) → a **slow grey lift**, `mover: 58 12 3x1 safe speed=1 phase=84 path=w180,u6,w60,d6` (6 tiles up in 192 steps; cycle 624), in a 1-tile dip at the foot of a 6-tile wall. Upper floor (row 6): 6-tile ledge (61–66) → **16-tile blue bridge** (67–82) → safe runway (83–90) → red bridge (91–96) → exit pad.
+
+- **The budget.** The lift rests at the bottom from step 540 and leaves on step 720. Riding it costs 12 tiles of lead, so everyone reaches the top on step 912 with the same 11.2 tiles in hand; the upper blue bridge then spends 5.6 of them. Before the lift the front is off screen (21–27 tiles back; the marker shows it), and the deadline is the lift: miss it and the next one leaves on step 1344, but the front catches you waiting on step 1092.
+- **Fair line (the recording):** three presses up at the start (red over the red bridge); brake while running on the pad, **37 steps** (x 20.1–25.7); walk the blue bridge; one press up after it, **111 steps** (x 40.4–48.9); onto the lift, press down (any time on it or the ledge before the bridge: **153 steps**), hold right; walk the upper bridge blue; three presses up on the runway, **113 steps** (x 81.5–96.2).
+- **Closest gap:** **5.65 tiles = 90 steps (1.5 s)**, at the end of the upper blue bridge (step 1364). Standing still inserted into the fair line still wins for up to 98 steps at the spawn, 128 on the brake pad, 104 before the green bridge, 113 at the lift's edge (boarding slack), 90 on the ledge after the lift, 107 on the last runway.
+- **Removal:** without the sweep, the fair line with 300-step stops on the spawn, the pad and the ledge wins (step 2378); with it, caught on step 194. Stopping on the pad and walking on costs nothing (the lift resynchronises everyone), and a 60-step wait on the ledge on top of it still wins: the budget is about 1.5 s of hesitation before the lift and 1.5 s after it.
+- **Cheese check:** one jump injected at every step of the fastest line (alone, and with a second 60, 120 or 200 steps later), 5,720 lines: 3,962 wins, none faster. The 6-tile wall cannot be jumped; a fast jump onto the 16-tile blue bridge lands green or yellow and falls.
+- **Safe spots:** every safe floor and the lift. With a sweep no stop is free: standing at the spawn is safe for 194 steps (3.2 s).
+- **Hints:** none (world 1–2 skills only; the front and the lift are the cues).
+
+**Fastest known:** 1430 steps (`1R+ 1R 1R+ 1R 1R+ 102R 1R- 1R 1R- 1R 1R- 351R 1R+ 174R 1R- 689R 1R+ 1R 1R+ 1R 1R+ 97R`: the last presses on the last blue tile, using colour grace; the lift fixes everything before it).
+
+**Solution:** 1,454 steps (24.2 s). `tests/levels` passes, including ±3 on every transition.
+
 ## w4-05 Commute
 
 **Teaches:** nothing new (COMBINE, long; `levels-w4.md` "w4-05" v4.1, level plan v4.1 "Long levels"): lift, shuttle and colored slab, with runway, drag and the red wall, as one journey. No hints, no sweep, no bolts, no Tandem.
@@ -643,6 +665,30 @@ One screen (30 × 13), w1-05's grammar with a bolt instead of a wall: safe runwa
 **Checks (w5-01..w5-03, at build time):** `npx vitest run tests/levels`: all 406 tests passed once all three levels were in (that run included the other sitting's w4 files). A later full run had 3 failures, all 30-second robustness timeouts on other sittings' long levels (w2-05 41 s, w4-05 38 s, w5-05 47 s) while sweeps were loading the machine. `-t "w5-0[123]"` on its own: 42 passed. `npx vitest run scripts/levels-table.test.ts`: fails only on the missing `LEVELS` rows (w5-01..03, plus w4-05 from the other sitting).
 
 `LEVELS` rows needed (backend): see the report; version 1 each.
+
+## w5-04 Chase
+
+**Combines:** the sweep with colored rain: outrun the front, but never in the color of the lane you are crossing (`levels-w5.md` "w5-04").
+
+92 × 13, scrolls; floor row 9. `sweep: x0=-4 speed=4 delay=90` (7.5 tiles/s, between green and yellow; spawn col 2). Eight dense lanes, `emitter: <c> 3 dir=d range=6 speed=2 period=32 band=<R|Y>`, each under a safe block at row 2 and full height down to the floor.
+
+1. **Open:** safe runway (cols 0–21), red lane at col 13 (cross it yellow), yellow lane at col 20 (cross it red) → red bridge (22–29).
+2. **Gauntlet:** safe floor (30–45) with yellow, red, yellow, red lanes at cols 38, 40, 42, 44: neither fast color gets through. Brake to green before it → green bridge (46–55).
+3. **Squeeze:** safe pad (56–58) → 4-tile blue bridge (59–62) under a 2-row safe roof (rows 5–6, 2 tiles of headroom; a 1-row roof's top would be jump height). Walking it blue, the front closes 4.5 tiles a second.
+4. **Shed:** safe runway (63–77): red for the yellow lane at col 69, back to yellow for the red lane at col 76 → yellow bridge (78–86) → exit pad.
+
+- **Spawn at col 2, not 6:** lanes start empty (no shot before step 0) and are full at body height from step 60. With the spawn at col 6, a red sprint from the first step reached the col-13 lane before it filled and won (693). From col 2 it is hit on step 68.
+- **Fair line (the recording):** two presses up at the start (yellow; any time in steps 1–81); one press up at x 13.5–20.5, **40 steps**; two presses down at x 27.9–34.1, **42**; one press down at x 54.5–57.9, **43**; three presses up at x 61.5–69.1, **84**; one press down at x 69.5–74.2, **30**.
+- **Closest gap:** **7.9 tiles = 63 steps (1.05 s)**, on the runway just after the blue bridge (step 582, x 65.4, front 57.5). Standing still inserted into the fair line still wins for up to 62 steps at the spawn, 85 on the floor before the gauntlet, 70 on the pad, 62 after the blue bridge, 91 before the last lane.
+- **Each lane's wrong gear dies (`hit`):** red from the spawn, hit at col 13 (step 68); staying yellow, col 20 (127); one press down (yellow) at the gauntlet, col 38 (221); staying red, col 40 (221); two presses after the blue bridge (yellow), col 69 (606); no last press down (red), col 76 (637). Without lanes, the red sprint and the yellow line at col 69 win (713, 738); the others die later on a bridge of another color.
+- **Removal (sweep):** the fair line with 300-step stops at the spawn and on both pads wins without the sweep (1,586) and is caught on step 142 with it.
+- **Cheese check:** one jump injected at every step of the fastest line (alone, and with a second 60, 120 or 200 steps later), 2,788 lines: 804 wins, none faster. Lanes are full height, so a jump never clears one.
+- **Safe spots:** the runway, the gauntlet floor, the pads. With a sweep no stop is free: standing at the spawn is safe for 142 steps (2.4 s).
+- **Hints:** none.
+
+**Fastest known:** 697 steps (`1R+ 1R 1R+ 80R 1R+ 104R 1R- 1R 1R- 232R 1R- 117R 1R+ 1R 1R+ 1R 1R+ 62R 1R- 88R`; coordinate descent on the press steps).
+
+**Solution:** 731 steps (12.2 s). `tests/levels` passes, including ±3 on every transition.
 
 ## w5-05 Full Spectrum
 
