@@ -12,7 +12,7 @@ One rule for the whole world: "colored things only exist for their color". A red
 
 - **Pace is the puzzle:** a colored bolt is dodged by **being another color** when it reaches you (ramp later, brake earlier, cross before you turn red) or by being elsewhere. A white bolt turns "stop on safe tiles", the safest habit, into a choice. Grey bolts are the genre's jump-dodge, kept few and slow.
 - **Readable:** w5-01's first bolt falls through the walking runner within 2 s; no text.
-- **Fair:** positions are a pure function of the run clock; the lane is empty at the start of every run; every emitter glows before it fires; every crossing meets the ±3-step robustness test.
+- **Fair:** positions are a pure function of the run clock, so every attempt starts with the same lane; nothing is in flight at the start except a phase-0 emitter's first bolt at its muzzle; a fresh (white, standing) runner can never be hit where it appears, because grey and white lanes stay off spawn and respawn boxes (Edge cases); every later shot is told by the emitter's glow; every crossing meets the ±3-step robustness test.
 
 ## Definition (level file, tech-lead's syntax)
 
@@ -32,7 +32,7 @@ A change to an `emitter:` line bumps `version`.
 
 ## Shots
 
-- A shot leaves on every run step s ≥ 0 with (s + phase) mod period = 0, centred on the emitter cell's centre, and moves `speed`/32 tiles per step along `dir`. It is alive while 0 ≤ t − s < range × 32 / speed. **The lane is empty at t 0** and the clock is 0 again on every respawn, so every attempt starts with the same empty lane (tech-lead's rule; design accepts it over a pre-filled stream).
+- A shot leaves on every run step s ≥ 0 with (s + phase) mod period = 0, centred on the emitter cell's centre, and moves `speed`/32 tiles per step along `dir`. It is alive while 0 ≤ t − s < range × 32 / speed. **No shot exists from before step 0** (no pre-filled stream): at t 0 the only live shots are those of `phase` 0 emitters, which leave at s 0 and sit at the muzzle (distance 0). The kinetic clock is 0 again on every spawn respawn and R (and is the post's `clock=` after a post respawn, `checkpoints.md`), so every attempt starts with the same lane. *(BUG-9 ruling, 2026-11-24: this is the code as built and is intended; the earlier "the lane is empty at t 0" wording meant "no pre-filled stream" and is withdrawn. A step-0 shot has no tell before it; that is accepted because the spawn and respawn rules below keep it away from anything a fresh runner can be hit by.)*
 - The shot box is a square of side `projectileSizeTiles` (0.5).
 - Shots ignore tiles, slabs, exits, other shots and bodies they do not hit.
 
@@ -44,8 +44,10 @@ Order: home, won (exit wins), then death by fall or hit; one `died` event with `
 
 - **Airborne:** same test. Air keeps your band, so mid-flight the only color changes are a drag drop or a wall stop; both are legal dodges.
 - **White and walls:** a body held against a wall is band 0 (or flickers 0/1 against a colored wall, GDD §4.11), so white bolts hit it. Level rule: no white lane where the intended line wall-stops.
-- **Spawns:** no emitter fires into a spawn box in the first 60 steps (tech-lead's rule). Beyond that, grey and white lanes never cross a spawn box; colored lanes may (w5-01 teaches with one).
+- **Spawns:** no emitter fires into a spawn box in the first 60 steps (tech-lead's rule; this includes a step-0 shot). Beyond that, grey and white lanes never cross a spawn box; colored lanes may (w5-01 teaches with one). A fresh runner is white and standing (band 0), so a colored bolt cannot hit it anyway.
+- **Post respawns:** the respawn box is clear of every grey and white lane (`checkpoints.md` placement rule, checked by `tests/levels`), so the lane state at the post's `clock=` (step-0 muzzle shots for `clock=0`, a stream mid-flight otherwise) can never hit the respawned, standing runner. **No empty-lane grace after a clock reset** (BUG-9): fairness at a spawn or post comes from where lanes may run, not from a quiet period, and a grace would make the first seconds of every attempt differ from the steady pattern the player is learning.
 - **Restart and respawn:** the clock rewinds, so the pattern after R or a death is the first-attempt pattern.
+- **Tell before the first shot:** a shot at s ≥ 18 always has a full 18-step glow; a shot with 0 < s < 18 has a shortened glow (from step 0); a step-0 shot has none. Level rule (added with BUG-9; QA found no shipped level affected): no crossing that needs a dodge depends on reading the tell of a shot that leaves before step 18.
 - **No reflection, gravity, homing, aiming or randomness.**
 
 ## Level rules (fairness)
@@ -79,12 +81,12 @@ Conventions as `movement-and-gears.md`. "Room B": a long safe floor; `emitter: 2
 2. **Colored passes through.** `band=R`: the shot overlaps the standing body on steps 76–84 and never hits it.
 3. **White hits only standing.** `band=W`: the standing body is hit on step 76; a body walking left at gear 1 through the lane is never hit.
 4. **Range.** Grey, a body standing at x 7.0: never hit (the shot's last live box, at t 95, starts at x 8.375).
-5. **Empty start.** At t 0 no shot is alive; with `phase` 100 the first shot leaves at t 200.
+5. **Start of the run (BUG-9 wording).** With `phase` 0, at t 0 exactly one shot of that emitter is alive, `firedAt` 0, at the emitter cell's centre (distance 0), and no shot with `firedAt` < 0 ever exists. With `phase` 100 no shot is alive before t 200, and the first shot leaves at t 200.
 6. **Jump over a grey shot.** Grey, the body at x 10.5 jumps straight up: J on any step 41–73 is never hit (33 steps); J on step 40 is hit on step 84 (flight step 45); J on step 74 is hit on step 76 (flight step 3).
 7. **Band at the start of the step.** A body ramping through yellow under a `band=Y` lane is hit only on a step whose start band is 3.
 8. **Exit wins** over a hit on the same step.
 9. **Home body is never hit.** With a twin: no death for a home body in a grey lane.
-10. **Respawn rewinds.** After a death, the lane on the respawn step is empty again (as at t 0).
+10. **Respawn rewinds.** After a death with no lit post (or R), the shot set on the respawn step equals the shot set at t 0 (check 5: phase-0 shots at the muzzle, nothing else).
 11. **Determinism and no regression.** Checks 1–10 run twice give identical state; every shipped recording and golden hash is unchanged.
 
 ## Priority

@@ -239,7 +239,7 @@ Full rules and acceptance: `features/moving-objects.md`. A slab loops along a fi
 
 ### 4.17 Bolts (v1.12, Must)
 
-Full rules and acceptance: `features/projectiles.md`. An emitter fires shots in a straight line on a fixed period; shots ignore tiles and vanish at their range; the lane is empty at the start of every run. A colored shot hits only a body of its band, a white shot only a standing body, a grey shot everyone. A hit is a death.
+Full rules and acceptance: `features/projectiles.md`. An emitter fires shots in a straight line on a fixed period; shots ignore tiles and vanish at their range; every run starts with the same lane (no stream from before step 0; a phase-0 emitter's first shot is at its muzzle on step 0, BUG-9 ruling 2026-11-24). A colored shot hits only a body of its band, a white shot only a standing body, a grey shot everyone. A hit is a death.
 
 ### 4.18 The sweep (v1.12, Should)
 
