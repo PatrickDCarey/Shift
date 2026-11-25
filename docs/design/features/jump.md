@@ -20,7 +20,7 @@ Jump launches the player straight up at a fixed speed so the feet peak exactly `
 - **Standing jump** (nothing held): straight up and down, lands where it started.
 - **J and an arrow on the same step from standing:** the ground update runs first, so takeoff is at walking pace (3). The launch step averages 0 and 3, so this jump lands 2.375 tiles out, 0.025 short of a jump from a walking cruise (2.4).
 - **Walking off a ledge** (no jump): gravity starts on the step after the walk-off step (leaving the ground is detected after gravity in the step order), so a walk-off flies one step longer than the fall alone. Coyote time is unaffected.
-- **Ceiling bonk:** `vy` ← 0 on contact, horizontal speed and gear unchanged. A colored ceiling only bonks when it matches.
+- **Ceiling bonk:** `vy` ← 0 on contact, horizontal speed and gear unchanged. A coloured ceiling only bonks when it matches.
 - **Jumping into a ledge face:** wall stop (`vx` 0) and the air rule drops the gear to 1. Jump earlier: feet reach 1 tile on step 5 and 2 tiles on step 10 of the rise.
 - **Ledges:** 2 tiles is the highest climbable. 3-tile ledges are forbidden in levels.
 - **Jump during grace:** allowed; you are grounded.

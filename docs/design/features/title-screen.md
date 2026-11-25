@@ -12,7 +12,7 @@ The first screen the player sees shows the name **REDSHIFT** and three items: **
 ## Layout (480×270)
 
 - **Name:** `REDSHIFT` centred, at 4× scale, top edge near y 40. The art-director may replace it with a logo of the same footprint (at most 240 × 40 px).
-- **Band strip** (Should): the five HUD band glyphs (white to red, with patterns) in a row under the name. It hints at the color rule before play starts.
+- **Band strip** (Should): the five HUD band glyphs (white to red, with patterns) in a row under the name. It hints at the colour rule before play starts.
 - **Items:** centred, at 2×, 20 px apart, starting near y 140.
 - **Under PLAY** (Should): one muted 1× line naming the PLAY target, for example `1-3 RUNWAY`. The line is hidden when `playTarget` is `null`.
 - **Footer:**

@@ -12,18 +12,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-from PIL import Image
 
-CAPTION_SCALE = 2
 ROOT = Path(__file__).resolve().parents[4]
 TR = ROOT / "release" / "trailer"
 CLIPS = TR / "clips"
 OV = TR / "overlays"
-OUT = TR / "cut"
 FPS = 60
 
 # (clip, first frame, last frame exclusive, label)
-EDL = [
+EDL_V1 = [
     ("shot-01-w1-01-fall-through", 61, 232, "rule"),
     ("shot-02-w1-03-runway", 236, 385, "sprint"),
     ("shot-03-w1-05-red-wall", 100, 241, "redwall"),
@@ -40,6 +37,28 @@ EDL = [
     ("shot-09b-w5-05-lift", 60, 170, "finale2"),
     ("shot-09c-w5-05-walk-home", 120, 215, "home"),
 ]
+# v2, a teaser rather than a guide (owner, 2026-11-25): only the two rule captions; glimpses, fails
+# and action instead of solved rooms; no shot shows a level's whole answer; no finale exit.
+EDL_V2 = [
+    ("shot-01-w1-01-fall-through", 61, 232, "rule"),
+    ("shot-02-w1-03-runway", 236, 385, "sprint"),
+    ("shot-03-w1-05-red-wall", 118, 178, "redwall"),       # yellow through the red wall; cut before the shift
+    ("shot-04-w2-02-coast", 160, 232, "coast"),            # takeoff and the colour change in the air; no landing
+    ("shot-05-w3-03-gear-split", 176, 246, "tandem"),
+    ("shot-06a-w4-03-slab-fail", 112, 205, "slabfail"),    # the platform drops a runner (a fail, not the crossing)
+    ("shot-07a-w5-01-bolt", 104, 176, "bolt"),
+    ("shot-07b-w5-03-hurdle", 24, 96, "hurdle"),
+    ("shot-08-w2-05-checkpoint", 100, 160, "post"),
+    ("shot-08-w2-05-checkpoint", 280, 372, "respawn"),
+    ("shot-09a-w5-05-red-coast", 78, 150, "glimpse1"),
+    ("shot-09b-w5-05-lift", 100, 170, "glimpse2"),
+    ("shot-10-w4-04-outrun-sweep", 20, 140, "sweep"),
+]
+EDLS = {"v1": EDL_V1, "v2": EDL_V2}
+FEATURE_CAPTIONS = {"v1": True, "v2": False}
+VERSION = next((a for a in sys.argv[1:] if a in EDLS), "v2")
+EDL = EDLS[VERSION]
+OUT = TR / "cut" / VERSION
 END_ANIM_S = 3.0   # end-card.mp4
 END_HOLD_S = 1.5   # its last frame held
 # Shift presses in shot 2 (w1-03 recording: steps 170, 172, 174; the clip has 90 idle frames in front).
@@ -102,8 +121,8 @@ def overlays(segs, end_t):
     by = {s["label"]: s for s in segs}
     out = []
     rule = by["rule"]
-    out.append(("caption-your-speed-is-your-color.png", rule["t"] + 0.25, rule["t"] + 1.85))
-    out.append(("caption-only-your-color-is-solid.png", rule["t"] + 2.0, rule["t"] + rule["dur"]))
+    out.append(("caption-your-speed-is-your-colour.png", rule["t"] + 0.25, rule["t"] + 1.85))
+    out.append(("caption-only-your-colour-is-solid.png", rule["t"] + 2.0, rule["t"] + rule["dur"]))
     sp = by["sprint"]
     f0 = sp["in"]
     def tt(frame):
@@ -114,10 +133,11 @@ def overlays(segs, end_t):
         out.append(("key-shift-pressed.png", tt(a), tt(b)))
         nxt = pressed[i + 1][0] if i + 1 < len(pressed) else 300
         out.append(("key-shift-up.png", tt(b), tt(nxt)))
-    out.append(("caption-platforms-move.png", by["slabfail"]["t"] + 0.1, by["slabfail"]["t"] + 1.6))
-    out.append(("caption-bolts-hit-their-own-color.png", by["bolt"]["t"] + 0.1, by["bolt"]["t"] + 1.65))
-    post = by["post"]
-    out.append(("caption-checkpoints.png", post["t"] + 0.5, post["t"] + post["dur"] + 0.6))
+    if FEATURE_CAPTIONS[VERSION]:
+        out.append(("caption-platforms-move.png", by["slabfail"]["t"] + 0.1, by["slabfail"]["t"] + 1.6))
+        out.append(("caption-bolts-hit-their-own-colour.png", by["bolt"]["t"] + 0.1, by["bolt"]["t"] + 1.65))
+        post = by["post"]
+        out.append(("caption-checkpoints.png", post["t"] + 0.5, post["t"] + post["dur"] + 0.6))
     return out
 
 
@@ -139,15 +159,7 @@ def build(segs, ovs, end_t, total, dest):
     fc.append("".join(f"[v{i}]" for i in range(len(segs))) + f"[vend]concat=n={len(segs) + 1}:v=1:a=0[base]")
     last = "base"
     for n, (png, a, b) in enumerate(ovs):
-        src, pos = f"[{png_idx[png]}:v]", "0:0"
-        if png.startswith("caption-"):
-            # Caption plates are drawn at 1x near the bottom edge: crop the plate and show it at 2x
-            # (nearest neighbour, so the pixel font stays sharp), centred in the lower third.
-            x0, y0, x1, y1 = Image.open(OV / png).getbbox()
-            w, h = x1 - x0, y1 - y0
-            fc.append(f"{src}crop={w}:{h}:{x0}:{y0},scale={w * CAPTION_SCALE}:{h * CAPTION_SCALE}:flags=neighbor[c{n}]")
-            src = f"[c{n}]"
-            pos = f"{(1920 - w * CAPTION_SCALE) // 2}:{1080 - h * CAPTION_SCALE - 72}"
+        src, pos = f"[{png_idx[png]}:v]", "0:0"  # overlays are full-frame PNGs, drawn at final size
         fc.append(f"[{last}]{src}overlay={pos}:enable='between(t,{a:.4f},{b:.4f})'[o{n}]")
         last = f"o{n}"
     cmd += ["-filter_complex", ";".join(fc), "-map", f"[{last}]", "-t", f"{total:.3f}",

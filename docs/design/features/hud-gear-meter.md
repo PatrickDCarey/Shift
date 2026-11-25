@@ -4,15 +4,15 @@ _Owner: design-lead. Milestone: **M1** (pulled forward from M2-08 by M1-29, 2026
 
 ## Rule
 
-An always-visible strip of five cells, **white · 1 blue · 2 green · 3 yellow · 4 red**, shows three things at once: the **lit cell is your color** (the colored tiles you can stand on right now), a **bracket marks the selected gear** (where holding an arrow will take you), and a **speed needle** slides between them as you ramp or brake. A first-time player reads "I am gear 1 of 4, red is gear 4, I am getting there" without text.
+An always-visible strip of five cells, **white · 1 blue · 2 green · 3 yellow · 4 red**, shows three things at once: the **lit cell is your colour** (the coloured tiles you can stand on right now), a **bracket marks the selected gear** (where holding an arrow will take you), and a **speed needle** slides between them as you ramp or brake. A first-time player reads "I am gear 1 of 4, red is gear 4, I am getting there" without text.
 
 ## Layout (fixed for M1; numbers are UI, not tuning)
 
 - Top-left of the 960×540 view, on a `palette.ui.panel` backing, at most 220 × 64 px. Never covers the play area's first row of tiles more than the level title already does.
-- Five square cells in a row, each ≥ 24 px, drawn with `drawGearGlyph(g, band, x, y, size)` (color **and** pattern). Cell 0 is the white/safe glyph with no digit; cells 1–4 carry the digit 1–4 beneath them.
+- Five square cells in a row, each ≥ 24 px, drawn with `drawGearGlyph(g, band, x, y, size)` (colour **and** pattern). Cell 0 is the white/safe glyph with no digit; cells 1–4 carry the digit 1–4 beneath them.
 - **Lit cell** (= `band`): full brightness and fill. Other cells: dim (ghost treatment), pattern still visible.
 - **Selected-gear bracket** (= `gear`): a bold frame around cell `gear` (and its digit drawn bright). Shape-based, so it reads in greyscale.
-- **Speed needle**: a small tick under the row. Position is linear in speed: `needle = clamp(|vx| / 3, 0, 4)` cell widths from the center of cell 0. Because gear speeds are 0/3/6/9/12 and band edges are 1.5/4.5/7.5/10.5, each cruise speed sits at a cell center and each band edge on a cell boundary. Compute the divisor from tuning (`gearSpeeds[1]`), do not hard-code 3.
+- **Speed needle**: a small tick under the row. Position is linear in speed: `needle = clamp(|vx| / 3, 0, 4)` cell widths from the centre of cell 0. Because gear speeds are 0/3/6/9/12 and band edges are 1.5/4.5/7.5/10.5, each cruise speed sits at a cell centre and each band edge on a cell boundary. Compute the divisor from tuning (`gearSpeeds[1]`), do not hard-code 3.
 - **Drag meter** (air only): a thin bar under the needle row that fills `min(airDistance / airDragTilesPerGear, 1)`.
 - **Pending shift** (air only): a hollow/dashed bracket on cell `clamp(gear + shiftBufferNet, minGear, 4)` while `shiftBufferSteps > 0` and `shiftBufferNet ≠ 0`.
 - **Key hints (Should):** small key-cap glyphs left and right of the strip: `Q` / `⇧` (down) on the left, `E` / `⇧` (up) on the right. Static.
@@ -28,7 +28,7 @@ A plain object read every rendered frame from the latest sim state; the HUD keep
 - **Ramping, braking, skidding:** needle moves with `|vx|` (a skid goes down to white's side then back up). Lit cell changes on exactly the step `band` changes; no smoothing or tweening of the lit cell or bracket. The needle may ease visually by at most 1 frame; never ahead of the sim.
 - **Let go:** bracket stays where it was (gear is remembered at rest; this is how players learn it).
 - **Pushing a wall:** speed 0, lit white, bracket unchanged.
-- **Air, gear follows color down:** the sim lowers `gear` in flight; the bracket moves with it on that step. Do not show the pre-flight gear.
+- **Air, gear follows colour down:** the sim lowers `gear` in flight; the bracket moves with it on that step. Do not show the pre-flight gear.
 - **Drag drop:** needle snaps down one cell on the drop step and the newly lit cell pulses once (brightness, not just hue). Reduced motion: no pulse, snap only.
 - **Drag meter visibility:** shown only while airborne **and** `band > airDragMinBand`. Hidden at blue and white even though `airDistance` keeps growing (GDD §4.9). After a drop it restarts from the carried-over remainder (`airDistance` already holds it). Hidden on the landing step.
 - **Shift buffer:** pending bracket appears on the press, moves with further presses (net), disappears when the 6-step window expires or on landing (then the solid bracket shows the applied gear). Clamp at 1 and 4: a press that can't change the gear shows no pending bracket. This is the in-air shift hint the playtest asked for.
@@ -56,7 +56,7 @@ Unit (pure `hudModel`), using sim states from the M1 specs:
 10. `needle` divisor comes from `gearSpeeds[1]` (test with a doctored tuning).
 
 Visual / manual (qa-tester):
-11. Greyscale screenshot: each cell is identifiable by pattern; lit vs dim and the bracket are visible without color.
+11. Greyscale screenshot: each cell is identifiable by pattern; lit vs dim and the bracket are visible without colour.
 12. Lit-cell glyphs and the bracket have ≥ 3:1 contrast against `palette.ui.panel`.
 13. In w0-02, a fresh player can say the target gear for red before reaching the red bridge (next playtest question).
 
@@ -65,7 +65,7 @@ Visual / manual (qa-tester):
 These come from `clarity-fixes.md`, which has the full checks. Where they differ from the sections above, they win.
 - **Bracket arrival (PT-5, Must):** the selected-gear bracket is thin (1 px, `ui.textMuted`) while its cell is not the lit cell, and bold on the step the lit cell reaches it. Unlit cells use the ghost treatment, so the lit cell is the only filled cell.
 - **Drag bar (PT-4, Should):** it runs from the needle toward the centre of cell `litBand − 1`, filled by `min(airDistance / airDragTilesPerGear, 1)`, and ends in a 3 × 5 px chevron. There is no word label. If it is not built for the pixel HUD by M2-29, hide it.
-- **Cue ring (PT-3):** when the scene reports a fall-through or a colored wall stop with band `b`, cell `b` gets a 1 px `ui.text` ring for 45 frames plus one brightness pulse. Reduced motion: ring only. Respawn clears it.
+- **Cue ring (PT-3):** when the scene reports a fall-through or a coloured wall stop with band `b`, cell `b` gets a 1 px `ui.text` ring for 45 frames plus one brightness pulse. Reduced motion: ring only. Respawn clears it.
 
 ## Amendment PT-6: pace track (2026-11-25, batch 12b triage, Should)
 
@@ -96,4 +96,4 @@ These come from `clarity-fixes.md`, which has the full checks. Where they differ
 
 - **Must (M1):** five cells with patterns, lit band, selected-gear bracket, speed needle, reset on death.
 - **Should (M1 if it fits by Nov 7, else M2):** drag meter, pending-shift bracket, drop pulse, key-cap hints.
-- **Could:** runway hint (distance still needed to reach the bracket's color). Not now: it would solve the puzzle for the player (pillar 1).
+- **Could:** runway hint (distance still needed to reach the bracket's colour). Not now: it would solve the puzzle for the player (pillar 1).

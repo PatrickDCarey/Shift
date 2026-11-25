@@ -6,7 +6,7 @@ _Owner: art-director. One page for later work (rendering, effects, itch.io art).
 
 Chunky pixel art on a near-black field: 16 px tiles, 12 x 24 px bodies, 1 px outlines, ordered (Bayer) dither for glow and fades, a 5 x 7 bitmap font. Everything sits on the 480 x 270 grid, so no half pixels. The world's hue comes from the player's pace; the tiles stay true to the palette. Think a late-night arcade cabinet, not a CRT filter (no scanlines: they would eat ghost contrast).
 
-## The spectrum tint (pace is color)
+## The spectrum tint (pace is colour)
 
 The whole world's tint slides along the spectrum with the player's **actual** speed. It is a continuous cue; gameplay still uses the discrete bands.
 
@@ -40,7 +40,7 @@ Keys are exported as `PIXEL_KEYS` from `src/fx`. Import the files with Vite (`im
 | `buildPixelTextures(scene)` | none; load the six files | `buildPixelAssets()` is the build-time packer only |
 | `playerTextureKey(band, body)` | `playerFrameName(body, band, frame)` on atlas `pixel-player` | body is `'runner'` or `'twin'`; band is a `BandColor`; frame is `<anim>_<n>`. Result: `player/<body>/<band>/<anim>_<n>`. `BAND_COLOR_LIST`, `PLAYER_ANIMS`, `PLAYER_FRAMES` list everything |
 | `tileFrame(kind, band, mode, top)` | `tileFrameNames().safe(mask, depth)`, `.solid(band, mask)`, `.ghost(band)` on atlas `pixel-tiles` | mask bit 0 up, 1 right, 2 down, 3 left = that neighbour is the same kind (an edge is outlined only when it is absent); safe `depth` 0 to 4 = safe tiles above, capped. The "top and inner variants" of the ADR are the masks |
-| tileset index for Tilemap layers | `tilesetIndex.safe(mask, depth)`, `.solid(band, mask)`, `.ghost(band)`, `.exit(frame)` | band is a colored band (blue, green, yellow, red); empty cell is `-1`; swap `solid(band, mask)` for `ghost(band)` when the held band changes. `neighbourMask({up, right, down, left})` builds the mask |
+| tileset index for Tilemap layers | `tilesetIndex.safe(mask, depth)`, `.solid(band, mask)`, `.ghost(band)`, `.exit(frame)` | band is a coloured band (blue, green, yellow, red); empty cell is `-1`; swap `solid(band, mask)` for `ghost(band)` when the held band changes. `neighbourMask({up, right, down, left})` builds the mask |
 | frames `stand`, `run-0..3`, `jump`, `fall`, `twin-*`, `exit` | `idle_0..1`, `run_0..5`, `sprint_0..5`, `jump_0..1`, `fall_0..1`, `land_0..1`, `skid_0..1`, `death_0..3`, `park_0`, `shift_0..1`; body `twin` instead of the `twin-` prefix; exit is `tile/exit/door_0..3` and `tile/exit/glow_0..3` in `pixel-tiles` | animation names, frame counts and suggested fps are in `PLAYER_ANIMS` and in the atlas JSON under `redshift.anims` |
 | 18 x 26 cell | 20 x 28 cell | see below |
 
@@ -101,8 +101,8 @@ Every body carries a 1 px near-black keyline so it separates from a same-coloure
 ## Tiles
 
 - **Safe** (always solid): grey `#5F6987`, a lit two-row top lip, dithered darker with depth (5 levels), rivets, light outline on exposed edges. The only plain tile.
-- **Solid colored**: fill, lit flat top edge (two light rows plus a shade row: this is the "ledge" cue), the band's pattern in dark ink, shade underside, light outline on exposed edges. `m<mask>` says which neighbours are the same kind (bit 0 up, 1 right, 2 down, 3 left); an edge is outlined only when that neighbour is absent. Safe `d<depth>` is the number of safe tiles above it, capped at 4.
-- **Ghost colored**: no fill (a faint dithered wash through transparency), only the rim of the pattern marks in the ghost color, a 1 px outline dashed 3 on, 2 off with solid corners. No lit edge, no shade, no glow.
+- **Solid coloured**: fill, lit flat top edge (two light rows plus a shade row: this is the "ledge" cue), the band's pattern in dark ink, shade underside, light outline on exposed edges. `m<mask>` says which neighbours are the same kind (bit 0 up, 1 right, 2 down, 3 left); an edge is outlined only when that neighbour is absent. Safe `d<depth>` is the number of safe tiles above it, capped at 4.
+- **Ghost coloured**: no fill (a faint dithered wash through transparency), only the rim of the pattern marks in the ghost colour, a 1 px outline dashed 3 on, 2 off with solid corners. No lit edge, no shade, no glow.
 - **Exit**: white frame (pure `#FFFFFF`, used by nothing else), dark doorway, a four-point sparkle that pulses over `door_0` to `door_3`; `glow_n` is a 32 x 32 dither halo centred on the door tile at alpha about 0.47, kept within 8 px above and below the tile so it never reaches the ghost tiles above. Reduced motion: hold `door_0`, no pulse.
 - **Mechanics (mud, ice, boost, gates, conveyors):** not built. They wait for design-lead; the 2026-11-03 sketches in `style-frames/mechanics-strip.png` are neon-direction sketches, to be redrawn at 16 px when the list is final.
 
@@ -117,7 +117,7 @@ White masks that the scene tints at runtime with `sceneryColors(speed, topSpeed)
 
 ## Effects (pixel versions; render-only, never feed the sim)
 
-- **Afterimages:** three dithered copies of the body (50%, 25%, 12% density) at 10 px steps, each in an earlier band's color (at red: red, orange, yellow). Reduced motion removes them.
+- **Afterimages:** three dithered copies of the body (50%, 25%, 12% density) at 10 px steps, each in an earlier band's colour (at red: red, orange, yellow). Reduced motion removes them.
 - **Speed lines:** 1 px lines in the tint (lightened), dithered out along their length; more and longer with speed. Baked: `fx/speed/<12|20|32>_<a|b>` (W x 1, always lit at the right end, density 100% at the head falling to 15% at the tail, origin (1, 0), `flipX` when moving left; the `a` and `b` phases use different Bayer rows so neighbouring lines share no holes). Show at red (gear 4) only, the longer lines at higher ground speed. Tint: the current band's `solid.outline`.
 - **Dust:** 1 to 2 px specks at the feet. Baked: `fx/dust/land_0..3` (24 x 8, origin (0.5, 1) at the feet, 4 frames at 20 fps, play once on the sim's land event; 2 px specks fly out and up in frames 0 and 1, 1 px specks and thinning dither in 2 and 3). Tint `ui.textMuted`.
 - **Ring burst** on a band change: `fx/ring/0..3` (48 x 48, origin (0.5, 0.5) on the body, 4 steps at 25 fps, play once; a 2 px dithered ring at radius 8, 13, 18, 22 and lit density 100%, 75%, 50%, 30%). Tint: the new band's `solid.outline`. It covers under 15% of its frame, so it is never a flash.
@@ -128,7 +128,7 @@ White masks that the scene tints at runtime with `sceneryColors(speed, topSpeed)
 
 ## HUD
 
-The 220 x 64 (110 x 32 art pixels) gear meter and the timer use the bitmap font (system fonts antialias and then get scaled). The frames in `style-frames/pixel-*.png` show the intended look: a dark `ui.panel` with a 1 px border tinted by the pace, the lit cell filled with its pattern, a bracket on the selected gear, digits 1 to 4 below, a needle. The HUD itself belongs to the ui lane; this doc only fixes the colors and the patterns (`PIXEL_CELLS.hud` is 12 x 8). Text sits on a panel, never directly on art.
+The 220 x 64 (110 x 32 art pixels) gear meter and the timer use the bitmap font (system fonts antialias and then get scaled). The frames in `style-frames/pixel-*.png` show the intended look: a dark `ui.panel` with a 1 px border tinted by the pace, the lit cell filled with its pattern, a bracket on the selected gear, digits 1 to 4 below, a needle. The HUD itself belongs to the ui lane; this doc only fixes the colours and the patterns (`PIXEL_CELLS.hud` is 12 x 8). Text sits on a panel, never directly on art.
 
 ## itch.io art (later)
 

@@ -9,7 +9,7 @@
 # Exits: the runner's at col 22, the twin's at col 25 (3 tiles further), so the runner parks first and the
 #   twin walks on alone. Nothing needs doing then: keep holding right.
 # Hold right in gear 1 (blue) across the blue bridges; shift up once on P2 (green 0.6 tiles later) and walk
-#   the green bridges. Both bodies always share x, gear and color here, so whatever one does the other does.
+#   the green bridges. Both bodies always share x, gear and colour here, so whatever one does the other does.
 # Hints (runner lane only): move at col 1, row 3 (over P1) and shiftUp at col 10, row 3 (over P2). Boxes
 #   cols 0-2 and 9-11, rows 2-3, empty sky; the floor under both is row 6. Render-only.
 hint: move 1 3

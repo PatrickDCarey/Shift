@@ -1,7 +1,7 @@
 # World 5, level 5 (long finale). Combine: red, yellow, white and grey bolts, a grey lift and a green slab,
 # with runway, drag, step-down and brake. No new idea, no hints, no sweep, no Tandem.
 # Target first-time solve: 3-5 min (clean run 62.3 s). 345 x 15, scrolls; 12 rooms, 3 posts.
-# Rows 0-3 hold no colored tile, exit, lane or slab path (the HUD rows).
+# Rows 0-3 hold no coloured tile, exit, lane or slab path (the HUD rows).
 # Section 1 (spawn, row 10 -> row 12):
 #   1 Rain (cols 0-27): safe runway, a dense red rain lane at col 17, 4 safe tiles, a red bridge (22-27)
 #     under a roof. Cross the lane yellow, press up after it (w5-01).

@@ -1,8 +1,10 @@
 # itch.io page copy
 
-_Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6, 14 levels). Every claim was checked in the repo on that date; the checklist at the bottom lists what to re-check at submit. **Re-checked 2026-11-20 (B7-17)** against the batch 7 build: the settings screen, the wired sound effects, the restart card and the page art (`docs/art/itch/`) are now in the copy, §5 and §7. Spelling: **American ("color")**. The game's on-screen text never uses the word, so this follows the GDD and the code, which both say "color"._
+_Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6, 14 levels). Every claim was checked in the repo on that date; the checklist at the bottom lists what to re-check at submit. **Re-checked 2026-11-20 (B7-17)** against the batch 7 build: the settings screen, the wired sound effects, the restart card and the page art (`docs/art/itch/`) are now in the copy, §5 and §7. Spelling: **British ("colour", "coloured", "grey", "centre", "licence")**, owner's instruction 2026-11-25 (`decisions.md` 2026-11-25 "British spelling"). The only American spellings left are itch.io's own labels, quoted as itch shows them (the **Color-blind friendly** checkbox and the `colorful` tag), and file names._
 
-> NOTE (2026-11-24, B12-A3): **re-counted for the expansion build** (HEAD 31ff26a): 23 levels in 5 worlds, all 23 approved (`decisions.md` 2026-11-24 late). Changed: the count line and world bullets, the "how it plays" paragraph (things that move), the long-level and checkpoint lines, Stuck?, accessibility (slabs, bolts, posts), the average session (§4), the jam form text (§6), the shot list and Delivered table (§5: three new shots wanted) and §7. **(Superseded 2026-11-24, sweep review: w4-04 and w5-04 are approved and counted; the page now says 25 levels, see the note in §3.)** w4-04 Outrun and w5-04 Chase were then in progress and NOT counted: the only mention is the marked "IF SHIPPED" block in §3, which the producer deletes unless both ship. If the build falls back to `rc-batch10` (14 levels), restore this file from git at commit 188c258. Trailer shot list: `docs/design/trailer.md`.
+> NOTE (2026-11-24, B12-A3): **re-counted for the expansion build** (HEAD 31ff26a): 23 levels in 5 worlds, all 23 approved (`decisions.md` 2026-11-24 late). Changed: the count line and world bullets, the "how it plays" paragraph (things that move), the long-level and checkpoint lines, Stuck?, accessibility (slabs, bolts, posts), the average session (§4), the jam form text (§6), the shot list and Delivered table (§5: three new shots wanted) and §7. **(Superseded 2026-11-24, sweep review: w4-04 and w5-04 are approved and counted; the page now says 25 levels, see the note in §3.)** w4-04 Outrun and w5-04 Chase were then in progress and NOT counted: the only mention is the marked "IF SHIPPED" block in §3, which the producer deletes unless both ship. If the build falls back to `rc-batch10` (14 levels), restore this file from git at commit 188c258 and re-apply British spelling. Trailer brief: `docs/design/trailer.md`.
+
+> NOTE (2026-11-25): British spelling pass. Every line of copy, the jam form text and the captions now say "colour". No claim changed.
 
 Paste each section into the itch.io field named in its heading. Lines in `> NOTE` blocks are instructions, not copy: do not paste them.
 
@@ -12,17 +14,17 @@ Paste each section into the itch.io field named in its heading. Lines in `> NOTE
 
 **Title:** Redshift
 
-**Tagline (pick):** Your speed is your color. Only your color is solid.
+**Tagline (pick):** Your speed is your colour. Only your colour is solid.
 
 Alternates:
-- Shift gears. Change color. Watch what holds you up.
+- Shift gears. Change colour. Watch what holds you up.
 - A puzzle-platformer where how fast you run decides what is solid.
 
 ---
 
 ## 2. Short description (itch "Short description or tagline" field, under 160 characters)
 
-A puzzle-platformer where your speed sets your color, and only platforms of your color hold you. Shift gears to cross each room.
+A puzzle-platformer where your speed sets your colour, and only platforms of your colour hold you. Shift gears to cross each room.
 
 ---
 
@@ -30,11 +32,11 @@ A puzzle-platformer where your speed sets your color, and only platforms of your
 
 > NOTE: insert `docs/art/itch/redshift-runway.gif` (480×270, 7.1 s loop, 0.25 MB) as the first thing in the description, above the first line. It shows the whole idea with no text. Leave it at its own size if the editor would blur it when scaled.
 
-**Your pace is your color.** Stand still and you are white. Walk and you are blue. Sprint and you are red. Colored platforms and walls are only solid while your color matches them, so every room is a question of where to speed up, where to slow down, and where to jump.
+**Your pace is your colour.** Stand still and you are white. Walk and you are blue. Sprint and you are red. Coloured platforms and walls are only solid while your colour matches them, so every room is a question of where to speed up, where to slow down, and where to jump.
 
 Speed takes distance to build and distance to lose, and nothing you press in the air changes your speed. Plan the run, then make it.
 
-Later, the rule moves. Lifts and shuttles carry you, but a colored slab only holds you while you are its color. Emitters fire bolts on a fixed beat, and a colored bolt only hits a runner of its color. You dodge by being a different color when it arrives. Everything that moves runs on a clock you can learn, and it plays out the same way on every try.
+Later, the rule moves. Lifts and shuttles carry you, but a coloured slab only holds you while you are its colour. Emitters fire bolts on a fixed beat, and a coloured bolt only hits a runner of its colour. You dodge by being a different colour when it arrives. Everything that moves runs on a clock you can learn, and it plays out the same way on every try.
 
 **Game Off theme, SHIFT:** you change gear with the Shift keys, and in world 3 you shift two runners out of step with each other.
 
@@ -48,11 +50,11 @@ Listen for the music: it follows your pace. A heavy clunk means a long flight ju
 
 **25 levels in 5 worlds: Gears, Flight, Tandem, Motion and Signals.**
 
-- **Gears (5 levels)** teaches the color rule with no text: shifting, building speed, braking, and walls that stop only their own color.
-- **Flight (5)** is about committing at takeoff. Long flights cost you speed, one color every 6 tiles. It ends with **Long Haul**, one long run through everything so far.
+- **Gears (5 levels)** teaches the colour rule with no text: shifting, building speed, braking, and walls that stop only their own colour.
+- **Flight (5)** is about committing at takeoff. Long flights cost you speed, one colour every 6 tiles. It ends with **Long Haul**, one long run through everything so far.
 - **Tandem (5)** gives you a second runner on a second floor. Both obey the same keys. Put them out of step to bring both home. This is the hardest world.
-- **Motion (5)** has lifts, shuttles and moving bridges. A grey slab carries anyone. A colored one only holds you while you match it, so you cross it at its pace. It ends with **Commute**, a long level.
-- **Signals (5)** has bolts. A colored bolt hits only its own color, a white bolt hits only a runner standing still, and a grey bolt hits everyone. It ends with **Full Spectrum**, the long finale.
+- **Motion (5)** has lifts, shuttles and moving bridges. A grey slab carries anyone. A coloured one only holds you while you match it, so you cross it at its pace. It ends with **Commute**, a long level.
+- **Signals (5)** has bolts. A coloured bolt hits only its own colour, a white bolt hits only a runner standing still, and a grey bolt hits everyone. It ends with **Full Spectrum**, the long finale.
 
 The three long levels take about a minute once you know the way and several minutes the first time. Each has checkpoint posts: after you pass one, a death sends you back to it, not to the start. The rest are short rooms of 10 to 40 seconds.
 
@@ -82,10 +84,10 @@ All the keys work at once. Use whichever pair suits your hand: Q/E with WASD, Z/
 
 ### Accessibility
 
-- Color is never the only signal. Each color has its own pattern on you and on the tiles: white plain, blue stripes, green dots, yellow chevrons, red checker. Tiles you cannot stand on right now are drawn hollow with a dashed outline.
-- In Tandem, the second runner has a different shape, not just a different color.
-- Moving slabs and bolts carry their color's pattern too. Grey bolts, which hit everyone, have their own shape. Every slab's track is always drawn, and an emitter shows a warning frame before it fires.
-- Checkpoint posts change shape when you pass them, not just color.
+- Colour is never the only signal. Each colour has its own pattern on you and on the tiles: white plain, blue stripes, green dots, yellow chevrons, red checker. Tiles you cannot stand on right now are drawn hollow with a dashed outline.
+- In Tandem, the second runner has a different shape, not just a different colour.
+- Moving slabs and bolts carry their colour's pattern too. Grey bolts, which hit everyone, have their own shape. Every slab's track is always drawn, and an emitter shows a warning frame before it fires.
+- Checkpoint posts change shape when you pass them, not just colour.
 - No screen shake. Flashes are capped at 3 per second.
 - **Settings** (from the title or the pause menu):
   - **Reduced motion** turns off flashes, screen wipes, parallax and pulsing. It starts on if your system is set to reduce motion.
@@ -114,7 +116,7 @@ Made for GitHub Game Off 2026.
 
 > NOTE: team names go here, matching `CREDITS.md` (still a placeholder on 2026-11-18).
 
-Code is MIT licensed. Third-party libraries and assets are listed in `CREDITS.md`, each with its license.
+Code is MIT licensed. Third-party libraries and assets are listed in `CREDITS.md`, each with its licence.
 
 Source: https://github.com/PatrickDCarey/Shift
 
@@ -130,11 +132,11 @@ Source: https://github.com/PatrickDCarey/Shift
 | Classification | Games | |
 | Release status | Released (or Prototype) | Jam build. "Released" if the team is happy calling it finished. |
 | Genre | Puzzle | The pillar is "pace is the puzzle"; platforming is the means. |
-| Tags (10) | `puzzle-platformer`, `platformer`, `puzzle`, `pixel-art`, `2d`, `colorful`, `singleplayer`, `short`, `game-off`, `phaser` | Plain discovery tags. `game-off` because voters browse it. |
+| Tags (10) | `puzzle-platformer`, `platformer`, `puzzle`, `pixel-art`, `2d`, `colorful`, `singleplayer`, `short`, `game-off`, `phaser` | Plain discovery tags. `colorful` is itch's own tag, spelt as itch spells it so voters find it. `game-off` because voters browse it. |
 | Made with | Phaser (and TypeScript, Vite if itch offers them) | `package.json`, `CREDITS.md`. |
 | Average session | About an hour | Estimate from the design targets (2026-11-24): 20 to 35 minutes for worlds 1–3 (14 levels, `levels/README.md`), 5 to 15 for the six short levels of worlds 4–5, and 12 to 24 for the three long levels (4 to 8 minutes each for a first clear): about 40 to 75 minutes in all. A voter can stop after any level. Re-check against the B12-C2 cold play's minutes. |
 | Inputs | Keyboard | Only input the game reads. Do **not** tick Mouse, Gamepad or Touchscreen. |
-| Accessibility | Tick **Color-blind friendly** (pattern per color, twin silhouette) and **Interactive tutorial** (world 1 teaches by play and key glyphs, no text). | Both are true as built. Do **not** tick Configurable controls (no remap screen; the alternate keys are fixed), High-contrast (no separate mode), Textless (menus are text), Subtitles, One button, Blind friendly. |
+| Accessibility | Tick itch's **Color-blind friendly** (a pattern per colour, twin silhouette) and **Interactive tutorial** (world 1 teaches by play and key glyphs, no text). | Both are true as built. Do **not** tick Configurable controls (no remap screen; the alternate keys are fixed), High-contrast (no separate mode), Textless (menus are text), Subtitles, One button, Blind friendly. |
 | Languages | English | |
 | Mobile friendly | No | Needs a keyboard. |
 
@@ -155,30 +157,32 @@ Source: https://github.com/PatrickDCarey/Shift
 All shots from a real build in the 960×540 frame (2×), HUD visible, no debug overlays. Names are level id and moment.
 
 **Cover image (630×500)**
-- Idea: one runner mid-sprint, red with its checker pattern, crossing a red bridge, with a hollow dashed blue bridge and a solid red wall around it, and the world tint at its red end. Title "REDSHIFT" in the game's pixel font. It should say "color and speed" before anyone reads a word.
+- Idea: one runner mid-sprint, red with its checker pattern, crossing a red bridge, with a hollow dashed blue bridge and a solid red wall around it, and the world tint at its red end. Title "REDSHIFT" in the game's pixel font. It should say "colour and speed" before anyone reads a word.
 
 **Screenshots (3 to 5, in this order)**
 1. **w1-02 Shift, crossing the green bridge.** Player green with dots, the blue bridge ahead drawn hollow, HUD showing gear 2. Sells the core rule in one picture: same room, the floor you match is solid.
-2. **w1-05 Red Wall, passing through the wall.** Player yellow (chevrons) inside or just past the red wall column, red bridge ahead. Sells "a wall stops only its own color".
+2. **w1-05 Red Wall, passing through the wall.** Player yellow (chevrons) inside or just past the red wall column, red bridge ahead. Sells "a wall stops only its own colour".
 3. **w2-02 Coast, the drag drop mid-flight.** The ring burst on the runner at the 6-tile point, red turning yellow, the yellow pad below. Sells "commit at takeoff" and shows the effects.
-4. **w3-03 Gear Split, after the air stop.** Runner standing blue under the hanging block, twin flying yellow below, both HUD strips showing different colors. Sells Tandem: one set of keys, two colors.
-5. **w3-05 Redshift, mid-solve.** Both bodies in different colors on a busy screen. Shows there is depth past the tutorial.
+4. **w3-03 Gear Split, after the air stop.** Runner standing blue under the hanging block, twin flying yellow below, both HUD strips showing different colours. Sells Tandem: one set of keys, two colours.
+5. **w3-05 Redshift, mid-solve.** Both bodies in different colours on a busy screen. Shows there is depth past the tutorial.
 
 **GIF (one, 6 to 8 seconds, loops)**
-- **w1-03 Runway, fail then solve.** Start running from the spawn, reach the red bridge yellow, fall; restart, walk back to the wall, shift up, sprint: the player goes white, blue, green, yellow, red and crosses. Sells the whole idea (pace is color, speed takes distance) with no text. Keep it under about 3 MB.
+- **w1-03 Runway, fail then solve.** Start running from the spawn, reach the red bridge yellow, fall; restart, walk back to the wall, shift up, sprint: the player goes white, blue, green, yellow, red and crosses. Sells the whole idea (pace is colour, speed takes distance) with no text. Keep it under about 3 MB.
 
-Nice to have: one screenshot in greyscale (any of the above) to show the patterns carry the rule without color.
+Nice to have: one screenshot in greyscale (any of the above) to show the patterns carry the rule without colour.
 
 **Added for the expansion (2026-11-24, B12-A3; shoot from the final build, task B12-E1).** Final order: 1, 2, 3, **6, 7**, 4, **8**, 5, then the greyscale shot last. If itch's limit or the thumbnail argues for fewer, drop 5 first, then 4.
-6. **w4-03 Moving Bridge, mid-crossing.** Runner green (dots) on the green slab while it rests level between the two safe ledges, the slab's dotted track visible below, the 2-row roof above. Sells "a colored platform holds only its color, and it moves".
-7. **w5-01 Spark, a red bolt passing through a blue runner.** The runner blue (stripes) inside the col-4 red rain lane with a red diamond overlapping the body, the emitter at the ceiling. Sells "a bolt only hits its own color" in one frame. If the shimmer reads badly in a still, use w5-03 instead: a green runner mid-jump over a grey foot-height bolt.
+6. **w4-03 Moving Bridge, mid-crossing.** Runner green (dots) on the green slab while it rests level between the two safe ledges, the slab's dotted track visible below, the 2-row roof above. Sells "a coloured platform holds only its colour, and it moves".
+7. **w5-01 Spark, a red bolt passing through a blue runner.** The runner blue (stripes) inside the col-4 red rain lane with a red diamond overlapping the body, the emitter at the ceiling. Sells "a bolt only hits its own colour" in one frame. If the shimmer reads badly in a still, use w5-03 instead: a green runner mid-jump over a grey foot-height bolt. (2026-11-25: shoot shot 7 after the bolt-visibility art lands, `decisions.md` 2026-11-25 world-5 triage.)
 8. **w5-05 Full Spectrum (or w4-05 Commute), a lit checkpoint post** with the runner just past it and the next room's slab or lane ahead. Sells "long levels, and you won't lose your progress". Take it after the idle-post art fix is in.
 
 **Re-shoot list for the expansion:**
-- **Cover:** keep `cover-630x500.png` (still accurate: it shows w1-05). The owner plans new artwork after this phase with their own tools; when it comes, it replaces the cover and design reviews it against the cover idea above, with a slab or bolt allowed in the scene.
+- **Cover:** finalised 2026-11-25 (cover A, the owner's choice, `docs/art/itch/`).
 - **Screenshots 1–5 and the greyscale shot:** keep; nothing they show has changed (re-check in §7).
 - **New screenshots 6–8:** must be shot (above).
 - **GIF:** keep `redshift-runway.gif` at the top of the description (it is the rule). Optional: a second GIF lower in the description, 6–8 s, w5-01: the red bolt passing through the walking blue runner, then the runner shifting up at the dense lane so it turns red only after it, and crossing the red bridge. Under 3 MB.
+
+**Captions** (if itch or the trailer needs any text on an image): "Your speed is your colour." / "Only your colour is solid." Nothing else; the pictures carry the rest.
 
 ### Delivered (B7-16, 2026-11-20; files in `docs/art/itch/`, how they were made in its `README.md`)
 
@@ -186,7 +190,7 @@ Design accepts the set as delivered. Upload in this order:
 
 | itch field | File | Notes |
 |---|---|---|
-| Cover image | `cover-630x500.png` | w1-05: a red runner on the red bridge by the solid red wall, title in the game's font. It is not the shot-list scene (no hollow blue bridge), but it says "color and speed" just as well. |
+| Cover image | `cover-630x500.png` | Cover A, finalised 2026-11-25 (`docs/art/itch/README.md`). The earlier w1-05 cover said "colour and speed" just as well. |
 | Screenshot 1 | `shot-1-w1-02-shift.png` | As listed. |
 | Screenshot 2 | `shot-2-w1-05-red-wall.png` | As listed. |
 | Screenshot 3 | `shot-3-w2-02-coast.png` | As listed. |
@@ -200,13 +204,13 @@ Design accepts the set as delivered. Upload in this order:
 
 **Stale until the new shots land:** the delivered set shows only worlds 1–3, so the page's pictures undersell worlds 4–5 but promise nothing the build lacks. Uploading the delivered set alone is honest; the three new shots are wanted, not required.
 
-The screenshots come from the batch 7 package, before the 2026-11-20 hint glyphs and the 2× restart card. Shot 4 is unaffected: w3-03's new spawn glyph is off its left edge. Shot 5 is near w3-05's block and was taken before that level's `jump 12 3` glyph existed, so a reshoot would add one key cap. **No reshoot needed**: a missing hint misrepresents nothing about the game. Reshoot only if a later art or level change alters what a shot shows (`docs/art/itch/README.md` "Remaking").
+The screenshots come from the batch 7 package, before the 2026-11-20 hint glyphs and the 2× restart card. Shot 4 is unaffected: w3-03's new spawn glyph is off its left edge. Shot 5 is near w3-05's block and was taken before that level's `jump 12 3` glyph existed, so a reshoot would add one key cap. **No reshoot needed**: a missing hint misrepresents nothing about the game. Reshoot only if a later art or level change alters what a shot shows (`docs/art/itch/README.md` "Remaking"). The 2026-11-25 bolt-visibility change touches no delivered shot (none shows a bolt).
 
 ---
 
 ## 6. Jam submission form (free text on the theme)
 
-In Redshift, your pace is your color, and colored platforms are only solid while your color matches them. You shift gears with the Shift keys, and each gear is a color: white, blue, green, yellow, red. Speed takes distance to build and to lose, so every room asks where to shift up, where to shift down, and when to jump. In the third world, one set of keys drives two runners, and the puzzle is shifting them out of step and back in step. In the last two worlds the rule reaches things that move: a colored moving platform holds you only in its color, and a colored bolt hits you only in its color, so you dodge by shifting gear, not only by jumping.
+In Redshift, your pace is your colour, and coloured platforms are only solid while your colour matches them. You shift gears with the Shift keys, and each gear is a colour: white, blue, green, yellow, red. Speed takes distance to build and to lose, so every room asks where to shift up, where to shift down, and when to jump. In the third world, one set of keys drives two runners, and the puzzle is shifting them out of step and back in step. In the last two worlds the rule reaches things that move: a coloured moving platform holds you only in its colour, and a coloured bolt hits you only in its colour, so you dodge by shifting gear, not only by jumping.
 
 ---
 
@@ -217,8 +221,9 @@ In Redshift, your pace is your color, and colored platforms are only solid while
 > NOTE (2026-11-24, B12-A3, against 31ff26a): the count, world, long-level and accessibility items below were rewritten for the expansion and are **unticked until re-checked against the final package** (B12-E3). The other ticks stand from 2026-11-23; re-tick them on the same package.
 
 - [ ] **Level and world count:** 25 levels in 5 worlds (GEARS 5, FLIGHT 5, TANDEM 5, MOTION 5, SIGNALS 5) on the level select's `CLEARED n/25`, with no gaps? (2026-11-24: w4-04 and w5-04 approved as built; the SWEEP block is copy. If either is pulled, follow the note above that block.) If anything is cut, change the count line, that world's bullet and the average session. *(Design's count 2026-11-24 from `decisions.md` "all Must levels (23) are now approved" and QA B11-19 item 5: five rows, `CLEARED n/23`. Earlier: 14 in worlds 1–3, world 0 filtered out in `levelSelect.ts` and `progress.ts`.)*
-- [ ] **Long levels:** exactly Long Haul (w2-05), Commute (w4-05) and Full Spectrum (w5-05) have checkpoint posts; a death after a lit post respawns there; R restarts from the start; a lit post is forgotten on leaving the level (`checkpoints.md`, QA B11-19 item 4). "About a minute once you know the way": the recordings are 63.4 s, 66.8 s and 62.3 s.
-- [ ] **Things that move:** grey slabs carry anyone, colored slabs hold only their color, bolts follow the white/grey/colored rule (`moving-objects.md`, `projectiles.md`); the copy promises nothing else (no crushers, no aiming bolts; the sweep only as the SWEEP block's one line).
+- [ ] **Spelling:** every pasted line says "colour", "coloured", "grey"; the only American spellings are itch's own **Color-blind friendly** label and `colorful` tag. The in-game level name of w2-04 reads **Two Colours** (level-designer's change).
+- [ ] **Long levels:** exactly Long Haul (w2-05), Commute (w4-05) and Full Spectrum (w5-05) have checkpoint posts; a death after a lit post respawns there; R restarts from the start; a lit post is forgotten on leaving the level (`checkpoints.md`, QA B11-19 item 4). "About a minute once you know the way": the recordings are 63.4 s, 69.4 s (w4-05 v3) and 62.3 s.
+- [ ] **Things that move:** grey slabs carry anyone, coloured slabs hold only their colour, bolts follow the white/grey/coloured rule (`moving-objects.md`, `projectiles.md`); the copy promises nothing else (no crushers, no aiming bolts; the sweep only as the SWEEP block's one line).
 - [ ] **Accessibility for the new objects:** slabs and bolts carry their band's pattern, grey bolts have a different silhouette, the track is always drawn, the emitter tell is a still frame under reduced motion, and the post changes shape when lit (art sheets, QA B11-19 item 6). If any of these is not as built, cut that clause, not the bullet.
 - [ ] **Difficulty line:** "Tandem is the hardest world" and "Motion and Signals need only Gears and Flight" still true after the B12-C2 cold play (`decisions.md` triage).
 - [x] **First level of every world open from the start** (`src/save/progress.ts` unlock rule). *(2026-11-23: `isPlayable`. 2026-11-24: QA B11-19 item 5, first level of each of the five rows open on a fresh save.)*

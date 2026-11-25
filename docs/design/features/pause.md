@@ -57,3 +57,15 @@ None. The time display reads `stepHz`.
 - **Must:** freezing the sim with no catch-up, RESUME / RESTART / LEVELS, the held and pressed-while-paused key rules, auto-pause on blur.
 - **Should:** CONTROLS from pause, the run time on the panel, the audio duck.
 - **Could:** pause in replay mode.
+
+## Amendment 2026-11-25: RESTART label while a post is lit (Should)
+
+**Rule:** in a long level, while a checkpoint post is lit, the RESTART item reads **RESTART FROM START**; otherwise it reads **RESTART**. The behaviour does not change: both are R, a full restart (`checkpoints.md`). Reason: a cold player expected R to return them to the last post (`decisions.md` 2026-11-25 world-5 triage, item 4).
+
+**Edge cases:** a post lit on the step you pause shows the long label. After R, no post is lit, so the next pause shows RESTART. Replay mode follows the replayed run's post state. The menu width must fit 18 characters at 2×; if it does not, use **RESTART LEVEL** in all levels instead.
+
+**Tuning:** none. Text only, in the pause model; the lit-post state comes from the existing checkpoint state through `src/core/index.ts`.
+
+**Acceptance:** 15. w4-05: pause before post A → RESTART; pass post A, pause → RESTART FROM START; choose it → spawn, step 0, then pause again → RESTART. 16. In a level without posts (w1-01) the label is always RESTART.
+
+**Priority:** Should; cut at freeze if not merged.

@@ -4,7 +4,7 @@ _Owner: design-lead. Milestone: M3 content. GDD: §1, §4.15, §7, §11. Chosen 
 
 ## Rule
 
-A level may contain a second runner, the **twin**, spawned at `&`. Every step, the twin receives **the same input** as the runner (the same held direction, jump and shift presses) but has its own body: its own position, speed, gear, color, grace, buffers and air drag. The two bodies never touch each other.
+A level may contain a second runner, the **twin**, spawned at `&`. Every step, the twin receives **the same input** as the runner (the same held direction, jump and shift presses) but has its own body: its own position, speed, gear, colour, grace, buffers and air drag. The two bodies never touch each other.
 - A body that reaches an exit is **home** and stays there.
 - The level is won when **both** bodies are home.
 - If **either** body falls out of the level, the whole run dies and both respawn.
@@ -27,7 +27,7 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
   - So **gears can differ**, when one body is in the air or the air rule (`gear ← max(minGear, min(gear, band))`) lowers one body's gear.
 - **Resync by clamping:** a press that would take a body above gear 4 or below `minGear` does nothing for that body (the existing clamp). With gears g0 ≠ g1, pressing up `4 − min(g0, g1)` times leaves both in gear 4; pressing down `max(g0, g1) − minGear` times leaves both in gear 1. This is the only way to bring split gears back together, and levels teach it.
 - **Jump (phase 5)** is per body: a jump press launches every body that is grounded or in coyote time; any airborne body without coyote buffers it in its own jump buffer.
-- **Everything else is per body:** ground speed, gravity, walls, floors, ceilings, color gating, no-embed, grace, air drag, band, gear-follows-band, landing, and the timers. One body's walls, gaps and colored tiles never affect the other.
+- **Everything else is per body:** ground speed, gravity, walls, floors, ceilings, colour gating, no-embed, grace, air drag, band, gear-follows-band, landing, and the timers. One body's walls, gaps and coloured tiles never affect the other.
 
 ### No interaction
 
@@ -70,14 +70,14 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 ## Edge cases
 
 - **Walls:** a wall stops only the body that touches it. The stopped body keeps its gear on the ground; in the air it drops to `minGear` (air rule).
-- **Holding one body still (ruled 2026-11-17):** only a **safe** wall holds a body that keeps walking into it. After any wall stop the body is band 0 and, still holding, restarts at walking pace on the next step, so it passes every colored wall, blue included (it turns blue inside the wall and no-embed lets it through; check 4). Levels pin a body with a **1-tile safe kerb** on its floor: it holds the body in any gear for as long as the direction is held, and a jump clears it. No sim change.
+- **Holding one body still (ruled 2026-11-17):** only a **safe** wall holds a body that keeps walking into it. After any wall stop the body is band 0 and, still holding, restarts at walking pace on the next step, so it passes every coloured wall, blue included (it turns blue inside the wall and no-embed lets it through; check 4). Levels pin a body with a **1-tile safe kerb** on its floor: it holds the body in any gear for as long as the direction is held, and a jump clears it. No sim change.
 - **Gaps:** a body over a gap falls on its own; the other keeps running. A fall below the grid kills the run.
 - **One airborne, one grounded:** the grounded body shifts now, the airborne one buffers (6-step window). A jump launches the grounded body and is buffered for the airborne one.
 - **Both in coyote or grace:** per body, with their own windows.
-- **Let go with one body on a colored floor:** its grace and coyote run; if it falls out, the run dies. "Stop on safe tiles" now applies to both lanes at once.
-- **Home body on a colored exit approach:** irrelevant once home (frozen, can't fall).
+- **Let go with one body on a coloured floor:** its grace and coyote run; if it falls out, the run dies. "Stop on safe tiles" now applies to both lanes at once.
+- **Home body on a coloured exit approach:** irrelevant once home (frozen, can't fall).
 - **Bodies overlapping in a shared room:** allowed; both are drawn, twin behind runner.
-- **Spawns:** `&` never inside a solid tile or on an exit; a twin spawning on a colored floor falls at band 0 like the runner would. Level validation should reject `&` on or above-adjacent to `E` (tech-lead's call).
+- **Spawns:** `&` never inside a solid tile or on an exit; a twin spawning on a coloured floor falls at band 0 like the runner would. Level validation should reject `&` on or above-adjacent to `E` (tech-lead's call).
 
 ## Camera framing (scene, not sim)
 
@@ -85,10 +85,10 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 - **Which body the camera keeps:**
   - both non-home and within 28 tiles: the camera's x target is their midpoint, clamped to the level bounds and eased as today;
   - one body home: the camera frames the body that is not home;
-  - both non-home and more than 28 tiles apart: the camera follows the runner, and a pixel arrow (with the twin's silhouette) at the screen edge points at the twin. The arrow carries the twin's band by its pattern ink (white is plain), so the band never depends on color alone (ruled in M1-52, 2026-11-05; built by art in M1-59).
+  - both non-home and more than 28 tiles apart: the camera follows the runner, and a pixel arrow (with the twin's silhouette) at the screen edge points at the twin. The arrow carries the twin's band by its pattern ink (white is plain), so the band never depends on colour alone (ruled in M1-52, 2026-11-05; built by art in M1-59).
 - **Level rule:** intended solutions keep the bodies within 26 tiles of each other.
 
-## Readability (requirements for art and UI; color is never the only signal)
+## Readability (requirements for art and UI; colour is never the only signal)
 
 - **The twin differs by shape at 12×24 px:** for example a hollow outline body with a 1-px inner line where the runner is filled. Both show their band's pattern.
 - A home body shows a "parked" pose or glyph and stops animating.
@@ -101,11 +101,11 @@ A level may contain a second runner, the **twin**, spawned at `&`. Every step, t
 - Each body needs its own reachable exit.
 - Bodies start aligned in x unless the puzzle says otherwise.
 - The split must come from the level (a wall, an air stop, an exit, a gap), never from timing.
-- **Pins use a 1-tile safe kerb, never a colored wall** (see Edge cases). Coast pads in Tandem levels are flat, so both bodies land on the same step and a late air shift cannot split them (`levels-w3.md` "Common").
-- **Pockets:** if a body that falls through its own colored tile would land in the other lane and could finish there, close a pocket (≥ 3 rows) in the divider under that tile; the body waits there for R, and the scene shows a `[R] RESTART` card after 1 s (`restart-prompt.md`, 2026-11-19). Prefer an open drop out of the grid where the other lane allows it.
+- **Pins use a 1-tile safe kerb, never a coloured wall** (see Edge cases). Coast pads in Tandem levels are flat, so both bodies land on the same step and a late air shift cannot split them (`levels-w3.md` "Common").
+- **Pockets:** if a body that falls through its own coloured tile would land in the other lane and could finish there, close a pocket (≥ 3 rows) in the divider under that tile; the body waits there for R, and the scene shows a `[R] RESTART` card after 1 s (`restart-prompt.md`, 2026-11-19). Prefer an open drop out of the grid where the other lane allows it.
 - Every split a level needs must be undoable or final by design (say which in `levels/README.md`).
 - All existing rules (GDD §6, `level-plan.md`) apply to each lane.
-- **Lane colouring (2026-11-16):** the two start rows are at least 3 rows apart (no shared rooms in shipped levels; stacked lanes always meet this), and **every colored tile in a lane is strictly nearer its own body's start row than the other body's**. In practice: with the runner on the divider and the twin on its lane floor, the top rows of the twin's lane (those at or above the midpoint of the two start rows) carry no colored tiles; hanging blocks there are safe (`#`). Check it in `levels/README.md` per level.
+- **Lane colouring (2026-11-16):** the two start rows are at least 3 rows apart (no shared rooms in shipped levels; stacked lanes always meet this), and **every coloured tile in a lane is strictly nearer its own body's start row than the other body's**. In practice: with the runner on the divider and the twin on its lane floor, the top rows of the twin's lane (those at or above the midpoint of the two start rows) carry no coloured tiles; hanging blocks there are safe (`#`). Check it in `levels/README.md` per level.
 
 ## Tuning
 
@@ -113,7 +113,7 @@ No new sim keys. Uses every existing key per body; `deathFreezeMs` and `stepHz` 
 
 ### Lane colouring of tiles (scene, ruled 2026-11-16)
 
-A colored tile is drawn solid or ghost by **one** body's band. The scene assigns each tile row to a lane: the row belongs to the body whose start row is nearer (ties go to the runner). If the two start rows are fewer than 3 apart (a shared room), the runner's band drives every tile. This is accepted as built (`src/entities/tandemView.ts` `twinLaneTest`). The level rules that make it always right are in "Level rules" below.
+A coloured tile is drawn solid or ghost by **one** body's band. The scene assigns each tile row to a lane: the row belongs to the body whose start row is nearer (ties go to the runner). If the two start rows are fewer than 3 apart (a shared room), the runner's band drives every tile. This is accepted as built (`src/entities/tandemView.ts` `twinLaneTest`). The level rules that make it always right are in "Level rules" below.
 
 ## Acceptance
 
@@ -156,7 +156,7 @@ Test conventions: see `movement-and-gears.md`. "Lane" = a row of tiles holding o
 - S1. Bodies 20 tiles apart: both fully on screen.
 - S2. Runner home, twin moving: the camera follows the twin.
 - S3. Bodies 30 tiles apart: the camera follows the runner and an edge arrow points at the twin.
-- S4. Twin and runner distinguishable in a grayscale screenshot at 1× (480×270).
+- S4. Twin and runner distinguishable in a greyscale screenshot at 1× (480×270).
 - S5 (2026-11-20, browser, qa). w3-04 by its recording at the let-go (runner x 21.48, twin x 40.1, 18.6 apart, both non-home): both bodies are wholly on screen, neither sprite overlaps the HUD panel, and there is no edge arrow. Any failure is a [scene] bug against "Camera framing", not a design change.
 - S6 (2026-11-20, browser, qa). w3-04 by its recording from the runner's home step (354) to the win (396): the camera follows the twin, the runner may leave the screen (intended: a home body is frozen and out of the framing), the runner's HUD strip is dimmed with the home glyph, and no twin edge arrow shows.
 

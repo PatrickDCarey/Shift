@@ -1,4 +1,4 @@
-# World 3, level 3. Teach: a stop in mid-air drops only that body's gear, so one input now gives two colors.
+# World 3, level 3. Teach: a stop in mid-air drops only that body's gear, so one input now gives two colours.
 # Target first-time solve: 60-120 s.
 # Layout (47 x 15, a short scroll). Runner lane on top (floor row 6), twin lane below (floor row 13).
 #   Runner: safe floor to col 24 with a hanging safe block (cols 16-17, rows 1-3: 2 tiles of headroom under it)

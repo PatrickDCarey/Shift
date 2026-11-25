@@ -26,7 +26,7 @@ A **SETTINGS** screen with three on/off rows and BACK. Each change applies on th
 ## Layout (480×270)
 
 - Heading `SETTINGS` at 2×, top left (8, 8), like `CONTROLS`.
-- Rows at 2×, 20 px apart from y 60: the label left-aligned at x 40, the value at x 320 as a 9 × 9 box glyph (filled = ON, hollow = OFF) followed by the word `ON` or `OFF`. The value reads by shape and word, never by color.
+- Rows at 2×, 20 px apart from y 60: the label left-aligned at x 40, the value at x 320 as a 9 × 9 box glyph (filled = ON, hollow = OFF) followed by the word `ON` or `OFF`. The value reads by shape and word, never by colour.
 - Focus by caret and frame (`menu-navigation.md`). Opens with `SOUND` focused.
 
 ## Edge cases

@@ -10,10 +10,10 @@ None of these fixes adds a feature. Each one makes an existing Must or Should fe
 |---|---|---|---|---|
 | PT-1 `/` opens on w1-01 | **Do** | gameplay-engineer [scene] | Batch 3 | Must |
 | PT-2 exit doorway and off-screen exit cue | **Do**. The opening camera pan is rejected; the w0-02 pocket cue is rejected | art-director (PT-2a frame), [scene] (PT-2b) | PT-2a Batch 3; cue helper Batch 4; drawing after PX-6 | Must; idle animation Should |
-| PT-3 show why you fell | **Do**, with one Should trigger added (colored wall stop; airborne pass-through cut 2026-11-16) | tech-lead (T-07 contract), [sim] (`fallThrough` event), [scene] (tile highlight), ui-engineer (HUD cell pulse) | ui model Batch 4; contract Batch 4, event Batch 5; drawing after PX-7 / PX-9 and the event | Must for walk-off and grace fall-through; Should for the rest |
+| PT-3 show why you fell | **Do**, with one Should trigger added (coloured wall stop; airborne pass-through cut 2026-11-16) | tech-lead (T-07 contract), [sim] (`fallThrough` event), [scene] (tile highlight), ui-engineer (HUD cell pulse) | ui model Batch 4; contract Batch 4, event Batch 5; drawing after PX-7 / PX-9 and the event | Must for walk-off and grace fall-through; Should for the rest |
 | PT-4 drag bar label | **Change**: the bar is labelled by its shape (it points at the cell you will drop to), not by a word | ui-engineer | model Batch 4, view in PX-9 | Should (like the drag meter). If it is not built, the bar is hidden |
 | PT-4 one-time air-shift hint | **Reject**: it would teach a false rule | none | none | none |
-| PT-5 "slot 4 lit while yellow" | **Change**: the bracket is drawn thin until you reach its color, then bold. Fix any model bug the investigation finds | ui-engineer | investigation Batch 3; model Batch 4; view PX-9 | Must (part of the Must meter) |
+| PT-5 "slot 4 lit while yellow" | **Change**: the bracket is drawn thin until you reach its colour, then bold. Fix any model bug the investigation finds | ui-engineer | investigation Batch 3; model Batch 4; view PX-9 | Must (part of the Must meter) |
 | PT-6 tight windows | **Change** w1-02 (and w1-01 to match) and w1-04 geometry. **Keep** w1-05 geometry, because the lesson caps it, and record its timing-free line | level-designer | Batch 4 | Must |
 | PT-7 win card "press R" vs "Enter: next level" | **Defer** to the results panel (M2-12): NEXT is the primary action. No change to the interim banner | ui-engineer (M2-12); [scene] removes the banner | M2-12 | Must (in `results.md`) |
 
@@ -68,23 +68,23 @@ None of these fixes adds a feature. Each one makes an existing Must or Should fe
 
 **Why:** the first deaths in w0-02, w1-01 and w1-02 slid the player off screen with no cause shown, and "did it right but too slowly" read as a bug. Pillar 2: the rule must be visible at the moment it acts.
 
-**Rule:** when a colored tile acts on you because of your color, that tile's run is highlighted and the HUD rings that tile's color cell, for **45 frames (0.75 s)** or until respawn or restart, whichever comes first. For a fall-through, this shows the color you needed. For a wall stop, it shows the color that stopped you.
+**Rule:** when a coloured tile acts on you because of your colour, that tile's run is highlighted and the HUD rings that tile's colour cell, for **45 frames (0.75 s)** or until respawn or restart, whichever comes first. For a fall-through, this shows the colour you needed. For a wall stop, it shows the colour that stopped you.
 
 **Triggers**
-- **Must, fall-through:** the sim event `fallThrough { body, cells }` (T-07 ruling, `docs/tech/architecture.md` §3.2; amended 2026-11-13, there is no derived helper). It fires when a body goes grounded → airborne with no jump and a colored tile under its footprint. This covers walking onto a mismatched tile, letting go on a bridge (grace runs out) and shifting while standing on a bridge. `cells` gives the tiles to start the run from and their band, so the scene and HUD need no state diffing.
-- ~~Should, airborne pass-through~~ **CUT 2026-11-16** (`decisions.md`): a falling body crossing a mismatched colored tile shows no cue, and there is no `passThrough` event. The ghost outline it passes is the cue, and the HUD drop pulse and drag bar (PT-4) already showed the color change in flight.
-- **Should, colored wall stop:** a `wallStop` event whose blocking tile is colored (w1-05's red wall at red).
+- **Must, fall-through:** the sim event `fallThrough { body, cells }` (T-07 ruling, `docs/tech/architecture.md` §3.2; amended 2026-11-13, there is no derived helper). It fires when a body goes grounded → airborne with no jump and a coloured tile under its footprint. This covers walking onto a mismatched tile, letting go on a bridge (grace runs out) and shifting while standing on a bridge. `cells` gives the tiles to start the run from and their band, so the scene and HUD need no state diffing.
+- ~~Should, airborne pass-through~~ **CUT 2026-11-16** (`decisions.md`): a falling body crossing a mismatched coloured tile shows no cue, and there is no `passThrough` event. The ghost outline it passes is the cue, and the HUD drop pulse and drag bar (PT-4) already showed the colour change in flight.
+- **Should, coloured wall stop:** a `wallStop` event whose blocking tile is coloured (w1-05's red wall at red).
 
 **What is highlighted**
-- The **run**: the contiguous horizontal run of same-color tiles in the row under the feet that contains the tile(s) under the footprint (the bridge), capped at 12 tiles each side. For a wall, the vertical run of same-color tiles containing the contact tile.
+- The **run**: the contiguous horizontal run of same-colour tiles in the row under the feet that contains the tile(s) under the footprint (the bridge), capped at 12 tiles each side. For a wall, the vertical run of same-colour tiles containing the contact tile.
 - **Look:** the run draws its **solid** outline (not the ghost dashes) plus a 1 px ring in `ui.text`, held steady. The highlight never blinks, so it stays inside the 3-per-second flash cap and needs no reduced-motion variant. It shows under reduced effects too, because it is gameplay information.
 - **HUD:** the cell of that tile's band gets the same 1 px `ui.text` ring for the same time, plus one brightness pulse like the drop pulse (no pulse under reduced motion; the ring stays). The lit cell, bracket and needle are unchanged.
 
 **Edge cases**
 - A new trigger replaces the current cue (one cue at a time per body).
 - While grace is holding you there is no cue. The cue starts on the step the fall begins.
-- An intentional drop through a colored floor (w0-02 pocket, later levels) shows the same cue. It is still true, so it is not noise.
-- Walking off a ledge into an empty pit shows no cue (no colored tile under the feet).
+- An intentional drop through a coloured floor (w0-02 pocket, later levels) shows the same cue. It is still true, so it is not noise.
+- Walking off a ledge into an empty pit shows no cue (no coloured tile under the feet).
 - The cue runs on render time and survives the 400 ms death freeze. Respawn and R clear it.
 - Tandem: the HUD ring goes on that body's strip. Tile highlights from both bodies may show at once.
 - Replay mode shows cues as in play.
@@ -127,7 +127,7 @@ If ui-engineer's PT-5 test finds that `litBand` ever differs from `state.band`, 
 **Edge cases**
 - Standing: white is lit, and the bracket on the remembered gear is thin. Walking in gear 1: blue is lit and the bracket is bold.
 - Braking or skidding below the bracket's gear: thin until you are back at it.
-- In the air, gear follows color down, so the bracket and the lit cell usually agree (bold). A pending-shift bracket stays dashed, as today.
+- In the air, gear follows colour down, so the bracket and the lit cell usually agree (bold). A pending-shift bracket stays dashed, as today.
 - Wall stop: white is lit, and the bracket is thin.
 
 **Acceptance**

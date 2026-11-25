@@ -4,7 +4,7 @@ _Owner: design-lead. Milestone: M1. GDD: §4.9, §5.3–5.5._
 
 ## Rule
 
-In the air nothing you press changes your speed: held directions don't steer, letting go doesn't brake, and shifts wait for landing. Your gear can only fall to match your color, and every `airDragTilesPerGear` (6) tiles of horizontal flight instantly drops you one band (speed snaps to the next lower gear speed), never below blue.
+In the air nothing you press changes your speed: held directions don't steer, letting go doesn't brake, and shifts wait for landing. Your gear can only fall to match your colour, and every `airDragTilesPerGear` (6) tiles of horizontal flight instantly drops you one band (speed snaps to the next lower gear speed), never below blue.
 
 ## Details
 

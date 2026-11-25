@@ -1,4 +1,4 @@
-# World 1, level 2. Teach: Shift changes your cruise gear, and with it your color.
+# World 1, level 2. Teach: Shift changes your cruise gear, and with it your colour.
 # Target first-time solve: 30-60 s.
 # Same room as w1-01 on purpose, with the first bridge painted green: spot the difference.
 # Layout (24 x 13): spawn pad P1 (3 tiles) -> green bridge (5 tiles) -> safe pad P2 (4 tiles, cols 8-11)
@@ -14,7 +14,7 @@ hint: shiftDown 9 6
 id: w1-02
 title: Shift
 world: 1
-teaches: Shift changes your cruise gear, and with it your color
+teaches: Shift changes your cruise gear, and with it your colour
 version: 2
 ---
 ...#####....######......

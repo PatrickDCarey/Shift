@@ -2,7 +2,7 @@
 
 _Owner: design-lead. Written 2026-11-23 (expansion, `decisions.md` 2026-11-23 "Expansion"), reconciled with tech-lead's `docs/tech/expansion-approach.md` the same day: shot speeds 2 or 4 (3.75 or 7.5 tiles/s), no stream from before step 0 (a phase-0 shot sits at its muzzle on step 0; BUG-9 ruling 2026-11-24), recordings ≤ 5,400 steps. Checkpoints were ruled out that day and brought back as Must for long levels on 2026-11-24 (`decisions.md` "Long levels redefined"): w5-05 has 3 posts; w5-01..04 have none. Built by level-designer in `levels/`. Rules: GDD v1.12 §4.17 (bolts), §4.16 (movers), §4.18 (sweep, Should); specs `features/projectiles.md`, `moving-objects.md`, `sweep.md`. World name in level select: **5 SIGNALS**._
 
-World 5 is the action world: things fly at you on fixed clocks, and the dodge is usually **a color, not a reflex**. It needs world 1–2 skills, and world 4's lifts for its finale. Single-runner only.
+World 5 is the action world: things fly at you on fixed clocks, and the dodge is usually **a colour, not a reflex**. It needs world 1–2 skills, and world 4's lifts for its finale. Single-runner only.
 
 **Fairness floor:** ≥ 18 steps per timed input at the intended pace, including every lane crossing, and the ±3-step robustness test. At most one grey emitter on screen at once in w5-01..w5-03.
 
@@ -16,11 +16,11 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 
 ## w5-01 Spark
 
-**Teaches:** a colored bolt only hits its own color.
+**Teaches:** a coloured bolt only hits its own colour.
 
 **Intent.** Two seconds after the spawn a red bolt falls through the walking runner and nothing happens: the rule is shown before it is needed. A ceiling emitter near col 4 rains red (`dir=d`, `band=R`) across the first steps. Then w1-05's grammar with a bolt instead of a wall: a **dense** red rain lane (spacing ≤ 2 tiles, so a body is always in a bolt) over the runway near col 12, then a red bridge to the exit starting about 3 tiles after the lane. Sprint from the spawn and you are red in the lane. Arrive yellow, shift up after the lane: red 0.66 tiles later.
 
-- The first lane may cross the spawn path (colored lanes may; not in the first 60 steps per tech-lead's rule, so time its phase to fall just after).
+- The first lane may cross the spawn path (coloured lanes may; not in the first 60 steps per tech-lead's rule, so time its phase to fall just after).
 - Hints (first of a world, cold start): `move` over the spawn and `shiftUp` over the first safe tile after the lane (Must).
 - **Removal:** without the lane a sprint from the spawn wins; with it, 0 wins red inside the lane.
 - **APPROVED v1 as built (2026-11-24).** 30 × 13. Demo lane at col 4 (a red bolt passes through the walking runner about 1 s in), dense test lane at col 12, 3 safe tiles, red bridge under a roof. Fair line: walk blue, three presses up at x 9.8–13.4 (72 steps); the yellow one-press line (24) is the expert line. Hints `move 1 6`, `shiftUp 14 6`. Recording 182, fastest known 156.
@@ -57,17 +57,17 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 
 ## w5-04 Chase (Should; needs `sweep.md`)
 
-**Combines:** the sweep with colored rain. Sweep `speed=4` (7.5 tiles/s, between green and yellow): you need yellow or red on average, but the route crosses yellow and red rain you must pass in another color, plus a green bridge. About 100 tiles, ≥ 3 tiles of lead at the closest point.
+**Combines:** the sweep with coloured rain. Sweep `speed=4` (7.5 tiles/s, between green and yellow): you need yellow or red on average, but the route crosses yellow and red rain you must pass in another colour, plus a green bridge. About 100 tiles, ≥ 3 tiles of lead at the closest point.
 
 - **APPROVED v1 as built (2026-11-24).** 92 × 13, `sweep: x0=-4 speed=4 delay=90`, spawn col 2; eight dense red/yellow lanes (`speed=2 period=32`), full height. Windows 40, 42, 43, 84, 30 (all ≥ 18); closest gap 7.9 tiles (63 steps); a stop still wins for 62–91 steps. Every lane's wrong gear dies by a hit; the sweep removal is caught on step 142. Recording 731 (12.2 s), fastest known 697. No hints.
 - **Length (12.2 s, 92 tiles): ACCEPTED.** Inside the medium rule (40–120 tiles, under about 25 s); the difficulty is six presses in 12 s against a front, not distance, and a short sharp level before the 62 s finale is good pacing. The 40–60 s first-clear target includes deaths.
 - **"Forces green" read from colours alone: ACCEPTED, no hint.** Alternating yellow and red lanes say "neither fast colour", and the green bridge right after them names the answer; each wrong colour dies at the first lane of its own colour, on safe floor, so the death teaches. **Trigger:** 3+ cold deaths in the gauntlet without the player saying "green" (or blue) as the answer → design asks for a `shiftDown` hint before col 38.
 - **Spawn col 2, not spawn − 6 from the spec:** accepted — from col 6 a red sprint beat the col-13 lane's fill and skipped the lesson.
-- **Could alternative for the slot** if the sweep is cut but bolts ship: **Crossfire**, a Tandem level where one colored lane crosses both lanes and the bodies must be split by one gear to pass (w3-02's kerb or w3-03's air stop makes the split).
+- **Could alternative for the slot** if the sweep is cut but bolts ship: **Crossfire**, a Tandem level where one coloured lane crosses both lanes and the bodies must be split by one gear to pass (w3-02's kerb or w3-03's air stop makes the split).
 
 ## w5-05 Full Spectrum (long finale)
 
-**Combines:** all three bolt kinds, a lift, the colored slab, runway, drag, walls. No sweep; 3 checkpoint posts (long level, v4.1).
+**Combines:** all three bolt kinds, a lift, the coloured slab, runway, drag, walls. No sweep; 3 checkpoint posts (long level, v4.1).
 
 **v4.1 (2026-11-24): 12 rooms, ≈ 420–450 tiles, 60–75 s clean, 3 posts (`level-plan.md` "Long levels").** Each of the four rooms below becomes a three-room section, hardest first, with a post after sections 1–3: (1) Rain, then a red Coast through yellow rain, then a slow blue bridge; (2) the Lift under white rain, a green Moving Bridge, a walk-off Step Down; (3) Hurdles on green, grey head-height bolts on yellow, a Brake to blue under white rain on the pad; (4) easiest: a Runway, a short Coast, a blue walk home. Recovery stretches carry no white rain. No sweep.
 
@@ -79,7 +79,7 @@ World 5 is the action world: things fly at you on fixed clocks, and the dodge is
 4. **Home (easy):** red runway, red wall, a brake to a blue bridge with white rain on the pad (w5-02), the exit.
 
 - Clean run ≤ 4,500 steps (75 s); par 60–75 s; first clear 4–8 minutes with deaths mostly in the first room of each section.
-- **COMBINE rule:** no win skips any bolt kind, the lift or the colored slab.
+- **COMBINE rule:** no win skips any bolt kind, the lift or the coloured slab.
 - **APPROVED v1 as built (2026-11-24).** 345 × 15, 12 rooms, posts at cols 80, 148, 254 (clocks 850, 1642, 2675). Sections: (1) Rain (dense red lane, press up 31) → red Coast through a dense yellow fountain rising from the pit (`dir=u`; jump 32) → blue bridge (32); (2) Lift: an 8-wide grey lift rising 6 under one white head-height lane, **crossed walking while it rises** (arrival span 55 of each 372-step cycle; standing or a wall stop dies) → green Moving Bridge (go 125 of 342) → Step Down (91); (3) Hurdles on green (grey foot height, period 240, `phase=190`, jump 35) → stay down on yellow under a dense grey head-height stream (no timed input; 0/161 jumps win) → Brake to blue on a 10-tile pad 1 lower, swept at body height by one white lane (brake 30); (4) Runway (212) → short Coast (32) → 28-tile blue bridge home (84). Late arrivals at the lift, the slab and the hurdles wait on safe ground. Every win uses both slabs and five of six lanes (the head-height grey lane is run under). Recording 3,739 (62.3 s), fastest known 3,652.
 - **Deviations accepted:** width 345 (62.3 s is mid-range; more width is more walking); the lift crossed, not ridden (white rain needs you moving; "keep walking on the lift" is w4-01 + w5-02, not a new idea); the yellow rain rising from the pit (a falling lane needs a sink, which is a ledge); the pad's one horizontal white lane, pad 1 lower; post 2's clock and hurdle `phase=190` putting a respawned runner mid-window (35); section 3's brake (30) after Hurdles (35), within 5 steps, as w2-05's section-2 ruling.
 

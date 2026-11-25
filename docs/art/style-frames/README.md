@@ -22,13 +22,13 @@ All frames are 960 x 540.
 
 ## What all three share (fixes for the playtest and design-lead's four readability asks)
 
-- **Colored tiles read as ledges, not hazards.** Every colored and safe tile has a flat, lit top edge (A: 4 px light band plus 2 px outline; B: 6 px light lip plus a 2 px ink line; C: two light pixel rows plus a shade row). The pattern starts below that lip, so the top of the red bridge is a clean bright line, not a mesh. Red keeps its crosshatch (see "Open risk" at the end).
+- **Coloured tiles read as ledges, not hazards.** Every coloured and safe tile has a flat, lit top edge (A: 4 px light band plus 2 px outline; B: 6 px light lip plus a 2 px ink line; C: two light pixel rows plus a shade row). The pattern starts below that lip, so the top of the red bridge is a clean bright line, not a mesh. Red keeps its crosshatch (see "Open risk" at the end).
 - **Exit.** A white door glyph (arch, dark doorway, inner mark) with a keyline, a slow pulse and a light source (A: beacon beam; B: sunburst; C: dithered halo). It uses pure `#FFFFFF`, which no band or safe tile uses.
 - **Ghost outlines are brighter and at least 2 px.** See the proposed palette deltas below.
 - **Yellow tint is clearly not white.** The background hue is now strong enough to read (numbers below).
-- **Player separates from a same-colored floor** with a 1 to 2 px background-colored keyline around the body, plus a facing visor.
-- Each band keeps its own pattern in tiles, ghost tiles, the player body and the HUD cell, so color is never the only signal. A and B use the geometry from `src/fx/patterns.ts` (ported 1:1); C has hand-placed pixel versions of the same five ids.
-- Solid vs ghost is never only hue: solid = opaque fill + lit lip + dark pattern + glow/shadow; ghost = hollow dashed outline, no fill, no glow/shadow, pattern drawn as thin colored lines.
+- **Player separates from a same-coloured floor** with a 1 to 2 px background-coloured keyline around the body, plus a facing visor.
+- Each band keeps its own pattern in tiles, ghost tiles, the player body and the HUD cell, so colour is never the only signal. A and B use the geometry from `src/fx/patterns.ts` (ported 1:1); C has hand-placed pixel versions of the same five ids.
+- Solid vs ghost is never only hue: solid = opaque fill + lit lip + dark pattern + glow/shadow; ghost = hollow dashed outline, no fill, no glow/shadow, pattern drawn as thin coloured lines.
 
 ### Proposed palette deltas (not applied; all three frames use them)
 
@@ -37,16 +37,16 @@ All frames are 960 x 540.
 | `safeTile.fill` `#7E88A6` to `#5F6987` | A white exit frame cannot reach 4.5:1 against `#7E88A6` (pure white tops out at about 3.5). At `#5F6987` it is 5.44; the safe tile itself is still 3.57:1 against the background and keeps its `#D5DBEE` outline (14.05) | exit vs safe 5.44 |
 | `gears.red.ghost.outline` and `.ink` `#D02536` to `#FF5A6A` | `#D02536` is 2.58:1 against the standing background under protanopia, and 2.10:1 under protanopia on a yellow-tinted background (reds go dark). `#FF5A6A` gives 4.77 and 3.87 and is still dimmer than the solid outline `#F98A94` | min ghost-red 5.14 (A), 5.59 (B), 6.52 (C) |
 | `gears.blue.ghost.outline` and `.ink` `#3F73D0` to `#5A93F5` | `#3F73D0` measured 2.94:1 under deuteranopia on the yellow-tinted frame (before this change) | min ghost-blue 4.49 (A), 5.30 (B), 6.53 (C) |
-| `ui.panel` `#141826` to `#0F1220` (HUD panel) | red band color as HUD text is 4.42:1 on `#141826` (under the 4.5 text rule); 4.66 on `#0F1220`. Frames use the lighter band *outline* tint for the HUD label, which is 8.06 or better | text 15.77, muted 8.40, band labels 8.06 to 17.58 |
+| `ui.panel` `#141826` to `#0F1220` (HUD panel) | red band colour as HUD text is 4.42:1 on `#141826` (under the 4.5 text rule); 4.66 on `#0F1220`. Frames use the lighter band *outline* tint for the HUD label, which is 8.06 or better | text 15.77, muted 8.40, band labels 8.06 to 17.58 |
 | Background decor luminance cap raised from 0.0055 to 0.013 (A, C) or 0.03 for big poster shapes (B) | The 0.0055 cap is why yellow read as near-neutral: yellow vs standing background was delta-E 9.5. Hue is now carried by wide shapes and gradients, while the flat field right behind tiles stays under 0.013 | see "Yellow vs white" below |
 
 ## Direction A: Neon Vector (the GDD default)
 
 **Look.** Near-black field, a faint grid and skyline that take the pace hue. Solid tiles are bright slabs with a lit top edge and a halo; ghosts are empty dashed frames with no halo. The player is a glowing block with a white visor and a soft light pool on the floor. Whole-frame bloom and a vignette (HUD drawn after both so text stays crisp).
 
-**Speed and SHIFT.** Pace hue floods the background (blue, green, olive-amber, deep red; delta-E from standing is 14 / 13 / 22 / 29). Behind the player a tapered comet trail whose colors step back through the bands you passed through (at red: red, orange, yellow, green), three outline afterimages in earlier band colors, additive speed streaks, sparks. The body leans and stretches (up to 8% wider, 4% shorter, 5 degree skew at sprint). Drag-downshift flash and ring burst reuse the existing spec in `style.md`.
+**Speed and SHIFT.** Pace hue floods the background (blue, green, olive-amber, deep red; delta-E from standing is 14 / 13 / 22 / 29). Behind the player a tapered comet trail whose colours step back through the bands you passed through (at red: red, orange, yellow, green), three outline afterimages in earlier band colours, additive speed streaks, sparks. The body leans and stretches (up to 8% wider, 4% shorter, 5 degree skew at sprint). Drag-downshift flash and ring burst reuse the existing spec in `style.md`.
 
-**Patterns.** Same `patterns.ts` geometry at 26 px on tiles, 24 px cells on the body, 20 px in the HUD. Dark ink on bright solid fill; thin band-colored lines on ghost.
+**Patterns.** Same `patterns.ts` geometry at 26 px on tiles, 24 px cells on the body, 20 px in the HUD. Dark ink on bright solid fill; thin band-coloured lines on ghost.
 
 **Numbers (measured from pixels, after bloom and vignette).**
 
@@ -66,9 +66,9 @@ All frames are 960 x 540.
 
 **Look.** No glow, no post-processing. Flat colour fields, thick ink outlines with a thin light sticker rim, hard offset shadows, halftone dots, a big sun disc and slanted bands behind. Heavy rounded type in the HUD. It looks like a screen-print.
 
-**Speed and SHIFT.** The whole poster re-inks to the pace hue (delta-E from standing 17 / 17 / 24 / 32, the strongest tint of the three). More and wider slanted bands and denser halftone at speed; flat angled speed bars above the head; stepped afterimages (three flat silhouettes, each in an earlier band color); flat dust puffs. Squash and stretch as in A. The downshift event is a hard-edged flat color wipe instead of a soft flash.
+**Speed and SHIFT.** The whole poster re-inks to the pace hue (delta-E from standing 17 / 17 / 24 / 32, the strongest tint of the three). More and wider slanted bands and denser halftone at speed; flat angled speed bars above the head; stepped afterimages (three flat silhouettes, each in an earlier band colour); flat dust puffs. Squash and stretch as in A. The downshift event is a hard-edged flat colour wipe instead of a soft flash.
 
-**Patterns.** `patterns.ts` geometry at 22 px (the coarse variant), dark ink at 0.9 alpha with strokes 1.2x thicker than the base; ghosts are drawn as outline lines in the full band color.
+**Patterns.** `patterns.ts` geometry at 22 px (the coarse variant), dark ink at 0.9 alpha with strokes 1.2x thicker than the base; ghosts are drawn as outline lines in the full band colour.
 
 **Numbers.**
 
@@ -89,7 +89,7 @@ The safe fill at 2.38 against the sun disc is only a fill-versus-decor figure; s
 
 **Look.** Rendered at 480 x 270 and scaled 2x with nearest neighbour (16 px tiles, 12 x 24 player): matches the existing `pixelArt: true` config. Ordered (Bayer) dithering for the horizon glow, the fades and the ghost fill; two dark silhouette ridges for depth; 1 px outlines; a 5 x 7 pixel font.
 
-**Speed and SHIFT.** Horizon dither takes the pace hue (delta-E 15 / 14 / 20 / 29). Dithered afterimages in earlier band colors (50%, 25%, 12% density), 1 px speed lines that fade out by dither, dust pixels, a 2 to 3 px lean of the top of the sprite. Downshift flash is a two-frame dither wipe.
+**Speed and SHIFT.** Horizon dither takes the pace hue (delta-E 15 / 14 / 20 / 29). Dithered afterimages in earlier band colours (50%, 25%, 12% density), 1 px speed lines that fade out by dither, dust pixels, a 2 to 3 px lean of the top of the sprite. Downshift flash is a two-frame dither wipe.
 
 **Patterns.** Own pixel versions: stripes (2 px bars), dots (2 x 2), chevrons (diagonal "^" rows), crosshatch (diagonal lattice), 1 px at lo-res = 2 px on screen. Measured on the 12 x 10 tile cell: ink coverage stripes 40%, dots 16.7%, chevrons 25%, crosshatch 35%; the closest pair (plain vs dots) differs on 16.7% of pixels, just above the repo's 15% rule, so dots has the least margin and would be the one to thicken.
 
@@ -121,18 +121,18 @@ Delta-E (CIE76) of the sky background at each pace against standing, sampled fro
 
 Yellow is now over twice as far from standing as before in every direction.
 
-## Color vision
+## Colour vision
 
-`*-cvd.png` shows the main frame under Machado 2009 protanopia, deuteranopia and tritanopia (severity 1.0). In all three the red bridge ghost, the yellow tiles and the blue ghost are told apart by pattern and by solid versus dashed even where hue collapses (for example, under protanopia and deuteranopia the red ghost turns a muddy olive-brown, close to the yellow-tinted background; the dashed frame and crosshatch still show). The two outline changes in the table above are what keep red and blue ghosts at 4:1 or better under each simulation. The five solid band colors are unchanged from `docs/art/accessibility.md` (min delta-E 25, hardest pair green/red at 33.8 under deuteranopia).
+`*-cvd.png` shows the main frame under Machado 2009 protanopia, deuteranopia and tritanopia (severity 1.0). In all three the red bridge ghost, the yellow tiles and the blue ghost are told apart by pattern and by solid versus dashed even where hue collapses (for example, under protanopia and deuteranopia the red ghost turns a muddy olive-brown, close to the yellow-tinted background; the dashed frame and crosshatch still show). The two outline changes in the table above are what keep red and blue ghosts at 4:1 or better under each simulation. The five solid band colours are unchanged from `docs/art/accessibility.md` (min delta-E 25, hardest pair green/red at 33.8 under deuteranopia).
 
 ## Mechanics sketch (`mechanics-strip.png`, direction A)
 
-Mud, ice, boost pad and speed camera gate, each with its own silhouette and its own mark, in hues outside the white-to-red spectrum so none reads as a gear color, and each shown again in greyscale.
+Mud, ice, boost pad and speed camera gate, each with its own silhouette and its own mark, in hues outside the white-to-red spectrum so none reads as a gear colour, and each shown again in greyscale.
 
-- **Mud**: brown, wavy lip, blob rings, drips hanging below the tile. Delta-E to the nearest band color: 47 normal, 10 under protanopia (to red), so shape and rings do the work there.
-- **Ice**: pale cyan, chamfered corners, two diagonal glints, white lip. Nearest band color is white: 24 normal, 12 under protanopia; the cut corners and glints separate it.
-- **Boost pad**: hot magenta `#FF4FD8`, only half a tile tall, solid right-pointing arrows (the yellow gear's up-chevrons are strokes, not filled triangles). I moved it off violet because violet was 1.4 delta-E from blue under deuteranopia; magenta is 11.3 or more from every band color in every simulation.
-- **Speed camera gate**: two posts and a lintel with a camera housing, lens ring and dashed beam in the required pace color, plus a sign above the lintel showing that pace's color and pattern (shown at yellow with chevrons). If design-lead wants a gate that accepts "this band or faster", the sign could show an arrow beside the pattern.
+- **Mud**: brown, wavy lip, blob rings, drips hanging below the tile. Delta-E to the nearest band colour: 47 normal, 10 under protanopia (to red), so shape and rings do the work there.
+- **Ice**: pale cyan, chamfered corners, two diagonal glints, white lip. Nearest band colour is white: 24 normal, 12 under protanopia; the cut corners and glints separate it.
+- **Boost pad**: hot magenta `#FF4FD8`, only half a tile tall, solid right-pointing arrows (the yellow gear's up-chevrons are strokes, not filled triangles). I moved it off violet because violet was 1.4 delta-E from blue under deuteranopia; magenta is 11.3 or more from every band colour in every simulation.
+- **Speed camera gate**: two posts and a lintel with a camera housing, lens ring and dashed beam in the required pace colour, plus a sign above the lintel showing that pace's colour and pattern (shown at yellow with chevrons). If design-lead wants a gate that accepts "this band or faster", the sign could show an arrow beside the pattern.
 
 These are sketches of intent, not specs: effects (how slow is mud, what does the camera do) are design-lead's call. None of the four reuses a band pattern.
 
@@ -140,14 +140,14 @@ These are sketches of intent, not specs: effects (how slow is mud, what does the
 
 Choose **A** because it is the best fit for the theme and the rules with the least new risk:
 
-1. **It is the only direction where light is the language.** Solid = lit and glowing, ghost = unlit and empty; pace = the color of the light, the trail literally shifts back through the colors you passed. That is "redshift" in one image and it makes the solid/ghost difference larger than outline and fill alone (a halo is a third cue).
+1. **It is the only direction where light is the language.** Solid = lit and glowing, ghost = unlit and empty; pace = the colour of the light, the trail literally shifts back through the colours you passed. That is "redshift" in one image and it makes the solid/ghost difference larger than outline and fill alone (a halo is a third cue).
 2. **It builds on what exists.** Tiles are already `Graphics` strokes and fills in `src/fx/tileRender.ts`; the new work is layering, not replacing. B is cheaper still and C is more expensive and touches the game config.
 3. **Graceful degradation is natural.** Bloom is one camera effect; turn it off and the stroke halos remain. A reduced-effects player still gets a complete, readable game (the bloom is soft light only; I have not rendered a no-bloom variant of the frames).
 4. Its ghost contrast is the thinnest of the three (blue ghost 4.49 worst case, because bloom lifts the background near bright tiles), so keep the bloom threshold and strength conservative and keep ghosts out of any glow radius. That is a tuning constraint, not a blocker.
 
-Take from B: the **thick ink keyline around the player** (already in A as a 2 px background-colored line; B's bolder 3 px line plus light sticker rim reads better on a same-colored floor) and B's **flat color wipe** as the reduced-motion downshift event. If the performance spike shows bloom is too heavy on a mid-range laptop, B is the fallback with no rework of the palette: only the glow underlay and post pass go.
+Take from B: the **thick ink keyline around the player** (already in A as a 2 px background-coloured line; B's bolder 3 px line plus light sticker rim reads better on a same-coloured floor) and B's **flat colour wipe** as the reduced-motion downshift event. If the performance spike shows bloom is too heavy on a mid-range laptop, B is the fallback with no rework of the palette: only the glow underlay and post pass go.
 
-C is the charm pick if the studio wants a retro identity and has the days to spare; I would not take it at this schedule (6 to 8 days against a Nov 22 content freeze) and its patterns are the least forgiving for color-blind players.
+C is the charm pick if the studio wants a retro identity and has the days to spare; I would not take it at this schedule (6 to 8 days against a Nov 22 content freeze) and its patterns are the least forgiving for colour-blind players.
 
 ## Open risk (all directions)
 

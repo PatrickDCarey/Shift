@@ -1,4 +1,4 @@
-# World 2, level 4. COMBINE: runway, commit, color grace. A green floor runs under a yellow ledge 2 tiles up.
+# World 2, level 4. COMBINE: runway, commit, colour grace. A green floor runs under a yellow ledge 2 tiles up.
 # Target first-time solve: 60-120 s (a green jump through the ledge, a yellow fall through the floor, then the
 #   shift-then-jump rhythm).
 # Layout (one screen, 32 x 13): left wall, safe pad P1 (cols 1-3, open sky: stop and think) -> green floor
@@ -20,9 +20,9 @@
 hint: shiftUp 8 4
 hint: jump 8 6
 id: w2-04
-title: Two Colors
+title: Two Colours
 world: 2
-teaches: combine: runway + commit + color grace (turn yellow on green, jump before the floor lets you go)
+teaches: combine: runway + commit + colour grace (turn yellow on green, jump before the floor lets you go)
 version: 1
 ---
 #...............................

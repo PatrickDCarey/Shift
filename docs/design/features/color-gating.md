@@ -1,33 +1,33 @@
-# Feature: Color gating and color grace
+# Feature: Colour gating and colour grace
 
 _Owner: design-lead. Milestone: M1. GDD: §4.6–4.8, §4.11._
 
 ## Rule
 
-A colored tile (`B` blue, `G` green, `Y` yellow, `R` red) is solid on every face only while the player's band matches its color. When your color changes while you stand on a floor of your old color (shifting, letting go, skidding), that floor holds you for `colorGraceMs` (6 steps) before you fall, and you still get coyote time after that.
+A coloured tile (`B` blue, `G` green, `Y` yellow, `R` red) is solid on every face only while the player's band matches its colour. When your colour changes while you stand on a floor of your old colour (shifting, letting go, skidding), that floor holds you for `colorGraceMs` (6 steps) before you fall, and you still get coyote time after that.
 
 ## Details
 
-- **Solid-for-player test** for a colored tile: color matches the band at the start of the step **and** the player's box (at the start of the move) overlaps **no** tile of that color (no-embed rule, per color: while you are inside any color-k tile, every color-k tile is empty for you, including grace floors).
-- **Grace start:** on a step where the player was grounded at the start and at the end, and the band changed, set `graceColor` = old band's color and `graceSteps` = 6.
+- **Solid-for-player test** for a coloured tile: colour matches the band at the start of the step **and** the player's box (at the start of the move) overlaps **no** tile of that colour (no-embed rule, per colour: while you are inside any colour-k tile, every colour-k tile is empty for you, including grace floors).
+- **Grace start:** on a step where the player was grounded at the start and at the end, and the band changed, set `graceColor` = old band's colour and `graceSteps` = 6.
 - **Grace effect:** while `graceSteps > 0`, tiles of `graceColor` are floor-solid from above only.
 - **Grace end:** counts down each step; ends at 0, when the player leaves the ground, or when a newer grace replaces it.
 - Grace is active for the move on the 6 steps after the band-change step. The player falls on the 7th, and coyote time then starts.
 
 ## Edge cases
 
-- **Letting go on a colored floor** brakes you through lower bands (or straight to white from walking pace), so you drop after grace. Stopping belongs on safe tiles. Intended.
+- **Letting go on a coloured floor** brakes you through lower bands (or straight to white from walking pace), so you drop after grace. Stopping belongs on safe tiles. Intended.
 - **Landing on a mismatched floor:** the floor is not there. No grace on landing.
 - **Walking onto a mismatched tile** from a matching or safe one: it's a hole. Coyote applies, grace does not.
-- **Straddling:** if any tile under the box supports you (safe, matching, or grace color), you're supported.
-- **Color change while overlapping a colored tile:** that whole color stays empty for you until your box is clear of every tile of it. So a 3-tile-thick wall you turn its color inside never stops you at its next column.
-- **Per-color side effect:** while inside a color-k tile you cannot stand on a color-k floor either. Levels avoid this by never hanging a colored tile less than 1.5 tiles above a floor of the same color (GDD §6).
+- **Straddling:** if any tile under the box supports you (safe, matching, or grace colour), you're supported.
+- **Colour change while overlapping a coloured tile:** that whole colour stays empty for you until your box is clear of every tile of it. So a 3-tile-thick wall you turn its colour inside never stops you at its next column.
+- **Per-colour side effect:** while inside a colour-k tile you cannot stand on a colour-k floor either. Levels avoid this by never hanging a coloured tile less than 1.5 tiles above a floor of the same colour (GDD §6).
 - **Walls and ceilings never get grace.**
-- **Second color change during grace:** the grace color becomes the latest previous color.
+- **Second colour change during grace:** the grace colour becomes the latest previous colour.
 - **Jumping during grace:** allowed. Grace ends on takeoff.
-- **Reversing on a colored floor** passes through lower bands: grace starts and you fall. A walking-pace turn on a blue floor is instant and stays blue: safe.
+- **Reversing on a coloured floor** passes through lower bands: grace starts and you fall. A walking-pace turn on a blue floor is instant and stays blue: safe.
 - **Matching walls stop you** with the normal wall stop (`vx` 0, gear kept). Matching ceilings bonk you.
-- **White band** has no colored tiles, so changing from white needs no grace.
+- **White band** has no coloured tiles, so changing from white needs no grace.
 
 ## Tuning
 

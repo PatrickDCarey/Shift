@@ -4,7 +4,7 @@ _Owner: design-lead. Milestone: M1. GDD: §3, §4.1–4.6, §4.11, §4.14._
 
 ## Rule
 
-Hold Left or Right to move; your speed heads toward the selected gear's speed in that direction, and letting go brakes you to a stop. The Shift keys (and Q/E, Z/X) pick the gear 1–4 on the ground, and it stays selected when you let go. Speeds up to walking pace (3 tiles/s) change instantly; above that, each gear segment takes 1.25 tiles of ground to speed up through and 1.25 to slow down through. Your color band comes from actual speed, never from the selected gear.
+Hold Left or Right to move; your speed heads toward the selected gear's speed in that direction, and letting go brakes you to a stop. The Shift keys (and Q/E, Z/X) pick the gear 1–4 on the ground, and it stays selected when you let go. Speeds up to walking pace (3 tiles/s) change instantly; above that, each gear segment takes 1.25 tiles of ground to speed up through and 1.25 to slow down through. Your colour band comes from actual speed, never from the selected gear.
 
 ## Details
 
@@ -48,7 +48,7 @@ Hold Left or Right to move; your speed heads toward the selected gear's speed in
 - **Input** is given as held buttons per step, as in solution files (`L R J + -`). "Press `+` on step n" means `+` is held on step n only (an edge). "Hold R" means R is held every step until stated otherwise.
 - **Run steps** count from 1 at spawn. **Action steps** count from 1 on the step an action (a press, a release, a direction change) first appears in the input.
 - **Cruising at gear g** means holding a direction on flat ground at `|vx| = gearSpeeds[g]` for at least 10 steps.
-- **Distance** is the change in the player's center x since the step before action step 1 (or since spawn). **Height** is the player's feet above the takeoff floor.
+- **Distance** is the change in the player's centre x since the step before action step 1 (or since spawn). **Height** is the player's feet above the takeoff floor.
 - **Exactness (since GDD v1.2):** step numbers are exact. Distances and heights match to half a unit of the last printed digit (2.54 means ±0.005, 8.7 means ±0.05) unless more digits are printed. Speeds set by snapping (instant walking-range changes, gear speeds, drag drops, wall stops) must be exact. Every number below was confirmed through the implemented `step`.
 - **Band edges** are judged within `SIM_EPSILON` (GDD §4.6): a speed that sums to an edge (6 + 5 × 0.3 = 7.5) is the higher band.
 

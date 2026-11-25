@@ -1,4 +1,4 @@
-# World 2, level 2. Teach: air drag: every 6 tiles of flight costs one color.
+# World 2, level 2. Teach: air drag: every 6 tiles of flight costs one colour.
 # Target first-time solve: 45-90 s (a fall from arriving at the red runway too slow, a try at yellow, then trust).
 # Layout (one screen, 30 x 13): left wall, safe runway (cols 1-7, 6.5 tiles from the spawn, open sky: stop and
 #   think) -> red runway (cols 8-12) over a pit -> 7-tile gap (cols 13-19) -> yellow landing pad (cols 20-23),
@@ -13,7 +13,7 @@
 id: w2-02
 title: Coast
 world: 2
-teaches: air drag: every 6 tiles of flight costs one color
+teaches: air drag: every 6 tiles of flight costs one colour
 version: 1
 ---
 #.............................

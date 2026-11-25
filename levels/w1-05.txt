@@ -1,4 +1,4 @@
-# World 1, level 5. Teach: a colored wall stops only its own color.
+# World 1, level 5. Teach: a coloured wall stops only its own colour.
 # Target first-time solve: 60-120 s.
 # Layout (23 x 13): safe runway (cols 0-8, open sky) -> red wall column (col 9, floor to top, on safe
 #   floor) -> 1 safe tile (col 10) -> red bridge (cols 11-16) -> exit pad. A 2-tile safe roof runs over
@@ -12,7 +12,7 @@
 id: w1-05
 title: Red Wall
 world: 1
-teaches: a colored wall stops only its own color
+teaches: a coloured wall stops only its own colour
 version: 1
 ---
 .........R#######......

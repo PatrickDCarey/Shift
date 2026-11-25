@@ -20,7 +20,7 @@ There is **no screen shake** anywhere in the game, in any mode.
 | **Drop cue: body** | `airDrag` | `shift` frames + ring burst | `shift` frames + ring burst | the white-outlined frame held 2 frames; no white flash frame, no ring |
 | **Drop cue: screen** (two-frame dither wipe, `palette.flash.alpha`) | `airDrag`, single-body levels only | on | on | off |
 | **Drop cue: HUD** (needle snap, lit-cell pulse, `hud-gear-meter.md`) | `airDrag` | on | on | snap only |
-| Afterimages (3 dithered copies in earlier band colors) | band ≥ 2 (green and up) | on | off | off |
+| Afterimages (3 dithered copies in earlier band colours) | band ≥ 2 (green and up) | on | off | off |
 | Speed lines (1 px, dithered) | band ≥ 3 | on | off | off |
 | Dust (1–2 px specks) | skid, land, takeoff at band ≥ 2 | on | off | on (static specks, no drift) |
 | World tint (field and horizon hue) | actual speed, eased 100 ms | on | on (field only) | on |
@@ -33,13 +33,13 @@ There is **no screen shake** anywhere in the game, in any mode.
 
 - The **flash rate cap** applies to everything: at most 3 white flashes or wipes per second across the screen, both bodies included. A cue that would exceed it shows as the swap only.
 - The **drag drop cue fires only on `airDrag`**, never on a generic airborne `bandChange`. An air wall stop also lowers the band (to 0), and that must not look like drag. (Changes `style.md`'s current trigger wording; request filed.)
-- Ground `shift` frames fire on any `bandChange` while grounded, including the band changes caused by braking and ramping, so the body always "pulses" when its color changes.
+- Ground `shift` frames fire on any `bandChange` while grounded, including the band changes caused by braking and ramping, so the body always "pulses" when its colour changes.
 
 ## Tandem: effects per body (T-20, M3-18)
 
 - **Every body effect belongs to the body in its event's `body` field:** its band swap, `shift` frames, ring burst, afterimages (from its own band history), speed lines, dust and death frames.
 - **No screen wipe in a level with a twin.** A wipe cannot say which body dropped (pillar 2). The drop shows on the body (frames + ring) and on that body's HUD strip. Both dropping on the same step: both bodies show it; one flash counted for the rate cap.
-- **The world tint and the music follow the faster non-home body** (on a tie, the runner; one home, the other). One ambient pace; each body's own color stays on the body and its strip.
+- **The world tint and the music follow the faster non-home body** (on a tie, the runner; one home, the other). One ambient pace; each body's own colour stays on the body and its strip.
 - **Home body:** `park_0`, no afterimages, no speed lines, no dust; its existing afterimages vanish on the `home` frame.
 - **Death:** the body named in `died` plays the death frames; the other body freezes in its current frame through the 400 ms freeze (the run dies, not just one body).
 - **Draw order:** twin behind runner, effects of each body directly behind that body (the twin's afterimages never cover the runner).

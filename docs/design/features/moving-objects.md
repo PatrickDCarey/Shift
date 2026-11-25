@@ -1,17 +1,17 @@
 # Feature: Movers (lifts and shuttles)
 
-_Owner: design-lead. Written 2026-11-23 for the owner's expansion request ("add more levels, longer levels, projectiles, moving objects"), which is the owner's sign-off for scope beyond the v1.11 Must list (`decisions.md` 2026-11-23 "Expansion"). Reconciled the same day with tech-lead's `docs/tech/expansion-approach.md` (§2, §4): the clock, the path model, the speeds and the format are tech-lead's; the faces (**top-only**) are design's ruling. GDD v1.12 §4.16. Worlds 4–5 (`levels-w4.md`, `levels-w5.md`). **Priority: Must** (vertical and horizontal, top-only). Moving platforms were cut on 2026-11-03 for cost (`mechanics-review.md` §4.13); this is the smallest form that keeps the color rule._
+_Owner: design-lead. Written 2026-11-23 for the owner's expansion request ("add more levels, longer levels, projectiles, moving objects"), which is the owner's sign-off for scope beyond the v1.11 Must list (`decisions.md` 2026-11-23 "Expansion"). Reconciled the same day with tech-lead's `docs/tech/expansion-approach.md` (§2, §4): the clock, the path model, the speeds and the format are tech-lead's; the faces (**top-only**) are design's ruling. GDD v1.12 §4.16. Worlds 4–5 (`levels-w4.md`, `levels-w5.md`). **Priority: Must** (vertical and horizontal, top-only). Moving platforms were cut on 2026-11-03 for cost (`mechanics-review.md` §4.13); this is the smallest form that keeps the colour rule._
 
 ## Rule
 
-A **mover** is a flat slab that loops along a fixed path on the run clock. You can land on its top and it carries you; you pass up through it from below and through it sideways (**top-only**). A **safe** (grey) mover holds everyone. A **colored** mover holds you only while your color matches it, exactly like a colored floor, so you can never ride one standing still: a colored mover is a bridge in motion that you cross at its pace.
+A **mover** is a flat slab that loops along a fixed path on the run clock. You can land on its top and it carries you; you pass up through it from below and through it sideways (**top-only**). A **safe** (grey) mover holds everyone. A **coloured** mover holds you only while your colour matches it, exactly like a coloured floor, so you can never ride one standing still: a coloured mover is a bridge in motion that you cross at its pace.
 
-Player-facing read: "grey lifts carry you; colored slabs are moving floors of that color".
+Player-facing read: "grey lifts carry you; coloured slabs are moving floors of that colour".
 
 ## Why it fits (pillars)
 
-- **Pace is the puzzle:** standing still is white, so a colored slab is crossable only at its pace and only while it is where you need it: a place, a pace and a moment. Grey lifts give "stop and wait" a new meaning.
-- **Readable:** the same color rule as every floor; the track is always drawn.
+- **Pace is the puzzle:** standing still is white, so a coloured slab is crossable only at its pace and only while it is where you need it: a place, a pace and a moment. Grey lifts give "stop and wait" a new meaning.
+- **Readable:** the same colour rule as every floor; the track is always drawn.
 - **Fair:** positions are a pure function of the run clock, so the pattern is identical on every attempt and every replay.
 - **Small:** top-only means no pushing, no crushing, no side faces and no no-embed for movers. A mover never kills.
 
@@ -41,23 +41,23 @@ A change to a `mover:` line bumps `version` (it is sim data; `hint:` is not).
   - **Blocked carry:** a horizontal carry blocked by a tile stops the body at contact (no `wallStop` event; `vx` unchanged); the slab slides on and the body falls once it no longer overlaps it. An upward carry blocked by a ceiling stops the body at contact; the slab rises through its feet and it is no longer supported. **No crush, no push** (top-only).
   - Carry never changes `vx`, `vy` (a carried-down rider keeps `vy` 0), the band, the gear, grace, `dxMoved` or the drag counter.
 - **7 Move X:** slabs are not walls. Nothing changes.
-- **8 Move Y:** the body **lands on** slab m when m is solid for it (`safe`; or m's band equals the body's band at the start of the step; or m's color is the active grace color, from above, as on tiles), its feet were at or above m's top at t and are at or below m's top at t+1 after its own vertical move, with strict horizontal overlap. Feet snap to the top, `vy` 0, grounded, a normal landing (drag reset, shift buffer, `land` event). This swept test stops a falling body passing through a rising slab, and lets a rising slab scoop up a body above it. `supported` also counts slab tops at t+1. `fallThrough` lists the slabs that let go (tech-lead's `movers?` field).
+- **8 Move Y:** the body **lands on** slab m when m is solid for it (`safe`; or m's band equals the body's band at the start of the step; or m's colour is the active grace colour, from above, as on tiles), its feet were at or above m's top at t and are at or below m's top at t+1 after its own vertical move, with strict horizontal overlap. Feet snap to the top, `vy` 0, grounded, a normal landing (drag reset, shift buffer, `land` event). This swept test stops a falling body passing through a rising slab, and lets a rising slab scoop up a body above it. `supported` also counts slab tops at t+1. `fallThrough` lists the slabs that let go (tech-lead's `movers?` field).
 - **9 Air drag** counts leg motion only, never carry.
 
 ## Edge cases
 
-- **Riding and color:** band comes from leg speed. Walking right at gear 1 on a slab moving right at 3.75 tiles/s moves you 6.75 tiles/s across the world and you are blue. Holding nothing on a moving slab: white, carried.
-- **Colored slab, standing:** impossible; white is never a slab color. Letting go on a green slab gives the usual 6-step grace from above, then a fall with coyote.
+- **Riding and colour:** band comes from leg speed. Walking right at gear 1 on a slab moving right at 3.75 tiles/s moves you 6.75 tiles/s across the world and you are blue. Holding nothing on a moving slab: white, carried.
+- **Coloured slab, standing:** impossible; white is never a slab colour. Letting go on a green slab gives the usual 6-step grace from above, then a fall with coyote.
 - **Jumping off: no inheritance.** The flight uses leg `vx` only, so every jump number in GDD §5 holds measured from the take-off point. A standing jump from a moving horizontal slab goes straight up while the slab moves on. **Level rule:** intended jumps off horizontal slabs happen while they rest (`w` ≥ 30 at that end).
 - **Shifting and ramping on a slab:** allowed; runway distances are slab-relative. A 4-wide slab cannot make red from standing.
-- **Turning or stopping at speed** passes through blue and white (GDD §4.5): on a colored slab that drops you.
+- **Turning or stopping at speed** passes through blue and white (GDD §4.5): on a coloured slab that drops you.
 - **Headroom:** level rule, at least 2 tiles of clear space above every point of a slab's swept area, so blocked carries never happen in shipped levels (they exist so the sim is total).
 - **Paths and tiles:** a slab's swept area overlaps no non-empty tile, spawn or exit (`tests/levels`, tech-lead §4.3). A slab may pass flush beside a ledge; stepping across needs equal tops at that moment.
 - **Exits:** never on or in a slab path. A home body freezes and is never carried.
-- **Tandem (Could for levels; sim tests Must):** per body; a slab's path stays inside one lane and colored slabs follow the lane coloring rule.
+- **Tandem (Could for levels; sim tests Must):** per body; a slab's path stays inside one lane and coloured slabs follow the lane colouring rule.
 - **Death:** movers never kill. Being carried off the bottom of the grid is a fall.
 
-## Readability (art; never color alone)
+## Readability (art; never colour alone)
 
 - A slab is a bar with a raised **top lip** (its only solid face) and the band's pattern, or plain grey for `safe`; rail clamps at both ends; side chevrons show its current direction (render-only, from the delta). It must not read as a static tile.
 - The **track** is always drawn: a dotted line along the path with end stops, in every effects mode. It is the plan of the puzzle.
@@ -75,10 +75,10 @@ Conventions as `movement-and-gears.md`. "Lift L": `mover: … 3x1 safe speed=2 p
 2. **Riding a lift standing.** A body on Lift L holding nothing: grounded every step; feet 0 at step 60, 3.0 at 108, 6.0 at 156 and 216, 3.0 at 264; band 0 and `vx` 0 every step; no `land` event.
 3. **Walking on a shuttle.** A body on Shuttle S, 1 tile from its left end: x unchanged for steps 1–60; holding R (gear 1) on steps 61–120 gives band 1 each step and x at the end of step 120 = start + 6.725 (legs 2.975, carry 60 × 0.0625 = 3.75). _(Corrected 2026-11-24: v1 used a wrong 0.1171875 tiles/step.)_
 4. **Jump cancels carry.** On Lift L while it rises, J on step 100: on step 100 the feet do not move with the slab (launch only); apex 3.0 above the step-99 feet on flight step 24; it lands back on the slab at state step 135 (pinned in [sim]'s fixture).
-4a. **Edge choices (ruled 2026-11-24, confirming [sim]):** a jump step never lands on a slab; a rider stopped by a wall and left behind by a safe slab emits no `fallThrough` (it walked off, it did not lose a color match); a downward carry onto a tile is blocked by the tile, and the body is then supported by it.
+4a. **Edge choices (ruled 2026-11-24, confirming [sim]):** a jump step never lands on a slab; a rider stopped by a wall and left behind by a safe slab emits no `fallThrough` (it walked off, it did not lose a colour match); a downward carry onto a tile is blocked by the tile, and the body is then supported by it.
 5. **Swept landing.** A body falling at `maxFallSpeed` onto Lift L while it rises lands on it, never passes through; one `land` event.
 6. **Carry into a wall.** On Shuttle S, a safe block at body height over the path ahead: the body stops touching the block, `vx` 0, no `wallStop`; the slab moves on; the body is airborne on the first step its box no longer overlaps the slab, with coyote. It never dies.
-7. **Colored slab = colored floor.** A `G` slab inside a wait, flush with a safe ledge, behaves step for step like `G` tiles in the same place for: walking on at gear 2 (supported), at gear 1 (walks into a hole, coyote), letting go on it from gear 2 (grace 6 steps from above, then falls), landing in band 2 (lands) and band 3 (falls through).
+7. **Coloured slab = coloured floor.** A `G` slab inside a wait, flush with a safe ledge, behaves step for step like `G` tiles in the same place for: walking on at gear 2 (supported), at gear 1 (walks into a hole, coyote), letting go on it from gear 2 (grace 6 steps from above, then falls), landing in band 2 (lands) and band 3 (falls through).
 8. **Top-only.** A standing jump from under any slab passes up through it; walking into a slab's side at any band never stops the body; a slab sliding sideways into a body never moves it.
 9. **No inheritance.** A standing jump from Shuttle S while it moves: `vx` 0 every flight step; x unchanged through the flight.
 10. **Drag ignores carry.** A gear-2 flat jump from a moving Shuttle S: drag counter at landing = the flight's leg distance (4.8), no drop.
@@ -88,7 +88,7 @@ Conventions as `movement-and-gears.md`. "Lift L": `mover: … 3x1 safe speed=2 p
 
 ## Priority
 
-- **Must:** safe and colored slabs, horizontal and vertical legs, top-only, carry, swept landing, the drawn track.
+- **Must:** safe and coloured slabs, horizontal and vertical legs, top-only, carry, swept landing, the drawn track.
 - **Should:** the leaving blink.
 - **Could:** all-faces solid slabs with push and crush (tech-lead's §2.3 design; a "crusher" hazard), white slabs, Tandem mover levels.
 - **If [sim] runs late:** horizontal legs become Could and w4-02 becomes a lift level (`levels-w4.md`).

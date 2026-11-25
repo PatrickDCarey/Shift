@@ -1,17 +1,17 @@
-# World 5, level 1. Teach: a colored bolt only hits its own color.
+# World 5, level 1. Teach: a coloured bolt only hits its own colour.
 # Target first-time solve: 15-25 s.
 # Layout (30 x 13, one screen): safe runway (cols 0-15, spawn col 1, open sky) with two red rain lanes
 #   falling from ceiling emitters at col 4 (the demo, 3 tiles from the spawn) and col 12 (the test),
 #   -> red bridge (cols 16-21) over a death pit under a safe roof (2 tiles of headroom) -> exit pad.
 # Both lanes are dense (speed 2, period 32: a bolt every 2 tiles), so a body in a lane always overlaps
 #   a bolt; red bolts only hit a red runner. Walking blue through the col-4 lane, bolts fall through you.
-# Sprint from the spawn and you are red at col 12: hit. Cross col 12 in any other color, then turn red
+# Sprint from the spawn and you are red at col 12: hit. Cross col 12 in any other colour, then turn red
 #   in the 3 safe tiles before the bridge. Yellow cruise, one press up at x 12.47-15.92: 24 steps.
 #   Walking blue, three presses up from x 9.83-13.38: 72 steps.
 id: w5-01
 title: Spark
 world: 5
-teaches: a colored bolt only hits its own color
+teaches: a coloured bolt only hits its own colour
 version: 1
 hint: move 1 6
 hint: shiftUp 14 6

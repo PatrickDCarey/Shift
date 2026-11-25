@@ -1,6 +1,6 @@
 # World 2, level 5 (long), version 2. Test: worlds 1-2 in one run, reading ahead. No new idea, no hints.
 # Target first-time solve: 4-8 min (clean run 63.4 s). 9 rooms, 306 x 15, scrolls; 2 posts.
-# Rows 0-1 hold no colored tile or exit (the HUD rows). Ground row 12 from col 50 to col 231, row 14 after.
+# Rows 0-1 hold no coloured tile or exit (the HUD rows). Ground row 12 from col 50 to col 231, row 14 after.
 # Section 1 (v1's rooms, unchanged, cols 0-71), hardest first:
 #   1 Coast (cols 0-23): red runway, 7-tile gap, yellow pad 3 lower; jump window 25 steps.
 #   2 Step Down (cols 24-49): press up once on the ledge, walk off red onto the red floor (52 steps).

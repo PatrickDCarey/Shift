@@ -24,7 +24,7 @@ A reference screen that lists every action and **every** key bound to it. It is 
 | 6 | `PAUSE` | Esc, P |
 
 - **Menu row** (1×, muted, under the table): `MENUS: ARROWS/WASD MOVE  ENTER/SPACE CHOOSE  ESC BACK` (53 characters).
-- **Band legend** (Should): the five HUD band glyphs (patterns) in a row, labelled `STOP 1 2 3 4` underneath, plus one muted line, `YOUR SPEED IS YOUR COLOR`. It is a reference for players who come looking; the levels still teach the rule without text.
+- **Band legend** (Should): the five HUD band glyphs (patterns) in a row, labelled `STOP 1 2 3 4` underneath, plus one muted line, `YOUR SPEED IS YOUR COLOUR` (British spelling, 2026-11-25). It is a reference for players who come looking; the levels still teach the rule without text.
 - **Focusable items**, at the bottom at 2×:
   - `SHOW STICKY KEYS TIP` (Windows only, `isWindows`);
   - `BACK` (focused when the screen opens).

@@ -1,16 +1,16 @@
 # Redshift — Core twist candidates
 
-_Owner: design-lead. 2026-11-03. The studio owner read `mechanics-review.md` (gates and walls, GDD v1.3 plan, commit b432391) and asked for bigger ideas: gates and walls are sound but are refinements of "be color X at place Y". This document offers three different answers to "what is the puzzle?". Nothing here is adopted; the owner picks first. If none is picked, v1.3 ships as written._
+_Owner: design-lead. 2026-11-03. The studio owner read `mechanics-review.md` (gates and walls, GDD v1.3 plan, commit b432391) and asked for bigger ideas: gates and walls are sound but are refinements of "be colour X at place Y". This document offers three different answers to "what is the puzzle?". Nothing here is adopted; the owner picks first. If none is picked, v1.3 ships as written._
 
 Fixed inputs for all three:
-- **Art direction C, Pixel Dither:** 480×270 logical at 2×, 16 px tiles (the screen stays 30 × 16.9 tiles). Every new element must read at 16×16 px by shape and pattern, never color alone.
-- **Built today:** hold-to-move gears, color gating with grace and no-embed, air drag, jump, safe tiles, colored walls (free, they are colored tiles).
+- **Art direction C, Pixel Dither:** 480×270 logical at 2×, 16 px tiles (the screen stays 30 × 16.9 tiles). Every new element must read at 16×16 px by shape and pattern, never colour alone.
+- **Built today:** hold-to-move gears, colour gating with grace and no-embed, air drag, jump, safe tiles, coloured walls (free, they are coloured tiles).
 - **Numbers** come from GDD §5 (exact against the sim) or are worked out by hand from the same step rules. Hand-worked numbers are marked "derived" and must be confirmed by tests before any level uses them.
 - **Collapse test** (`mechanics-review.md` §1): a puzzle fails if its answer is "go as fast as you can" or "go slow / stop" with no choice of where or when. Teach levels may be simple; the mechanic must also produce puzzles that pass.
 
 | # | Twist | The puzzle becomes | Cost (engineer-days) | Risk |
 |---|---|---|---|---|
-| 1 | **Tandem**: one throttle, two runners | Put two bodies out of step: same keys, different colors | ~5 + 1 art | Medium-high |
+| 1 | **Tandem**: one throttle, two runners | Put two bodies out of step: same keys, different colours | ~5 + 1 art | Medium-high |
 | 2 | **Wet Paint**: your pace paints the floor | Plan two passes: your speed now is a floor you meet later | ~3 + 1 art (+ heavy level design) | Medium |
 | 3 | **Redshift Clock**: speed slows the world | Choose when to freeze time | ~3.5 + 1 art | Medium (timing creep) |
 
@@ -37,18 +37,18 @@ The puzzle is a **phase shift between two runners**. With one throttle you canno
 - a mid-air stop that resets one body's gear to 1;
 - an exit that parks one body.
 
-You remove the difference with the gear clamp: pressing up past gear 4 brings both to 4. Pace stays the only verb, but each body's color now depends on its own history. Every Tandem puzzle is planning; none needs reflexes.
+You remove the difference with the gear clamp: pressing up past gear 4 brings both to 4. Pace stays the only verb, but each body's colour now depends on its own history. Every Tandem puzzle is planning; none needs reflexes.
 
 ### Paper puzzles
 
 Lanes are stacked: your lane on top, the twin's lane below, separated by a solid band.
 
 1. **Two Lanes (teach).** Identical lanes: safe pad, blue bridge, safe pad, green bridge. Hold right in gear 1, both walk blue; shift up on the pad, both turn green after 0.6 tiles (GDD §5.1). Let go on the twin's bridge and it falls; the run dies. *Teaches "same keys"; simple by design.*
-2. **Out of Step (a wall makes one color into two).** Both cruise red (gear 4). Your lane has a red wall at x = X; the twin's lane is open.
+2. **Out of Step (a wall makes one colour into two).** Both cruise red (gear 4). Your lane has a red wall at x = X; the twin's lane is open.
    - Your body stops dead at the wall (vx 0, gear 4 kept). Keep holding: it restarts at blue, passes the red wall, and ramps green from 0.60 to 1.88 tiles past its stop point (§5.1, steps 10–22).
    - The twin keeps sprinting: on those steps it is 2.0–4.6 tiles past the wall (0.2 tiles per step, derived).
    - Your lane: a green bridge from X+0.25 to X+1.5. You are wholly on it from 1.0 to 1.5 tiles past the stop: green. Twin lane: a red bridge from X+2 to X+5.
-   - Arrive yellow instead and the wall doesn't stop you: you are yellow on green and fall. *Holds:* you must be red so the wall stops you, and that one input then gives two colors.
+   - Arrive yellow instead and the wall doesn't stop you: you are yellow on green and fall. *Holds:* you must be red so the wall stops you, and that one input then gives two colours.
 3. **Gear Split (an air stop resets one gear).** Both cruise gear 4 and jump together.
    - A hanging safe block 3 tiles past launch, in your lane only, stops your body on flight step 14 (front edge passes 2.625, derived). vx goes to 0, band 0, and the air rule sets gear 1. You fall straight down to your floor.
    - The twin flies on: 8.7 tiles, dragged to yellow on step 30, landing in gear 3 (§5.3).
@@ -61,7 +61,7 @@ Lanes are stacked: your lane on top, the twin's lane below, separated by a solid
 
 ### How it combines
 
-- **Color gating:** each body tests its own band. Grace and coyote apply per body.
+- **Colour gating:** each body tests its own band. Grace and coyote apply per body.
 - **Air drag and the air rule:** the main split tools (drag lowers one gear only when the two flights differ).
 - **Walls:** the main offset tool (one lane's wall).
 - **Safe tiles:** where you split and re-sync.
@@ -99,8 +99,8 @@ Lanes are stacked: your lane on top, the twin's lane below, separated by a solid
 
 ### First 3 levels
 
-1. **Two Lanes:** same keys, same colors (puzzle 1).
-2. **Out of Step:** a wall makes two colors from one input (puzzle 2).
+1. **Two Lanes:** same keys, same colours (puzzle 1).
+2. **Out of Step:** a wall makes two colours from one input (puzzle 2).
 3. **Gear Split:** an air stop leaves your body two gears behind (puzzle 3).
 
 ---
@@ -113,7 +113,7 @@ Lanes are stacked: your lane on top, the twin's lane below, separated by a solid
 - **Painting:** at the end of every step on which the player is grounded (after the band is recomputed, phase 10), every canvas tile under the feet that the box overlaps horizontally is painted with the current band (0–4).
   - A launch step ends airborne, so it paints nothing.
   - So each canvas tile keeps the band you had **on the last step you stood on it**.
-- **A painted tile behaves exactly as a colored tile of its band.** White paint (band 0) is solid only for a standing player.
+- **A painted tile behaves exactly as a coloured tile of its band.** White paint (band 0) is solid only for a standing player.
   - Landing on paint needs a match (no grace on landing).
   - Walking onto mismatched paint is walking into a hole.
 - While you stand on canvas it is repainted every step, so canvas never drops you on the pass that paints it. Paint only matters **the next time you meet it**.
@@ -130,19 +130,19 @@ Your pace leaves a red-shifted trail that becomes geometry. The question changes
 Paint needs a second pass, so levels loop: out along a lower canvas floor, up at the far end, back along an upper walkway, and down onto the canvas again (or back across it).
 
 1. **Footprints (teach).** Out across a 10-tile canvas floor over a pit; back along the upper walkway, which ends in a blue bridge and a 3-tile drop onto the canvas. You land blue, 1.25 tiles out (derived: 25 airborne steps at 0.05). Sprint out and the canvas is red, so you land on red paint at blue and fall through. *Teaches "the floor remembers how fast you crossed".*
-2. **Paint the Landing (combine with drag).** The return route ends with a sprint jump off a ledge 2 tiles above the canvas: it lands 9.75 tiles out, **yellow** (§5.4, gear 4 to −2). So on the way out, cross the stretch around 9.75 tiles past that ledge at yellow: cruise in gear 3, or catch the yellow part of a ramp (1.88–3.23 tiles from a standstill, §5.1). Landing x varies about 1.5 tiles with takeoff, so paint about 3 tiles. *Holds:* a middle color at a chosen place, set by a flight you make later.
+2. **Paint the Landing (combine with drag).** The return route ends with a sprint jump off a ledge 2 tiles above the canvas: it lands 9.75 tiles out, **yellow** (§5.4, gear 4 to −2). So on the way out, cross the stretch around 9.75 tiles past that ledge at yellow: cruise in gear 3, or catch the yellow part of a ramp (1.88–3.23 tiles from a standstill, §5.1). Landing x varies about 1.5 tiles with takeoff, so paint about 3 tiles. *Holds:* a middle colour at a chosen place, set by a flight you make later.
 3. **Dig (stop and hop).** The exit pocket lies under canvas tile k. On the way out, walk to k, let go (instant stop, band 0, the tiles under you turn white) and hop on with jump + right from standing. The launch step ends airborne, so the white mark stays; the hop lands 2.375 tiles on (§5.3 note). Come back walking blue: white is a hole, and you drop into the pocket. *Holds:* the answer is where you stopped.
 4. **Bridge for Later (the future picks the pace).**
    - The outbound route has a long runway, so red is tempting.
    - The return reaches the same canvas bridge from a 2.5-tile pad: red is impossible there (it needs 3.23, §5.1), yellow is possible (1.88).
    - After the bridge, a 7-tile gap to a pad 2 tiles lower: a yellow jump lands green at 7.50 (§5.4); green can't reach even with coyote (derived: at most 6.85).
-   - So paint the bridge yellow on the way out (gear 3 cruise). Red paint makes the return impossible; green paint means a green return and too short a jump. *Holds:* a middle color chosen by the second pass.
+   - So paint the bridge yellow on the way out (gear 3 cruise). Red paint makes the return impossible; green paint means a green return and too short a jump. *Holds:* a middle colour chosen by the second pass.
 5. **Gate Ink (combine with gates).** A green gate on the outbound route forces green at one spot, so that canvas is green, and the return must cross it green, before a yellow bridge 2 tiles later (0.56 tiles to yellow, §5.1). *Holds;* gates are optional.
 
 ### How it combines
 
-- **Color gating:** paint *is* color gating, written by the player.
-- **Air drag:** landing color decides what you must have painted (puzzle 2).
+- **Colour gating:** paint *is* colour gating, written by the player.
+- **Air drag:** landing colour decides what you must have painted (puzzle 2).
 - **Safe tiles:** don't record, so they are where you change pace without leaving a mark.
 - **Walls:** a wall stop is white for one step, but walking away repaints at blue, so walls leave no mark. Only a hop does (puzzle 3).
 - **Gates:** pin the paint at a point (puzzle 5).
@@ -158,7 +158,7 @@ Paint needs a second pass, so levels loop: out along a lower canvas floor, up at
 | Lane | Work | Days |
 |---|---|---|
 | tech-lead | canvas char, `SimState.paint`, paint phase in architecture.md | 0.5 |
-| [sim] | paint phase; painted canvas uses the colored-tile solidity; reset; tests | 1.5 |
+| [sim] | paint phase; painted canvas uses the coloured-tile solidity; reset; tests | 1.5 |
 | [level] | canvas char | 0.25 |
 | [scene] | redraw tiles when paint changes; paint FX | 0.75 |
 | art | blank canvas (dotted primer grid) and painted state (band pattern plus a brush-stroke corner notch) at 16 px | 1 |
@@ -166,10 +166,10 @@ Paint needs a second pass, so levels loop: out along a lower canvas floor, up at
 **Total about 3 engineer-days plus 1 art-day. This is the cheapest of the three.**
 - **The hidden cost is level design:** every puzzle needs a loop or a return pass, rooms get bigger, and the level-designer's M3 load roughly doubles per level.
 - **Risk:** medium.
-- **Quantization trap:** paint is per tile, while ramps and brakes change color at fractional positions. Puzzles must paint whole stretches at a cruise, never rely on ramp boundaries landing on tile edges.
+- **Quantization trap:** paint is per tile, while ramps and brakes change colour at fractional positions. Puzzles must paint whole stretches at a cruise, never rely on ramp boundaries landing on tile edges.
 
 **Readability at 480×270:**
-- Painted tiles reuse the colored-tile patterns, so players already know them; the notch shows they are paint.
+- Painted tiles reuse the coloured-tile patterns, so players already know them; the notch shows they are paint.
 - The trail under the runner is the most legible new element of the three.
 
 ### First 3 levels
@@ -223,25 +223,25 @@ It is the game's title made literal: the faster you go, the slower the world (ti
    - Sprint at once: you are red (frozen) after 66 ticks, the wall is still shut, and it stays shut while you're red. You bump into it, and from a standstill red is impossible in 1 tile.
    - Stand still 54 ticks (14 steps) first, so that you freeze only once it's open. Any wait from 54 to 233 ticks works (14–58 steps).
    - *Holds:* the answer is **when** to go fast, and going fast at once fails.
-3. **Fixed Clock (combine with colored floors).** A 9-tile green floor over a pit ends at a set-A wall, then a safe pad. Green is forced, so the crossing costs exactly 180 ticks: one phase.
+3. **Fixed Clock (combine with coloured floors).** A 9-tile green floor over a pit ends at a set-A wall, then a safe pad. Green is forced, so the crossing costs exactly 180 ticks: one phase.
    - Step onto the green floor while the wall is **closed** and it is open when you arrive. Any moment of the closed phase works: a 180-tick window.
    - Step on while it is open and you arrive as it shuts: you bump, turn white on green and drop.
-   - *Holds:* the colored floor fixes your clock, and the decision is when to commit.
+   - *Holds:* the coloured floor fixes your clock, and the decision is when to commit.
 4. **Hand-off (combine with drag).** Takeoff from a set-A runway, landing on a set-B pad 6.5–8 tiles out.
    - Take off while A is still on and land once B is on: the flip must happen during the flight.
    - Yellow flies 56 ticks and lands 6.8 out. On a yellow-paced runway (1 tick per step) you can watch A's last 56 ticks and jump inside them: about 56 steps of window.
    - Green flies 96 ticks but falls short (4.8). Red lands too far (8.7), and its window would be 18 ticks under a frozen approach.
-   - *Holds:* the middle color, set by distance and time together.
+   - *Holds:* the middle colour, set by distance and time together.
 
 ### Honest caveat: timing creep
 
-The clock is global and standing makes it run fastest, so the player can almost always wait for the right moment. Puzzles therefore turn into "wait for the countdown, then execute" unless something fixes your pace while time must pass: a colored floor (puzzle 3) or flight (puzzle 4).
+The clock is global and standing makes it run fastest, so the player can almost always wait for the right moment. Puzzles therefore turn into "wait for the countdown, then execute" unless something fixes your pace while time must pass: a coloured floor (puzzle 3) or flight (puzzle 4).
 
 I tried a "ride the wave" puzzle (alternating blinker sections matched to green speed) and rejected it. Its window is the box width divided by speed (7.5 steps at green), below the 12-step fairness floor. Expect a share of clock levels to read as timing, which pushes against pillar 1.
 
 ### How it combines
 
-- **Colored floors:** set the clock rate per place (puzzle 3).
+- **Coloured floors:** set the clock rate per place (puzzle 3).
 - **Drag:** restarts the clock mid-flight (puzzle 4).
 - **Safe tiles:** the place to fast-forward.
 - **Walls:** a wall stop is instant white, so a bump fast-forwards.
@@ -266,26 +266,26 @@ I tried a "ride the wave" puzzle (alternating blinker sections matched to green 
 
 **Total about 3.5 engineer-days plus 1 art-day.**
 - **Risk:** medium. The code is small, but puzzle quality depends on avoiding timing creep, and that is only proven by playtest (M3-34).
-- **Readability at 480×270:** a 4-pip countdown on a 16 px tile is legible. The global "frozen" state needs a strong cue (HUD clock hand stops, dither shimmer freezes) that works without color.
+- **Readability at 480×270:** a 4-pip countdown on a 16 px tile is legible. The global "frozen" state needs a strong cue (HUD clock hand stops, dither shimmer freezes) that works without colour.
 
 ### First 3 levels
 
 1. **Freeze:** sprint and the world stops (puzzle 1).
 2. **Thaw:** freeze only after the door opens (puzzle 2).
-3. **Fixed Clock:** a colored floor sets the clock (puzzle 3).
+3. **Fixed Clock:** a coloured floor sets the clock (puzzle 3).
 
 ---
 
 ## 4. Seeds considered and rejected
 
-- **Doppler by direction** (approaching tiles look and act different from receding ones): needs a reference frame per tile and doubles the color set into signed colors. It is unreadable at 16 px in pixel art, and it reduces to direction-gated floors, which duplicate colored floors.
-- **Each gear rotates which colors are solid:** decouples color from speed, breaks "your pace is your color" (the pitch) and pillar 2.
+- **Doppler by direction** (approaching tiles look and act different from receding ones): needs a reference frame per tile and doubles the colour set into signed colours. It is unreadable at 16 px in pixel art, and it reduces to direction-gated floors, which duplicate coloured floors.
+- **Each gear rotates which colours are solid:** decouples colour from speed, breaks "your pace is your colour" (the pitch) and pillar 2.
 - **Recorded ghost of your previous attempt as a solid body:** the replay format already includes earlier runs, but a moving solid body is the moving-platform subsystem (carry, push, crush), and leaderboard times would depend on earlier attempts. Too expensive for the jam.
 - **Conveyors and relative speed:** two velocities, and "legs vs world" fails the 10-second read (unchanged from the review).
 
 ## 5. Recommendation
 
-**Pick Tandem.** It is the only candidate whose puzzles are pure planning (no timing) and genuinely new: one input, two colors, created by walls, flights and parking, and removed by the gear clamp. Pace stays the only verb, so the game's identity gets sharper rather than adding a second system. Its puzzles also use the cut boost pad and the existing walls well.
+**Pick Tandem.** It is the only candidate whose puzzles are pure planning (no timing) and genuinely new: one input, two colours, created by walls, flights and parking, and removed by the gear clamp. Pace stays the only verb, so the game's identity gets sharper rather than adding a second system. Its puzzles also use the cut boost pad and the existing walls well.
 
 **Second choice: Wet Paint**, if the engineering budget is the binding constraint (cheapest code, strongest read at 480×270). Its cost moves to level design.
 
@@ -300,6 +300,6 @@ I tried a "ride the wave" puzzle (alternating blinker sections matched to green 
 - Gates and ice: Should.
 - Must stays at 14 levels.
 
-**Placement risk for any twist:** a jam voter plays about 10 minutes, so the twist must appear by level 8–9. If the owner wants it earlier, move Two Colors after the first twist level.
+**Placement risk for any twist:** a jam voter plays about 10 minutes, so the twist must appear by level 8–9. If the owner wants it earlier, move Two Colours after the first twist level.
 
 **Fallback: if none of these is picked, ship gates and walls as in v1.3** (`mechanics-review.md`, `level-plan.md` v2.0, `features/speed-gates.md`, `features/colored-walls.md`).

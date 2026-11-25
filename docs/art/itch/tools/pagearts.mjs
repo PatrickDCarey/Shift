@@ -78,7 +78,7 @@ const scenes = {
   banner(x, w, h) {
     W.sky(x, w, h, 0); const K = 4, T = 64;
     const k = 9, tw = W.tw('REDSHIFT', k), tx = 44; W.text(x, 'REDSHIFT', '#F5283C', tx + 7, 58, k); W.text(x, 'REDSHIFT', '#F2F4FF', tx, 51, k);
-    W.text(x, 'Your speed is your color.', W.pal.ui.text, tx, 141, 3); W.text(x, 'Only your color is solid.', W.pal.ui.text, tx, 171, 3);
+    W.text(x, 'Your speed is your colour.', W.pal.ui.text, tx, 141, 3); W.text(x, 'Only your colour is solid.', W.pal.ui.text, tx, 171, 3);
     const x0 = 560;
     for (let i = 0; i < 5; i++) { const bx = x0 + i * 80; W.spr(x, W.tile(i), bx, 176, K); W.spr(x, `player/runner/${W.G[i]}/idle_0`, bx - 8, 176 - 28 * K + 4, K); }
   },

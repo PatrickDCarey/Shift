@@ -44,7 +44,7 @@ The results panel (`results.md`) shifts left; the board sits to its right on the
 
 - **Header:** `BOARD` and the level label.
 - **Rows:** the **top 5**: rank, name, time. Each name appears **once per board, at its best run** (the query returns each display name's best row).
-- **You:** if this run was posted and is outside the top 5, a sixth row after a gap: `23 ACE 0:14.02`. The player's row (in or out of the top 5) uses the focus text color and the star icon.
+- **You:** if this run was posted and is outside the top 5, a sixth row after a gap: `23 ACE 0:14.02`. The player's row (in or out of the top 5) uses the focus text colour and the star icon.
 - **States:**
   - **configured off** (no env): no board panel at all, the results panel stays centred, and nothing anywhere mentions leaderboards;
   - **loading:** `…` in the rows area for up to the request timeout (3 s, backend constant);

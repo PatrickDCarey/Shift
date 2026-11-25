@@ -20,7 +20,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 
 **Teaches:** a grey lift carries you; standing on it you stay white.
 
-**Intent.** World 4 opens on a wall too tall to climb (6 tiles, against the 2-tile limit) and a grey slab resting at its foot. Walk on, let go, and it lifts you; at the top it rests long enough to walk off, then a short **blue bridge** (world 1's first lesson, familiar to a cold player) leads to the exit. Standing still on a moving thing and seeing yourself stay white is the point: color comes from your legs, not the world.
+**Intent.** World 4 opens on a wall too tall to climb (6 tiles, against the 2-tile limit) and a grey slab resting at its foot. Walk on, let go, and it lifts you; at the top it rests long enough to walk off, then a short **blue bridge** (world 1's first lesson, familiar to a cold player) leads to the exit. Standing still on a moving thing and seeing yourself stay white is the point: colour comes from your legs, not the world.
 
 - Slab: `safe`, 3x1, `speed=2`, `path=w90,u6,w90,d6` (96 steps per move).
 - Missing it costs nothing: it comes back. Walking off the top before it arrives is a wall bump.
@@ -44,7 +44,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 
 ## w4-03 Moving Bridge
 
-**Teaches:** a colored slab holds only its own color, so you cannot stand on it: cross it at its pace, while it is level.
+**Teaches:** a coloured slab holds only its own colour, so you cannot stand on it: cross it at its pace, while it is level.
 
 **Intent.** Two safe ledges with a 6-tile gap; a **green** slab, 6 wide, rises from below and rests level with the ledges, then sinks. A safe roof exactly 2 tiles above the ledges spans the gap plus one column each side, so nothing jumps it. w4-01 taught that grey lifts carry you standing; this one is green, so standing (white) drops you through, and so does yellow. Wait on the safe ledge, leave in gear 2 as it arrives, cross while it rests.
 
@@ -69,7 +69,7 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 
 ## w4-05 Commute (long)
 
-**Combines:** lift, shuttle, colored slab, with runway, drag and the red wall. No new idea; no sweep.
+**Combines:** lift, shuttle, coloured slab, with runway, drag and the red wall. No new idea; no sweep.
 
 **v4.1 (2026-11-24): a long level is 8–12 rooms, 300–450 tiles, 45–75 s clean, with posts (`level-plan.md` "Long levels").** Commute becomes **9 rooms, ≈ 350 tiles, 2 posts**: section 1 is the three rooms below in the order given; **post 1**; section 2: Ferry (shuttle docking at a green bridge), Moving Bridge (green slab), a Brake onto a blue bridge; **post 2**; section 3 (easiest): a lift **down** a shaft, a Runway with a back wall, and a slow blue walk home. The paragraph below (v4.0, three rooms) is now section 1.
 
@@ -80,8 +80,9 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 2. **Up:** a safe runway, a red bridge into a Coast jump onto a yellow pad 2 lower (w2-02), then a grey lift 6 up.
 3. **Down (easy):** a green moving bridge with a long rest (window ≥ 30), then a long brake pad and a blue bridge to the exit (w1-04).
 
+- **v3 (2026-11-25), APPROVED as built:** headers only. Post A at col 88 (`clock=993`, 48-step departure window) makes 3 posts. The Ferry's post-side rest is 190 (`phase=202 path=w190,r12,w90,l12`, cycle 664), **extended later, not earlier** as I asked: a respawned walker reaches it at a fixed point of its rest, so only a later departure adds slack. Boarding slack after a post-B respawn is 0–155 steps (was 0–55). Later phases and post C were re-derived. Run 4,164 steps (69.4 s). (`decisions.md` 2026-11-25 world-5 triage, item 11.)
 - Clean run (recording) ≤ 3,600 steps (60 s); par expected 40–50 s. First clear 2–3 minutes.
-- **COMBINE rule:** no win skips the lift, the shuttle or the colored slab.
+- **COMBINE rule:** no win skips the lift, the shuttle or the coloured slab.
 
 **APPROVED v1 as built (2026-11-24; replaces the room list above where they differ).** 300 × 15, six slabs, posts at cols 132 and 215 with `clock=` set to the recording's step as a gear-1 walker passes each respawn x (a respawned walker meets every slab at the recording's phase). Recording 4,006 steps (66.8 s), fastest known 3,946. Rooms: (1) Across: shuttle to a red door and red bridge; (2) Up: short Coast (5-tile gap, pad 2 lower) and a 6-tile lift; (3) **Level** (not a descent): a green slab with a 150-step rest, brake pad, blue bridge; post 1; (4) Ferry; (5) Moving Bridge; (6) Brake; post 2; (7) a lift **down an open shaft with no floor** (a floor would let you skip the lift; walking in while the lift is away is a death, 12 tiles from post 2); (8) Runway from a **standing start** at the shaft wall (10 tiles under a ceiling); (9) Home: 3 presses down, a 26-tile blue bridge. Windows: run 94, jump 33, Ferry leave 70, Brake 44, section 3 ≥ 97. Fair-line waits ≤ 1.2 s; a late arrival waits up to one shuttle cycle (9.4 s) on safe ground, accepted (`level-plan.md` v4.2).
 

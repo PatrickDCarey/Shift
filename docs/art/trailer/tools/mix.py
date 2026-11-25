@@ -15,7 +15,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 TR = ROOT / "release" / "trailer"
-CUT = TR / "cut"
 SFX_DIR = TR / "audio"
 TARGET_LUFS = -16.0
 SFX_GAIN_DB = -11.0   # the game plays cues well under the music; one-shots are peak-normalised to -6 dBFS
@@ -35,7 +34,8 @@ def integrated_lufs(path: Path) -> float:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    label = sys.argv[1] if len(sys.argv) > 1 else "v1"
+    label = sys.argv[1] if len(sys.argv) > 1 else "v2"
+    CUT = TR / "cut" / label
     total = json.loads((CUT / "timeline.json").read_text(encoding="utf-8"))["seconds"]
     cues: list[tuple[float, str]] = [tuple(c) for c in json.loads((CUT / "cues.json").read_text(encoding="utf-8"))]
 

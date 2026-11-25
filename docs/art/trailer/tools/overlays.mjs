@@ -60,12 +60,12 @@ await shot('key-shift-pressed.png', keycap, { down: true });
 
 // Caption plates (4 canvas px per font px), one line, dark translucent plate with a 1 grid px border.
 const caption = `(x, a) => {
-  const k = 4, tw = W.textW(a.t, k), pad = 3 * k, bw = tw + 2 * pad, bh = 7 * k + 2 * pad, bx = Math.round((1920 - bw) / 2), by = 930;
+  const k = 8, tw = W.textW(a.t, k), pad = 3 * k, bw = tw + 2 * pad, bh = 7 * k + 2 * pad, bx = Math.round((1920 - bw) / 2), by = 1080 - 72 - bh;
   x.fillStyle = 'rgba(7,10,24,0.82)'; x.fillRect(bx, by, bw, bh);
   x.fillStyle = W.pal.ui.panelBorder; x.fillRect(bx, by, bw, k); x.fillRect(bx, by + bh - k, bw, k); x.fillRect(bx, by, k, bh); x.fillRect(bx + bw - k, by, k, bh);
   W.text(x, a.t, W.pal.ui.text, bx + pad, by + pad, k);
 }`;
-const caps = { 'caption-your-speed-is-your-color': 'YOUR SPEED IS YOUR COLOR', 'caption-only-your-color-is-solid': 'ONLY YOUR COLOR IS SOLID', 'caption-platforms-move': 'PLATFORMS MOVE', 'caption-bolts-hit-their-own-color': 'BOLTS HIT THEIR OWN COLOR', 'caption-checkpoints': 'CHECKPOINTS' };
+const caps = { 'caption-your-speed-is-your-colour': 'YOUR SPEED IS YOUR COLOUR', 'caption-only-your-colour-is-solid': 'ONLY YOUR COLOUR IS SOLID', 'caption-platforms-move': 'PLATFORMS MOVE', 'caption-bolts-hit-their-own-colour': 'BOLTS HIT THEIR OWN COLOUR', 'caption-checkpoints': 'CHECKPOINTS' };
 for (const [f, t] of Object.entries(caps)) await shot(f + '.png', caption, { t });
 
 // End card on the 480x270 grid drawn at 4x. step null = still (every gear solid, red shadow); 0..4 = animation (that gear lit, the rest ghost).
@@ -84,7 +84,7 @@ const endcard = `(x, a) => {
     W.sprite(x, W.player, W.playerJ, 'player/runner/' + g + '/idle_0', x0 + 14 * K, yT - 28 * K, K);
   });
   const line = (t, col, k, y) => W.text(x, t, col, Math.round((1920 - W.textW(t, k)) / 2), y, k);
-  line('Your speed is your color.', W.pal.ui.text, 8, 640); line('Only your color is solid.', W.pal.ui.text, 8, 720);
+  line('Your speed is your colour.', W.pal.ui.text, 8, 640); line('Only your colour is solid.', W.pal.ui.text, 8, 720);
   line('GitHub Game Off 2026', W.pal.ui.textMuted, 4, 850);
   line('Play free on itch.io', '#FFD60A', 8, 920);
 }`;

@@ -2,7 +2,7 @@
 
 _Owner: art-director. Source of truth for values: `src/data/palette.json`. Checked by `src/fx/accessibility.test.ts`, `src/fx/patterns.test.ts`, `src/fx/background.test.ts` and `src/fx/pixel/*.test.ts` (run by `npm test`). If a number here disagrees with the tests, the tests win._
 
-Rule: **color is never the only signal.** Every band has a pattern, every tile you can stand on differs from one you will fall through in fill, outline and brightness (not just hue), and every pair of band colors stays separable under the three dichromacies.
+Rule: **colour is never the only signal.** Every band has a pattern, every tile you can stand on differs from one you will fall through in fill, outline and brightness (not just hue), and every pair of band colours stays separable under the three dichromacies.
 
 ## 1. Palette
 
@@ -18,17 +18,17 @@ Background: `#0B0D14` (near-black). Contrast ratios are WCAG 2.x against that ba
 
 Safe tile (`#`, always solid, drawn grey, no pattern): fill `#5F6987` (3.57:1; was `#7E88A6`, darkened 2026-11-03 so a white exit frame reaches 5.44:1 against it), outline `#D5DBEE` (14.05:1). It is the only plain tile, so "plain grey" always means "safe to stop here".
 
-UI colors: text `#E8ECF8`, muted text `#A3AECB`, panel `#0F1220` (was `#141826`; red band color as HUD text is 4.66 on it, 4.42 on the old one), panel border `#5A6590`, focus ring `#FFFFFF`. Drag-downshift flash: `#FFFFFF` at 0.35 alpha for 120 ms.
+UI colours: text `#E8ECF8`, muted text `#A3AECB`, panel `#0F1220` (was `#141826`; red band colour as HUD text is 4.66 on it, 4.42 on the old one), panel border `#5A6590`, focus ring `#FFFFFF`. Drag-downshift flash: `#FFFFFF` at 0.35 alpha for 120 ms.
 
-### Colors changed on 2026-11-03 (direction C pick)
+### Colours changed on 2026-11-03 (direction C pick)
 - **Safe fill** `#7E88A6` to `#5F6987`. **Ghost outlines** blue `#3F73D0` to `#4F86E8`, green `#4CC480` to `#40D88C`, red `#D02536` to `#E11E3A` (ink follows). The old red ghost was 2.58:1 against the standing background under protanopia (reds go dark) and the old blue 2.94:1 under deuteranopia on a tinted background. The new set keeps every pair of ghost outlines at least 27.8 delta-E apart under every vision (it was found by search: a lighter red collapsed into green under deuteranopia). Residual: protanopia, red ghost against the tinted backgrounds is 2.46:1, below 3 but above the old 2.30 (a floor of 2.4 is tested); the checker pattern, the dashes and the corners carry it. Against every pixel decor colour including ridges and stars it is 2.20 to 2.31 (section 11: the one documented exception).
 - **Red pattern** crosshatch to checker (design-lead: a lattice reads as grating or a hazard).
 - **HUD panel** `#141826` to `#0F1220`. **Decor luminance cap** 0.0055 to 0.013 (section 7).
 - All of the above are in `src/data/palette.json` and covered by `src/fx` tests.
 
-### Colors changed from the first draft
+### Colours changed from the first draft
 - Green: `#2EE66B` to `#5CF29B`, red: `#FF3B4E` to `#F5283C`. The first pair were nearly the same lightness, so deuteranopia pushed green and red to a delta-E of 16 (not separable). Making green lighter and red darker and more saturated lifts that to 34 while keeping red at 4.85:1.
-- Ghost outlines are the band color mixed 20% toward the background (30% pushed red and blue under 3:1). Red's is only 14% toward it (`#C62334` to `#D02536`) because the tinted background (section 7) lifts the red ghost fill and `#C62334` fell to 2.9:1 against it.
+- Ghost outlines are the band colour mixed 20% toward the background (30% pushed red and blue under 3:1). Red's is only 14% toward it (`#C62334` to `#D02536`) because the tinted background (section 7) lifts the red ghost fill and `#C62334` fell to 2.9:1 against it.
 
 ## 2. Contrast results
 
@@ -42,15 +42,15 @@ All pass; thresholds are WCAG 1.4.11 (3:1 for gameplay and UI components) and 1.
 | Focus ring, panel border vs background | 19.41, 3.42 | 3:1 |
 | Text `#E8ECF8` vs background / panel | 16.44 / 15.77 | 4.5:1 |
 | Muted text `#A3AECB` vs background / panel | 8.76 / 8.40 | 4.5:1 |
-| Band colors used as HUD text vs panel (fill) | min 4.66 (red); on the bare tinted background use the light outline tint instead (red 7.3+) | 4.5:1 |
+| Band colours used as HUD text vs panel (fill) | min 4.66 (red); on the bare tinted background use the light outline tint instead (red 7.3+) | 4.5:1 |
 
-## 3. Color-vision deficiency results
+## 3. Colour-vision deficiency results
 
 Simulation: **Machado, Oliveira and Fernandes (2009), severity 1.0** (complete dichromacy), applied to linear RGB (`MACHADO_2009` in `src/fx/color.ts`). Distance: **CIE76 delta-E** in CIELAB (D65).
 
-**Minimum distance: 25.** CIE76's just-noticeable difference is about 2.3. Two colors that merely differ by a JND are only separable side by side; a player has to identify a single tile's band while moving, so we require roughly ten JNDs. 25 is also comfortably above the 10 to 20 range usually quoted as "clearly different" for categorical colors, and the palette clears it with margin. This is a screening number, not a guarantee; the patterns are the real backstop.
+**Minimum distance: 25.** CIE76's just-noticeable difference is about 2.3. Two colours that merely differ by a JND are only separable side by side; a player has to identify a single tile's band while moving, so we require roughly ten JNDs. 25 is also comfortably above the 10 to 20 range usually quoted as "clearly different" for categorical colours, and the palette clears it with margin. This is a screening number, not a guarantee; the patterns are the real backstop.
 
-Closest pair among the five solid band colors:
+Closest pair among the five solid band colours:
 
 | Vision | Closest pair | delta-E | Result |
 |---|---|---|---|
@@ -59,7 +59,7 @@ Closest pair among the five solid band colors:
 | deuteranopia | green-red | 33.8 (the hardest pair) | pass |
 | tritanopia | white-yellow | 29.6 | pass |
 
-Closest pair among the five ghost outline colors (dimmer, so slightly closer):
+Closest pair among the five ghost outline colours (dimmer, so slightly closer):
 
 | Vision | Closest pair | delta-E | Result |
 |---|---|---|---|
@@ -68,7 +68,7 @@ Closest pair among the five ghost outline colors (dimmer, so slightly closer):
 | deuteranopia | white-green | 27.8 | pass |
 | tritanopia | blue-green | 29.8 | pass |
 
-The grey safe tile against each solid band color: minimum 30.8 (blue under tritanopia), all others 42 or more. Tested for normal vision and all three types.
+The grey safe tile against each solid band colour: minimum 30.8 (blue under tritanopia), all others 42 or more. Tested for normal vision and all three types.
 
 ## 4. Patterns (the backstop)
 
@@ -86,18 +86,18 @@ Tests rasterize each pattern and require ink coverage between 10% and 55% (reada
 
 ## 5. Solid vs ghost
 
-A **solid** tile is one you can stand on right now (band matches). A **ghost** tile is a colored tile you would fall through. They differ in fill, outline style, outline width and brightness, not just hue:
+A **solid** tile is one you can stand on right now (band matches). A **ghost** tile is a coloured tile you would fall through. They differ in fill, outline style, outline width and brightness, not just hue:
 
 | | Solid | Ghost |
 |---|---|---|
-| Fill | band color, 100% opaque | band color at 12% alpha (near-black wash) |
-| Outline | continuous, 2.5 px, light tint of the band color | dashed (5 px on, 4 px off), 1.5 px, band color dimmed 20% toward the background |
-| Pattern marks | dark ink (`#0B0D14`, 75% alpha) on the bright fill | band color (outline tint), 100% alpha, on the near-black fill |
+| Fill | band colour, 100% opaque | band colour at 12% alpha (near-black wash) |
+| Outline | continuous, 2.5 px, light tint of the band colour | dashed (5 px on, 4 px off), 1.5 px, band colour dimmed 20% toward the background |
+| Pattern marks | dark ink (`#0B0D14`, 75% alpha) on the bright fill | band colour (outline tint), 100% alpha, on the near-black fill |
 | Feel | a bright slab | an empty frame |
 
 Tests assert: ghost fill alpha is under a quarter of solid fill alpha; solid vs ghost fill contrast is at least 3:1 for every band (measured min 4.47, red); ghost outline is dashed and thinner; ghost outline luminance is lower than solid outline luminance for every band.
 
-The mapping of when a colored tile is drawn solid or ghost (band matches or not, plus grace) belongs to the renderer; `src/fx/tileRender.ts` only draws the two treatments (`drawGearTile(g, band, 'solid' | 'ghost', x, y, size)`).
+The mapping of when a coloured tile is drawn solid or ghost (band matches or not, plus grace) belongs to the renderer; `src/fx/tileRender.ts` only draws the two treatments (`drawGearTile(g, band, 'solid' | 'ghost', x, y, size)`).
 
 ## 6. Player body (0.75 x 1.5 tiles)
 

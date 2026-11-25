@@ -1,9 +1,9 @@
-# World 4, level 5 (long). Combine: lift, shuttle and colored slab, with runway, drag and the red wall.
+# World 4, level 5 (long). Combine: lift, shuttle and coloured slab, with runway, drag and the red wall.
 # No new idea, no hints, no sweep. Target first-time solve: 4-8 min (clean run 69.4 s). 300 x 15, scrolls; 3 posts.
 # Version 2 (2026-11-24, batch 12 triage finding 1): room 1 only; rooms 2-9 keep their v1 geometry and windows.
 # Version 3 (2026-11-25, batch 12b triage finding 2): headers only. A post before room 3 (col 88); the Ferry rests
 #   190 (was 90) at the post side, extended later, so everything after it runs 100 steps later.
-# Rows 0-2 hold no colored tile, exit or slab path (the HUD rows). Ground row 10, then 12, then 6, then 12.
+# Rows 0-2 hold no coloured tile, exit or slab path (the HUD rows). Ground row 10, then 12, then 6, then 12.
 # Section 1 (hardest first):
 #   1 Across (cols 0-56): spawn ledge (0-11, spawn col 6) -> 14-col pit with a grey shuttle (4 wide, 10 tiles;
 #     rests 260 at the near dock from step 0, 160 at the far dock; cycle 740) docking at a 4-tile approach -> a
@@ -30,7 +30,7 @@
 id: w4-05
 title: Commute
 world: 4
-teaches: combine (long): lift, shuttle and colored slab, with runway, drag and the red wall
+teaches: combine (long): lift, shuttle and coloured slab, with runway, drag and the red wall
 version: 3
 mover: 12 10 4x1 safe speed=2 phase=0 path=w260,r10,w160,l10
 mover: 81 12 3x1 safe speed=2 phase=362 path=w90,u6,w90,d6

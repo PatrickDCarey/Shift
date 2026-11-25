@@ -43,7 +43,7 @@ Why:
   - `BEST 0:12.91` if cleared;
   - `NOT CLEARED` if open;
   - `LOCKED - CLEAR 1-2 FIRST` if locked (naming the previous level in that world).
-- **States are told apart by shape** (greyscale-safe), never by color alone:
+- **States are told apart by shape** (greyscale-safe), never by colour alone:
 
 | State | Cell | Bottom line |
 |---|---|---|

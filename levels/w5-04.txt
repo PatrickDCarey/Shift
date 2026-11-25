@@ -1,11 +1,11 @@
-# World 5, level 4. Combine: the sweep with colored rain. The front runs at 7.5 tiles/s (between green and
-#   yellow), so you need yellow or red on average, but each lane of rain kills only its own color.
+# World 5, level 4. Combine: the sweep with coloured rain. The front runs at 7.5 tiles/s (between green and
+#   yellow), so you need yellow or red on average, but each lane of rain kills only its own colour.
 # Target first-time solve: 40-60 s. Clean run 12.2 s. No hints.
 # Layout (92 x 13, scrolls; floor row 9). Every lane is dense (speed 2, period 32: a bolt every 2 tiles,
-#   full height from row 3 to the floor), so a body of that color in a lane is always hit.
+#   full height from row 3 to the floor), so a body of that colour in a lane is always hit.
 #   1 Open: safe runway (cols 0-21, spawn col 2), red lane at col 13 (cross it yellow), yellow lane at
 #     col 20 (cross it red: press up between them) -> red bridge (22-29).
-#   2 Gauntlet: safe floor (30-45) with yellow, red, yellow, red lanes at cols 38-44: neither fast color
+#   2 Gauntlet: safe floor (30-45) with yellow, red, yellow, red lanes at cols 38-44: neither fast colour
 #     gets through. Brake to green on the floor before it -> green bridge (46-55).
 #   3 Squeeze: safe pad (56-58) -> 4-tile blue bridge (59-62) under a 2-row safe roof (rows 5-6, 2 tiles of
 #     headroom: no jumping it). Walking it blue, the front closes 4.5 tiles a second.
@@ -16,7 +16,7 @@
 id: w5-04
 title: Chase
 world: 5
-teaches: combine: the sweep and colored rain: outrun the front, but never in the color of the lane you are crossing
+teaches: combine: the sweep and coloured rain: outrun the front, but never in the colour of the lane you are crossing
 version: 1
 emitter: 13 3 dir=d range=6 speed=2 period=32 band=R
 emitter: 20 3 dir=d range=6 speed=2 period=32 band=Y

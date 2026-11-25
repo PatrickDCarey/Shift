@@ -14,7 +14,7 @@ When a body that is not home has been inside a **sealed pocket** for 1 s, a smal
 
 Computed once per level load by a pure, unit-tested helper in `src/entities/` (for example `sealedPockets(level)`), from the level grid alone:
 
-- Take the 4-connected regions of cells that are `.`, a spawn (`@`, `&`) or an exit (`E`). Safe tiles, colored tiles (`B G Y R`) and gate tiles are boundaries. Colored tiles count as boundaries even though a body can pass them, because that is how a body falls in.
+- Take the 4-connected regions of cells that are `.`, a spawn (`@`, `&`) or an exit (`E`). Safe tiles, coloured tiles (`B G Y R`) and gate tiles are boundaries. Coloured tiles count as boundaries even though a body can pass them, because that is how a body falls in.
 - A region is a **sealed pocket** if it contains no spawn and no exit cell, and none of its cells is in the grid's top row or bottom row. A region that reaches the bottom row is a pit (the body falls out and respawns). A region that reaches the top row is open sky.
 - A body is **in** a pocket on a step when the cell holding its centre point (x, feet − 0.75 tiles) belongs to that region.
 
@@ -31,7 +31,7 @@ Shipped levels (acceptance 1): exactly one pocket in w3-02 (rows 7–9, cols 10�
 
 - **Drawn at 2× (2026-11-20).** The 1× card (64 × 19 px) read as a tile label in the batch 7 playtest. Every part below is the 1× design doubled with nearest-neighbour, on whole pixels.
 - One row: a key cap for the `restart` action, generated from `DEFAULT_BINDINGS` (today `[R]`). At 1× it uses the cap look of `onboarding-hints.md` (`ui.panel` fill, 1 px `ui.focus` outline, `redshift-5x7` label in `ui.text`, 11 × 11 px), then a 4 px gap, then the word `RESTART` in `ui.text`. It is the same label as the controls screen's row.
-- On a panel in `ui.panel` with 4 px padding (1× units): **128 × 38 px with the shipped binding**. The panel edge is a **2 px `ui.focus` (white) outline**, not `ui.panelBorder`. White is the menu's focus color: it says "this is for you" and is the brightest UI color, while staying out of the band colors, which mean gears (a red card would read as "be red"). Integer pixels, at least 8 px inside every edge.
+- On a panel in `ui.panel` with 4 px padding (1× units): **128 × 38 px with the shipped binding**. The panel edge is a **2 px `ui.focus` (white) outline**, not `ui.panelBorder`. White is the menu's focus colour: it says "this is for you" and is the brightest UI colour, while staying out of the band colours, which mean gears (a red card would read as "be red"). Integer pixels, at least 8 px inside every edge.
 - **Placement**, decided when the card appears, with the Sticky Keys tip rule (`sticky-keys-tip.md`, `tipPlacement`): horizontally centred, 8 px above the bottom edge. If that would overlap any non-home body's sprite on screen, put it at y = 42 instead (just under the HUD). It never covers the HUD. If the Sticky Keys tip is showing, the card sits 4 px above the tip panel.
 - Screen space, drawn above tiles, bodies and effects, below the HUD, the Sticky Keys tip and overlays.
 - **Static:** no blink, no pulse, no fade. It is gameplay information, like the PT-3 cue, so it shows the same in full, reduced effects and reduced motion, and it is outside the flash cap.

@@ -26,11 +26,11 @@ Every menu is a list or grid with **exactly one focused item**, driven by the ke
 
 - All text uses the 5×7 bitmap font (advance 6 px, line height 8 px). Headings and menu items are drawn at `setScale(2)` (advance 12, line 16). Menu items are UPPERCASE.
 - Everything sits on integer pixel positions, at least **8 px** inside every edge.
-- **Focus is shown by shape:** a `>` caret 6 px left of the item, plus a 1 px frame around it, drawn in `palette.ui.focus`. Color is never the only signal.
+- **Focus is shown by shape:** a `>` caret 6 px left of the item, plus a 1 px frame around it, drawn in `palette.ui.focus`. Colour is never the only signal.
 - An unavailable item is drawn in `palette.ui.textMuted` and carries an icon that says why (for example a lock in level select).
 - No list has more than 6 items.
 - Screen changes either cut instantly or fade in at most 200 ms. With reduced motion they always cut. Input is ignored during a fade.
-- Colors come only from `palette.json` (`ui.*`), and icons from `src/fx`/font glyphs (art-director).
+- Colours come only from `palette.json` (`ui.*`), and icons from `src/fx`/font glyphs (art-director).
 
 ## Edge cases
 
