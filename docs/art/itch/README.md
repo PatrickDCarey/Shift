@@ -67,7 +67,7 @@ After a sprite, palette or font change, re-run it and re-check. `cover-630x500.p
 | `banner-960x240.png` | 960x240 | Page header banner: title, tagline, five runners on their blocks. itch-page.md gives no banner size; 960x240 as briefed. |
 | `background-tile.png` | 256x256 | Seamless page background, **repeat both ways**. Stars are whole 2x2/2x4 squares kept clear of the edges, so it cannot show a seam. Brightest star is #38456E: text contrast is unaffected. |
 
-Why A is the default: at 158x125 the title and five distinct runner silhouettes on five distinct block patterns still read, it states the theme (pace sets colour) in one glance, and it carries a moving platform and a bolt. B loses the small elements at 158 wide; C's idea (sweep, hollow blocks) is strong but the left third is a dim hatch and the runner is one small figure.
+A is the owner's choice (2026-11-25); runners at full opacity. Why A is the default: at 158x125 the title and five distinct runner silhouettes on five distinct block patterns still read, it states the theme (pace sets colour) in one glance, and it carries a moving platform and a bolt. B loses the small elements at 158 wide; C's idea (sweep, hollow blocks) is strong but the left third is a dim hatch and the runner is one small figure.
 
 Pattern check: every gear colour keeps its pattern in all four images (white plain, blue stripes, green dots, yellow chevrons, red checker; ghost blocks keep the pattern and a dashed outline).
 

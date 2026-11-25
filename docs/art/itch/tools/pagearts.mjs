@@ -47,7 +47,7 @@ const scenes = {
     W.title(x, w, 24, 11, '#F5283C');
     W.track(x, 8, 134, 14, 3); W.slab(x, 2, false, 4, 250, 120, 3); W.spr(x, 'bolt/yellow', 26, 116, 6);
     for (let c = 0; c * T < w; c++) W.spr(x, W.tile(Math.min(4, c), false), c * T, gy, K);
-    for (let i = 0; i < 5; i++) W.spr(x, `player/runner/${W.G[i]}/sprint_${[1, 3, 5, 2, 4][i]}`, 14 + T * i, gy - 28 * K + 14, K, { a: [0.86, 0.9, 0.93, 0.96, 1][i] });
+    for (let i = 0; i < 5; i++) W.spr(x, `player/runner/${W.G[i]}/sprint_${[1, 3, 5, 2, 4][i]}`, 14 + T * i, gy - 28 * K + 14, K, { a: 1 });
   },
   // B "arc": a jump across a moving green slab, five colours along the arc (pace sets colour), exit door beyond, red bolt overhead.
   b(x, w, h) {
@@ -60,7 +60,7 @@ const scenes = {
     W.spr(x, 'tile/exit/door_2', 520, gy - T, K);
     W.spr(x, 'emitter/r/red/idle', 550, 128, 5); W.spr(x, 'bolt/red', 470, 148, 5); W.spr(x, 'bolt/red', 400, 148, 5, { a: 0.4 });
     const pos = [[6, gy - 126, 'idle_0'], [108, gy - 215, 'jump_0'], [212, gy - 262, 'jump_1'], [316, gy - 215, 'fall_0'], [420, gy - 126, 'sprint_2']];
-    pos.forEach(([px, py, f], i) => W.spr(x, `player/runner/${W.G[i]}/${f}`, px, py, 5, { a: [0.86, 0.9, 0.93, 0.96, 1][i] }));
+    pos.forEach(([px, py, f], i) => W.spr(x, `player/runner/${W.G[i]}/${f}`, px, py, 5, { a: 1 }));
   },
   // C "chase": the sweep's saw-toothed front behind a yellow runner; solid yellow underfoot, hollow red and blue ahead, lit checkpoint post.
   c(x, w, h) {
