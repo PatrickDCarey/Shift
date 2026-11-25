@@ -67,6 +67,31 @@ These come from `clarity-fixes.md`, which has the full checks. Where they differ
 - **Drag bar (PT-4, Should):** it runs from the needle toward the centre of cell `litBand − 1`, filled by `min(airDistance / airDragTilesPerGear, 1)`, and ends in a 3 × 5 px chevron. There is no word label. If it is not built for the pixel HUD by M2-29, hide it.
 - **Cue ring (PT-3):** when the scene reports a fall-through or a colored wall stop with band `b`, cell `b` gets a 1 px `ui.text` ring for 45 frames plus one brightness pulse. Reduced motion: ring only. Respawn clears it.
 
+## Amendment PT-6: pace track (2026-11-25, batch 12b triage, Should)
+
+**Rule:** when the selected gear is above the lit band (the bracket is thin, "not arrived"), a 1 px dotted track in `ui.textMuted` runs along the needle row, from the needle to the centre of the bracket's cell, with a 3 × 5 px chevron at the bracket end. It says "you are at this pace and heading to that gear": a gear is a pace you have to run up to. It shows no number and no distance.
+
+**Edge cases:**
+- Standing with gear 2 or more selected: the track runs from cell 0 to the bracket, and it shows while riding a slab too.
+- Arrived (bracket bold): no track. Braking below the bracket: no track (the bracket's gear is below the band only in the air, and the sim lowers the gear there).
+- Airborne: no track. The drag bar and the pending bracket own the air.
+- Gear 1 while white: the track spans cell 0 to cell 1.
+- Death freeze: frozen with the rest of the meter. Respawn: as the state says (gear 1, white, so the track runs from 0 to 1).
+- Reduced motion and reduced effects: the same, because it is static.
+- Must not overlap the drag bar (they never show together) or the cue ring.
+- Tandem strips: the same per strip.
+
+**Tuning:** none (`gearSpeeds` for the needle position, as today).
+
+**Acceptance:**
+1. A pure plan helper returns the track `{from: needleX, to: bracketCellCentre}` when grounded and `selectedGear > litBand`; otherwise null.
+2. Standing at the spawn after two up-presses: the track runs from cell 0 to cell 3.
+3. Gear 4, hold Right from rest: the track shortens as the needle moves and is null from the step `litBand` is 4.
+4. In the air: always null.
+5. A greyscale screenshot shows the track at 960×540.
+
+**Priority:** Should. It is render-only, so cut it at freeze if it is not merged.
+
 ## Priority
 
 - **Must (M1):** five cells with patterns, lit band, selected-gear bracket, speed needle, reset on death.

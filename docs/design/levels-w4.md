@@ -85,6 +85,8 @@ If w4-04 is not built the world has a numbering gap, which level select handles 
 
 **APPROVED v1 as built (2026-11-24; replaces the room list above where they differ).** 300 × 15, six slabs, posts at cols 132 and 215 with `clock=` set to the recording's step as a gear-1 walker passes each respawn x (a respawned walker meets every slab at the recording's phase). Recording 4,006 steps (66.8 s), fastest known 3,946. Rooms: (1) Across: shuttle to a red door and red bridge; (2) Up: short Coast (5-tile gap, pad 2 lower) and a 6-tile lift; (3) **Level** (not a descent): a green slab with a 150-step rest, brake pad, blue bridge; post 1; (4) Ferry; (5) Moving Bridge; (6) Brake; post 2; (7) a lift **down an open shaft with no floor** (a floor would let you skip the lift; walking in while the lift is away is a death, 12 tiles from post 2); (8) Runway from a **standing start** at the shaft wall (10 tiles under a ceiling); (9) Home: 3 presses down, a 26-tile blue bridge. Windows: run 94, jump 33, Ferry leave 70, Brake 44, section 3 ≥ 97. Fair-line waits ≤ 1.2 s; a late arrival waits up to one shuttle cycle (9.4 s) on safe ground, accepted (`level-plan.md` v4.2).
 
+**v3 (2026-11-25, batch 12b triage, Must):** a third post on the upper ground before room 3's slab (a room-3 death no longer replays rooms 1–2), and the Ferry's post-side rest goes from 90 to about 180–200 steps, extended earlier so every later timing stays the same. Room 1 is unchanged (head start 157 steps, accepted). w4-04: no change (trigger not fired; 6 deaths read as spread). Numbers are in `requests.md`; the reasons are in `decisions.md` 2026-11-25.
+
 ## Cold-play checks (playtester, when built)
 
 1. w4-01: stepped on the slab without help? Noticed you stayed white?
