@@ -6,7 +6,7 @@ Shot list and placement: `docs/design/itch-page.md` section 5.
 
 | File | Size | itch field | Shot |
 |---|---|---|---|
-| `cover-630x500.png` | 630x500 | Cover image (shown at 315x250) | w1-05 red runner on the red bridge, solid red wall, title "REDSHIFT" in the game's 5x7 font |
+| `cover-630x500.png` | 630x500 | Cover image (shown at 315x250) | **Current default = a copy of `cover-630x500-a.png`** (see "Page art v2" below). The old w1-05 cover is `cover-630x500-v1.png` |
 | `shot-1-w1-02-shift.png` | 960x540 | Screenshot 1 | w1-02, green runner on the solid green bridge, blue bridge ahead hollow and dashed, gear 2 in the HUD |
 | `shot-2-w1-05-red-wall.png` | 960x540 | Screenshot 2 | w1-05, yellow (chevrons) at the hollow red wall, red bridge hollow |
 | `shot-3-w2-02-coast.png` | 960x540 | Screenshot 3 | w2-02, the drag drop: red to yellow at the 6-tile point, ring burst, yellow pad below |
@@ -50,3 +50,34 @@ on 5185: `VITE_QA_HOOK=1 npx vite --port 5185 --strictPort` (no `[replay]` label
 variant, kept for reference). Steps: shot 6 w4-03 step 140, shot 7 w5-01 step 110, shot 8 w2-05 step 520, shot 9 w4-04 step 1000.
 Greyscale as before (`ffmpeg ... format=gray,format=rgb24`).
 Dated: the cover, `shot-1..5` and the GIF show worlds 1-3 only and the old HUD; the owner's new cover and trailer replace them.
+
+## Page art v2 (cover, banner, background; 2026-11-25)
+
+Composed only from `assets/art/pixel/*` (sprites, tiles, font), `src/data/palette.json` and code: no AI imagery, no screenshots, no dev server.
+Generator: `node docs/art/itch/tools/pagearts.mjs [a,b,c,banner,bg]` (default: all; needs the repo's Playwright Chromium). Integer scales only, smoothing off.
+After a sprite, palette or font change, re-run it and re-check. `cover-630x500.png` is a plain copy of the chosen composition (`cp cover-630x500-a.png cover-630x500.png`).
+
+| File | Size | Use |
+|---|---|---|
+| `cover-630x500-a.png` | 630x500 | **Default cover.** "Trail": a sprint line white > blue > green > yellow > red, each runner on its matching patterned block (plain, stripes, dots, chevrons, checker); a green moving slab with its dotted track and a yellow bolt above. |
+| `cover-630x500-b.png` | 630x500 | "Arc": one jump across a moving green slab, the runner changing colour along the arc, red bolt and emitter overhead, exit door at the end. |
+| `cover-630x500-c.png` | 630x500 | "Chase": the sweep's saw-toothed front behind a yellow runner, solid green and yellow blocks under it, hollow red and blue blocks ahead, a lit checkpoint post. |
+| `cover-630x500.png` | 630x500 | Copy of A (the file to upload). |
+| `cover-630x500-v1.png` | 630x500 | The first cover (world 1 only), kept for reference. |
+| `banner-960x240.png` | 960x240 | Page header banner: title, tagline, five runners on their blocks. itch-page.md gives no banner size; 960x240 as briefed. |
+| `background-tile.png` | 256x256 | Seamless page background, **repeat both ways**. Stars are whole 2x2/2x4 squares kept clear of the edges, so it cannot show a seam. Brightest star is #38456E: text contrast is unaffected. |
+
+Why A is the default: at 158x125 the title and five distinct runner silhouettes on five distinct block patterns still read, it states the theme (pace sets colour) in one glance, and it carries a moving platform and a bolt. B loses the small elements at 158 wide; C's idea (sweep, hollow blocks) is strong but the left third is a dim hatch and the runner is one small figure.
+
+Pattern check: every gear colour keeps its pattern in all four images (white plain, blue stripes, green dots, yellow chevrons, red checker; ghost blocks keep the pattern and a dashed outline).
+
+### itch.io page theme (all from palette.json)
+
+| Field | Hex | Contrast on background #070A18 |
+|---|---|---|
+| Background | `#070A18` (page background image: `background-tile.png`) | n/a |
+| Text | `#E8ECF8` (ui.text) | 16.7:1 (AAA) |
+| Secondary text | `#A3AECB` (ui.textMuted) | 8.9:1 (AAA) |
+| Link | `#FFD60A` (yellow gear) | 14.0:1 (AAA) |
+| Button | `#F5283C` (red gear) with button text `#0B0D14` | button text on button 4.85:1 (AA); button against background 4.9:1 |
+| Border | `#5A6590` (ui.panelBorder) | 3.5:1 (graphic, 3:1 needed) |
