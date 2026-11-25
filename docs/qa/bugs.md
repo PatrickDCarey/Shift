@@ -122,3 +122,14 @@ Expected: `projectiles.md` Shots: "The lane is empty at t 0 ... every attempt st
 Actual: one shot per phase-0 emitter, `firedAt` 0, at the emitter's centre (distance 0), on step 0 and again after every respawn or restart. This matches check 1 ("the shot that leaves at s 0") and the code's `(s + phase) mod period = 0` for s >= 0, so the two sentences of the spec disagree; the picture is a bolt appearing at the muzzle at step 0 with no tell before it.
 Evidence: `tests/e2e/b11-kinetics.spec.ts` "w5-01 a red sprint ... restarts" asserts `shots.every(firedAt === 0)` right after the respawn (passes); same data in the cadence test (`firedAt` 0 at k 0).
 Note: harmless for the shipped levels (the s = 0 shots start at ceiling emitters, 3 tiles from the spawn at the nearest). Decide whether "empty at t 0" means "no shot before step 1" and if so start `s` at 1 for phase 0, or reword the spec.
+
+### BUG-10: a shift key released and pressed again within one sim step (about 16 ms) counts as one press
+Severity: minor
+Owner: gameplay-engineer [scene] (src/entities/inputSampler.ts) with [sim] (src/core/sim/input.ts pressEdges)
+Build/commit: bab53e2 (working tree)
+Steps: 1. Open `?level=w0-02` on the QA build, stand at gear 1, freeze the page clock (tests/e2e/b11-helpers.ts `Clocked`). 2. Tap E (hold 1 frame), release, press E again 1 frame (16 ms) later, three taps in a row. 3. Read `window.__redshift.state.player.gear`.
+Expected: every distinct key press counts once: gear 4.
+Actual: gear 3 in some runs (H1G1, H2G1 of up E N=3; alternating Q/ShiftLeft N=3 H2G1 ended at gear 2 not 1). With G=0 (up and down in the same frame) the second press is always lost (G=0 is below human speed). Gaps of 2, 3, 5 frames: nothing dropped, standing or running.
+Cause: `sample()` ORs the held set with the latch (inputSampler.ts `sample`), so a tap that went down and up before a step still reads as down for that step; if the next press arrives before the next sample, the key reads down again, `pressEdges` (input.ts, `input[b] && !prev[b]`) sees no edge. No cooldown or one-per-step rule exists (tuning.json has only `shiftBufferMs`, which is air only); the rule in movement-and-gears.md is one shift per press.
+Evidence: docs/qa/evidence/b12-rapid-shifts.json (full table); pin test `tests/e2e/b12-rapid-shifts.spec.ts` ("a release and re-press one frame apart", `test.fixme`).
+Note: the playtester's repro (taps 2-3 frames apart ended one gear short) did not reproduce with 2-3 frame gaps on this build; at 60 Hz real input and frame jitter it may be this bug at a smaller gap.

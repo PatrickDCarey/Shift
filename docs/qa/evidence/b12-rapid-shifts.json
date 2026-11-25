@@ -1,0 +1,926 @@
+{
+  "down Q N=2": {
+    "H1G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    }
+  },
+  "down Q N=3": {
+    "H1G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    }
+  },
+  "down LShift N=2": {
+    "H1G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    }
+  },
+  "down LShift N=3": {
+    "H1G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    }
+  },
+  "down Q,LShift alternating N=2": {
+    "H1G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 2,
+      "got": 3,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 2,
+      "got": 2,
+      "ok": true
+    }
+  },
+  "down Q,LShift alternating N=3": {
+    "H1G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 1,
+      "got": 2,
+      "ok": false
+    },
+    "H2G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 1,
+      "got": 3,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    }
+  },
+  "up E N=2": {
+    "H1G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    }
+  },
+  "up E N=3": {
+    "H1G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 4,
+      "got": 3,
+      "ok": false
+    },
+    "H1G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 4,
+      "got": 3,
+      "ok": false
+    },
+    "H2G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    }
+  },
+  "up RShift N=2": {
+    "H1G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    }
+  },
+  "up RShift N=3": {
+    "H1G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    }
+  },
+  "up E,RShift alternating N=2": {
+    "H1G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 3,
+      "got": 2,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 3,
+      "got": 3,
+      "ok": true
+    }
+  },
+  "up E,RShift alternating N=3": {
+    "H1G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H1G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H1G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H2G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H2G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G0": {
+      "expected": 4,
+      "got": 2,
+      "ok": false
+    },
+    "H3G1": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G2": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G3": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    },
+    "H3G5": {
+      "expected": 4,
+      "got": 4,
+      "ok": true
+    }
+  }
+}

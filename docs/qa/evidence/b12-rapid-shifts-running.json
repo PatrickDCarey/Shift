@@ -1,0 +1,19 @@
+{
+  "running down Q 1 N=3": {
+    "H3G5": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H1G2": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    },
+    "H2G3": {
+      "expected": 1,
+      "got": 1,
+      "ok": true
+    }
+  }
+}

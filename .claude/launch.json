@@ -4,8 +4,22 @@
     {
       "name": "redshift-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "trailer-audio",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5188",
+        "--strictPort"
+      ],
+      "port": 5188
     }
   ]
 }

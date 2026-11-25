@@ -1,7 +1,8 @@
 level: w4-05
-levelVersion: 2
+levelVersion: 3
 # Found and checked by replaying through the real sim (createSim/step), not hand-tuned. Deathless from the
-# load; lights post 1 at step 1583 and post 2 at step 2845. From the Coast jump on, the v1 inputs, 58 steps later.
+# load; lights post A at step 985, post B at 1583 and post C at 2945. From the Coast jump on, the v1 inputs, 58
+# steps later (v2), and from the Ferry ride on, 100 more (v3: the Ferry rests 190 at the post side).
 # 180R   walk at gear 1 onto the first shuttle while it rests at the near dock (from step 0) and on to x 15.5
 # 1+ 1. 1+ 261.   shift up to gear 3 standing; ride to the far dock (docked from step 420)
 # 48R 1R+   at step 445 run (yellow at the door), press up once at x 31.2, past the red door (col 30)
@@ -10,12 +11,12 @@ levelVersion: 2
 # 132R 1. 1- 164.   walk onto the lift, shift down to gear 2 standing, ride it 6 up
 # 319R   walk off at gear 2, cross the green slab while it is level, onto the brake pad
 # 1R- 584R   press down at x 115.1 (blue for the bridge), walk past post 1 to the ferry
-# 1+ 238.   board the ferry at its back, shift up standing, ride to the green bridge
+# 1+ 338.   board the ferry at its back, shift up standing, ride to the green bridge
 # 398R   leave at gear 2 while docked, cross the green bridge and the second green slab while level
 # 1R- 614R   press down at x 196.1, walk the blue bridge, past post 2, onto the down-lift
 # 1+ 1. 1+ 1. 1+   shift up to gear 4 on the lift (held against the shaft wall, white)
 # 271R   ride down, run from the lift: red on the red bridge
-# 1R- 1R 1R- 1R 1R- 687R   press down three times at x 259.2, walk the blue bridge home (won at step 4064)
-steps: 4064
+# 1R- 1R 1R- 1R 1R- 687R   press down three times at x 259.2, walk the blue bridge home (won at step 4164)
+steps: 4164
 ---
-180R 1+ 1. 1+ 261. 48R 1R+ 148R 1RJ 132R 1. 1- 164. 319R 1R- 584R 1+ 238. 398R 1R- 614R 1+ 1. 1+ 1. 1+ 271R 1R- 1R 1R- 1R 1R- 687R
+180R 1+ 1. 1+ 261. 48R 1R+ 148R 1RJ 132R 1. 1- 164. 319R 1R- 584R 1+ 338. 398R 1R- 614R 1+ 1. 1+ 1. 1+ 271R 1R- 1R 1R- 1R 1R- 687R

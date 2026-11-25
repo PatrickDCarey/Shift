@@ -32,7 +32,7 @@ export const LEVELS: Readonly<Record<string, LevelRule>> = {
   'w4-02': { version: 1, fastest: 330 },
   'w4-03': { version: 1, fastest: 200 },
   'w4-04': { version: 1, fastest: 1430 },
-  'w4-05': { version: 2, fastest: 4004 },
+  'w4-05': { version: 3, fastest: 4104 },
   'w5-01': { version: 1, fastest: 156 },
   'w5-02': { version: 1, fastest: 546 },
   'w5-03': { version: 2, fastest: 731 },
