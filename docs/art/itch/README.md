@@ -81,3 +81,7 @@ Pattern check: every gear colour keeps its pattern in all four images (white pla
 | Link | `#FFD60A` (yellow gear) | 14.0:1 (AAA) |
 | Button | `#F5283C` (red gear) with button text `#0B0D14` | button text on button 4.85:1 (AA); button against background 4.9:1 |
 | Border | `#5A6590` (ui.panelBorder) | 3.5:1 (graphic, 3:1 needed) |
+
+## Re-shoot 2026-11-26 (bolt art, pace track)
+
+`shot-1..9` and both greyscale shots were re-taken with `tools/exp2.mjs` (dev server with the QA hook on 5185) at the same steps as before (shot 1 w1-02 step 72, 2 w1-05 66, 3 w2-02 131, 4 w3-03 150, 5 w3-05 132, 6 w4-03 140, 7 w5-01 110, 8 w2-05 520, 9 w4-04 1000), so the scenes are unchanged and the page shows the current game: new bolts with tails (shot 7 and its greyscale twin), flat slab undersides (shots 6 and 9), the current exit door and hint glyphs (shots 1-5). The gear meter's dotted pace track is not visible in these frames (standing or already at the selected gear), so the HUD matches the game. The GIF `redshift-runway.gif` was not re-shot: it shows no bolts or slabs (old HUD, w1-03).
