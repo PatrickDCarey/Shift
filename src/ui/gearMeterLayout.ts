@@ -60,6 +60,11 @@ export interface GearMeterLayout {
   readonly dragH: number;
   readonly chevronW: number;
 
+  /** PT-6 pace track: dotted row, and the right-pointing chevron at its end (w x h). */
+  readonly trackY: number;
+  readonly trackChevronW: number;
+  readonly trackChevronH: number;
+
   /** Key-cap hint columns: width of a column, of one cap, and the gaps. */
   readonly hintW: number;
   readonly hintCapW: number;
@@ -71,6 +76,7 @@ export interface GearMeterLayout {
 
   readonly showDigits: boolean;
   readonly showDrag: boolean;
+  readonly showTrack: boolean;
   readonly showHints: boolean;
   /** Where a Tandem strip draws its body glyph (`glyph/runner`, `glyph/twin`, `glyph/home`); null for none. */
   readonly glyph: GlyphSlot | null;
@@ -106,6 +112,10 @@ export const GEAR_METER_LAYOUT: GearMeterLayout = {
   dragH: 5,
   chevronW: 3,
 
+  trackY: 24,
+  trackChevronW: 3,
+  trackChevronH: 5,
+
   hintW: 16,
   hintCapW: 14,
   hintCapH: 9,
@@ -116,6 +126,7 @@ export const GEAR_METER_LAYOUT: GearMeterLayout = {
 
   showDigits: true,
   showDrag: true,
+  showTrack: true,
   showHints: true,
   glyph: null,
 };
@@ -136,6 +147,7 @@ export const COMPACT_STRIP_LAYOUT: GearMeterLayout = {
   hintArrowY: 0,
   showDigits: false,
   showDrag: false,
+  showTrack: false,
   showHints: false,
   glyph: { x: 4, y: 1, w: 7, h: 12 },
 };

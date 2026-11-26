@@ -5,11 +5,13 @@
 import { describe, expect, it } from 'vitest';
 import kineticsJson from '../../../assets/art/pixel/pixel-kinetics.json';
 import { buildPixelAssets } from './atlas';
-import { BOLT_KINDS, BOLT_SIZE, EMITTER_SIZE, bakeBolt, bakeEmitter, bakeShimmer, bakeSink } from './bolts';
+import { BOLT_KINDS, BOLT_SIZE, EMITTER_SIZE, bakeBolt, bakeBoltTail, boltFill, boltOutline, boltTailOrigin, boltTailPivot, bakeEmitter, bakeShimmer, bakeSink } from './bolts';
 import { DIRS, SLAB_KINDS, SLAB_SIZE, bakeChevron, bakeSlabSegment, bakeTrackCell, slabSegments, TRACK_CELLS } from './movers';
 import { POST_H, POST_W, bakePost, bakePostRise } from './posts';
 import { SWEEP_TILE, bakeSweepEdge, bakeSweepFill, bakeSweepMarker } from './sweep';
 import { getPixel, type Raster } from './raster';
+import { contrastRatio, hexToRgb } from '../color';
+import { backgroundForSpeed, palette } from '../palette';
 
 const luma = (r: Raster, x: number, y: number): number => {
   const p = getPixel(r, x, y);
@@ -60,18 +62,79 @@ describe('slabs', () => {
 });
 
 describe('bolts and emitters', () => {
-  it('bolts are 8 x 8 and differ pairwise in greyscale', () => {
+  it('bolts are 10 x 10 (the 8 x 8 hit box edge to edge plus a 1 px dark outline) and differ pairwise in greyscale', () => {
     for (let a = 0; a < BOLT_KINDS.length; a++) {
-      expect([bakeBolt(BOLT_KINDS[a]!).width, bakeBolt(BOLT_KINDS[a]!).height]).toEqual([BOLT_SIZE, BOLT_SIZE]);
-      for (let b = a + 1; b < BOLT_KINDS.length; b++) expect(diff(bakeBolt(BOLT_KINDS[a]!), bakeBolt(BOLT_KINDS[b]!))).toBeGreaterThanOrEqual(6);
+      const A = bakeBolt(BOLT_KINDS[a]!);
+      expect([A.width, A.height]).toEqual([BOLT_SIZE + 2, BOLT_SIZE + 2]);
+      for (let b = a + 1; b < BOLT_KINDS.length; b++) expect(diff(A, bakeBolt(BOLT_KINDS[b]!))).toBeGreaterThanOrEqual(10);
     }
   });
 
-  it('the grey bolt has a different silhouette from every diamond', () => {
-    const star = alphaMask(bakeBolt('grey'));
-    for (const k of BOLT_KINDS.filter((x) => x !== 'grey')) expect(alphaMask(bakeBolt(k))).not.toBe(star);
-    expect(getPixel(bakeBolt('grey'), 0, 3)[3]).toBe(255); // star tips reach the box edge, a diamond's rim does not
-    expect(getPixel(bakeBolt('blue'), 0, 0)[3]).toBe(0);
+  const isDark = (r: Raster, x: number, y: number): boolean => {
+    const p = getPixel(r, x, y);
+    const d = hexToRgb(palette.background);
+    return p[3] === 255 && p[0] === d.r && p[1] === d.g && p[2] === d.b;
+  };
+  const core = (r: Raster, x: number, y: number): boolean => getPixel(r, x, y)[3] === 255 && !isDark(r, x, y);
+
+  it('every core touches all four edges of the 8 x 8 hit box, and the dark outline stays outside it', () => {
+    for (const k of BOLT_KINDS) {
+      const r = bakeBolt(k);
+      const range = [...Array(10).keys()];
+      expect(range.some((i) => core(r, i, 1)), k + ' top').toBe(true);
+      expect(range.some((i) => core(r, i, 8)), k + ' bottom').toBe(true);
+      expect(range.some((i) => core(r, 1, i)), k + ' left').toBe(true);
+      expect(range.some((i) => core(r, 8, i)), k + ' right').toBe(true);
+      for (const i of range) for (const e of [0, 9]) {
+        expect(core(r, e, i), k).toBe(false);
+        expect(core(r, i, e), k).toBe(false);
+      }
+    }
+  });
+
+  it('three families: banded diamond (one outline for all bands), white block, grey spiked ball', () => {
+    const m = (k: (typeof BOLT_KINDS)[number]): string => alphaMask(bakeBolt(k));
+    expect(m('grey')).not.toBe(m('white'));
+    expect(m('white')).not.toBe(m('blue'));
+    expect(new Set(['blue', 'green', 'yellow', 'red'].map((k) => m(k as 'blue'))).size).toBe(1);
+    const grey = bakeBolt('grey');
+    for (const [x, y] of [[1, 1], [8, 1], [1, 8], [8, 8]]) expect(core(grey, x!, y!)).toBe(true); // spike tips reach the box corners
+    expect(core(bakeBolt('blue'), 1, 1)).toBe(false); // a diamond has no corner
+    expect(core(bakeBolt('white'), 1, 1)).toBe(false); // the block's corners are clipped
+  });
+
+  it('every bolt core is at least 3:1 against every world-tint background; the outline against the tiles it crosses', () => {
+    const tops = [0, 0.25, 0.5, 0.75, 1];
+    for (const k of BOLT_KINDS) {
+      for (const t of tops) expect(contrastRatio(boltFill(k), backgroundForSpeed(t * 100, 100)), k + ' ' + t).toBeGreaterThanOrEqual(3);
+    }
+    const tiles = [palette.safeTile.fill, ...(['blue', 'green', 'yellow', 'red'] as const).map((g) => palette.gears[g].solid.fill)];
+    for (const tile of tiles) expect(contrastRatio(boltOutline(), hexToRgb(tile)), tile).toBeGreaterThanOrEqual(3);
+  });
+
+  it('bolt tails: a 2 px wide streak on the trailing side only, the core unchanged', () => {
+    for (const k of BOLT_KINDS) {
+      for (const d of DIRS) {
+        const t = bakeBoltTail(d, k);
+        const horiz = d === 'l' || d === 'r';
+        expect([t.width, t.height]).toEqual(horiz ? [14, 10] : [10, 14]);
+        const [bx, by] = boltTailOrigin(d);
+        const base = bakeBolt(k);
+        for (let y = 0; y < 10; y++) for (let x = 0; x < 10; x++) {
+          if (x === (d === 'r' ? 0 : 0) && false) continue;
+          if (horiz ? (d === 'r' ? x === 0 : x === 9) && (y === 4 || y === 5) : (d === 'd' ? y === 0 : y === 9) && (x === 4 || x === 5)) continue; // joint
+          expect(getPixel(t, bx + x, by + y), k + d).toEqual(getPixel(base, x, y));
+        }
+        const along = (n: number, lat: number): [number, number] =>
+          d === 'r' ? [bx - n, by + lat] : d === 'l' ? [bx + 9 + n, by + lat] : d === 'd' ? [bx + lat, by - n] : [bx + lat, by + 9 + n];
+        for (const n of [1, 2, 3]) for (const lat of [4, 5]) expect(core(t, ...along(n, lat)), k + d + n).toBe(true);
+        for (const lat of [3, 6]) expect(core(t, ...along(2, lat)), k + d).toBe(false); // outline only
+      }
+    }
+    expect(boltTailPivot('r').x * 14).toBe(9);
+    expect(boltTailPivot('l').x * 14).toBe(5);
+    expect(boltTailPivot('d').y * 14).toBe(9);
+    expect(boltTailPivot('u').y * 14).toBe(5);
   });
 
   it('emitters are 16 x 16, face four ways, and the tell frame is brighter', () => {
@@ -106,7 +169,7 @@ describe('kinetics atlas', () => {
   it('matches the committed json and has the documented frames', () => {
     expect(kineticsJson.frames).toEqual(built.json.frames);
     expect(kineticsJson.redshift.hashes).toEqual(built.json.redshift.hashes);
-    for (const name of ['slab/red/solid/L', 'slab/safe/ghost/S', 'slab/chevron/u', 'track/stop/d', 'emitter/d/white/tell', 'bolt/grey', 'bolt/shimmer/3', 'bolt/sink/l']) {
+    for (const name of ['slab/red/solid/L', 'slab/safe/ghost/S', 'slab/chevron/u', 'track/stop/d', 'emitter/d/white/tell', 'bolt/grey', 'bolt/grey/r', 'bolt/red/u', 'bolt/shimmer/3', 'bolt/sink/l']) {
       expect(built.json.frames[name], name).toBeDefined();
     }
   });

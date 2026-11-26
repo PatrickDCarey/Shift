@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Emitter, Level, Mover, SimState, Tuning } from '../core/types';
 import { KineticsView } from './KineticsView';
 import { gridLevel } from './testkit';
+import atlas from '../../assets/art/pixel/pixel-kinetics.json';
 
 class FakeImage {
   x = 0;
@@ -76,7 +77,7 @@ describe('KineticsView', () => {
     const slow = { ...EMITTER, period: 200 }; // one shot lives 96 steps, so never two at once
     const view = KineticsView.forLevel(scene, level({ emitters: [slow] }), TUNING, 60, quiet)!;
     view.update(drive(0, 0), PREFS);
-    const bolts = () => images.filter((i) => i.frame === 'bolt/grey');
+    const bolts = () => images.filter((i) => i.frame === 'bolt/grey/l');
     expect(bolts()).toHaveLength(1);
     const first = bolts()[0]!;
     view.update(drive(0, 1), PREFS);
@@ -149,5 +150,32 @@ describe('KineticsView', () => {
     expect(snap.shots).toHaveLength(2);
     view.destroy();
     expect(images.every((i) => i.destroyed)).toBe(true);
+  });
+});
+
+describe('bolt frames', () => {
+  it('uses the tail frame of the emitter direction, in every direction, when created and reused', () => {
+    for (const dir of ['l', 'r', 'u', 'd'] as const) {
+      const { scene, images } = fakeScene();
+      const e = { ...EMITTER, dir, band: 4 as const, period: 200 };
+      const view = KineticsView.forLevel(scene, level({ emitters: [e] }), TUNING, 60, quiet)!;
+      view.update(drive(0, 0), PREFS);
+      expect(images.some((i) => i.frame === `bolt/red/${dir}`)).toBe(true);
+    }
+  });
+
+  it('keeps the drawn 8 x 8 core on the shot centre: the pivot sits on the core centre for all four directions', () => {
+    const frames = (atlas as unknown as { frames: Record<string, { frame: { w: number; h: number }; pivot: { x: number; y: number } }> }).frames;
+    const TAIL = 4;
+    const OUTLINE_CORE = 5; // 1 px outline + half of the 8 px core
+    const at = (dir: string) => frames[`bolt/red/${dir}`]!;
+    const px = (dir: string) => [at(dir).pivot.x * at(dir).frame.w, at(dir).pivot.y * at(dir).frame.h];
+    // the tail is behind the flight direction: moving left, the core is at the left end of a 14 px frame
+    expect(px('l')[0]).toBeCloseTo(OUTLINE_CORE);
+    expect(px('r')[0]).toBeCloseTo(OUTLINE_CORE + TAIL);
+    expect(px('u')[1]).toBeCloseTo(OUTLINE_CORE);
+    expect(px('d')[1]).toBeCloseTo(OUTLINE_CORE + TAIL);
+    expect(px('l')[1]).toBeCloseTo(OUTLINE_CORE);
+    expect(px('u')[0]).toBeCloseTo(OUTLINE_CORE);
   });
 });

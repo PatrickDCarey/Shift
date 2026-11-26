@@ -205,6 +205,8 @@ export interface ShotPlan {
   /** `<emitter index>:<firedAt>`: the same shot keeps its key from frame to frame. */
   readonly key: string;
   readonly emitter: number;
+  /** Flight direction: picks the bolt frame whose tail trails behind. */
+  readonly dir: KinDir;
   /** Centre, blended. Tiles from `planShots`; px in `KineticsPlan.shots`. */
   readonly x: number;
   readonly y: number;
@@ -215,7 +217,7 @@ export function planShots(e: Emitter, id: number, t: RenderTime): ShotPlan[] {
   const before = new Map(shotsAt(e, t.t0).map((s) => [s.firedAt, s]));
   return shotsAt(e, t.t1).map((s) => {
     const p = before.get(s.firedAt) ?? s; // a shot fired this step has nothing earlier to blend from
-    return { key: `${id}:${s.firedAt}`, emitter: id, x: lerp(p.x, s.x, t.a), y: lerp(p.y, s.y, t.a), kind: boltKind(e.band) };
+    return { key: `${id}:${s.firedAt}`, emitter: id, dir: e.dir, x: lerp(p.x, s.x, t.a), y: lerp(p.y, s.y, t.a), kind: boltKind(e.band) };
   });
 }
 

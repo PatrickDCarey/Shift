@@ -4,10 +4,10 @@
  *
  * Kinds: `grey` (hits everyone), `white` (hits only a standing runner, `band=W`), and the four
  * bands. Shape tells the kind before colour does:
- *  - bolts are 8 x 8, the size of the shot box (`projectileSizeTiles` 0.5 of a 16 px tile). A banded
- *    bolt is a diamond carrying the band's pattern (stripes, dots, V chevron, checker); the white
- *    bolt is a hollow diamond; the grey bolt is a solid four-point star, so "hits everyone" reads by
- *    silhouette alone.
+ *  - bolts: the drawn core fills the whole 8 x 8 shot box (`projectileSizeTiles` 0.5) edge to edge, with a 1 px
+ *    dark outline outside it (10 x 10), solid fills only. Banded = diamond carrying the band's pattern;
+ *    white = clipped solid block, pale; grey = eight-point spiked ball in mid grey (hits everyone, so it
+ *    reads as the hazard). `bolt/<kind>/<dir>` adds a 3 px tail behind the flight direction. No animation.
  *  - emitters are 16 x 16: an octagon body with a 3 px muzzle on the `dir` face and the kind's
  *    glyph on the body (the band's pattern, a hollow square for white, an X for grey). The `tell`
  *    frame is the 18-step glow before a shot: body fill brightened, glyph inverted to dark ink, bore
@@ -19,7 +19,7 @@ import type { BandColor } from '../../core/types';
 import { hexToRgb, mix, type Rgb } from '../color';
 import { palette, patternOf } from '../palette';
 import { pixelPatternOn } from '../patterns';
-import { bayer, createRaster, fillRect, rgba, setPixel, type Raster, type Rgba } from './raster';
+import { bayer, createRaster, rgba, setPixel, type Raster, type Rgba } from './raster';
 import { turnPoint, type Dir } from './movers';
 
 export const BOLT_KINDS = ['grey', 'white', 'blue', 'green', 'yellow', 'red'] as const;
@@ -51,42 +51,105 @@ function kindColors(kind: BoltKind): KindColors {
   return { fill: hexToRgb(s.fill), outline: hexToRgb(s.outline), ink: hexToRgb(s.ink) };
 }
 
-/** `d` = |dx| + |dy| from the 8 x 8 centre: <= 3 is the diamond's inside, 3.5 < d <= 4 its rim. */
-const diamondD = (x: number, y: number): number => Math.abs(x - 3.5) + Math.abs(y - 3.5);
-
-/** Ink pixels of each band's pattern inside the diamond (hand-set: 8 px is too small for the tile cells). */
+/** Ink pixels of each band's pattern inside the diamond (hand-set: 8 px is too small for the tile cells). Core coordinates 0-7. */
 const BOLT_INK: Readonly<Record<'blue' | 'green' | 'yellow' | 'red', readonly (readonly [number, number])[]>> = {
   blue: [[2, 2], [3, 2], [4, 2], [5, 2], [2, 5], [3, 5], [4, 5], [5, 5]],
-  green: [[3, 2], [2, 4], [5, 4]],
+  green: [[3, 2], [2, 4], [5, 4], [4, 4]],
   yellow: [[2, 2], [5, 2], [3, 3], [4, 3], [3, 5], [4, 5]],
-  red: [],
+  red: [[2, 3], [3, 4], [4, 3], [5, 4], [3, 2], [4, 5]],
 };
 
-const STAR = ['...##...', '...##...', '..####..', '########', '########', '..####..', '...##...', '...##...'] as const;
+/** Banded diamond: the tips touch all four edges of the 8 x 8 hit box. */
+const DIAMOND = ['...##...', '..####..', '.######.', '########', '########', '.######.', '..####..', '...##...'] as const;
+/** White: a solid block with the corners clipped by one pixel (no point, so it is not a diamond). */
+const BLOCK = ['.######.', '########', '########', '########', '########', '########', '########', '.######.'] as const;
+/** Grey: a 6 x 6 body with eight spikes (tips on all four edges and all four corners of the box): heavy, not a sparkle. */
+const SPIKED = ['#..##..#', '.######.', '.######.', '########', '########', '.######.', '.######.', '#..##..#'] as const;
 
-/** One 8 x 8 bolt, origin (0.5, 0.5), centred on the shot's position. Direction does not matter (symmetric). */
-export function bakeBolt(kind: BoltKind): Raster {
-  const r = createRaster(BOLT_SIZE, BOLT_SIZE);
-  const { fill, outline, ink } = kindColors(kind);
-  if (kind === 'grey') {
-    STAR.forEach((row, y) => {
-      for (let x = 0; x < BOLT_SIZE; x++) if (row[x] === '#') setPixel(r, x, y, rgba(outline));
-    });
-    fillRect(r, 3, 3, 2, 2, rgba(fill));
-    return r;
+export const BOLT_DRAWN = BOLT_SIZE + 2; // 8 px core plus a 1 px dark outline on every side
+export const BOLT_TAIL = 4; // joint pixel, 3 px of streak: reads as a tail behind the core
+
+type Cell = Rgba | null;
+
+/** Fill colour of a kind's core: also the tail colour. */
+export function boltFill(kind: BoltKind): Rgb {
+  if (kind === 'grey') return hexToRgb(palette.ui.textMuted);
+  if (kind === 'white') return hexToRgb(palette.gears.white.solid.fill);
+  return kindColors(kind).fill;
+}
+
+/** The dark outline colour (the game's background): readable against every tile and keeps the core clear of it. */
+export const boltOutline = (): Rgb => bg();
+
+/** The 8 x 8 filled core of a bolt (no outline). */
+function coreCells(kind: BoltKind): Cell[][] {
+  const shape = kind === 'grey' ? SPIKED : kind === 'white' ? BLOCK : DIAMOND;
+  const fill = rgba(boltFill(kind));
+  const cells: Cell[][] = shape.map((row) => [...row].map((c) => (c === '#' ? fill : null)));
+  if (kind !== 'grey' && kind !== 'white') {
+    const ink = rgba(kindColors(kind).ink);
+    for (const [x, y] of BOLT_INK[kind]) if (cells[y]![x] !== null) cells[y]![x] = ink;
   }
-  for (let y = 0; y < BOLT_SIZE; y++) {
-    for (let x = 0; x < BOLT_SIZE; x++) {
-      const d = diamondD(x, y);
-      if (d > 4) continue;
-      if (d > 3) setPixel(r, x, y, rgba(outline));
-      else if (kind !== 'white') setPixel(r, x, y, rgba(fill));
+  return cells;
+}
+
+function stampCore(r: Raster, bx: number, by: number, kind: BoltKind): void {
+  const cells = coreCells(kind);
+  const dark = rgba(bg());
+  for (let y = -1; y <= BOLT_SIZE; y++) {
+    for (let x = -1; x <= BOLT_SIZE; x++) {
+      if (cells[y]?.[x]) continue;
+      let near = false;
+      for (let dy = -1; dy <= 1 && !near; dy++) for (let dx = -1; dx <= 1; dx++) if (cells[y + dy]?.[x + dx]) { near = true; break; }
+      if (near) setPixel(r, bx + 1 + x, by + 1 + y, dark);
     }
   }
-  if (kind === 'red') {
-    for (let y = 0; y < BOLT_SIZE; y++) for (let x = 0; x < BOLT_SIZE; x++) if (diamondD(x, y) <= 3 && (x + y) % 2 === 0) setPixel(r, x, y, rgba(ink));
-  } else if (kind !== 'white') {
-    for (const [x, y] of BOLT_INK[kind]) setPixel(r, x, y, rgba(ink));
+  cells.forEach((row, y) => row.forEach((c, x) => { if (c) setPixel(r, bx + 1 + x, by + 1 + y, c); }));
+}
+
+/** One 10 x 10 bolt (8 x 8 core + 1 px outline), origin (0.5, 0.5), centred on the shot's position, no tail. */
+export function bakeBolt(kind: BoltKind): Raster {
+  const r = createRaster(BOLT_DRAWN, BOLT_DRAWN);
+  stampCore(r, 0, 0, kind);
+  return r;
+}
+
+/** Top-left of the 10 x 10 bolt inside its tail frame. */
+export function boltTailOrigin(dir: Dir): readonly [number, number] {
+  return dir === 'r' ? [BOLT_TAIL, 0] : dir === 'd' ? [0, BOLT_TAIL] : [0, 0];
+}
+
+/** Pivot (0..1) that puts the centre of the 10 x 10 bolt on the shot's position. */
+export function boltTailPivot(dir: Dir): { x: number; y: number } {
+  const [bx, by] = boltTailOrigin(dir);
+  const horiz = dir === 'l' || dir === 'r';
+  return {
+    x: (bx + BOLT_DRAWN / 2) / (horiz ? BOLT_DRAWN + BOLT_TAIL : BOLT_DRAWN),
+    y: (by + BOLT_DRAWN / 2) / (horiz ? BOLT_DRAWN : BOLT_DRAWN + BOLT_TAIL),
+  };
+}
+
+/**
+ * A bolt with its tail: the 10 x 10 bolt plus a 2 px wide, 3 px long streak (with a 1 px outline) behind it, along
+ * `dir` = the bolt's flight direction. 14 x 10 for l and r, 10 x 14 for u and d. The core stays upright.
+ * Pivot: `boltTailPivot(dir)`.
+ */
+export function bakeBoltTail(dir: Dir, kind: BoltKind): Raster {
+  const horiz = dir === 'l' || dir === 'r';
+  const r = createRaster(horiz ? BOLT_DRAWN + BOLT_TAIL : BOLT_DRAWN, horiz ? BOLT_DRAWN : BOLT_DRAWN + BOLT_TAIL);
+  const [bx, by] = boltTailOrigin(dir);
+  stampCore(r, bx, by, kind);
+  const fill = boltFill(kind);
+  const dark = rgba(bg());
+  const at = (along: number, lat: number): readonly [number, number] =>
+    dir === 'r' ? [bx - along, by + lat] : dir === 'l' ? [bx + BOLT_DRAWN - 1 + along, by + lat] : dir === 'd' ? [bx + lat, by - along] : [bx + lat, by + BOLT_DRAWN - 1 + along];
+  for (let along = 0; along <= BOLT_TAIL; along++) {
+    if (along >= 1) for (const lat of [3, 6]) { const [x, y] = at(along, lat); setPixel(r, x, y, dark); }
+    for (const lat of [4, 5]) {
+      const [x, y] = at(along, lat);
+      if (along === BOLT_TAIL) setPixel(r, x, y, dark);
+      else setPixel(r, x, y, rgba(along === BOLT_TAIL - 1 ? mix(fill, bg(), 0.35) : fill));
+    }
   }
   return r;
 }
@@ -158,15 +221,15 @@ export function bakeShimmer(frame: number): Raster {
 }
 
 const SINK_RIGHT = [
-  '................', '................', '................', '.........##..###',
-  '..........##.###', '...........##..#', '............##.#', '............##.#',
-  '............##.#', '............##.#', '...........##..#', '..........##.###',
-  '.........##..###', '................', '................', '................',
+  '................', '................', '................', '.............##.',
+  '.............##.', '.............##.', '......##.....##.', '......##.....##.',
+  '.............##.', '.............##.', '.............##.', '.............##.',
+  '................', '................', '................', '................',
 ] as const;
 
 /**
- * The catcher where a bolt's range ends, 16 x 16 white mask, origin (0, 0): a bracket on the
- * far side of the last cell with a funnel chevron pointing into it. `dir` is the bolt's flight direction.
+ * The catcher where a bolt's range ends, 16 x 16 white mask, origin (0, 0): a flat stop bar on the
+ * far side of the last cell with a pip in front of it (no teeth or points: nothing harmless may look like a spike). `dir` is the bolt's flight direction.
  */
 export function bakeSink(dir: Dir): Raster {
   const r = createRaster(SINK_SIZE, SINK_SIZE);
@@ -182,12 +245,14 @@ export function bakeSink(dir: Dir): Raster {
 
 export function boltFrameNames(): {
   bolt: (kind: BoltKind) => string;
+  boltTail: (kind: BoltKind, dir: Dir) => string;
   emitter: (dir: Dir, kind: BoltKind, state: EmitterState) => string;
   shimmer: (n: number) => string;
   sink: (dir: Dir) => string;
 } {
   return {
     bolt: (kind) => `bolt/${kind}`,
+    boltTail: (kind, dir) => `bolt/${kind}/${dir}`,
     emitter: (dir, kind, state) => `emitter/${dir}/${kind}/${state}`,
     shimmer: (n) => `bolt/shimmer/${n}`,
     sink: (dir) => `bolt/sink/${dir}`,

@@ -114,7 +114,7 @@ Each level has an online leaderboard, ranked by time. Your run is only posted af
 
 Made for GitHub Game Off 2026.
 
-> NOTE: team names go here, matching `CREDITS.md` (still a placeholder on 2026-11-18).
+By Patrick Carey.
 
 Code is MIT licensed. Third-party libraries and assets are listed in `CREDITS.md`, each with its licence.
 
@@ -238,6 +238,6 @@ In Redshift, your pace is your colour, and coloured platforms are only solid whi
 - [x] **Pattern list** (white plain, blue stripes, green dots, yellow chevrons, red checker) still matches `src/data/palette.json`. *(2026-11-23: matches.)*
 - [x] **Flash cap and no screen shake** still true (`src/fx/effectsPolicy.ts`). *(2026-11-23: `MAX_FLASHES_PER_SECOND` 3; no `shake` call anywhere in `src/`.)*
 - [x] **Progress saves in the browser** (and the title's "not saved" notice covers browsers that block storage). *(2026-11-23: `TITLE_NOT_SAVED` in `titleModel.ts`.)*
-- [ ] **Team names** in the credits section match `CREDITS.md`, and `CREDITS.md` lists every third-party asset.
+- [x] **Team names** in the credits section match `CREDITS.md` (Patrick Carey, owner's answer 2026-11-26), and `CREDITS.md` lists every third-party asset.
 - [ ] **Repo public** at https://github.com/PatrickDCarey/Shift and the link works logged out.
 - [ ] **Embed:** 960×540, fullscreen button on, click to launch; keyboard works after one click in Chrome and Firefox.

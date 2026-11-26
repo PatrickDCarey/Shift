@@ -178,9 +178,10 @@ export class KineticsView {
     }
     for (const s of plan.shots) {
       let img = this.shots.get(s.key);
+      const frame = `bolt/${s.kind}/${s.dir}`; // the tail trails behind the flight direction
       if (img === undefined) {
-        img = this.free.pop() ?? this.image(0, 0, `bolt/${s.kind}`, DEPTH_BOLT, true);
-        img.setFrame(`bolt/${s.kind}`).setVisible(true);
+        img = this.free.pop() ?? this.image(0, 0, frame, DEPTH_BOLT, true);
+        img.setFrame(frame).setVisible(true);
         this.shots.set(s.key, img);
       }
       img.setPosition(Math.round(s.x), Math.round(s.y));

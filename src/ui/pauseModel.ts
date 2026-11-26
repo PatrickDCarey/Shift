@@ -13,7 +13,7 @@ import { levelCaption } from './levelCaption';
 import { createList, focusedId, moveList } from './menuFocus';
 import type { ListItem, ListState, Transition } from './menuFocus';
 import type { MenuIntent, MenuKeyOptions } from './menuInput';
-import { ITEM_PITCH, SCREEN_H, SCREEN_W, box, centredText, truncate } from './menuLayout';
+import { ITEM_PITCH, SCREEN_H, SCREEN_W, box, centredText, scaledTextWidth, truncate } from './menuLayout';
 import type { LayoutItem } from './menuLayout';
 
 export type PauseItemId = 'resume' | 'restart' | 'controls' | 'settings' | 'levels';
@@ -47,13 +47,22 @@ export interface PauseInput {
   readonly stepHz: number;
   /** CONTROLS when returning from the controls screen. */
   readonly focusId?: PauseItemId;
+  /** A checkpoint post is lit (`state.checkpoint` present). */
+  readonly postLit?: boolean;
 }
 
 const CAPTION_MAX = 24;
 
+/** Label only: R and the item are a full restart either way. */
+export const RESTART_LABEL = 'RESTART';
+export const RESTART_LABEL_POST_LIT = 'RESTART FROM START';
+
 export function createPauseModel(input: PauseInput): PauseModel {
+  const items = input.postLit === true
+    ? ITEMS.map((i) => (i.id === 'restart' ? { ...i, label: RESTART_LABEL_POST_LIT } : i))
+    : ITEMS;
   return {
-    list: createList(ITEMS, input.focusId),
+    list: createList(items, input.focusId),
     caption: truncate(levelCaption(input.levelId, input.title), CAPTION_MAX),
     timeText: `TIME ${formatTime(input.step, input.stepHz)}`,
   };
@@ -77,16 +86,20 @@ export function pauseStep(model: PauseModel, intent: MenuIntent): Transition<Pau
 const PANEL_W = 160;
 const PANEL_H = 140;
 const PAD = 8;
+/** Side room between the longest label and the panel edge (caret and frame). */
+const PANEL_PAD_X = 24;
 
 /** Panel box (id `panel`), caption, time and the five items, all inside the 160x140 panel. */
 export function pauseLayout(model: PauseModel): readonly LayoutItem[] {
-  const px = (SCREEN_W - PANEL_W) / 2;
+  const longest = Math.max(...model.list.items.map((i) => scaledTextWidth(i.label, 2)));
+  const panelW = Math.max(PANEL_W, longest + 2 * PANEL_PAD_X);
+  const px = Math.floor((SCREEN_W - panelW) / 2);
   const py = (SCREEN_H - PANEL_H) / 2;
   const items = model.list.items.map((item, index) =>
     centredText(`item:${item.id}`, item.label, py + 40 + index * ITEM_PITCH, 2),
   );
   return [
-    box('panel', px, py, PANEL_W, PANEL_H),
+    box('panel', px, py, panelW, PANEL_H),
     centredText('caption', model.caption, py + PAD, 1),
     centredText('time', model.timeText, py + PAD + 12, 1),
     ...items,

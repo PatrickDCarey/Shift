@@ -6,10 +6,10 @@
  * (middle), `R` (right end), plus `S` (a single tile). Every segment has a wide, lit **top lip**
  * (rows 0-2, the only solid face), a body below it that carries the band's pattern (blue stripes,
  * green dots, yellow chevrons, red checker; the safe slab has rivets and no pattern), and an
- * underside rail with clamp teeth. That T profile is what separates a slab from a static tile, in
+ * underside rail. That T profile is what separates a slab from a static tile, in
  * colour and in greyscale. The `ghost` state is the slab that will not hold the player right now
- * (the "sink" look): no fill, dashed outline, hollow pattern, no lit lip, and three down-pointing
- * sink ticks under it.
+ * (the "sink" look): no fill, dashed outline, hollow pattern, no lit lip, and three flat
+ * sink dashes under it.
  *
  * Direction chevrons (8 x 8 white masks) and the track (dotted line, corners, end stops; white
  * masks, tint at runtime) are separate frames, so the scene can place them from the slab's delta.
@@ -79,9 +79,9 @@ function bakeSolidSlab(kind: SlabKind, seg: SlabSegment): Raster {
     for (let i = 0; i < SLAB_SIZE; i++) if (pixelPatternOn(id, i, j, SLAB_SIZE)) setPixel(r, i, 4 + j, rgba(ink));
   }
   if (kind === 'safe') for (const x of [3, 12]) for (const y of [5, 8]) setPixel(r, x, y, rgba(ink));
-  // Underside rail: clamp teeth every 8 px, 4 rows tall, so the slab hangs from a rail rather than sitting on the floor.
-  for (const x of [2, 3, 10, 11]) fillRect(r, x, 12, 1, 4, out);
-  for (const x of [4, 5, 12, 13]) fillRect(r, x, 12, 1, 2, dark);
+  // Underside rail: a flat bar (no teeth: nothing harmless may look like a spike), so the slab hangs from a rail.
+  fillRect(r, 1, 12, 14, 2, dark);
+  fillRect(r, 1, 14, 14, 1, out);
   if (isLeft(seg)) fillRect(r, 0, 0, 1, 12, out);
   if (isRight(seg)) fillRect(r, SLAB_SIZE - 1, 0, 1, 12, out);
   return r;
@@ -111,12 +111,8 @@ function bakeGhostSlab(kind: SlabKind, seg: SlabSegment): Raster {
   }
   if (isLeft(seg)) for (let y = 0; y < 12; y += 2) setPixel(r, 0, y, line);
   if (isRight(seg)) for (let y = 0; y < 12; y += 2) setPixel(r, SLAB_SIZE - 1, y, line);
-  // Sink ticks: three small down-pointing chevrons under the slab ("you would sink through this").
-  for (const cx of [3, 8, 13]) {
-    setPixel(r, cx - 1, 12, line);
-    setPixel(r, cx + 1, 12, line);
-    setPixel(r, cx, 13, line);
-  }
+  // Sink marks: three short horizontal dashes under the slab (flat, never pointed: nothing harmless looks like a spike).
+  for (const x0 of [1, 6, 11]) for (let i = 0; i < 4; i++) setPixel(r, x0 + i, 12, line);
   return r;
 }
 

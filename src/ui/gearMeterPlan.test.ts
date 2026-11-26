@@ -280,3 +280,39 @@ describe('B6-20 filled backing', () => {
     }
   });
 });
+
+describe('PT-6 pace track', () => {
+  const L = GEAR_METER_LAYOUT;
+  const centre = (i: number): number => L.cellsX + i * L.pitch + Math.floor(L.cell / 2);
+
+  it('standing at the spawn after two up-presses: cell 0 to cell 3', () => {
+    const t = plan(model({ selectedGear: 3 })).track;
+    expect(t?.from).toBe(centre(0));
+    expect(t?.to).toBe(centre(3));
+  });
+
+  it('gear 1 while white spans cell 0 to cell 1', () => {
+    const t = plan(model()).track;
+    expect([t?.from, t?.to]).toEqual([centre(0), centre(1)]);
+  });
+
+  it('shortens as the needle moves and is null once arrived', () => {
+    const at = (needle: number) => plan(model({ selectedGear: 4, litBand: 2, needle })).track;
+    expect(at(2.5)!.to - at(2.5)!.from).toBeLessThan(at(1)!.to - at(1)!.from);
+    expect(plan(model({ selectedGear: 4, litBand: 4, needle: 4 })).track).toBeNull();
+  });
+
+  it('is null in the air, when braking below the bracket, and on the compact strip', () => {
+    expect(plan(model({ selectedGear: 3, airborne: true })).track).toBeNull();
+    expect(plan(model({ selectedGear: 2, litBand: 3, needle: 3 })).track).toBeNull();
+    expect(plan(model({ selectedGear: 3 }), null, COMPACT_STRIP_LAYOUT).track).toBeNull();
+  });
+
+  it('chevron is 3 x 5, tip at the bracket centre, and clear of the digits and drag bar', () => {
+    const t = plan(model({ selectedGear: 3 })).track!;
+    expect([t.chevron.w, t.chevron.h]).toEqual([3, 5]);
+    expect(t.chevron.x + 2).toBe(t.to);
+    expect(t.chevron.y).toBeGreaterThanOrEqual(L.digitY + 7);
+    expect(t.chevron.y + t.chevron.h).toBeLessThanOrEqual(L.dragY + 1);
+  });
+});

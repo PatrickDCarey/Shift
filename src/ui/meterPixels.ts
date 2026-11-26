@@ -63,6 +63,18 @@ export function chevronRects(x: number, y: number, w: number, h: number): readon
   });
 }
 
+/** A right-pointing chevron `w` x `h`, the mirror of `chevronRects`: its tip is the right column. */
+export function rightChevronRects(x: number, y: number, w: number, h: number): readonly Rect[] {
+  return chevronRects(x, y, w, h).map((r) => ({ ...r, x: x + (w - 1) - (r.x - x) }));
+}
+
+/** 1 px dots on every other column from `from` up to (not including) `to`. */
+export function dottedRowRects(from: number, to: number, y: number): readonly Rect[] {
+  const dots: Rect[] = [];
+  for (let x = from; x < to; x += 2) dots.push(px(x, y));
+  return dots;
+}
+
 /** Pattern ink of a `size` x `size` cell, as 1 px rects (the non-colour signal). */
 export function patternInk(id: PatternId, size: number): readonly Rect[] {
   const out: Rect[] = [];

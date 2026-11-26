@@ -195,7 +195,7 @@ export class GameScene extends Phaser.Scene {
       this.gate.opened();
       this.tip?.pause();
       const { id, title } = this.driver.level.meta;
-      this.scene.launch(SCENE_KEYS.pause, pauseLaunchData(id, title, this.driver.state.step, this.cfg.params.stepHz));
+      this.scene.launch(SCENE_KEYS.pause, pauseLaunchData(id, title, this.driver.state.step, this.cfg.params.stepHz, this.driver.state.checkpoint !== undefined));
     } else if (change === 'resumed') {
       this.sampler.setPaused(false);
       this.gate.closed(performance.now());

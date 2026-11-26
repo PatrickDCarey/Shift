@@ -78,6 +78,17 @@ export interface PlanDrag {
   readonly chevron: Rect;
 }
 
+/** PT-6: dotted track from the needle to the selected gear's bracket, with a chevron at that end. */
+export interface PlanTrack {
+  /** Needle column. */
+  readonly from: number;
+  /** Centre column of the selected gear's cell (the chevron's tip). */
+  readonly to: number;
+  readonly y: number;
+  /** Right-pointing chevron whose tip sits at `to`. */
+  readonly chevron: Rect;
+}
+
 export interface GearMeterPlan {
   readonly panel: Rect;
   readonly cells: readonly PlanCell[];
@@ -91,6 +102,8 @@ export interface GearMeterPlan {
   readonly needle: PlanNeedle;
   /** PT-4: bar from the needle to the next lower cell. */
   readonly drag: PlanDrag | null;
+  /** PT-6: grounded and the selected gear is above the lit band; else null. */
+  readonly track: PlanTrack | null;
   /** Highlight over the cell that just lit after a drag drop, or that a cue pulses. */
   readonly pulse: Rect | null;
   /** PT-3: 1 px ring on the cell of the colour you needed. */
@@ -124,6 +137,16 @@ function dragPlan(l: GearMeterLayout, model: GearMeterModel): PlanDrag | null {
   const fillW = Math.floor(innerW * span.fill);
   const fill: Rect = { x: frame.x + 1 + innerW - fillW, y: frame.y + 1, w: fillW, h: Math.max(0, frame.h - 2) };
   return { span, frame, fill, chevron };
+}
+
+/** PT-6: "you are here, you are heading there". Grounded, not arrived, and the needle behind the bracket. */
+export function trackPlan(l: GearMeterLayout, model: GearMeterModel): PlanTrack | null {
+  if (!l.showTrack || model.airborne || model.selectedGear <= model.litBand) return null;
+  const from = centreCol(l, 0) + Math.round(model.needle * l.pitch);
+  const to = centreCol(l, model.selectedGear);
+  if (to <= from) return null;
+  const { trackChevronW: w, trackChevronH: h } = l;
+  return { from, to, y: l.trackY, chevron: { x: to - (w - 1), y: l.trackY - (h - 1) / 2, w, h } };
 }
 
 function hintPlan(l: GearMeterLayout, side: 'down' | 'up', labels: readonly string[]): PlanHint {
@@ -191,6 +214,7 @@ export function gearMeterPlan(
       halfW: l.needleHalfW,
     },
     drag: dragPlan(l, model),
+    track: trackPlan(l, model),
     pulse: pulse === null ? null : cellRect(l, pulse),
     ring: cue === null ? null : cellRect(l, cue.ringBand),
     hints: hintsPlan(l, caps),

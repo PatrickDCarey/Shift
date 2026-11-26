@@ -6,8 +6,7 @@ _Owner: tech-lead. Every third-party asset in the game or the repo must be liste
 
 Redshift was made for GitHub Game Off 2026.
 
-<!-- TODO(B7-05, owner): team names and roles. Waiting on the owner (owner question 2). Do not submit with this placeholder. -->
-- **[PLACEHOLDER: team names and roles, from the owner, before submission]**
+- **Patrick Carey**
 
 ## Code libraries
 

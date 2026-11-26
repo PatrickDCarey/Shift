@@ -6,6 +6,7 @@ import { DEFAULT_BINDINGS, withBinding } from './bindings';
 import { controlsLayout, controlsRows, controlsStep, createControlsModel } from './controlsModel';
 import { decorationRects, layoutViolations } from './menuLayout';
 import { createPauseModel, pauseLayout, pauseStep } from './pauseModel';
+import { pauseLaunchData, parsePauseData } from './menuFlow';
 import { createResultsModel, resultsLayout, resultsStep } from './resultsModel';
 import { createTitleModel, titleLayout, titleStep } from './titleModel';
 import type { TitleModel } from './titleModel';
@@ -359,5 +360,35 @@ describe('B6-16 results key line', () => {
     expect(roles['item:next']).toBe('text');
     expect(roles['item:levels']).toBe('muted');
     expect(roles['item:retry']).toBe('text'); // focused
+  });
+});
+
+describe('pause RESTART label while a post is lit (pause.md 2026-11-25)', () => {
+  const base = { levelId: 'w4-05', title: 'Ferry', step: 900, stepHz: 60 };
+  const label = (m: ReturnType<typeof createPauseModel>) => m.list.items[1]?.label;
+
+  it('reads RESTART with no post and RESTART FROM START with one lit', () => {
+    expect(label(createPauseModel(base))).toBe('RESTART');
+    expect(label(createPauseModel({ ...base, postLit: false }))).toBe('RESTART');
+    expect(label(createPauseModel({ ...base, postLit: true }))).toBe('RESTART FROM START');
+  });
+
+  it('behaves the same: R and the item are restart', () => {
+    const m = createPauseModel({ ...base, postLit: true });
+    expect(pauseStep(m, { kind: 'retry' }).action).toBe('restart');
+    expect(pauseStep(pauseStep(m, { kind: 'move', dir: 'down' }).model, { kind: 'choose' }).action).toBe('restart');
+  });
+
+  it('the long label still fits inside the panel', () => {
+    const items = pauseLayout(createPauseModel({ ...base, postLit: true }));
+    const panel = items.find((i) => i.id === 'panel');
+    const text = items.find((i) => i.id === 'item:restart');
+    expect(panel && text && text.x >= panel.x && text.x + text.w <= panel.x + panel.w).toBe(true);
+  });
+
+  it('postLit survives launch data, parsing and the controls round trip', () => {
+    const d = pauseLaunchData(base.levelId, base.title, base.step, base.stepHz, true);
+    expect(parsePauseData(d)?.postLit).toBe(true);
+    expect(parsePauseData(pauseLaunchData(base.levelId, base.title, 1, 60))?.postLit).toBeUndefined();
   });
 });

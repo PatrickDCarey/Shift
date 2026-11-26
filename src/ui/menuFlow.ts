@@ -28,6 +28,8 @@ export interface PauseSceneData {
   readonly step: number;
   readonly stepHz: number;
   readonly focusId?: PauseItemId;
+  /** A checkpoint post is lit: RESTART reads RESTART FROM START (pause.md, 2026-11-25). */
+  readonly postLit?: boolean;
 }
 
 export type ControlsSceneData =
@@ -58,8 +60,14 @@ const isRate = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 const PAUSE_ITEMS: readonly string[] = ['resume', 'restart', 'controls', 'settings', 'levels'];
 
 /** Typed builder for the game scene's `scene.launch('Pause', ...)`. */
-export function pauseLaunchData(levelId: string, title: string, step: number, stepHz: number): PauseSceneData {
-  return { levelId, title, step, stepHz };
+export function pauseLaunchData(
+  levelId: string,
+  title: string,
+  step: number,
+  stepHz: number,
+  postLit = false,
+): PauseSceneData {
+  return postLit ? { levelId, title, step, stepHz, postLit } : { levelId, title, step, stepHz };
 }
 
 export function parsePauseData(data: unknown): PauseSceneData | null {
@@ -67,7 +75,8 @@ export function parsePauseData(data: unknown): PauseSceneData | null {
   const { levelId, title, step, stepHz, focusId } = data;
   if (!isText(levelId) || typeof title !== 'string' || !isCount(step) || !isRate(stepHz)) return null;
   const focus = typeof focusId === 'string' && PAUSE_ITEMS.includes(focusId) ? { focusId: focusId as PauseItemId } : {};
-  return { levelId, title, step, stepHz, ...focus };
+  const lit = data.postLit === true ? { postLit: true } : {};
+  return { levelId, title, step, stepHz, ...focus, ...lit };
 }
 
 /** RESUME and RESTART go back to the game scene; CONTROLS, SETTINGS and LEVELS leave. */

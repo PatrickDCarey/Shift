@@ -7,7 +7,7 @@ import { gearKeyCaps, type GearKeyCaps } from './gearKeyCaps';
 import { INITIAL_GEAR_METER_MODEL, type GearMeterModel } from './gearMeter';
 import { GEAR_METER_LAYOUT, type GearMeterLayout } from './gearMeterLayout';
 import { gearMeterPlan, type GearMeterPlan, type PlanCell, type PlanHint, type Rect } from './gearMeterPlan';
-import { arrowRects, chevronRects, dashedRingRects, needleRects, patternInk, patternRim, ringRects } from './meterPixels';
+import { arrowRects, chevronRects, dashedRingRects, dottedRowRects, needleRects, patternInk, patternRim, ringRects, rightChevronRects } from './meterPixels';
 import { CUE_FRAMES, cueView, updateCue, type CueView, type NeededColourCue, type NeededColourEvent } from './neededColourCue';
 
 /**
@@ -183,6 +183,7 @@ export class GearMeterView {
     const n = plan.needle;
     this.fill(needleRects(n.x, n.top, n.h), palette.ui.text);
     if (plan.drag) this.drawDrag(plan.drag);
+    if (plan.track) this.drawTrack(plan.track);
     plan.hints.forEach((hint) => this.drawHint(hint));
   }
 
@@ -241,6 +242,13 @@ export class GearMeterView {
     }
     const c = drag.chevron;
     this.fill(chevronRects(c.x, c.y, c.w, c.h), palette.ui.text);
+  }
+
+  /** PT-6: static dotted track and chevron (no motion, so reduced motion and effects need no branch). */
+  private drawTrack(t: NonNullable<GearMeterPlan['track']>): void {
+    const c = t.chevron;
+    this.fill(dottedRowRects(t.from, c.x, t.y), palette.ui.textMuted);
+    this.fill(rightChevronRects(c.x, c.y, c.w, c.h), palette.ui.textMuted);
   }
 
   /** Key-cap outlines and the small arrow (down for shift down, up for shift up). */

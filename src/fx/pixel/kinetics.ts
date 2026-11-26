@@ -8,7 +8,8 @@
  *  slab/chevron/<l|r|u|d>                                      8x8 white mask, origin (0.5, 0.5)
  *  track/<h|v|ne|nw|se|sw|stop/l|stop/r|stop/u|stop/d>         16x16 white mask, origin (0, 0)
  *  emitter/<l|r|u|d>/<grey|white|blue|green|yellow|red>/<idle|tell>  16x16, origin (0, 0)
- *  bolt/<grey|white|blue|green|yellow|red>                     8x8, origin (0.5, 0.5)
+ *  bolt/<grey|white|blue|green|yellow|red>                     10x10 (8x8 core + 1 px outline), origin (0.5, 0.5)
+ *  bolt/<kind>/<l|r|u|d>                                       the same plus a 4 px tail behind the flight direction (14x10, 10x14); pivot on the bolt centre
  *  bolt/shimmer/<0-3>                                          16x16 white mask, origin (0.5, 0.5)
  *  bolt/sink/<l|r|u|d>                                         16x16 white mask, origin (0, 0)
  *  sweep/edge/<0-2>, sweep/fill/<0-3>, sweep/marker           16x16 / 16x16 / 12x16 white masks (see sweep.ts)
@@ -16,7 +17,7 @@
  */
 import type { PackItem } from './atlas';
 import {
-  BOLT_KINDS, EMITTER_STATES, SHIMMER_FRAMES, bakeBolt, bakeEmitter, bakeShimmer, bakeSink, boltFrameNames,
+  BOLT_KINDS, EMITTER_STATES, SHIMMER_FRAMES, bakeBolt, bakeBoltTail, boltTailPivot, bakeEmitter, bakeShimmer, bakeSink, boltFrameNames,
 } from './bolts';
 import {
   DIRS, SLAB_KINDS, SLAB_SEGMENTS, SLAB_STATES, TRACK_CELLS, bakeChevron, bakeSlabSegment, bakeTrackCell,
@@ -55,7 +56,10 @@ export function kineticItems(): PackItem[] {
       for (const s of EMITTER_STATES) items.push({ name: n.emitter(d, k, s), raster: bakeEmitter(d, k, s), pivot: { x: 0, y: 0 } });
     }
   }
-  for (const k of BOLT_KINDS) items.push({ name: n.bolt(k), raster: bakeBolt(k), pivot: { x: 0.5, y: 0.5 } });
+  for (const k of BOLT_KINDS) {
+    items.push({ name: n.bolt(k), raster: bakeBolt(k), pivot: { x: 0.5, y: 0.5 } });
+    for (const d of DIRS) items.push({ name: n.boltTail(k, d), raster: bakeBoltTail(d, k), pivot: boltTailPivot(d) });
+  }
   for (let f = 0; f < SHIMMER_FRAMES; f++) items.push({ name: n.shimmer(f), raster: bakeShimmer(f), pivot: { x: 0.5, y: 0.5 } });
   for (const d of DIRS) items.push({ name: n.sink(d), raster: bakeSink(d), pivot: { x: 0, y: 0 } });
   items.push({ name: n.post.idle, raster: bakePost('idle'), pivot: POST_ORIGIN });
