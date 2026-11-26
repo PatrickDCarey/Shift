@@ -4,8 +4,8 @@ A puzzle-platformer about pace, made for **GitHub Game Off 2026** (theme: **SHIF
 
 Your speed is your colour. Stand still and you're white; sprint and you're red. Coloured platforms are only solid when your colour matches them, so every puzzle is about where you speed up, where you slow down, and where you take off. Shift gears with the Shift keys while the world red-shifts around you.
 
-- **Play:** _itch.io link coming soon_
-- **Jam entry:** _Game Off 2026 link coming soon_
+- **Play:** https://patrickcarey.itch.io/redshift
+- **Jam entry:** https://itch.io/jam/game-off-2026/rate/5450812
 - **Built with:** Phaser 3, TypeScript, Vite
 
 ## What's in this build

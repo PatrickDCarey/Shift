@@ -6,6 +6,8 @@ _Owner: design-lead. Written 2026-11-18 against the build as it stands (batch 6,
 
 > NOTE (2026-11-25): British spelling pass. Every line of copy, the jam form text and the captions now say "colour". No claim changed.
 
+> NOTE (2026-11-26): **published and submitted.** Page https://patrickcarey.itch.io/redshift, jam entry https://itch.io/jam/game-off-2026/rate/5450812. The LEADERBOARDS block (§3) is **not** on the live page: the game does not call the leaderboard yet. Put it back only after the results-screen board works on the itch build. The jam form used the §2 short description as shortened for itch's 120-character limit and the §6 theme text. AI usage on the jam form, as the owner chose: Code, Music/sound, Writing, Testing; extent "Some".
+
 Paste each section into the itch.io field named in its heading. Lines in `> NOTE` blocks are instructions, not copy: do not paste them.
 
 ---
