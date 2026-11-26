@@ -37,7 +37,7 @@ begin
       ('leading space',   ' AB',                    10, '10R'),
       ('13 characters',   'ABCDEFGHIJKLM',          10, '10R'),
       ('36001 steps',     'ACE',                    36001, '10R'),
-      ('log too long',    'ACE',                    10, repeat('1R ', 5400))
+      ('log too long',    'ACE',                    10, repeat('1R ', 10700))
     ) as t(label, dname, st, lg)
   loop
     rejected := false;
